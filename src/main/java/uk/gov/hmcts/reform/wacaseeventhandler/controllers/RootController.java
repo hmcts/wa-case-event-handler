@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,7 +22,10 @@ public class RootController {
      *
      * @return Welcome message from the service.
      */
-    @GetMapping("/")
+    @GetMapping(
+        path = "/",
+        produces = MediaType.APPLICATION_JSON_VALUE
+    )
     public ResponseEntity<String> welcome() {
         return ok("Welcome to wa-case-event-handler");
     }
