@@ -1,0 +1,6 @@
+java:
+  applicationPort: 8088
+  image: 'hmctspublic.azurecr.io/wa/case-event-handler:latest'
+  ingressHost: wa-case-event-handler-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
+  aadIdentityName: wa
+  environment:

@@ -1,0 +1,11 @@
+#!groovy
+
+@Library("Infrastructure")
+
+def type = "java"
+def product = "wa"
+def component = "case-event-handler"
+
+withPipeline(type, product, component) {
+    disableLegacyDeployment()
+}
