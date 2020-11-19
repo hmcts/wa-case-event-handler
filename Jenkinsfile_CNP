@@ -6,6 +6,19 @@ def type = "java"
 def product = "wa"
 def component = "case-event-handler"
 
+def secrets = [
+    'wa-${env}' : [
+    ],
+
+    's2s-${env}' : [
+        secret('microservicekey-wa-case-event-handler', 'S2S_SECRET_CASE_EVENT_HANDLER')
+    ]
+]
+
 withPipeline(type, product, component) {
     disableLegacyDeployment()
+
+    env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
+    loadVaultSecrets(secrets)
+
 }
