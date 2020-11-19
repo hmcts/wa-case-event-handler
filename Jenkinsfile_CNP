@@ -9,11 +9,19 @@ def component = "case-event-handler"
 def secrets = [
     'wa-${env}' : [
     ],
-
-    's2s-${env}' : [
+    's2s-${env}': [
         secret('microservicekey-wa-case-event-handler', 'S2S_SECRET_CASE_EVENT_HANDLER')
     ]
 ]
+
+static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
+    [$class     : 'AzureKeyVaultSecret',
+     secretType : 'Secret',
+     name       : secretName,
+     version    : '',
+     envVariable: envVar
+    ]
+}
 
 withPipeline(type, product, component) {
     disableLegacyDeployment()
