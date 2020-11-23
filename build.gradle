@@ -137,8 +137,8 @@ sonarqube {
     property "sonar.projectKey", "uk.gov.hmcts.reform:wa-case-event-handler"
     property "sonar.coverage.jacoco.xmlReportPaths", "${jacocoTestReport.reports.xml.destination.path}"
     property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/Application.java" +
-                                 "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/config/**," +
-                                 "src/testUtils/java/uk/gov/hmcts/reform/wacaseeventhandler/**,"
+                                 "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/config/**" +
+                                 "src/testUtils/java/uk/gov/hmcts/reform/wacaseeventhandler/**"
 
   }
 }
