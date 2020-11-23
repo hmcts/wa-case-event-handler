@@ -5,6 +5,10 @@
 bin/main/application.yaml
 /target/
 
+/target/*
+# exception to the rule
+!target/.gitkeep
+
 ### STS ###
 .apt_generated
 .classpath
