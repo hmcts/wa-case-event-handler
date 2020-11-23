@@ -1,0 +1,9 @@
+spring:
+  cloud:
+    propertiesvolume:
+      enabled: true
+      prefixed: false
+      paths: /mnt/secrets/wa
+      aliases:
+        AppInsightsInstrumentationKey: azure.application-insights.instrumentation-key
+        s2s-secret-case-event-handler: S2S_SECRET_CASE_EVENT_HANDLER

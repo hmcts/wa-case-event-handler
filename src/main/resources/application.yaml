@@ -11,6 +11,15 @@ management:
       exposure:
         include: health, info, prometheus
 
+idam:
+  s2s-auth:
+    url: ${S2S_URL:http://service-auth-provider-api}
+    secret: ${S2S_SECRET_CASE_EVENT_HANDLER:AAAAAAAAAAAAAAAA}
+    name: ${S2S_NAME_CASE_EVENT_HANDLER:wa_case_event_handler}
+  s2s-authorised:
+    services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps}
+
+
 #If you use a database then uncomment below lines and update db properties accordingly
 spring:
   application:
