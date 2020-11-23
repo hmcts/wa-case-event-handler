@@ -3,4 +3,9 @@ java:
   image: 'hmctspublic.azurecr.io/wa/case-event-handler:latest'
   ingressHost: wa-case-event-handler-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal
   aadIdentityName: wa
+  keyVaults:
+    wa:
+      secrets:
+        - AppInsightsInstrumentationKey
+        - s2s-secret-case-event-handler
   environment:
