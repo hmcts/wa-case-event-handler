@@ -270,6 +270,8 @@ dependencies {
   functionalTestImplementation sourceSets.test.runtimeClasspath
 
   smokeTestImplementation sourceSets.main.runtimeClasspath
+  smokeTestImplementation sourceSets.test.runtimeClasspath
+
 }
 
 mainClassName = 'uk.gov.hmcts.reform.wacaseeventhandler.Application'
