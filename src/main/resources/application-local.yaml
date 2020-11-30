@@ -1,0 +1,8 @@
+logging.level.org.springframework.web: debug
+logging.level.uk.gov.hmcts.reform: debug
+
+feign:
+  client:
+    config:
+      default:
+        loggerLevel: full
