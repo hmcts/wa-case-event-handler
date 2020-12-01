@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.config.advice;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
@@ -8,6 +9,7 @@ import java.util.Objects;
 
 public class ErrorMessage {
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
     private final LocalDateTime timestamp;
     private final String error;
     private final int status;
