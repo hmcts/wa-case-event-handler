@@ -2,12 +2,12 @@ package uk.gov.hmcts.reform.wacaseeventhandler.domain;
 
 import lombok.Builder;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 
 @Builder
 public class CcdEventMessage {
 
-    @NotNull
+    @NotBlank
     private final String id;
     private final String name;
 
