@@ -17,7 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ActiveProfiles({"local"})
 @WebMvcTest(value = {CaseEventHandlerController.class})
-class CaseEventHandlerControllerTest {
+class CaseEventHandlerControllerEndPointTest {
 
     @Autowired
     private MockMvc mockMvc;
