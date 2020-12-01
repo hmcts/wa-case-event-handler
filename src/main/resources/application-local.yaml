@@ -1,4 +1,4 @@
-logging.level.org.springframework.web: debug
+logging.level.org.springframework.web: info
 logging.level.uk.gov.hmcts.reform: debug
 
 feign:
