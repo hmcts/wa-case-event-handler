@@ -13,4 +13,9 @@ class InitiationTaskHandlerServiceImplTest {
         assertThat(handlerService.canHandle()).isFalse();
     }
 
+    @Test
+    void handle() throws NoSuchMethodException {
+        assertThat(handlerService.getClass().getMethod("handle").getName()).isEqualTo("handle");
+    }
+
 }
