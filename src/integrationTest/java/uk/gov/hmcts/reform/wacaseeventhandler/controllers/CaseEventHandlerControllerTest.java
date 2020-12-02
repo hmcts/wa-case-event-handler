@@ -13,7 +13,12 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.WarningHandlerServiceImpl
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.inOrder;
 
-@SpringBootTest
+@SpringBootTest(classes = {
+    CaseEventHandlerController.class,
+    CancellationTaskHandlerServiceImpl.class,
+    InitiationTaskHandlerServiceImpl.class,
+    WarningHandlerServiceImpl.class
+})
 class CaseEventHandlerControllerTest {
 
     @MockBean

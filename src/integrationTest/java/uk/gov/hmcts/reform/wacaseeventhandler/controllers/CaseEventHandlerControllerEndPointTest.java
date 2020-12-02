@@ -10,13 +10,21 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.CcdEventMessage;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.CancellationTaskHandlerServiceImpl;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.InitiationTaskHandlerServiceImpl;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.WarningHandlerServiceImpl;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ActiveProfiles({"local"})
-@WebMvcTest(value = {CaseEventHandlerController.class})
+@WebMvcTest(value = {
+    CaseEventHandlerController.class,
+    CancellationTaskHandlerServiceImpl.class,
+    InitiationTaskHandlerServiceImpl.class,
+    WarningHandlerServiceImpl.class
+})
 class CaseEventHandlerControllerEndPointTest {
 
     @Autowired
