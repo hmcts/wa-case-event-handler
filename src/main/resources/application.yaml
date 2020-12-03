@@ -19,6 +19,9 @@ idam:
   s2s-authorised:
     services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps}
 
+camunda:
+  url: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
+
 
 spring:
   application:

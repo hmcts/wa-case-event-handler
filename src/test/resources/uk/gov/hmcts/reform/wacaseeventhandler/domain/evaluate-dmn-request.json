@@ -1,0 +1,12 @@
+{
+  "variables": {
+    "eventId": {
+      "value": "submitAppeal",
+      "type": "String"
+    },
+    "postEventState": {
+      "value": "appealSubmitted",
+      "type": "String"
+    }
+  }
+}
