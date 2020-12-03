@@ -18,3 +18,4 @@ public final class EvaluateDmnResponse<ResponseT> {
         return result;
     }
 }
+
