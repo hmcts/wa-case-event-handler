@@ -9,6 +9,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wacaseeventhandler.clients.WaWorkflowApiClient;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.CcdEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CancellationTaskHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.InitiationTaskHandler;
@@ -23,7 +25,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     CaseEventHandlerController.class,
     CancellationTaskHandler.class,
     InitiationTaskHandler.class,
-    WarningTaskHandler.class
+    WarningTaskHandler.class,
+    WaWorkflowApiClient.class,
+    AuthTokenGenerator.class
 })
 class CaseEventHandlerControllerEndPointTest {
 
