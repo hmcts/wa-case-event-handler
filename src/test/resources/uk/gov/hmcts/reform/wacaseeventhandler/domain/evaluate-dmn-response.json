@@ -1,0 +1,14 @@
+{
+  "responses": [
+    {
+      "name": {
+        "type": "String",
+        "value": "Process Application"
+      },
+      "workingDaysAllowed": {
+        "type": "Integer",
+        "value": 2
+      }
+    }
+  ]
+}
