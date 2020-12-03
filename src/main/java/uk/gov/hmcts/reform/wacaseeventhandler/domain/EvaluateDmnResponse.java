@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -8,14 +10,15 @@ import lombok.ToString;
 @SuppressWarnings("PMD.GenericsNaming")
 public final class EvaluateDmnResponse<ResponseT> {
 
-    private final ResponseT result;
+    private final ResponseT results;
 
-    public EvaluateDmnResponse(ResponseT result) {
-        this.result = result;
+    @JsonCreator
+    public EvaluateDmnResponse(@JsonProperty("results") ResponseT results) {
+        this.results = results;
     }
 
-    public ResponseT getResult() {
-        return result;
+    public ResponseT getResults() {
+        return results;
     }
 }
 

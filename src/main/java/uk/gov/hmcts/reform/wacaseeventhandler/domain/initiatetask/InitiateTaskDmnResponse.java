@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnIntegerValue;
@@ -13,10 +15,11 @@ public final class InitiateTaskDmnResponse {
     private final DmnIntegerValue workingDaysAllowed;
     private final DmnStringValue name;
 
-    public InitiateTaskDmnResponse(DmnStringValue taskId,
-                                   DmnStringValue group,
-                                   DmnIntegerValue workingDaysAllowed,
-                                   DmnStringValue name) {
+    @JsonCreator
+    public InitiateTaskDmnResponse(@JsonProperty("taskId") DmnStringValue taskId,
+                                   @JsonProperty("group") DmnStringValue group,
+                                   @JsonProperty("workingDaysAllowed") DmnIntegerValue workingDaysAllowed,
+                                   @JsonProperty("name") DmnStringValue name) {
         this.taskId = taskId;
         this.group = group;
         this.workingDaysAllowed = workingDaysAllowed;

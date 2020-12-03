@@ -5,7 +5,7 @@
       "type": "String"
     },
     "postEventState": {
-      "value": "appealSubmitted",
+      "value": "",
       "type": "String"
     }
   }

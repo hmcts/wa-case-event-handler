@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.initiatetask;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -15,6 +16,7 @@ import java.util.List;
 
 @Service
 @Order(3)
+@Slf4j
 public class InitiationTaskHandlerServiceImpl implements CaseEventHandlerService {
 
     private final WaWorkflowApiClient<InitiateTaskDmnRequest, InitiateTaskDmnResponse> waWorkflowApiClient;
@@ -49,6 +51,6 @@ public class InitiationTaskHandlerServiceImpl implements CaseEventHandlerService
 
     @Override
     public void handle() {
-
+        log.info("hey world!");
     }
 }
