@@ -19,10 +19,9 @@ idam:
   s2s-authorised:
     services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps}
 
-camunda:
-  url: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
-
+wa-workflow-api:
+  url: ${WA_WORKFLOW_API_URL:http://localhost:8099}
 
 spring:
   application:
-    name: Spring Boot Template
+    name: WA Case Event Handler

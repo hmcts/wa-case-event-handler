@@ -1,16 +1,20 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain;
 
-import java.util.Map;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
-public final class EvaluateDmnRequest {
+@ToString
+@EqualsAndHashCode
+@SuppressWarnings("PMD.GenericsNaming")
+public final class EvaluateDmnRequest<RequestT> {
 
-    private final Map<String, DmnValue> variables;
+    private final RequestT variables;
 
-    public EvaluateDmnRequest(Map<String, DmnValue> variables) {
+    public EvaluateDmnRequest(RequestT variables) {
         this.variables = variables;
     }
 
-    public Map<String, DmnValue> getVariables() {
+    public RequestT getVariables() {
         return variables;
     }
 }

@@ -4,16 +4,21 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 @ToString
-@EqualsAndHashCode(callSuper = true)
-public final class DmnIntegerValue extends DmnValue {
-    private final Integer value;
+@EqualsAndHashCode
+public final class DmnIntegerValue {
+    private final String value;
+    private final String type;
 
-    public DmnIntegerValue(Integer value) {
-        super("Integer");
+    public DmnIntegerValue(String value) {
         this.value = value;
+        this.type = "Integer";
     }
 
-    public Integer getValue() {
+    public String getValue() {
         return value;
+    }
+
+    public String getType() {
+        return type;
     }
 }

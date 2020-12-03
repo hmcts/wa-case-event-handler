@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class WarningTaskHandlerServiceImplTest {
 
-    private final InitiationTaskHandler handlerService = new InitiationTaskHandler();
+    private final WarningTaskHandler handlerService = new WarningTaskHandler();
 
     @Test
     void can_handle() {

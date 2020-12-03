@@ -8,23 +8,26 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
 
+import java.util.List;
+
 @FeignClient(
-    name = "camunda",
-    url = "${camunda.url}"
+    name = "wa-workflow-api",
+    url = "${wa-workflow-api.url}"
 )
-public interface CamundaClient {
+@SuppressWarnings("PMD.GenericsNaming")
+public interface WaWorkflowApiClient<RequestT,ResponseT> {
 
     String SERVICE_AUTHORIZATION = "ServiceAuthorization";
 
     @PostMapping(
-        value = "/decision-definition/key/getTask_{jurisdiction}_{caseType}/evaluate",
-        produces = MediaType.APPLICATION_JSON_VALUE
+        value = "/workflow/decision-definition/key/{key}/evaluate",
+        produces = MediaType.APPLICATION_JSON_VALUE,
+        consumes = MediaType.APPLICATION_JSON_VALUE
     )
-    EvaluateDmnResponse getTask(
+    List<EvaluateDmnResponse<ResponseT>> evaluateDmn(
         @RequestHeader(SERVICE_AUTHORIZATION) String serviceAuthorisation,
-        @PathVariable("jurisdiction") String jurisdiction,
-        @PathVariable("caseType") String caseType,
-        EvaluateDmnRequest requestParameters
+        @PathVariable("key") String key,
+        EvaluateDmnRequest<RequestT> requestParameters
     );
 
 }

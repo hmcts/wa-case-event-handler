@@ -1,17 +1,20 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain;
 
-import java.util.List;
-import java.util.Map;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
-public final class EvaluateDmnResponse {
+@ToString
+@EqualsAndHashCode
+@SuppressWarnings("PMD.GenericsNaming")
+public final class EvaluateDmnResponse<ResponseT> {
 
-    private final List<Map<String, Object>> response;
+    private final ResponseT result;
 
-    public EvaluateDmnResponse(List<Map<String, Object>> response) {
-        this.response = response;
+    public EvaluateDmnResponse(ResponseT result) {
+        this.result = result;
     }
 
-    public List<Map<String, Object>> getResponse() {
-        return response;
+    public ResponseT getResult() {
+        return result;
     }
 }
