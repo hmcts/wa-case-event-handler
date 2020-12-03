@@ -6,15 +6,15 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 public final class DmnIntegerValue {
-    private final String value;
+    private final Integer value;
     private final String type;
 
-    public DmnIntegerValue(String value) {
+    public DmnIntegerValue(Integer value) {
         this.value = value;
         this.type = "Integer";
     }
 
-    public String getValue() {
+    public Integer getValue() {
         return value;
     }
 

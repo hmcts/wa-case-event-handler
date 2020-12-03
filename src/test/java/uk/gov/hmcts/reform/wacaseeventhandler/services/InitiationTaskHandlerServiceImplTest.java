@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
 import lombok.Builder;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -11,6 +12,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WaWorkflowApiClient;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnIntegerValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
@@ -50,12 +52,27 @@ class InitiationTaskHandlerServiceImplTest {
     }
 
     private static Stream<Scenario> scenarioProvider() {
-        Scenario cannotBeHandledScenario = Scenario.builder()
+        Scenario cannotHandledScenario = Scenario.builder()
             .evaluateDmnResponses(Collections.emptyList())
             .expected(false)
             .build();
 
-        return Stream.of(cannotBeHandledScenario);
+        Scenario canHandledScenario = Scenario.builder()
+            .evaluateDmnResponses(List.of(buildInitiateTaskDmnResponse()))
+            .expected(true)
+            .build();
+
+        return Stream.of(cannotHandledScenario, canHandledScenario);
+    }
+
+    @NotNull
+    private static EvaluateDmnResponse<InitiateTaskDmnResponse> buildInitiateTaskDmnResponse() {
+        DmnStringValue taskId = new DmnStringValue("some taskId value");
+        DmnStringValue group = new DmnStringValue("some group value");
+        DmnIntegerValue workingDaysAllowed = new DmnIntegerValue(1);
+        DmnStringValue name = new DmnStringValue("some name value");
+        InitiateTaskDmnResponse result = new InitiateTaskDmnResponse(taskId, group, workingDaysAllowed, name);
+        return new EvaluateDmnResponse<>(result);
     }
 
     @Builder
