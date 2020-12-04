@@ -37,12 +37,12 @@ public class WaWorkflowApiClientToInitiateTask
         String key,
         EvaluateDmnRequest<InitiateTaskDmnRequest> requestParameters
     ) {
-        return restTemplate.<List<EvaluateDmnResponse<InitiateTaskDmnResponse>>>exchange(
+
+        return restTemplate.exchange(
             String.format("%s/workflow/decision-definition/key/%s/evaluate", workflowApiUrl, key),
             HttpMethod.POST,
             new HttpEntity<>(requestParameters, buildHttpHeaders()),
-            new ParameterizedTypeReference<>() {
-            }
+            new ParameterizedTypeReference<List<EvaluateDmnResponse<InitiateTaskDmnResponse>>>() {}
         ).getBody();
     }
 
