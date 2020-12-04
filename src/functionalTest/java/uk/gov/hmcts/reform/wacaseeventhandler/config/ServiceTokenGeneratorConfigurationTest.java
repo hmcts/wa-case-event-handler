@@ -11,7 +11,6 @@ import static org.junit.Assert.assertNotNull;
 public class ServiceTokenGeneratorConfigurationTest extends SpringBootFunctionalBaseTest {
 
     @Autowired
-    @Qualifier("caseEventHandlerAuthTokenGenerator")
     private AuthTokenGenerator authTokenGenerator;
 
     @Test
