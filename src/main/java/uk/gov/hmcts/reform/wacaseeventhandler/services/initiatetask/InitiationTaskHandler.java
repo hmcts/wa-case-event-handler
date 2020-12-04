@@ -3,7 +3,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services.initiatetask;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.WaWorkflowApiClientToInitiateTask;
+import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
@@ -16,9 +16,9 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventHandler;
 @Slf4j
 public class InitiationTaskHandler implements CaseEventHandler {
 
-    private final WaWorkflowApiClientToInitiateTask apiClientToInitiateTask;
+    private final WorkflowApiClientToInitiateTask apiClientToInitiateTask;
 
-    public InitiationTaskHandler(WaWorkflowApiClientToInitiateTask apiClientToInitiateTask) {
+    public InitiationTaskHandler(WorkflowApiClientToInitiateTask apiClientToInitiateTask) {
         this.apiClientToInitiateTask = apiClientToInitiateTask;
     }
 

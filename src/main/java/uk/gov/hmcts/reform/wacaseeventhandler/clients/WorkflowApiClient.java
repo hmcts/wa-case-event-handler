@@ -5,7 +5,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
 
 @SuppressWarnings("PMD.GenericsNaming")
-public interface WaWorkflowApiClient<RequestT, ResponseT> {
+public interface WorkflowApiClient<RequestT, ResponseT> {
 
     EvaluateDmnResponse<ResponseT> evaluateDmn(
         @PathVariable("key") String key,

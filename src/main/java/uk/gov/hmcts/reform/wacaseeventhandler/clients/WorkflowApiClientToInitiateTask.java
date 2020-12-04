@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -15,16 +16,17 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskDm
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskDmnResponse;
 
 @Service
-public class WaWorkflowApiClientToInitiateTask
-    implements WaWorkflowApiClient<InitiateTaskDmnRequest, InitiateTaskDmnResponse> {
+@Slf4j
+public class WorkflowApiClientToInitiateTask
+    implements WorkflowApiClient<InitiateTaskDmnRequest, InitiateTaskDmnResponse> {
 
     private final RestTemplate restTemplate;
     private final AuthTokenGenerator authTokenGenerator;
     private final String workflowApiUrl;
 
-    public WaWorkflowApiClientToInitiateTask(RestTemplate restTemplate,
-                                             AuthTokenGenerator authTokenGenerator,
-                                             @Value("${wa-workflow-api.url}") String workflowApiUrl) {
+    public WorkflowApiClientToInitiateTask(RestTemplate restTemplate,
+                                           AuthTokenGenerator authTokenGenerator,
+                                           @Value("${wa-workflow-api.url}") String workflowApiUrl) {
         this.restTemplate = restTemplate;
         this.authTokenGenerator = authTokenGenerator;
         this.workflowApiUrl = workflowApiUrl;

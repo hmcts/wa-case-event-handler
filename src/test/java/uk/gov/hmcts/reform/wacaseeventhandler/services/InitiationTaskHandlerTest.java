@@ -9,7 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.WaWorkflowApiClientToInitiateTask;
+import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class InitiationTaskHandlerTest {
 
     @Mock
-    private WaWorkflowApiClientToInitiateTask apiClientToInitiateTask;
+    private WorkflowApiClientToInitiateTask apiClientToInitiateTask;
 
     @InjectMocks
     private InitiationTaskHandler handlerService;
