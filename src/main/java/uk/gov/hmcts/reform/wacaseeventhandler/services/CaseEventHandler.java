@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
-public interface CaseEventHandlerService {
+public interface CaseEventHandler {
     boolean canHandle();
 
     void handle();

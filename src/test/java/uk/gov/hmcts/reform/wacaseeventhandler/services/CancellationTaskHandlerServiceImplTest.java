@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class CancellationTaskHandlerServiceImplTest {
 
-    private final CancellationTaskHandlerServiceImpl handlerService = new CancellationTaskHandlerServiceImpl();
+    private final CancellationTaskHandler handlerService = new CancellationTaskHandler();
 
     @Test
     void can_handle() {

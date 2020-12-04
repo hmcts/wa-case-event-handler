@@ -4,9 +4,9 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class WarningHandlerServiceImplTest {
+class WarningTaskHandlerServiceImplTest {
 
-    private final InitiationTaskHandlerServiceImpl handlerService = new InitiationTaskHandlerServiceImpl();
+    private final InitiationTaskHandler handlerService = new InitiationTaskHandler();
 
     @Test
     void can_handle() {

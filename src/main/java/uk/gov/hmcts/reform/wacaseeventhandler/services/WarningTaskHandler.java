@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Order(2)
-public class WarningHandlerServiceImpl implements CaseEventHandlerService {
+public class WarningTaskHandler implements CaseEventHandler {
     @Override
     public boolean canHandle() {
         return false;
