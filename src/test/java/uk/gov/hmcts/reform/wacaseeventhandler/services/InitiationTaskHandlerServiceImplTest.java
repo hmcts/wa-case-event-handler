@@ -15,7 +15,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskDm
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,12 +43,12 @@ class InitiationTaskHandlerServiceImplTest {
 
     private static Stream<Scenario> scenarioProvider() {
         Scenario cannotHandledScenario = Scenario.builder()
-            .evaluateDmnResponses(Collections.emptyList())
+            .evaluateDmnResponses(new EvaluateDmnResponse<>(Collections.emptyList()))
             .expected(false)
             .build();
 
         Scenario canHandledScenario = Scenario.builder()
-            .evaluateDmnResponses(List.of(InitiateTaskHelper.buildInitiateTaskDmnResponse()))
+            .evaluateDmnResponses(InitiateTaskHelper.buildInitiateTaskDmnResponse())
             .expected(true)
             .build();
 
@@ -58,7 +57,7 @@ class InitiationTaskHandlerServiceImplTest {
 
     @Builder
     private static class Scenario {
-        List<EvaluateDmnResponse<InitiateTaskDmnResponse>> evaluateDmnResponses;
+        EvaluateDmnResponse<InitiateTaskDmnResponse> evaluateDmnResponses;
         boolean expected;
     }
 

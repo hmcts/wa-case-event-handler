@@ -7,6 +7,8 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskDmnResponse;
 
+import java.util.List;
+
 public final class InitiateTaskHelper {
 
     private  InitiateTaskHelper() {
@@ -14,13 +16,13 @@ public final class InitiateTaskHelper {
     }
 
     public static EvaluateDmnResponse<InitiateTaskDmnResponse> buildInitiateTaskDmnResponse() {
-        DmnStringValue taskId = new DmnStringValue("some taskId value");
-        DmnStringValue group = new DmnStringValue("some group value");
-        DmnIntegerValue workingDaysAllowed = new DmnIntegerValue(1);
-        DmnStringValue name = new DmnStringValue("some name value");
+        DmnStringValue taskId = new DmnStringValue("processApplication");
+        DmnStringValue group = new DmnStringValue("TCW");
+        DmnIntegerValue workingDaysAllowed = new DmnIntegerValue(2);
+        DmnStringValue name = new DmnStringValue("Process Application");
         InitiateTaskDmnResponse result = new InitiateTaskDmnResponse(taskId, group, workingDaysAllowed, name);
 
-        return new EvaluateDmnResponse<>(result);
+        return new EvaluateDmnResponse<>(List.of(result));
     }
 
     public static EvaluateDmnRequest<InitiateTaskDmnRequest> buildInitiateTaskDmnRequest() {

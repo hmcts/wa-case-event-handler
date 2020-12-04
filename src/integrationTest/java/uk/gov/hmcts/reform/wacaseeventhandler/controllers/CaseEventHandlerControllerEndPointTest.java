@@ -62,9 +62,9 @@ class CaseEventHandlerControllerEndPointTest {
     }
 
     private void mockRestTemplate() {
-        ResponseEntity<List<EvaluateDmnResponse<InitiateTaskDmnResponse>>> responseEntity =
+        ResponseEntity<EvaluateDmnResponse<InitiateTaskDmnResponse>> responseEntity =
             new ResponseEntity<>(
-                Collections.singletonList(InitiateTaskHelper.buildInitiateTaskDmnResponse()),
+                InitiateTaskHelper.buildInitiateTaskDmnResponse(),
                 HttpStatus.OK
             );
 
@@ -77,8 +77,7 @@ class CaseEventHandlerControllerEndPointTest {
             ArgumentMatchers.eq(url),
             ArgumentMatchers.eq(HttpMethod.POST),
             ArgumentMatchers.<HttpEntity<List<HttpHeaders>>>any(),
-            ArgumentMatchers.<ParameterizedTypeReference<List<EvaluateDmnResponse<InitiateTaskDmnResponse>>>>any()
-                     )
+            ArgumentMatchers.<ParameterizedTypeReference<EvaluateDmnResponse<InitiateTaskDmnResponse>>>any())
         ).thenReturn(responseEntity);
     }
 

@@ -11,8 +11,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskDm
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventHandlerService;
 
-import java.util.List;
-
 @Service
 @Order(3)
 @Slf4j
@@ -26,11 +24,11 @@ public class InitiationTaskHandlerServiceImpl implements CaseEventHandlerService
 
     @Override
     public boolean canHandle() {
-        List<EvaluateDmnResponse<InitiateTaskDmnResponse>> response = apiClientToInitiateTask.evaluateDmn(
+        EvaluateDmnResponse<InitiateTaskDmnResponse> response = apiClientToInitiateTask.evaluateDmn(
             "getTask_IA_Asylum",
             buildBodyWithInitiateTaskDmnRequest()
         );
-        return !response.isEmpty();
+        return !response.getResults().isEmpty();
     }
 
     private EvaluateDmnRequest<InitiateTaskDmnRequest> buildBodyWithInitiateTaskDmnRequest() {

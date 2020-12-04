@@ -5,19 +5,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.util.List;
+
 @ToString
 @EqualsAndHashCode
 @SuppressWarnings("PMD.GenericsNaming")
 public final class EvaluateDmnResponse<ResponseT> {
 
-    private final ResponseT results;
+    private final List<ResponseT> results;
 
     @JsonCreator
-    public EvaluateDmnResponse(@JsonProperty("results") ResponseT results) {
+    public EvaluateDmnResponse(@JsonProperty("results") List<ResponseT> results) {
         this.results = results;
     }
 
-    public ResponseT getResults() {
+    public List<ResponseT> getResults() {
         return results;
     }
 }

@@ -14,8 +14,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskDmnResponse;
 
-import java.util.List;
-
 @Service
 public class WaWorkflowApiClientToInitiateTask
     implements WaWorkflowApiClient<InitiateTaskDmnRequest, InitiateTaskDmnResponse> {
@@ -33,16 +31,23 @@ public class WaWorkflowApiClientToInitiateTask
     }
 
     @Override
-    public List<EvaluateDmnResponse<InitiateTaskDmnResponse>> evaluateDmn(
+    public EvaluateDmnResponse<InitiateTaskDmnResponse> evaluateDmn(
         String key,
         EvaluateDmnRequest<InitiateTaskDmnRequest> requestParameters
     ) {
+        return makePostCall(key, requestParameters);
+    }
 
+    private EvaluateDmnResponse<InitiateTaskDmnResponse> makePostCall(
+        String key,
+        EvaluateDmnRequest<InitiateTaskDmnRequest> requestParameters
+    ) {
         return restTemplate.exchange(
             String.format("%s/workflow/decision-definition/key/%s/evaluate", workflowApiUrl, key),
             HttpMethod.POST,
             new HttpEntity<>(requestParameters, buildHttpHeaders()),
-            new ParameterizedTypeReference<List<EvaluateDmnResponse<InitiateTaskDmnResponse>>>() {}
+            new ParameterizedTypeReference<EvaluateDmnResponse<InitiateTaskDmnResponse>>() {
+            }
         ).getBody();
     }
 

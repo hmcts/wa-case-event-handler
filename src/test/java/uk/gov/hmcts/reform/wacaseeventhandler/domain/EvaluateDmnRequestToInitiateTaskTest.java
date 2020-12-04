@@ -22,7 +22,7 @@ public class EvaluateDmnRequestToInitiateTaskTest {
     private JacksonTester<EvaluateDmnRequest<InitiateTaskDmnRequest>> jacksonTester;
 
     @Test
-    public void given_a_initiate_task_dmn_request_to_evaluate_then_serialize_as_expected() throws IOException {
+    public void serialize_as_expected() throws IOException {
 
         JsonContent<EvaluateDmnRequest<InitiateTaskDmnRequest>> evaluateDmnRequestAsJson =
             jacksonTester.write(InitiateTaskHelper.buildInitiateTaskDmnRequest());
