@@ -7,8 +7,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.CcdEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CancellationTaskHandler;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.InitiationTaskHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.WarningTaskHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.initiatetask.InitiationTaskHandler;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.inOrder;

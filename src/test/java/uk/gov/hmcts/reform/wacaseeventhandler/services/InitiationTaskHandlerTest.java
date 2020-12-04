@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.clients.WaWorkflowApiClientToIniti
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.initiatetask.InitiationTaskHandler;
 
 import java.util.Collections;
 import java.util.stream.Stream;
@@ -20,7 +21,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
-class InitiationTaskHandlerServiceImplTest {
+class InitiationTaskHandlerTest {
 
     @Mock
     private WaWorkflowApiClientToInitiateTask apiClientToInitiateTask;

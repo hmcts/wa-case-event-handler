@@ -9,16 +9,16 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventHandlerService;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventHandler;
 
 @Service
 @Order(3)
 @Slf4j
-public class InitiationTaskHandlerServiceImpl implements CaseEventHandlerService {
+public class InitiationTaskHandler implements CaseEventHandler {
 
     private final WaWorkflowApiClientToInitiateTask apiClientToInitiateTask;
 
-    public InitiationTaskHandlerServiceImpl(WaWorkflowApiClientToInitiateTask apiClientToInitiateTask) {
+    public InitiationTaskHandler(WaWorkflowApiClientToInitiateTask apiClientToInitiateTask) {
         this.apiClientToInitiateTask = apiClientToInitiateTask;
     }
 
