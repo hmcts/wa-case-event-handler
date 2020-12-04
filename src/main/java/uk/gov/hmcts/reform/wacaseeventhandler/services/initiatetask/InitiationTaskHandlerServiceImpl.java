@@ -3,8 +3,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services.initiatetask;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.WaWorkflowApiClient;
+import uk.gov.hmcts.reform.wacaseeventhandler.clients.WaWorkflowApiClientToInitiateTask;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
@@ -19,35 +18,29 @@ import java.util.List;
 @Slf4j
 public class InitiationTaskHandlerServiceImpl implements CaseEventHandlerService {
 
-    private final WaWorkflowApiClient<InitiateTaskDmnRequest, InitiateTaskDmnResponse> waWorkflowApiClient;
-    private final AuthTokenGenerator authTokenGenerator;
+    private final WaWorkflowApiClientToInitiateTask apiClientToInitiateTask;
 
-    public InitiationTaskHandlerServiceImpl(
-        WaWorkflowApiClient<InitiateTaskDmnRequest, InitiateTaskDmnResponse> waWorkflowApiClient,
-        AuthTokenGenerator authTokenGenerator
-    ) {
-        this.waWorkflowApiClient = waWorkflowApiClient;
-        this.authTokenGenerator = authTokenGenerator;
+    public InitiationTaskHandlerServiceImpl(WaWorkflowApiClientToInitiateTask apiClientToInitiateTask) {
+        this.apiClientToInitiateTask = apiClientToInitiateTask;
     }
 
     @Override
     public boolean canHandle() {
-
-        List<EvaluateDmnResponse<InitiateTaskDmnResponse>> response = waWorkflowApiClient.evaluateDmn(
-            authTokenGenerator.generate(),
+        List<EvaluateDmnResponse<InitiateTaskDmnResponse>> response = apiClientToInitiateTask.evaluateDmn(
             "getTask_IA_Asylum",
-            buildInitiateTaskDmnRequest()
+            buildBodyWithInitiateTaskDmnRequest()
         );
         return !response.isEmpty();
     }
 
-    private EvaluateDmnRequest<InitiateTaskDmnRequest> buildInitiateTaskDmnRequest() {
+    private EvaluateDmnRequest<InitiateTaskDmnRequest> buildBodyWithInitiateTaskDmnRequest() {
         DmnStringValue eventId = new DmnStringValue("submitAppeal");
         DmnStringValue postEventState = new DmnStringValue("");
         InitiateTaskDmnRequest initiateTaskDmnRequestVariables = new InitiateTaskDmnRequest(eventId, postEventState);
 
         return new EvaluateDmnRequest<>(initiateTaskDmnRequestVariables);
     }
+
 
     @Override
     public void handle() {

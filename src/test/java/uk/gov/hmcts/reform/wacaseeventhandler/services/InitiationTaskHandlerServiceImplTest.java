@@ -9,10 +9,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.WaWorkflowApiClient;
+import uk.gov.hmcts.reform.wacaseeventhandler.clients.WaWorkflowApiClientToInitiateTask;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 
@@ -26,9 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class InitiationTaskHandlerServiceImplTest {
 
     @Mock
-    private WaWorkflowApiClient<InitiateTaskDmnRequest, InitiateTaskDmnResponse> waWorkflowApiClient;
-    @Mock
-    private AuthTokenGenerator authTokenGenerator;
+    private WaWorkflowApiClientToInitiateTask apiClientToInitiateTask;
 
     @InjectMocks
     private InitiationTaskHandler handlerService;
@@ -37,9 +33,7 @@ class InitiationTaskHandlerServiceImplTest {
     @MethodSource(value = "scenarioProvider")
     void can_handle(Scenario scenario) {
 
-        Mockito.when(authTokenGenerator.generate()).thenReturn("Bearer s2s token");
-        Mockito.when(waWorkflowApiClient.evaluateDmn(
-            "Bearer s2s token",
+        Mockito.when(apiClientToInitiateTask.evaluateDmn(
             "getTask_IA_Asylum",
             InitiateTaskHelper.buildInitiateTaskDmnRequest()
         ))
