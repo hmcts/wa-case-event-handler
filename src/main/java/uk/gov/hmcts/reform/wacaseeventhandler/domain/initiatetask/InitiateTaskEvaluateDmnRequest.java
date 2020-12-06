@@ -6,11 +6,11 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
 
 @ToString
 @EqualsAndHashCode
-public final class InitiateTaskDmnRequest {
+public final class InitiateTaskEvaluateDmnRequest {
     private final DmnStringValue eventId;
     private final DmnStringValue postEventState;
 
-    public InitiateTaskDmnRequest(DmnStringValue eventId, DmnStringValue postEventState) {
+    public InitiateTaskEvaluateDmnRequest(DmnStringValue eventId, DmnStringValue postEventState) {
         this.eventId = eventId;
         this.postEventState = postEventState;
     }

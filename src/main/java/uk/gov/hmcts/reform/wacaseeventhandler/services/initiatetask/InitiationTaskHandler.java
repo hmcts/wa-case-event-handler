@@ -1,19 +1,22 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.initiatetask;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.SendMessageRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskSendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventHandler;
+
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Service
 @Order(3)
-@Slf4j
 public class InitiationTaskHandler implements CaseEventHandler {
 
     private final WorkflowApiClientToInitiateTask apiClientToInitiateTask;
@@ -24,24 +27,42 @@ public class InitiationTaskHandler implements CaseEventHandler {
 
     @Override
     public boolean canHandle() {
-        EvaluateDmnResponse<InitiateTaskDmnResponse> response = apiClientToInitiateTask.evaluateDmn(
+        EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse> response = apiClientToInitiateTask.evaluateDmn(
             "getTask_IA_Asylum",
-            buildBodyWithInitiateTaskDmnRequest()
+            buildBodyWithInitiateTaskEvaluateDmnRequest()
         );
+
         return !response.getResults().isEmpty();
     }
 
-    private EvaluateDmnRequest<InitiateTaskDmnRequest> buildBodyWithInitiateTaskDmnRequest() {
+    private EvaluateDmnRequest<InitiateTaskEvaluateDmnRequest> buildBodyWithInitiateTaskEvaluateDmnRequest() {
         DmnStringValue eventId = new DmnStringValue("submitAppeal");
         DmnStringValue postEventState = new DmnStringValue("");
-        InitiateTaskDmnRequest initiateTaskDmnRequestVariables = new InitiateTaskDmnRequest(eventId, postEventState);
+        InitiateTaskEvaluateDmnRequest initiateTaskEvaluateDmnRequestVariables =
+            new InitiateTaskEvaluateDmnRequest(eventId, postEventState);
 
-        return new EvaluateDmnRequest<>(initiateTaskDmnRequestVariables);
+        return new EvaluateDmnRequest<>(initiateTaskEvaluateDmnRequestVariables);
     }
 
 
     @Override
     public void handle() {
-        log.info("hey world!");
+        SendMessageRequest<InitiateTaskSendMessageRequest> sendMessageRequest = new SendMessageRequest<>(
+            "createTaskMessage",
+            buildBodyWithInitiateSendMessageRequest()
+            );
+
+        apiClientToInitiateTask.sendMessage(sendMessageRequest);
+    }
+
+    private InitiateTaskSendMessageRequest buildBodyWithInitiateSendMessageRequest() {
+        return InitiateTaskSendMessageRequest.builder()
+            .caseType(new DmnStringValue("Asylum"))
+            .dueDate(new DmnStringValue(LocalDateTime.now().toString()))
+            .group(new DmnStringValue("TCW"))
+            .jurisdiction(new DmnStringValue("IA"))
+            .name(new DmnStringValue("Process Application"))
+            .taskId(new DmnStringValue("processApplication"))
+            .build();
     }
 }

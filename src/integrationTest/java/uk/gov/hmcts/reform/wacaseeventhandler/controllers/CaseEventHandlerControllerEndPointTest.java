@@ -25,7 +25,7 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.CcdEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 
 import java.util.List;
@@ -61,7 +61,7 @@ class CaseEventHandlerControllerEndPointTest {
     }
 
     private void mockRestTemplate() {
-        ResponseEntity<EvaluateDmnResponse<InitiateTaskDmnResponse>> responseEntity =
+        ResponseEntity<EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse>> responseEntity =
             new ResponseEntity<>(
                 InitiateTaskHelper.buildInitiateTaskDmnResponse(),
                 HttpStatus.OK
@@ -76,7 +76,7 @@ class CaseEventHandlerControllerEndPointTest {
             ArgumentMatchers.eq(url),
             ArgumentMatchers.eq(HttpMethod.POST),
             ArgumentMatchers.<HttpEntity<List<HttpHeaders>>>any(),
-            ArgumentMatchers.<ParameterizedTypeReference<EvaluateDmnResponse<InitiateTaskDmnResponse>>>any())
+            ArgumentMatchers.<ParameterizedTypeReference<EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse>>>any())
         ).thenReturn(responseEntity);
     }
 

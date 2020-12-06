@@ -4,8 +4,8 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnIntegerValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
 
 import java.util.List;
 
@@ -15,21 +15,27 @@ public final class InitiateTaskHelper {
         //not called
     }
 
-    public static EvaluateDmnResponse<InitiateTaskDmnResponse> buildInitiateTaskDmnResponse() {
+    public static EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse> buildInitiateTaskDmnResponse() {
         DmnStringValue taskId = new DmnStringValue("processApplication");
         DmnStringValue group = new DmnStringValue("TCW");
         DmnIntegerValue workingDaysAllowed = new DmnIntegerValue(2);
         DmnStringValue name = new DmnStringValue("Process Application");
-        InitiateTaskDmnResponse result = new InitiateTaskDmnResponse(taskId, group, workingDaysAllowed, name);
+        InitiateTaskEvaluateDmnResponse result = new InitiateTaskEvaluateDmnResponse(
+            taskId,
+            group,
+            workingDaysAllowed,
+            name
+        );
 
         return new EvaluateDmnResponse<>(List.of(result));
     }
 
-    public static EvaluateDmnRequest<InitiateTaskDmnRequest> buildInitiateTaskDmnRequest() {
+    public static EvaluateDmnRequest<InitiateTaskEvaluateDmnRequest> buildInitiateTaskDmnRequest() {
         DmnStringValue eventId = new DmnStringValue("submitAppeal");
         DmnStringValue postEventState = new DmnStringValue("");
-        InitiateTaskDmnRequest initiateTaskDmnRequestVariables = new InitiateTaskDmnRequest(eventId, postEventState);
+        InitiateTaskEvaluateDmnRequest initiateTaskEvaluateDmnRequestVariables =
+            new InitiateTaskEvaluateDmnRequest(eventId, postEventState);
 
-        return new EvaluateDmnRequest<>(initiateTaskDmnRequestVariables);
+        return new EvaluateDmnRequest<>(initiateTaskEvaluateDmnRequestVariables);
     }
 }

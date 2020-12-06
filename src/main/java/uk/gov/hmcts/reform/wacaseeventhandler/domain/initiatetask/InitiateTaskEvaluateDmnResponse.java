@@ -9,17 +9,17 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
 
 @ToString
 @EqualsAndHashCode
-public final class InitiateTaskDmnResponse {
+public final class InitiateTaskEvaluateDmnResponse {
     private final DmnStringValue taskId;
     private final DmnStringValue group;
     private final DmnIntegerValue workingDaysAllowed;
     private final DmnStringValue name;
 
     @JsonCreator
-    public InitiateTaskDmnResponse(@JsonProperty("taskId") DmnStringValue taskId,
-                                   @JsonProperty("group") DmnStringValue group,
-                                   @JsonProperty("workingDaysAllowed") DmnIntegerValue workingDaysAllowed,
-                                   @JsonProperty("name") DmnStringValue name) {
+    public InitiateTaskEvaluateDmnResponse(@JsonProperty("taskId") DmnStringValue taskId,
+                                           @JsonProperty("group") DmnStringValue group,
+                                           @JsonProperty("workingDaysAllowed") DmnIntegerValue workingDaysAllowed,
+                                           @JsonProperty("name") DmnStringValue name) {
         this.taskId = taskId;
         this.group = group;
         this.workingDaysAllowed = workingDaysAllowed;
