@@ -13,7 +13,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskSe
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventHandler;
 
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
 
 @Service
 @Order(3)
