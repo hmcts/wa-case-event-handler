@@ -12,19 +12,24 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonS
 public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest {
 
     @Test
-    public void given_ccdEventMessage_should_respond_with_200() {
+    public void given_validEventInformation_should_respond_with_200() {
 
-        EventInformation eventInformation = EventInformation.builder()
-            .eventInstanceId("some event instance id")
-            .caseReference("some case ref")
-            .eventId("some event id")
-            .newStateId("some new statie id")
-            .userId("some user id")
+        EventInformation validEventInformation = EventInformation.builder()
+            .eventInstanceId("some event instance Id")
+            .caseReference("some case reference")
+            .jurisdictionId("somme jurisdiction Id")
+            .caseTypeId("some case type Id")
+            .eventId("some event Id")
+            .newStateId("some new state Id")
+            .userId("some user Id")
             .build();
+
+        String body = asJsonString(validEventInformation);
+        System.out.println("body: " + body);
 
         given()
             .contentType(APPLICATION_JSON_VALUE)
-            .body(asJsonString(eventInformation))
+            .body(body)
             .when()
             .post("/messages")
             .then()

@@ -7,9 +7,9 @@ import lombok.ToString;
 import java.time.LocalDateTime;
 import javax.validation.constraints.NotEmpty;
 
-@Builder
 @ToString
 @EqualsAndHashCode
+@Builder
 public class EventInformation {
 
     @NotEmpty

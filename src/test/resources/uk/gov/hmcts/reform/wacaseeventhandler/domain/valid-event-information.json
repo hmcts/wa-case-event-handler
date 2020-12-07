@@ -1,0 +1,9 @@
+{
+  "eventInstanceId" : "some event instance Id",
+  "caseReference" : "some case reference",
+  "jurisdictionId" : "somme jurisdiction Id",
+  "caseTypeId" : "some case type Id",
+  "eventId" : "some event Id",
+  "newStateId" : "some new state Id",
+  "userId" : "some user Id"
+}

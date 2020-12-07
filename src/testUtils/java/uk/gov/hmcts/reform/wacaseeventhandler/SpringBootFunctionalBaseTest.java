@@ -10,7 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
-@ActiveProfiles("functional")
+@ActiveProfiles(profiles = {"local", "functional"})
 public abstract class SpringBootFunctionalBaseTest {
 
     @Value("${targets.instance}")
