@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.initiatetask.InitiationTa
 
 import java.time.LocalDateTime;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.inOrder;
 
@@ -38,9 +39,9 @@ class CaseEventHandlerControllerTest {
     @Test
     void given_message_then_apply_handlers_in_order() {
 
-        given(cancellationTaskHandlerService.canHandle()).willReturn(true);
-        given(warningTaskHandlerService.canHandle()).willReturn(true);
-        given(initiationTaskHandlerService.canHandle()).willReturn(true);
+        given(cancellationTaskHandlerService.canHandle(any(EventInformation.class))).willReturn(true);
+        given(warningTaskHandlerService.canHandle(any(EventInformation.class))).willReturn(true);
+        given(initiationTaskHandlerService.canHandle(any(EventInformation.class))).willReturn(true);
 
         EventInformation eventInformation = EventInformation.builder()
             .eventInstanceId("some id")
@@ -55,13 +56,13 @@ class CaseEventHandlerControllerTest {
             initiationTaskHandlerService
         );
 
-        inOrder.verify(cancellationTaskHandlerService).canHandle();
+        inOrder.verify(cancellationTaskHandlerService).canHandle(any(EventInformation.class));
         inOrder.verify(cancellationTaskHandlerService).handle();
 
-        inOrder.verify(warningTaskHandlerService).canHandle();
+        inOrder.verify(warningTaskHandlerService).canHandle(any(EventInformation.class));
         inOrder.verify(warningTaskHandlerService).handle();
 
-        inOrder.verify(initiationTaskHandlerService).canHandle();
+        inOrder.verify(initiationTaskHandlerService).canHandle(any(EventInformation.class));
         inOrder.verify(initiationTaskHandlerService).handle();
 
     }

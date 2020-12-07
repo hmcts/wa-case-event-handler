@@ -26,7 +26,7 @@ public class CaseEventHandlerController {
     public ResponseEntity<Void> caseEventHandler(@Valid @RequestBody EventInformation eventInformation) {
 
         handlerServices.stream()
-            .filter(CaseEventHandler::canHandle)
+            .filter(handler -> handler.canHandle(eventInformation))
             .forEach(CaseEventHandler::handle);
 
         return noContent().build();

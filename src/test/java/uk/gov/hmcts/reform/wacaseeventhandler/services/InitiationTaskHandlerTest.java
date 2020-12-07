@@ -11,6 +11,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.initiatetask.InitiationTaskHandler;
@@ -39,7 +40,7 @@ class InitiationTaskHandlerTest {
         ))
             .thenReturn(scenario.evaluateDmnResponses);
 
-        assertThat(handlerService.canHandle()).isEqualTo(scenario.expected);
+        assertThat(handlerService.canHandle(EventInformation.builder().build())).isEqualTo(scenario.expected);
     }
 
     private static Stream<Scenario> scenarioProvider() {

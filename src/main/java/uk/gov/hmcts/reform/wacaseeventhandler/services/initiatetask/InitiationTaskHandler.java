@@ -6,6 +6,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiat
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.SendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
@@ -25,7 +26,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
     }
 
     @Override
-    public boolean canHandle() {
+    public boolean canHandle(EventInformation eventInformation) {
         EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse> response = apiClientToInitiateTask.evaluateDmn(
             "getTask_IA_Asylum",
             buildBodyWithInitiateTaskEvaluateDmnRequest()

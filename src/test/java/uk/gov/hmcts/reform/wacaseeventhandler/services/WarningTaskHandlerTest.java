@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -10,7 +11,7 @@ class WarningTaskHandlerTest {
 
     @Test
     void can_handle() {
-        assertThat(handlerService.canHandle()).isFalse();
+        assertThat(handlerService.canHandle(EventInformation.builder().build())).isFalse();
     }
 
     @Test
