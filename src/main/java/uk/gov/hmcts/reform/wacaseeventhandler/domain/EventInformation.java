@@ -12,7 +12,7 @@ import javax.validation.constraints.NotEmpty;
 @ToString
 @EqualsAndHashCode
 @Builder
-public class EventInformation {
+public final class EventInformation {
 
     @NotEmpty
     private final String eventInstanceId;
@@ -32,7 +32,7 @@ public class EventInformation {
     private final String userId;
 
     @JsonCreator
-    private EventInformation(@JsonProperty("eventInstanceId") String eventInstanceId,
+    public EventInformation(@JsonProperty("eventInstanceId") String eventInstanceId,
                             @JsonProperty("dueTime")LocalDateTime dueTime,
                             @JsonProperty("caseReference") String caseReference,
                             @JsonProperty("jurisdictionId") String jurisdictionId,
