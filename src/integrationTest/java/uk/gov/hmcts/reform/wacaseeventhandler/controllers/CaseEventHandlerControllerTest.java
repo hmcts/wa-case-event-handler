@@ -5,10 +5,12 @@ import org.mockito.InOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.CcdEventMessage;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CancellationTaskHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.WarningTaskHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.initiatetask.InitiationTaskHandler;
+
+import java.time.LocalDateTime;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.inOrder;
@@ -40,12 +42,12 @@ class CaseEventHandlerControllerTest {
         given(warningTaskHandlerService.canHandle()).willReturn(true);
         given(initiationTaskHandlerService.canHandle()).willReturn(true);
 
-        CcdEventMessage ccdEventMessage = CcdEventMessage.builder()
-            .id("some id")
-            .name("some name")
+        EventInformation eventInformation = EventInformation.builder()
+            .eventInstanceId("some id")
+            .dueTime(LocalDateTime.now())
             .build();
 
-        controller.caseEventHandler(ccdEventMessage);
+        controller.caseEventHandler(eventInformation);
 
         InOrder inOrder = inOrder(
             cancellationTaskHandlerService,

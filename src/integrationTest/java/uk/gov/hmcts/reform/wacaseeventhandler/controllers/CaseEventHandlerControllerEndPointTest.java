@@ -1,10 +1,9 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Builder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,16 +22,18 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.CcdEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.asJsonString;
 
 @ActiveProfiles({"local"})
 @SpringBootTest
@@ -81,26 +82,74 @@ class CaseEventHandlerControllerEndPointTest {
     }
 
     @ParameterizedTest
-    @CsvSource({
-        "some id, 200",
-        ", 400",
-        "'', 400",
-    })
-    void given_message_then_return_expected_status_code(String id, int expectedStatus) throws Exception {
-        CcdEventMessage ccdEventMessage = CcdEventMessage.builder()
-            .id(id)
-            .name("some name")
-            .build();
+    @MethodSource(value = "scenarioProvider")
+    void given_message_then_return_expected_status_code(Scenario scenario) throws Exception {
 
         mockMvc.perform(post("/messages")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(asJsonString(ccdEventMessage)))
+                            .content(asJsonString(scenario.eventInformation)))
             .andDo(print())
-            .andExpect(status().is(expectedStatus));
+            .andExpect(status().is(scenario.expectedStatus));
     }
 
-    private String asJsonString(final Object obj) throws JsonProcessingException {
-        return new ObjectMapper().writeValueAsString(obj);
+    private static Stream<Scenario> scenarioProvider() {
+        EventInformation validEventInformation = EventInformation.builder()
+            .eventInstanceId("some event instance Id")
+            .caseReference("some case reference")
+            .jurisdictionId("somme jurisdiction Id")
+            .caseTypeId("some case type Id")
+            .eventId("some event Id")
+            .newStateId("some new state Id")
+            .userId("some user Id")
+            .build();
+
+        Scenario validEventInformationScenario200 = Scenario.builder()
+            .eventInformation(validEventInformation)
+            .expectedStatus(200)
+            .build();
+
+        EventInformation invalidEventInformationBecauseMandatoryFieldCannotBeNull = EventInformation.builder()
+            .eventInstanceId(null)
+            .caseReference("some case reference")
+            .jurisdictionId("somme jurisdiction Id")
+            .caseTypeId("some case type Id")
+            .eventId("some event Id")
+            .newStateId("some new state Id")
+            .userId("some user Id")
+            .build();
+
+        Scenario mandatoryFieldCannotBeNullScenario400 = Scenario.builder()
+            .eventInformation(invalidEventInformationBecauseMandatoryFieldCannotBeNull)
+            .expectedStatus(400)
+            .build();
+
+        EventInformation invalidEventInformationBecauseMandatoryFieldCannotBeEmpty = EventInformation.builder()
+            .eventInstanceId("")
+            .caseReference("some case reference")
+            .jurisdictionId("somme jurisdiction Id")
+            .caseTypeId("some case type Id")
+            .eventId("some event Id")
+            .newStateId("some new state Id")
+            .userId("some user Id")
+            .build();
+
+        Scenario mandatoryFieldCannotBeEmptyScenario400 = Scenario.builder()
+            .eventInformation(invalidEventInformationBecauseMandatoryFieldCannotBeEmpty)
+            .expectedStatus(400)
+            .build();
+
+
+        return Stream.of(
+            validEventInformationScenario200,
+            mandatoryFieldCannotBeNullScenario400,
+            mandatoryFieldCannotBeEmptyScenario400
+        );
+    }
+
+    @Builder
+    private static class Scenario {
+        EventInformation eventInformation;
+        int expectedStatus;
     }
 
 }

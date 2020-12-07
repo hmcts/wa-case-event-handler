@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.helpers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnIntegerValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
@@ -37,5 +39,9 @@ public final class InitiateTaskHelper {
             new InitiateTaskEvaluateDmnRequest(eventId, postEventState);
 
         return new EvaluateDmnRequest<>(initiateTaskEvaluateDmnRequestVariables);
+    }
+
+    public static String asJsonString(final Object obj) throws JsonProcessingException {
+        return new ObjectMapper().writeValueAsString(obj);
     }
 }
