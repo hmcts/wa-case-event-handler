@@ -13,6 +13,6 @@ public class WarningTaskHandler implements CaseEventHandler {
 
     @Override
     public void handle() {
-
+        // empty for now
     }
 }
