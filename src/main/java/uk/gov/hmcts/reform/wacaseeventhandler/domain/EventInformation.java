@@ -2,6 +2,8 @@ package uk.gov.hmcts.reform.wacaseeventhandler.domain;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -16,6 +18,7 @@ public final class EventInformation {
 
     @NotEmpty
     private final String eventInstanceId;
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
     private final LocalDateTime dueTime;
     @NotEmpty
     private final String caseReference;

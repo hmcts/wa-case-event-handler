@@ -1,5 +1,6 @@
 {
   "eventInstanceId" : "some event instance Id",
+  "dueTime" : "2020-12-07T17:39:22.232622",
   "caseReference" : "some case reference",
   "jurisdictionId" : "somme jurisdiction Id",
   "caseTypeId" : "some case type Id",

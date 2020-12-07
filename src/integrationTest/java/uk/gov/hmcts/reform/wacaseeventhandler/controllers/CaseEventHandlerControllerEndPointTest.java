@@ -27,6 +27,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -95,6 +96,7 @@ class CaseEventHandlerControllerEndPointTest {
     private static Stream<Scenario> scenarioProvider() {
         EventInformation validEventInformation = EventInformation.builder()
             .eventInstanceId("some event instance Id")
+            .dueTime(LocalDateTime.now())
             .caseReference("some case reference")
             .jurisdictionId("somme jurisdiction Id")
             .caseTypeId("some case type Id")

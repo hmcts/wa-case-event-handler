@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,15 +24,22 @@ public class EventInformationTest {
     @Autowired
     private JacksonTester<EventInformation> jacksonTester;
 
-    private final EventInformation validEventInformation = EventInformation.builder()
-        .eventInstanceId("some event instance Id")
-        .caseReference("some case reference")
-        .jurisdictionId("somme jurisdiction Id")
-        .caseTypeId("some case type Id")
-        .eventId("some event Id")
-        .newStateId("some new state Id")
-        .userId("some user Id")
-        .build();
+    private EventInformation validEventInformation;
+
+    @Before
+    public void setUp() {
+        String fixedDate = "2020-12-07T17:39:22.232622";
+        validEventInformation = EventInformation.builder()
+            .eventInstanceId("some event instance Id")
+            .dueTime(LocalDateTime.parse(fixedDate))
+            .caseReference("some case reference")
+            .jurisdictionId("somme jurisdiction Id")
+            .caseTypeId("some case type Id")
+            .eventId("some event Id")
+            .newStateId("some new state Id")
+            .userId("some user Id")
+            .build();
+    }
 
     @Test
     public void deserialize_as_expected() throws IOException {
