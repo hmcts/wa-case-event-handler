@@ -105,7 +105,7 @@ class CaseEventHandlerControllerEndPointTest {
 
         Scenario validEventInformationScenario200 = Scenario.builder()
             .eventInformation(validEventInformation)
-            .expectedStatus(200)
+            .expectedStatus(HttpStatus.NO_CONTENT.value())
             .build();
 
         EventInformation invalidEventInformationBecauseMandatoryFieldCannotBeNull = EventInformation.builder()
@@ -120,7 +120,7 @@ class CaseEventHandlerControllerEndPointTest {
 
         Scenario mandatoryFieldCannotBeNullScenario400 = Scenario.builder()
             .eventInformation(invalidEventInformationBecauseMandatoryFieldCannotBeNull)
-            .expectedStatus(400)
+            .expectedStatus(HttpStatus.BAD_REQUEST.value())
             .build();
 
         EventInformation invalidEventInformationBecauseMandatoryFieldCannotBeEmpty = EventInformation.builder()
@@ -135,7 +135,7 @@ class CaseEventHandlerControllerEndPointTest {
 
         Scenario mandatoryFieldCannotBeEmptyScenario400 = Scenario.builder()
             .eventInformation(invalidEventInformationBecauseMandatoryFieldCannotBeEmpty)
-            .expectedStatus(400)
+            .expectedStatus(HttpStatus.BAD_REQUEST.value())
             .build();
 
 

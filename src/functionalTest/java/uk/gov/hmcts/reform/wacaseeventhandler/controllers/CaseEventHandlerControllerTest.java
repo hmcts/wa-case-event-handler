@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
-import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Test;
+import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
 
@@ -24,16 +24,12 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .userId("some user Id")
             .build();
 
-        String body = asJsonString(validEventInformation);
-        System.out.println("body: " + body);
-
         given()
             .contentType(APPLICATION_JSON_VALUE)
-            .body(body)
+            .body(asJsonString(validEventInformation))
             .when()
             .post("/messages")
             .then()
-            .statusCode(HttpStatus.OK_200);
-
+            .statusCode(HttpStatus.NO_CONTENT.value());
     }
 }
