@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -28,6 +30,27 @@ public class EventInformation {
     private final String newStateId;
     @NotEmpty
     private final String userId;
+
+    @JsonCreator
+    private EventInformation(@JsonProperty("eventInstanceId") String eventInstanceId,
+                            @JsonProperty("dueTime")LocalDateTime dueTime,
+                            @JsonProperty("caseReference") String caseReference,
+                            @JsonProperty("jurisdictionId") String jurisdictionId,
+                            @JsonProperty("caseTypeId") String caseTypeId,
+                            @JsonProperty("eventId") String eventId,
+                            @JsonProperty("previousStateId") String previousStateId,
+                            @JsonProperty("newStateId") String newStateId,
+                            @JsonProperty("userId") String userId) {
+        this.eventInstanceId = eventInstanceId;
+        this.dueTime = dueTime;
+        this.caseReference = caseReference;
+        this.jurisdictionId = jurisdictionId;
+        this.caseTypeId = caseTypeId;
+        this.eventId = eventId;
+        this.previousStateId = previousStateId;
+        this.newStateId = newStateId;
+        this.userId = userId;
+    }
 
     public String getJurisdictionId() {
         return jurisdictionId;
