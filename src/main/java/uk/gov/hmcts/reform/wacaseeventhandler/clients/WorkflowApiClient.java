@@ -8,7 +8,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskEvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskEvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskSendMessageRequest;
 
-@SuppressWarnings("PMD.GenericsNaming")
 public interface WorkflowApiClient {
 
     EvaluateDmnResponse<? extends TaskEvaluateDmnResponse> evaluateDmn(
