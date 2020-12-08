@@ -19,7 +19,7 @@ public final class EventInformation {
     @NotEmpty
     private final String eventInstanceId;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
-    private final LocalDateTime dueTime;
+    private final LocalDateTime dateTime;
     @NotEmpty
     private final String caseReference;
     @NotEmpty
@@ -36,7 +36,7 @@ public final class EventInformation {
 
     @JsonCreator
     public EventInformation(@JsonProperty("eventInstanceId") String eventInstanceId,
-                            @JsonProperty("dueTime")LocalDateTime dueTime,
+                            @JsonProperty("dateTime")LocalDateTime dateTime,
                             @JsonProperty("caseReference") String caseReference,
                             @JsonProperty("jurisdictionId") String jurisdictionId,
                             @JsonProperty("caseTypeId") String caseTypeId,
@@ -45,7 +45,7 @@ public final class EventInformation {
                             @JsonProperty("newStateId") String newStateId,
                             @JsonProperty("userId") String userId) {
         this.eventInstanceId = eventInstanceId;
-        this.dueTime = dueTime;
+        this.dateTime = dateTime;
         this.caseReference = caseReference;
         this.jurisdictionId = jurisdictionId;
         this.caseTypeId = caseTypeId;
@@ -67,8 +67,8 @@ public final class EventInformation {
         return eventInstanceId;
     }
 
-    public LocalDateTime getDueTime() {
-        return dueTime;
+    public LocalDateTime getDateTime() {
+        return dateTime;
     }
 
     public String getCaseReference() {

@@ -17,6 +17,7 @@ public final class InitiateTaskSendMessageRequest extends TaskSendMessageRequest
     private final DmnStringValue group;
     private final DmnStringValue jurisdiction;
     private final DmnStringValue caseType;
+    private final DmnStringValue caseReference;
 
     public DmnStringValue getDueDate() {
         return dueDate;
@@ -40,5 +41,9 @@ public final class InitiateTaskSendMessageRequest extends TaskSendMessageRequest
 
     public DmnStringValue getCaseType() {
         return caseType;
+    }
+
+    public DmnStringValue getCaseReference() {
+        return caseReference;
     }
 }

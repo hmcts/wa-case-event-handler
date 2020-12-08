@@ -31,7 +31,7 @@ public class EventInformationTest {
         String fixedDate = "2020-12-07T17:39:22.232622";
         validEventInformation = EventInformation.builder()
             .eventInstanceId("some event instance Id")
-            .dueTime(LocalDateTime.parse(fixedDate))
+            .dateTime(LocalDateTime.parse(fixedDate))
             .caseReference("some case reference")
             .jurisdictionId("somme jurisdiction Id")
             .caseTypeId("some case type Id")

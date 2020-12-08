@@ -96,7 +96,7 @@ class CaseEventHandlerControllerEndPointTest {
     private static Stream<Scenario> scenarioProvider() {
         EventInformation validEventInformation = EventInformation.builder()
             .eventInstanceId("some event instance Id")
-            .dueTime(LocalDateTime.now())
+            .dateTime(LocalDateTime.now())
             .caseReference("some case reference")
             .jurisdictionId("IA")
             .caseTypeId("Asylum")

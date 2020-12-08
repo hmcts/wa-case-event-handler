@@ -3,20 +3,24 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.SendMessageRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskSendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.initiatetask.InitiationTaskHandler;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -26,37 +30,44 @@ import static org.mockito.ArgumentMatchers.eq;
 @ExtendWith(MockitoExtension.class)
 class InitiationTaskHandlerTest {
 
+    public static final String FIXED_DATE = "2020-12-08T15:53:36.530377";
     @Mock
     private WorkflowApiClientToInitiateTask apiClientToInitiateTask;
+
+    @Captor
+    private ArgumentCaptor<SendMessageRequest<InitiateTaskSendMessageRequest>> captor;
 
     @InjectMocks
     private InitiationTaskHandler handlerService;
 
+    private final EventInformation eventInformation = EventInformation.builder()
+        .eventId("submitAppeal")
+        .newStateId("")
+        .jurisdictionId("IA")
+        .caseTypeId("Asylum")
+        .caseReference("some case reference")
+        .dateTime(LocalDateTime.parse(FIXED_DATE))
+        .build();
+
     @Test
     void evaluateDmn() {
 
+        EvaluateDmnRequest<InitiateTaskEvaluateDmnRequest> requestParameters =
+            InitiateTaskHelper.buildInitiateTaskDmnRequest();
+
         Mockito.when(apiClientToInitiateTask.evaluateDmn(
             "getTask_IA_Asylum",
-            InitiateTaskHelper.buildInitiateTaskDmnRequest()
-        ))
-            .thenReturn(new EvaluateDmnResponse<>(Collections.emptyList()));
-
-        EventInformation eventInformation = EventInformation.builder()
-            .eventId("submitAppeal")
-            .newStateId("")
-            .jurisdictionId("IA")
-            .caseTypeId("Asylum")
-            .build();
+            requestParameters
+        )).thenReturn(new EvaluateDmnResponse<>(Collections.emptyList()));
 
         handlerService.evaluateDmn(eventInformation);
 
         Mockito.verify(apiClientToInitiateTask).evaluateDmn(
             eq("getTask_IA_Asylum"),
-            eq(InitiateTaskHelper.buildInitiateTaskDmnRequest())
+            eq(requestParameters)
         );
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
     void handle() {
 
@@ -68,23 +79,12 @@ class InitiationTaskHandlerTest {
 
         List<InitiateTaskEvaluateDmnResponse> results = List.of(initiateTaskResponse);
 
-        handlerService.handle(results, "Asylum", "IA");
+        handlerService.handle(results, eventInformation);
 
-        SendMessageRequest<InitiateTaskSendMessageRequest> expectedSendMessageRequest = getExpectedSendMessageRequest();
+        Mockito.verify(apiClientToInitiateTask).sendMessage(captor.capture());
+        SendMessageRequest<InitiateTaskSendMessageRequest> actualSendMessageRequest = captor.getValue();
 
-        ArgumentCaptor<SendMessageRequest> argument = ArgumentCaptor.forClass(SendMessageRequest.class);
-        Mockito.verify(apiClientToInitiateTask).sendMessage(argument.capture());
-
-        SendMessageRequest actualSendMessageRequest = argument.getValue();
-        assertThat(actualSendMessageRequest.getMessageName()).isEqualTo(expectedSendMessageRequest.getMessageName());
-
-        InitiateTaskSendMessageRequest actualInitiateTaskSendMessageRequest =
-            (InitiateTaskSendMessageRequest) actualSendMessageRequest.getProcessVariables();
-
-        assertThat(actualInitiateTaskSendMessageRequest).isEqualToComparingOnlyGivenFields(
-            expectedSendMessageRequest.getProcessVariables(),
-            "caseType", "group", "jurisdiction", "name", "taskId"
-        );
+        assertThat(actualSendMessageRequest).isEqualTo(getExpectedSendMessageRequest());
     }
 
     private SendMessageRequest<InitiateTaskSendMessageRequest> getExpectedSendMessageRequest() {
@@ -94,6 +94,8 @@ class InitiationTaskHandlerTest {
             .jurisdiction(new DmnStringValue("IA"))
             .name(new DmnStringValue("Process Application"))
             .taskId(new DmnStringValue("processApplication"))
+            .caseReference(new DmnStringValue("some case reference"))
+            .dueDate(new DmnStringValue(FIXED_DATE))
             .build();
 
         return new SendMessageRequest<>(

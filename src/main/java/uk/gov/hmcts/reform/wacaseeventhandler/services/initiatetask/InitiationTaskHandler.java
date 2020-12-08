@@ -13,9 +13,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEv
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskSendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventHandler;
 
-import java.time.LocalDateTime;
 import java.util.List;
-import javax.validation.constraints.NotEmpty;
 
 @Service
 @Order(3)
@@ -52,17 +50,11 @@ public class InitiationTaskHandler implements CaseEventHandler {
     }
 
     @Override
-    public void handle(List<? extends TaskEvaluateDmnResponse> results,
-                       String caseTypeId,
-                       String jurisdictionId) {
+    public void handle(List<? extends TaskEvaluateDmnResponse> results, EventInformation eventInformation) {
 
         SendMessageRequest<InitiateTaskSendMessageRequest> sendMessageRequest = new SendMessageRequest<>(
             "createTaskMessage",
-            buildBodyWithInitiateSendMessageRequest(
-                (InitiateTaskEvaluateDmnResponse) results.get(0),
-                caseTypeId,
-                jurisdictionId
-            )
+            buildBodyWithInitiateSendMessageRequest((InitiateTaskEvaluateDmnResponse) results.get(0), eventInformation)
         );
 
         apiClientToInitiateTask.sendMessage(sendMessageRequest);
@@ -70,16 +62,16 @@ public class InitiationTaskHandler implements CaseEventHandler {
 
     private InitiateTaskSendMessageRequest buildBodyWithInitiateSendMessageRequest(
         InitiateTaskEvaluateDmnResponse response,
-        @NotEmpty String caseTypeId,
-        @NotEmpty String jurisdictionId
+        EventInformation eventInformation
     ) {
         return InitiateTaskSendMessageRequest.builder()
-            .caseType(new DmnStringValue(caseTypeId))
-            .dueDate(new DmnStringValue(LocalDateTime.now().toString()))
+            .caseType(new DmnStringValue(eventInformation.getCaseTypeId()))
+            .dueDate(new DmnStringValue(eventInformation.getDateTime().toString()))
             .group(response.getGroup())
-            .jurisdiction(new DmnStringValue(jurisdictionId))
+            .jurisdiction(new DmnStringValue(eventInformation.getJurisdictionId()))
             .name(response.getName())
             .taskId(response.getTaskId())
+            .caseReference(new DmnStringValue(eventInformation.getCaseReference()))
             .build();
     }
 }
