@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnIntegerValue;
@@ -9,6 +10,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
 
 @ToString
 @EqualsAndHashCode
+@Builder
 public final class InitiateTaskEvaluateDmnResponse {
     private final DmnStringValue taskId;
     private final DmnStringValue group;

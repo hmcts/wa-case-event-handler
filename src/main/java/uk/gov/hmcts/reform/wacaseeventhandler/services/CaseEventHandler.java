@@ -2,8 +2,11 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
 
-public interface CaseEventHandler {
-    boolean canHandle(EventInformation  eventInformation);
+import java.util.List;
 
-    void handle();
+
+public interface CaseEventHandler<T> {
+    List<T> evaluateDmn(EventInformation  eventInformation);
+
+    void handle(List<T> results, String caseTypeId, String jurisdictionId);
 }

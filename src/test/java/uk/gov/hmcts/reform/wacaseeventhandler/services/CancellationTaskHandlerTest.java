@@ -10,12 +10,14 @@ class CancellationTaskHandlerTest {
     private final CancellationTaskHandler handlerService = new CancellationTaskHandler();
 
     @Test
-    void can_handle() {
-        assertThat(handlerService.canHandle(EventInformation.builder().build())).isFalse();
+    void evaluateDmn() {
+        assertThat(handlerService.evaluateDmn(EventInformation.builder().build())).isEmpty();
     }
 
     @Test
     void handle() throws NoSuchMethodException {
-        assertThat(handlerService.getClass().getMethod("handle").getName()).isEqualTo("handle");
+        // change for something meaningful once Cancellation handler is implemented
+        assertThat(handlerService.getClass().getMethod("evaluateDmn", EventInformation.class).getName())
+            .isEqualTo("evaluateDmn");
     }
 }

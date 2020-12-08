@@ -15,6 +15,7 @@ import javax.validation.Valid;
 
 import static org.springframework.http.ResponseEntity.noContent;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 @RestController
 public class CaseEventHandlerController {
 
@@ -23,11 +24,15 @@ public class CaseEventHandlerController {
 
     @ApiOperation("Handles the CCD case event message")
     @PostMapping(path = "/messages", consumes = {MediaType.APPLICATION_JSON_VALUE})
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public ResponseEntity<Void> caseEventHandler(@Valid @RequestBody EventInformation eventInformation) {
 
-        handlerServices.stream()
-            .filter(handler -> handler.canHandle(eventInformation))
-            .forEach(CaseEventHandler::handle);
+        for (CaseEventHandler handler : handlerServices) {
+            List<Object> results = handler.evaluateDmn(eventInformation);
+            if (!results.isEmpty()) {
+                handler.handle(results, eventInformation.getCaseTypeId(), eventInformation.getJurisdictionId());
+            }
+        }
 
         return noContent().build();
 

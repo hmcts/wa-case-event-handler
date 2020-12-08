@@ -13,21 +13,17 @@ import java.util.List;
 
 public final class InitiateTaskHelper {
 
-    private  InitiateTaskHelper() {
+    private InitiateTaskHelper() {
         //not called
     }
 
     public static EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse> buildInitiateTaskDmnResponse() {
-        DmnStringValue taskId = new DmnStringValue("processApplication");
-        DmnStringValue group = new DmnStringValue("TCW");
-        DmnIntegerValue workingDaysAllowed = new DmnIntegerValue(2);
-        DmnStringValue name = new DmnStringValue("Process Application");
-        InitiateTaskEvaluateDmnResponse result = new InitiateTaskEvaluateDmnResponse(
-            taskId,
-            group,
-            workingDaysAllowed,
-            name
-        );
+        InitiateTaskEvaluateDmnResponse result = InitiateTaskEvaluateDmnResponse.builder()
+            .taskId(new DmnStringValue("processApplication"))
+            .group(new DmnStringValue("TCW"))
+            .workingDaysAllowed(new DmnIntegerValue(2))
+            .name(new DmnStringValue("Process Application"))
+            .build();
 
         return new EvaluateDmnResponse<>(List.of(result));
     }

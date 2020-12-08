@@ -10,13 +10,15 @@ class WarningTaskHandlerTest {
     private final WarningTaskHandler handlerService = new WarningTaskHandler();
 
     @Test
-    void can_handle() {
-        assertThat(handlerService.canHandle(EventInformation.builder().build())).isFalse();
+    void evaluateDmn() {
+        assertThat(handlerService.evaluateDmn(EventInformation.builder().build())).isEmpty();
     }
 
     @Test
     void handle() throws NoSuchMethodException {
-        assertThat(handlerService.getClass().getMethod("handle").getName()).isEqualTo("handle");
+        // change for something meaningful once Warning handler is implemented
+        assertThat(handlerService.getClass().getMethod("evaluateDmn", EventInformation.class).getName())
+            .isEqualTo("evaluateDmn");
     }
 
 }

@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.SendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnRequest;
@@ -14,10 +13,12 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskSe
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventHandler;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import javax.validation.constraints.NotEmpty;
 
 @Service
 @Order(3)
-public class InitiationTaskHandler implements CaseEventHandler {
+public class InitiationTaskHandler implements CaseEventHandler<InitiateTaskEvaluateDmnResponse> {
 
     private static final String DMN_NAME = "getTask";
     private final WorkflowApiClientToInitiateTask apiClientToInitiateTask;
@@ -27,13 +28,11 @@ public class InitiationTaskHandler implements CaseEventHandler {
     }
 
     @Override
-    public boolean canHandle(EventInformation eventInformation) {
-        EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse> response = apiClientToInitiateTask.evaluateDmn(
+    public List<InitiateTaskEvaluateDmnResponse> evaluateDmn(EventInformation eventInformation) {
+        return apiClientToInitiateTask.evaluateDmn(
             getTableKey(eventInformation.getJurisdictionId(), eventInformation.getCaseTypeId()),
             buildBodyWithInitiateTaskEvaluateDmnRequest(eventInformation.getEventId(), eventInformation.getNewStateId())
-        );
-
-        return !response.getResults().isEmpty();
+        ).getResults();
     }
 
     private String getTableKey(String jurisdictionId, String caseTypeId) {
@@ -43,33 +42,39 @@ public class InitiationTaskHandler implements CaseEventHandler {
     private EvaluateDmnRequest<InitiateTaskEvaluateDmnRequest> buildBodyWithInitiateTaskEvaluateDmnRequest(
         String eventId, String newStateId
     ) {
-        DmnStringValue eventIdDmnValue = new DmnStringValue(eventId);
-        DmnStringValue postEventStateDmnValue = new DmnStringValue(newStateId);
-        InitiateTaskEvaluateDmnRequest initiateTaskEvaluateDmnRequestVariables =
-            new InitiateTaskEvaluateDmnRequest(eventIdDmnValue, postEventStateDmnValue);
+        InitiateTaskEvaluateDmnRequest initiateTaskEvaluateDmnRequestVariables = new InitiateTaskEvaluateDmnRequest(
+            new DmnStringValue(eventId),
+            new DmnStringValue(newStateId)
+        );
 
         return new EvaluateDmnRequest<>(initiateTaskEvaluateDmnRequestVariables);
     }
 
-
     @Override
-    public void handle() {
+    public void handle(@NotEmpty List<InitiateTaskEvaluateDmnResponse> results,
+                       @NotEmpty String caseTypeId,
+                       @NotEmpty String jurisdictionId) {
+
         SendMessageRequest<InitiateTaskSendMessageRequest> sendMessageRequest = new SendMessageRequest<>(
             "createTaskMessage",
-            buildBodyWithInitiateSendMessageRequest()
+            buildBodyWithInitiateSendMessageRequest(results.get(0), caseTypeId, jurisdictionId)
         );
 
         apiClientToInitiateTask.sendMessage(sendMessageRequest);
     }
 
-    private InitiateTaskSendMessageRequest buildBodyWithInitiateSendMessageRequest() {
+    private InitiateTaskSendMessageRequest buildBodyWithInitiateSendMessageRequest(
+        InitiateTaskEvaluateDmnResponse response,
+        @NotEmpty String caseTypeId,
+        @NotEmpty String jurisdictionId
+    ) {
         return InitiateTaskSendMessageRequest.builder()
-            .caseType(new DmnStringValue("Asylum"))
+            .caseType(new DmnStringValue(caseTypeId))
             .dueDate(new DmnStringValue(LocalDateTime.now().toString()))
-            .group(new DmnStringValue("TCW"))
-            .jurisdiction(new DmnStringValue("IA"))
-            .name(new DmnStringValue("Process Application"))
-            .taskId(new DmnStringValue("processApplication"))
+            .group(response.getGroup())
+            .jurisdiction(new DmnStringValue(jurisdictionId))
+            .name(response.getName())
+            .taskId(response.getTaskId())
             .build();
     }
 }
