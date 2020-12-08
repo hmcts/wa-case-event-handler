@@ -31,6 +31,7 @@ import static org.mockito.ArgumentMatchers.eq;
 class InitiationTaskHandlerTest {
 
     public static final String FIXED_DATE = "2020-12-08T15:53:36.530377";
+    public static final String DMN_NAME = "wa-task-initiation-ia-asylum";
     @Mock
     private WorkflowApiClientToInitiateTask apiClientToInitiateTask;
 
@@ -43,8 +44,8 @@ class InitiationTaskHandlerTest {
     private final EventInformation eventInformation = EventInformation.builder()
         .eventId("submitAppeal")
         .newStateId("")
-        .jurisdictionId("IA")
-        .caseTypeId("Asylum")
+        .jurisdictionId("ia")
+        .caseTypeId("asylum")
         .caseReference("some case reference")
         .dateTime(LocalDateTime.parse(FIXED_DATE))
         .build();
@@ -56,14 +57,14 @@ class InitiationTaskHandlerTest {
             InitiateTaskHelper.buildInitiateTaskDmnRequest();
 
         Mockito.when(apiClientToInitiateTask.evaluateDmn(
-            "getTask_IA_Asylum",
+            DMN_NAME,
             requestParameters
         )).thenReturn(new EvaluateDmnResponse<>(Collections.emptyList()));
 
         handlerService.evaluateDmn(eventInformation);
 
         Mockito.verify(apiClientToInitiateTask).evaluateDmn(
-            eq("getTask_IA_Asylum"),
+            eq(DMN_NAME),
             eq(requestParameters)
         );
     }
@@ -89,9 +90,9 @@ class InitiationTaskHandlerTest {
 
     private SendMessageRequest<InitiateTaskSendMessageRequest> getExpectedSendMessageRequest() {
         InitiateTaskSendMessageRequest expectedInitiateTaskSendMessageRequest = InitiateTaskSendMessageRequest.builder()
-            .caseType(new DmnStringValue("Asylum"))
+            .caseType(new DmnStringValue("asylum"))
             .group(new DmnStringValue("TCW"))
-            .jurisdiction(new DmnStringValue("IA"))
+            .jurisdiction(new DmnStringValue("ia"))
             .name(new DmnStringValue("Process Application"))
             .taskId(new DmnStringValue("processApplication"))
             .caseReference(new DmnStringValue("some case reference"))

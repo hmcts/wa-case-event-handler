@@ -19,7 +19,7 @@ import java.util.List;
 @Order(3)
 public class InitiationTaskHandler implements CaseEventHandler {
 
-    private static final String DMN_NAME = "getTask";
+    private static final String DMN_NAME = "wa-task-initiation";
     private final WorkflowApiClientToInitiateTask apiClientToInitiateTask;
 
     public InitiationTaskHandler(WorkflowApiClientToInitiateTask apiClientToInitiateTask) {
@@ -35,7 +35,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
     }
 
     private String getTableKey(String jurisdictionId, String caseTypeId) {
-        return DMN_NAME + "_" + jurisdictionId + "_" + caseTypeId;
+        return DMN_NAME + "-" + jurisdictionId + "-" + caseTypeId;
     }
 
     private EvaluateDmnRequest<InitiateTaskEvaluateDmnRequest> buildBodyWithInitiateTaskEvaluateDmnRequest(

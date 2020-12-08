@@ -42,6 +42,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.
 class CaseEventHandlerControllerEndPointTest {
 
     public static final String S2S_TOKEN = "Bearer s2s token";
+    public static final String DMN_TABLE = "wa-task-initiation-ia-asylum";
 
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
@@ -72,7 +73,7 @@ class CaseEventHandlerControllerEndPointTest {
         String url = String.format(
             "%s/workflow/decision-definition/key/%s/evaluate",
             workflowApiUrl,
-            "getTask_IA_Asylum"
+            DMN_TABLE
         );
         Mockito.when(restTemplate.exchange(
             ArgumentMatchers.eq(url),
@@ -98,8 +99,8 @@ class CaseEventHandlerControllerEndPointTest {
             .eventInstanceId("some event instance Id")
             .dateTime(LocalDateTime.now())
             .caseReference("some case reference")
-            .jurisdictionId("IA")
-            .caseTypeId("Asylum")
+            .jurisdictionId("ia")
+            .caseTypeId("asylum")
             .eventId("some event Id")
             .newStateId("some new state Id")
             .userId("some user Id")
