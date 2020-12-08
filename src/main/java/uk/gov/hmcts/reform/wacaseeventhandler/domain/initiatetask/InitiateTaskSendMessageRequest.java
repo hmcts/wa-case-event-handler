@@ -4,11 +4,12 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskSendMessageRequest;
 
 @ToString
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @Builder
-public final class InitiateTaskSendMessageRequest {
+public final class InitiateTaskSendMessageRequest extends TaskSendMessageRequest {
 
     private final DmnStringValue dueDate;
     private final DmnStringValue name;

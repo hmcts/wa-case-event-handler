@@ -14,14 +14,13 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.SendMessageRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskEvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskSendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskSendMessageRequest;
 
 @Service
 @Slf4j
-public class WorkflowApiClientToInitiateTask implements
-    WorkflowApiClient<InitiateTaskEvaluateDmnRequest, InitiateTaskEvaluateDmnResponse, InitiateTaskSendMessageRequest> {
+public class WorkflowApiClientToInitiateTask implements WorkflowApiClient {
 
     private final RestTemplate restTemplate;
     private final AuthTokenGenerator authTokenGenerator;
@@ -38,14 +37,14 @@ public class WorkflowApiClientToInitiateTask implements
     @Override
     public EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse> evaluateDmn(
         String key,
-        EvaluateDmnRequest<InitiateTaskEvaluateDmnRequest> requestParameters
+        EvaluateDmnRequest<? extends TaskEvaluateDmnRequest> requestParameters
     ) {
         return makePostCall(key, requestParameters).getBody();
     }
 
     private ResponseEntity<EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse>> makePostCall(
         String key,
-        EvaluateDmnRequest<InitiateTaskEvaluateDmnRequest> requestParameters
+        EvaluateDmnRequest<? extends TaskEvaluateDmnRequest> requestParameters
     ) {
         return restTemplate.exchange(
             String.format("%s/workflow/decision-definition/key/%s/evaluate", workflowApiUrl, key),
@@ -64,7 +63,7 @@ public class WorkflowApiClientToInitiateTask implements
     }
 
     @Override
-    public ResponseEntity<Void> sendMessage(SendMessageRequest<InitiateTaskSendMessageRequest> sendMessageRequest) {
+    public ResponseEntity<Void> sendMessage(SendMessageRequest<? extends TaskSendMessageRequest> sendMessageRequest) {
         return restTemplate.exchange(
             String.format("%s/workflow/message", workflowApiUrl),
             HttpMethod.POST,
