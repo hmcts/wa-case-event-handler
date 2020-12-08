@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 @Order(3)
 public class InitiationTaskHandler implements CaseEventHandler {
 
+    private static final String DMN_NAME = "getTask";
     private final WorkflowApiClientToInitiateTask apiClientToInitiateTask;
 
     public InitiationTaskHandler(WorkflowApiClientToInitiateTask apiClientToInitiateTask) {
@@ -28,18 +29,24 @@ public class InitiationTaskHandler implements CaseEventHandler {
     @Override
     public boolean canHandle(EventInformation eventInformation) {
         EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse> response = apiClientToInitiateTask.evaluateDmn(
-            "getTask_IA_Asylum",
-            buildBodyWithInitiateTaskEvaluateDmnRequest()
+            getTableKey(eventInformation.getJurisdictionId(), eventInformation.getCaseTypeId()),
+            buildBodyWithInitiateTaskEvaluateDmnRequest(eventInformation.getEventId(), eventInformation.getNewStateId())
         );
 
         return !response.getResults().isEmpty();
     }
 
-    private EvaluateDmnRequest<InitiateTaskEvaluateDmnRequest> buildBodyWithInitiateTaskEvaluateDmnRequest() {
-        DmnStringValue eventId = new DmnStringValue("submitAppeal");
-        DmnStringValue postEventState = new DmnStringValue("");
+    private String getTableKey(String jurisdictionId, String caseTypeId) {
+        return DMN_NAME + "_" + jurisdictionId + "_" + caseTypeId;
+    }
+
+    private EvaluateDmnRequest<InitiateTaskEvaluateDmnRequest> buildBodyWithInitiateTaskEvaluateDmnRequest(
+        String eventId, String newStateId
+    ) {
+        DmnStringValue eventIdDmnValue = new DmnStringValue(eventId);
+        DmnStringValue postEventStateDmnValue = new DmnStringValue(newStateId);
         InitiateTaskEvaluateDmnRequest initiateTaskEvaluateDmnRequestVariables =
-            new InitiateTaskEvaluateDmnRequest(eventId, postEventState);
+            new InitiateTaskEvaluateDmnRequest(eventIdDmnValue, postEventStateDmnValue);
 
         return new EvaluateDmnRequest<>(initiateTaskEvaluateDmnRequestVariables);
     }
@@ -50,7 +57,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
         SendMessageRequest<InitiateTaskSendMessageRequest> sendMessageRequest = new SendMessageRequest<>(
             "createTaskMessage",
             buildBodyWithInitiateSendMessageRequest()
-            );
+        );
 
         apiClientToInitiateTask.sendMessage(sendMessageRequest);
     }

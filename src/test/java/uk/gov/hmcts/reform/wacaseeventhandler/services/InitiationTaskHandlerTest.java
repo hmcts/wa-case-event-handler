@@ -40,7 +40,14 @@ class InitiationTaskHandlerTest {
         ))
             .thenReturn(scenario.evaluateDmnResponses);
 
-        assertThat(handlerService.canHandle(EventInformation.builder().build())).isEqualTo(scenario.expected);
+        EventInformation eventInformation = EventInformation.builder()
+            .eventId("submitAppeal")
+            .newStateId("")
+            .jurisdictionId("IA")
+            .caseTypeId("Asylum")
+            .build();
+
+        assertThat(handlerService.canHandle(eventInformation)).isEqualTo(scenario.expected);
     }
 
     private static Stream<Scenario> scenarioProvider() {

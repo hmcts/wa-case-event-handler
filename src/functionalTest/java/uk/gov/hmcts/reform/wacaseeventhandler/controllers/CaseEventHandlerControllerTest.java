@@ -20,10 +20,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .eventInstanceId("some event instance Id")
             .dueTime(LocalDateTime.now())
             .caseReference("some case reference")
-            .jurisdictionId("somme jurisdiction Id")
-            .caseTypeId("some case type Id")
-            .eventId("some event Id")
-            .newStateId("some new state Id")
+            .jurisdictionId("IA")
+            .caseTypeId("Asylum")
+            .eventId("submitAppeal")
+            .newStateId("some state id")
             .userId("some user Id")
             .build();
 
