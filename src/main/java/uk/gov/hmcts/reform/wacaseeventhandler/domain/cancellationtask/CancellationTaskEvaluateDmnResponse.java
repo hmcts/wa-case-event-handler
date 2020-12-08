@@ -2,10 +2,11 @@ package uk.gov.hmcts.reform.wacaseeventhandler.domain.cancellationtask;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskEvaluateDmnResponse;
 
 @ToString
-@EqualsAndHashCode
-public final class CancellationTaskEvaluateDmnResponse {
+@EqualsAndHashCode(callSuper = true)
+public final class CancellationTaskEvaluateDmnResponse extends TaskEvaluateDmnResponse {
 
     // define here your DmnValues
 

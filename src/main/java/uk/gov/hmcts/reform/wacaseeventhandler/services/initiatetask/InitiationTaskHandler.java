@@ -7,6 +7,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.SendMessageRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskEvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskSendMessageRequest;
@@ -18,7 +19,7 @@ import javax.validation.constraints.NotEmpty;
 
 @Service
 @Order(3)
-public class InitiationTaskHandler implements CaseEventHandler<InitiateTaskEvaluateDmnResponse> {
+public class InitiationTaskHandler implements CaseEventHandler {
 
     private static final String DMN_NAME = "getTask";
     private final WorkflowApiClientToInitiateTask apiClientToInitiateTask;
@@ -51,13 +52,17 @@ public class InitiationTaskHandler implements CaseEventHandler<InitiateTaskEvalu
     }
 
     @Override
-    public void handle(@NotEmpty List<InitiateTaskEvaluateDmnResponse> results,
-                       @NotEmpty String caseTypeId,
-                       @NotEmpty String jurisdictionId) {
+    public void handle(List<? extends TaskEvaluateDmnResponse> results,
+                       String caseTypeId,
+                       String jurisdictionId) {
 
         SendMessageRequest<InitiateTaskSendMessageRequest> sendMessageRequest = new SendMessageRequest<>(
             "createTaskMessage",
-            buildBodyWithInitiateSendMessageRequest(results.get(0), caseTypeId, jurisdictionId)
+            buildBodyWithInitiateSendMessageRequest(
+                (InitiateTaskEvaluateDmnResponse) results.get(0),
+                caseTypeId,
+                jurisdictionId
+            )
         );
 
         apiClientToInitiateTask.sendMessage(sendMessageRequest);

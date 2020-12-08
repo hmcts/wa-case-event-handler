@@ -7,11 +7,12 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnIntegerValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskEvaluateDmnResponse;
 
 @ToString
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @Builder
-public final class InitiateTaskEvaluateDmnResponse {
+public final class InitiateTaskEvaluateDmnResponse extends TaskEvaluateDmnResponse {
     private final DmnStringValue taskId;
     private final DmnStringValue group;
     private final DmnIntegerValue workingDaysAllowed;
@@ -22,6 +23,7 @@ public final class InitiateTaskEvaluateDmnResponse {
                                            @JsonProperty("group") DmnStringValue group,
                                            @JsonProperty("workingDaysAllowed") DmnIntegerValue workingDaysAllowed,
                                            @JsonProperty("name") DmnStringValue name) {
+        super();
         this.taskId = taskId;
         this.group = group;
         this.workingDaysAllowed = workingDaysAllowed;

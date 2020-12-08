@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskEvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventHandler;
 
 import java.util.List;
@@ -15,7 +16,6 @@ import javax.validation.Valid;
 
 import static org.springframework.http.ResponseEntity.noContent;
 
-@SuppressWarnings({"rawtypes", "unchecked"})
 @RestController
 public class CaseEventHandlerController {
 
@@ -28,7 +28,7 @@ public class CaseEventHandlerController {
     public ResponseEntity<Void> caseEventHandler(@Valid @RequestBody EventInformation eventInformation) {
 
         for (CaseEventHandler handler : handlerServices) {
-            List<Object> results = handler.evaluateDmn(eventInformation);
+            List<? extends TaskEvaluateDmnResponse> results = handler.evaluateDmn(eventInformation);
             if (!results.isEmpty()) {
                 handler.handle(results, eventInformation.getCaseTypeId(), eventInformation.getJurisdictionId());
             }
