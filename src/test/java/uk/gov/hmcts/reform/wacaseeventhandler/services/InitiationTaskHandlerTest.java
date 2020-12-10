@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEv
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskSendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.initiatetask.InitiationTaskHandler;
 
 import java.time.LocalDateTime;
@@ -38,6 +39,9 @@ class InitiationTaskHandlerTest {
 
     @Captor
     private ArgumentCaptor<SendMessageRequest<InitiateTaskSendMessageRequest>> captor;
+
+    @Mock
+    private IsoDateFormatter isoDateFormatter;
 
     @InjectMocks
     private InitiationTaskHandler handlerService;
@@ -72,6 +76,9 @@ class InitiationTaskHandlerTest {
 
     @Test
     void handle() {
+
+        Mockito.when(isoDateFormatter.format(eq(LocalDateTime.parse(INPUT_DATE))))
+            .thenReturn(EXPECTED_DATE);
 
         InitiateTaskEvaluateDmnResponse initiateTaskResponse = InitiateTaskEvaluateDmnResponse.builder()
             .group(new DmnStringValue("TCW"))

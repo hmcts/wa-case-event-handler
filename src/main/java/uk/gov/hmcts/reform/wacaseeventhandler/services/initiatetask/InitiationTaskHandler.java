@@ -12,10 +12,8 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEv
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskSendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -25,9 +23,12 @@ public class InitiationTaskHandler implements CaseEventHandler {
     private static final String DMN_NAME = "wa-task-initiation";
     public static final String MESSAGE_NAME = "createTaskMessage";
     private final WorkflowApiClientToInitiateTask apiClientToInitiateTask;
+    private final IsoDateFormatter isoDateFormatter;
 
-    public InitiationTaskHandler(WorkflowApiClientToInitiateTask apiClientToInitiateTask) {
+    public InitiationTaskHandler(WorkflowApiClientToInitiateTask apiClientToInitiateTask,
+                                 IsoDateFormatter isoDateFormatter) {
         this.apiClientToInitiateTask = apiClientToInitiateTask;
+        this.isoDateFormatter = isoDateFormatter;
     }
 
     @Override
@@ -74,12 +75,10 @@ public class InitiationTaskHandler implements CaseEventHandler {
         InitiateTaskEvaluateDmnResponse response,
         EventInformation eventInformation
     ) {
-        ZoneId ukTime = ZoneId.of("Europe/London");
-        ZonedDateTime dateTimeWithZoneId = eventInformation.getDateTime().atZone(ukTime);
 
         return InitiateTaskSendMessageRequest.builder()
             .caseType(new DmnStringValue(eventInformation.getCaseTypeId()))
-            .dueDate(new DmnStringValue(dateTimeWithZoneId.format(DateTimeFormatter.ISO_INSTANT)))
+            .dueDate(new DmnStringValue(isoDateFormatter.format(eventInformation.getDateTime())))
             .workingDaysAllowed(response.getWorkingDaysAllowed())
             .group(response.getGroup())
             .jurisdiction(new DmnStringValue(eventInformation.getJurisdictionId()))
@@ -88,4 +87,6 @@ public class InitiationTaskHandler implements CaseEventHandler {
             .caseId(new DmnStringValue(eventInformation.getCaseReference()))
             .build();
     }
+
+
 }
