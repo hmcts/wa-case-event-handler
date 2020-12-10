@@ -95,7 +95,7 @@ class InitiationTaskHandlerTest {
             .jurisdiction(new DmnStringValue("ia"))
             .name(new DmnStringValue("Process Application"))
             .taskId(new DmnStringValue("processApplication"))
-            .caseReference(new DmnStringValue("some case reference"))
+            .caseId(new DmnStringValue("some case reference"))
             .dueDate(new DmnStringValue(FIXED_DATE))
             .build();
 

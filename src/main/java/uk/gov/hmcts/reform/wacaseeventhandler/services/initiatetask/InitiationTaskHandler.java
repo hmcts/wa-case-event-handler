@@ -20,6 +20,7 @@ import java.util.List;
 public class InitiationTaskHandler implements CaseEventHandler {
 
     private static final String DMN_NAME = "wa-task-initiation";
+    public static final String MESSAGE_NAME = "createTaskMessage";
     private final WorkflowApiClientToInitiateTask apiClientToInitiateTask;
 
     public InitiationTaskHandler(WorkflowApiClientToInitiateTask apiClientToInitiateTask) {
@@ -29,8 +30,14 @@ public class InitiationTaskHandler implements CaseEventHandler {
     @Override
     public List<InitiateTaskEvaluateDmnResponse> evaluateDmn(EventInformation eventInformation) {
         return apiClientToInitiateTask.evaluateDmn(
-            getTableKey(eventInformation.getJurisdictionId(), eventInformation.getCaseTypeId()),
-            buildBodyWithInitiateTaskEvaluateDmnRequest(eventInformation.getEventId(), eventInformation.getNewStateId())
+            getTableKey(
+                eventInformation.getJurisdictionId(),
+                eventInformation.getCaseTypeId()
+            ),
+            buildBodyWithInitiateTaskEvaluateDmnRequest(
+                eventInformation.getEventId(),
+                eventInformation.getNewStateId()
+            )
         ).getResults();
     }
 
@@ -53,7 +60,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
     public void handle(List<? extends TaskEvaluateDmnResponse> results, EventInformation eventInformation) {
 
         SendMessageRequest<InitiateTaskSendMessageRequest> sendMessageRequest = new SendMessageRequest<>(
-            "createTaskMessage",
+            MESSAGE_NAME,
             buildBodyWithInitiateSendMessageRequest((InitiateTaskEvaluateDmnResponse) results.get(0), eventInformation)
         );
 
@@ -67,11 +74,12 @@ public class InitiationTaskHandler implements CaseEventHandler {
         return InitiateTaskSendMessageRequest.builder()
             .caseType(new DmnStringValue(eventInformation.getCaseTypeId()))
             .dueDate(new DmnStringValue(eventInformation.getDateTime().toString()))
+            .workingDaysAllowed(response.getWorkingDaysAllowed())
             .group(response.getGroup())
             .jurisdiction(new DmnStringValue(eventInformation.getJurisdictionId()))
             .name(response.getName())
             .taskId(response.getTaskId())
-            .caseReference(new DmnStringValue(eventInformation.getCaseReference()))
+            .caseId(new DmnStringValue(eventInformation.getCaseReference()))
             .build();
     }
 }

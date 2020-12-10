@@ -43,7 +43,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
 
         taskId = given()
-            .header(SERVICE_AUTHORIZATION, authTokenGenerator.generate())
+            .header(SERVICE_AUTHORIZATION, s2sToken)
             .contentType(APPLICATION_JSON_VALUE)
             .baseUri(camundaUrl)
             .basePath("/task")
@@ -66,9 +66,18 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         given()
             .contentType(APPLICATION_JSON_VALUE)
             .accept(APPLICATION_JSON_VALUE)
-            .header(SERVICE_AUTHORIZATION, authTokenGenerator.generate())
+            .header(SERVICE_AUTHORIZATION, s2sToken)
             .when()
             .post(camundaUrl + "/task/{task-id}/complete", taskId);
 
+        given()
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .contentType(APPLICATION_JSON_VALUE)
+            .accept(APPLICATION_JSON_VALUE)
+            .baseUri(camundaUrl)
+            .when()
+            .get("/history/task?taskId=" + taskId)
+            .then()
+            .body("[0].deleteReason", is("completed"));
     }
 }

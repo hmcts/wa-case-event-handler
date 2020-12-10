@@ -27,10 +27,13 @@ public abstract class SpringBootFunctionalBaseTest {
     @Autowired
     public AuthTokenGenerator authTokenGenerator;
 
+    public String s2sToken;
+
     @Before
     public void setUp() {
         RestAssured.baseURI = testUrl;
         RestAssured.useRelaxedHTTPSValidation();
+        s2sToken = authTokenGenerator.generate();
     }
 
 }
