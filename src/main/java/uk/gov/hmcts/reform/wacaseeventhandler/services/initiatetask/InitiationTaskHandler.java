@@ -13,6 +13,9 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEv
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskSendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventHandler;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -71,9 +74,12 @@ public class InitiationTaskHandler implements CaseEventHandler {
         InitiateTaskEvaluateDmnResponse response,
         EventInformation eventInformation
     ) {
+        ZoneId ukTime = ZoneId.of("Europe/London");
+        ZonedDateTime dateTimeWithZoneId = eventInformation.getDateTime().atZone(ukTime);
+
         return InitiateTaskSendMessageRequest.builder()
             .caseType(new DmnStringValue(eventInformation.getCaseTypeId()))
-            .dueDate(new DmnStringValue(eventInformation.getDateTime().toString()))
+            .dueDate(new DmnStringValue(dateTimeWithZoneId.format(DateTimeFormatter.ISO_INSTANT)))
             .workingDaysAllowed(response.getWorkingDaysAllowed())
             .group(response.getGroup())
             .jurisdiction(new DmnStringValue(eventInformation.getJurisdictionId()))

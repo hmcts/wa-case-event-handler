@@ -10,8 +10,7 @@ def secrets = [
     'wa-${env}' : [
     ],
     's2s-${env}': [
-        secret('microservicekey-wa-case-event-handler', 'S2S_SECRET_CASE_EVENT_HANDLER'),
-        secret('microservicekey-wa-workflow-api', 'S2S_SECRET_WORKFLOW_API'),
+        secret('microservicekey-wa-case-event-handler', 'S2S_SECRET_CASE_EVENT_HANDLER')
     ]
 ]
 

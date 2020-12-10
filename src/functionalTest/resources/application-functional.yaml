@@ -1,10 +1,3 @@
 targets:
   instance: ${TEST_URL:http://localhost:8088}
   camunda: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
-
-idam:
-  s2s-auth:
-    url: ${S2S_URL:http://service-auth-provider-api}
-    secret: ${S2S_SECRET_WORKFLOW_API:AAAAAAAAAAAAAAAC}
-    name: ${S2S_NAME_WORKFLOW_API:wa_workflow_api}
-

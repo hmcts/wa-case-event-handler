@@ -29,7 +29,6 @@ public final class EventInformation {
     @NotEmpty
     private final String eventId;
     private final String previousStateId;
-    @NotEmpty
     private final String newStateId;
     @NotEmpty
     private final String userId;

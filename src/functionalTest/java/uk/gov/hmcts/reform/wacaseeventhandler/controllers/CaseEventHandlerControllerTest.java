@@ -16,20 +16,19 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonS
 
 public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest {
 
-    private final String caseReference = UUID.randomUUID().toString();
+    private final String caseId = UUID.randomUUID().toString();
     private String taskId;
 
     @Test
     public void given_validEventInformation_should_respond_with_200() {
-
         EventInformation validEventInformation = EventInformation.builder()
             .eventInstanceId("some event instance Id")
-            .dateTime(LocalDateTime.now())
-            .caseReference(caseReference)
+            .dateTime(LocalDateTime.now().plusDays(2))
+            .caseReference(caseId)
             .jurisdictionId("ia")
             .caseTypeId("asylum")
             .eventId("submitAppeal")
-            .newStateId("some state id")
+            .newStateId("")
             .userId("some user Id")
             .build();
 
@@ -47,7 +46,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .contentType(APPLICATION_JSON_VALUE)
             .baseUri(camundaUrl)
             .basePath("/task")
-            .param("processVariables", "caseReference_eq_" + caseReference)
+            .param("processVariables", "caseId_eq_" + caseId)
             .when()
             .get()
             .prettyPeek()

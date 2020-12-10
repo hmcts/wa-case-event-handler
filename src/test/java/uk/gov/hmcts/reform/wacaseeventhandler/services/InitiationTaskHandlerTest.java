@@ -30,7 +30,8 @@ import static org.mockito.ArgumentMatchers.eq;
 @ExtendWith(MockitoExtension.class)
 class InitiationTaskHandlerTest {
 
-    public static final String FIXED_DATE = "2020-12-08T15:53:36.530377";
+    public static final String INPUT_DATE = "2020-12-08T15:53:36.530377";
+    public static final String EXPECTED_DATE = "2020-12-08T15:53:36.530377Z";
     public static final String DMN_NAME = "wa-task-initiation-ia-asylum";
     @Mock
     private WorkflowApiClientToInitiateTask apiClientToInitiateTask;
@@ -47,7 +48,7 @@ class InitiationTaskHandlerTest {
         .jurisdictionId("ia")
         .caseTypeId("asylum")
         .caseReference("some case reference")
-        .dateTime(LocalDateTime.parse(FIXED_DATE))
+        .dateTime(LocalDateTime.parse(INPUT_DATE))
         .build();
 
     @Test
@@ -96,7 +97,7 @@ class InitiationTaskHandlerTest {
             .name(new DmnStringValue("Process Application"))
             .taskId(new DmnStringValue("processApplication"))
             .caseId(new DmnStringValue("some case reference"))
-            .dueDate(new DmnStringValue(FIXED_DATE))
+            .dueDate(new DmnStringValue(EXPECTED_DATE))
             .build();
 
         return new SendMessageRequest<>(
