@@ -25,3 +25,4 @@ wa-workflow-api:
 spring:
   application:
     name: WA Case Event Handler
+  jackson.serialization.indent_output: true

@@ -1,16 +1,20 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.SendMessageRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskEvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskSendMessageRequest;
 
-@SuppressWarnings("PMD.GenericsNaming")
-public interface WorkflowApiClient<RequestT, ResponseT> {
+public interface WorkflowApiClient {
 
-    EvaluateDmnResponse<ResponseT> evaluateDmn(
-        @PathVariable("key") String key,
-        EvaluateDmnRequest<RequestT> requestParameters
+    EvaluateDmnResponse<? extends TaskEvaluateDmnResponse> evaluateDmn(
+        String key,
+        EvaluateDmnRequest<? extends TaskEvaluateDmnRequest> requestParameters
     );
 
+    ResponseEntity<Void> sendMessage(SendMessageRequest<? extends TaskSendMessageRequest> sendMessageRequest);
 
 }
