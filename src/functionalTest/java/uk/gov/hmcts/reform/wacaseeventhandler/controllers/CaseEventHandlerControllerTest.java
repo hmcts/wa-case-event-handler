@@ -37,8 +37,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         given()
             .contentType(APPLICATION_JSON_VALUE)
             .body(asJsonString(eventInformation))
+            .log().all(true)
             .when()
             .post("/messages")
+            .prettyPeek()
             .then()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
@@ -49,6 +51,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .baseUri(camundaUrl)
             .basePath("/task")
             .param("processVariables", "caseId_eq_" + caseId)
+            .log().all(true)
             .when()
             .get()
             .prettyPeek()
