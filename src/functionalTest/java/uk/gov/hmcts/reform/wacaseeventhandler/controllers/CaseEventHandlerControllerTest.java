@@ -9,9 +9,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
-import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
