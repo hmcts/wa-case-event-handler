@@ -9,6 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.Locale;
 import javax.validation.constraints.NotEmpty;
 
 @ToString
@@ -19,7 +20,7 @@ public final class EventInformation {
     @NotEmpty
     private final String eventInstanceId;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
-    private final LocalDateTime dueTime;
+    private final LocalDateTime dateTime;
     @NotEmpty
     private final String caseReference;
     @NotEmpty
@@ -29,14 +30,13 @@ public final class EventInformation {
     @NotEmpty
     private final String eventId;
     private final String previousStateId;
-    @NotEmpty
     private final String newStateId;
     @NotEmpty
     private final String userId;
 
     @JsonCreator
     public EventInformation(@JsonProperty("eventInstanceId") String eventInstanceId,
-                            @JsonProperty("dueTime")LocalDateTime dueTime,
+                            @JsonProperty("dateTime")LocalDateTime dateTime,
                             @JsonProperty("caseReference") String caseReference,
                             @JsonProperty("jurisdictionId") String jurisdictionId,
                             @JsonProperty("caseTypeId") String caseTypeId,
@@ -45,10 +45,10 @@ public final class EventInformation {
                             @JsonProperty("newStateId") String newStateId,
                             @JsonProperty("userId") String userId) {
         this.eventInstanceId = eventInstanceId;
-        this.dueTime = dueTime;
+        this.dateTime = dateTime;
         this.caseReference = caseReference;
-        this.jurisdictionId = jurisdictionId;
-        this.caseTypeId = caseTypeId;
+        this.jurisdictionId = jurisdictionId.toLowerCase(Locale.ENGLISH);
+        this.caseTypeId = caseTypeId.toLowerCase(Locale.ENGLISH);
         this.eventId = eventId;
         this.previousStateId = previousStateId;
         this.newStateId = newStateId;
@@ -67,8 +67,8 @@ public final class EventInformation {
         return eventInstanceId;
     }
 
-    public LocalDateTime getDueTime() {
-        return dueTime;
+    public LocalDateTime getDateTime() {
+        return dateTime;
     }
 
     public String getCaseReference() {

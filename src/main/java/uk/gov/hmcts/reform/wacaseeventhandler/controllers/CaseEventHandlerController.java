@@ -30,7 +30,7 @@ public class CaseEventHandlerController {
         for (CaseEventHandler handler : handlerServices) {
             List<? extends TaskEvaluateDmnResponse> results = handler.evaluateDmn(eventInformation);
             if (!results.isEmpty()) {
-                handler.handle(results, eventInformation.getCaseTypeId(), eventInformation.getJurisdictionId());
+                handler.handle(results, eventInformation);
             }
         }
 

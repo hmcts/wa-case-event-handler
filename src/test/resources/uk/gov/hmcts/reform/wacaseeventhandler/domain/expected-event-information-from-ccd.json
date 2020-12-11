@@ -2,8 +2,8 @@
   "eventInstanceId" : "some event instance Id",
   "dateTime" : "2020-12-07T17:39:22.232622",
   "caseReference" : "some case reference",
-  "jurisdictionId" : "ia",
-  "caseTypeId" : "asylum",
+  "jurisdictionId" : "IA",
+  "caseTypeId" : "Asylum",
   "eventId" : "some event Id",
   "newStateId" : "some new state Id",
   "userId" : "some user Id"

@@ -19,7 +19,7 @@ public class CancellationTaskHandler implements CaseEventHandler {
     }
 
     @Override
-    public void handle(List<? extends TaskEvaluateDmnResponse> results, String caseTypeId, String jurisdictionId) {
+    public void handle(List<? extends TaskEvaluateDmnResponse> results, EventInformation eventInformation) {
         // empty for now
     }
 

@@ -30,6 +30,7 @@ import static org.mockito.Mockito.inOrder;
 })
 class CaseEventHandlerControllerTest {
 
+    public static final String FIXED_DATE = "2020-12-07T17:39:22.232622";
     @MockBean
     private CancellationTaskHandler cancellationTaskHandlerService;
 
@@ -42,7 +43,6 @@ class CaseEventHandlerControllerTest {
     @Autowired
     private CaseEventHandlerController controller;
 
-    @SuppressWarnings("unchecked")
     @Test
     void given_message_then_apply_handlers_in_order() {
 
@@ -59,7 +59,8 @@ class CaseEventHandlerControllerTest {
             .eventInstanceId("some id")
             .caseTypeId("some case type")
             .jurisdictionId("some jurisdiction")
-            .dueTime(LocalDateTime.now())
+            .dateTime(LocalDateTime.parse(FIXED_DATE))
+            .caseReference("some case reference")
             .build();
 
         controller.caseEventHandler(eventInformation);
@@ -71,25 +72,13 @@ class CaseEventHandlerControllerTest {
         );
 
         inOrder.verify(cancellationTaskHandlerService).evaluateDmn(any(EventInformation.class));
-        inOrder.verify(cancellationTaskHandlerService).handle(
-            anyList(),
-            eq("some case type"),
-            eq("some jurisdiction")
-        );
+        inOrder.verify(cancellationTaskHandlerService).handle(anyList(), eq(eventInformation));
 
         inOrder.verify(warningTaskHandlerService).evaluateDmn(any(EventInformation.class));
-        inOrder.verify(warningTaskHandlerService).handle(
-            anyList(),
-            eq("some case type"),
-            eq("some jurisdiction")
-        );
+        inOrder.verify(warningTaskHandlerService).handle(anyList(), eq(eventInformation));
 
         inOrder.verify(initiationTaskHandlerService).evaluateDmn(any(EventInformation.class));
-        inOrder.verify(initiationTaskHandlerService).handle(
-            anyList(),
-            eq("some case type"),
-            eq("some jurisdiction")
-        );
+        inOrder.verify(initiationTaskHandlerService).handle(anyList(), eq(eventInformation));
 
     }
 }

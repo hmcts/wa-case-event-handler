@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnIntegerValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskSendMessageRequest;
 
@@ -12,11 +13,13 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskSendMessageRequest;
 public final class InitiateTaskSendMessageRequest extends TaskSendMessageRequest {
 
     private final DmnStringValue dueDate;
+    private final DmnIntegerValue workingDaysAllowed;
     private final DmnStringValue name;
     private final DmnStringValue taskId;
     private final DmnStringValue group;
     private final DmnStringValue jurisdiction;
     private final DmnStringValue caseType;
+    private final DmnStringValue caseId;
 
     public DmnStringValue getDueDate() {
         return dueDate;
@@ -40,5 +43,13 @@ public final class InitiateTaskSendMessageRequest extends TaskSendMessageRequest
 
     public DmnStringValue getCaseType() {
         return caseType;
+    }
+
+    public DmnStringValue getCaseId() {
+        return caseId;
+    }
+
+    public DmnIntegerValue getWorkingDaysAllowed() {
+        return workingDaysAllowed;
     }
 }
