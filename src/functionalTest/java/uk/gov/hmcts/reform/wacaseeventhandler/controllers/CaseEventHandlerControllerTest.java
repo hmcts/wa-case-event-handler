@@ -76,7 +76,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .header(SERVICE_AUTHORIZATION, s2sToken)
             .baseUri(camundaUrl)
             .when()
+            .log().all(true)
             .get("/history/task?taskId=" + taskId)
+            .prettyPeek()
             .then()
             .body("[0].deleteReason", is("completed"));
     }
