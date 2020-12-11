@@ -37,10 +37,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         given()
             .contentType(APPLICATION_JSON_VALUE)
             .body(asJsonString(eventInformation))
-            .log().all(true)
             .when()
             .post("/messages")
-            .prettyPeek()
             .then()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
@@ -51,10 +49,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .baseUri(camundaUrl)
             .basePath("/task")
             .param("processVariables", "caseId_eq_" + caseId)
-            .log().all(true)
             .when()
             .get()
-            .prettyPeek()
             .then()
             .body("size()", is(1))
             .body("[0].name", is("Process Application"))
@@ -71,26 +67,18 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .header(SERVICE_AUTHORIZATION, s2sToken)
             .accept(APPLICATION_JSON_VALUE)
             .contentType(APPLICATION_JSON_VALUE)
-            .log().all(true)
             .when()
-            .post(camundaUrl + "/task/{task-id}/complete", taskId)
-            .prettyPeek();
+            .post(camundaUrl + "/task/{task-id}/complete", taskId);
 
-        await().ignoreException(AssertionError.class).pollInterval(1, SECONDS).atMost(20, SECONDS).until(
-            () -> {
-                given()
-                    .contentType(APPLICATION_JSON_VALUE)
-                    .accept(APPLICATION_JSON_VALUE)
-                    .header(SERVICE_AUTHORIZATION, s2sToken)
-                    .baseUri(camundaUrl)
-                    .when()
-                    .log().all(true)
-                    .get("/history/task?taskId=" + taskId)
-                    .prettyPeek()
-                    .then()
-                    .body("[0].deleteReason", is("completed"));
+        given()
+            .contentType(APPLICATION_JSON_VALUE)
+            .accept(APPLICATION_JSON_VALUE)
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .baseUri(camundaUrl)
+            .when()
+            .get("/history/task?taskId=" + taskId)
+            .then()
+            .body("[0].deleteReason", is("completed"));
 
-                return true;
-            });
     }
 }
