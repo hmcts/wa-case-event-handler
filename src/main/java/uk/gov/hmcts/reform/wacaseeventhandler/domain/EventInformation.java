@@ -9,6 +9,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.Locale;
 import javax.validation.constraints.NotEmpty;
 
 @ToString
@@ -46,8 +47,8 @@ public final class EventInformation {
         this.eventInstanceId = eventInstanceId;
         this.dateTime = dateTime;
         this.caseReference = caseReference;
-        this.jurisdictionId = jurisdictionId;
-        this.caseTypeId = caseTypeId;
+        this.jurisdictionId = jurisdictionId.toLowerCase(Locale.ENGLISH);
+        this.caseTypeId = caseTypeId.toLowerCase(Locale.ENGLISH);
         this.eventId = eventId;
         this.previousStateId = previousStateId;
         this.newStateId = newStateId;

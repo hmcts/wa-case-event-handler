@@ -20,13 +20,13 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     private String taskId;
 
     @Test
-    public void given_validEventInformation_should_respond_with_200() {
-        EventInformation validEventInformation = EventInformation.builder()
+    public void given_eventInformation_from_ccd_should_respond_with_200() {
+        EventInformation eventInformation = EventInformation.builder()
             .eventInstanceId("some event instance Id")
             .dateTime(LocalDateTime.now().plusDays(2))
             .caseReference(caseId)
-            .jurisdictionId("ia")
-            .caseTypeId("asylum")
+            .jurisdictionId("IA")
+            .caseTypeId("Asylum")
             .eventId("submitAppeal")
             .newStateId("")
             .userId("some user Id")
@@ -34,7 +34,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         given()
             .contentType(APPLICATION_JSON_VALUE)
-            .body(asJsonString(validEventInformation))
+            .body(asJsonString(eventInformation))
             .when()
             .post("/messages")
             .then()

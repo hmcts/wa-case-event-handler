@@ -11,7 +11,12 @@ class CancellationTaskHandlerTest {
 
     @Test
     void evaluateDmn() {
-        assertThat(handlerService.evaluateDmn(EventInformation.builder().build())).isEmpty();
+        assertThat(handlerService.evaluateDmn(
+            EventInformation.builder()
+                .jurisdictionId("ia")
+                .caseTypeId("asylum")
+                .build()))
+            .isEmpty();
     }
 
     @Test

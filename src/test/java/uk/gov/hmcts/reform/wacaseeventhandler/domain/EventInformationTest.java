@@ -33,8 +33,8 @@ public class EventInformationTest {
             .eventInstanceId("some event instance Id")
             .dateTime(LocalDateTime.parse(fixedDate))
             .caseReference("some case reference")
-            .jurisdictionId("somme jurisdiction Id")
-            .caseTypeId("some case type Id")
+            .jurisdictionId("ia")
+            .caseTypeId("asylum")
             .eventId("some event Id")
             .newStateId("some new state Id")
             .userId("some user Id")
@@ -44,14 +44,13 @@ public class EventInformationTest {
     @Test
     public void deserialize_as_expected() throws IOException {
         ObjectContent<EventInformation> eventInformationObjectContent =
-            jacksonTester.read("valid-event-information.json");
+            jacksonTester.read("expected-event-information-from-ccd.json");
 
         eventInformationObjectContent.assertThat().isEqualTo(validEventInformation);
     }
 
     @Test
     public void serialize_as_expected() throws IOException {
-
         JsonContent<EventInformation> eventInformationJsonContent = jacksonTester.write(validEventInformation);
 
         assertThat(eventInformationJsonContent).isEqualToJson("valid-event-information.json");
