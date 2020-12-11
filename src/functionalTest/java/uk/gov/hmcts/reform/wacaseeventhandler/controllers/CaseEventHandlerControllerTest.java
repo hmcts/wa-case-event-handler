@@ -63,16 +63,17 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void cleanUpTask() {
 
         given()
-            .contentType(APPLICATION_JSON_VALUE)
-            .accept(APPLICATION_JSON_VALUE)
             .header(SERVICE_AUTHORIZATION, s2sToken)
+            .contentType(APPLICATION_JSON_VALUE)
+            .baseUri(camundaUrl)
+            .basePath("/task/" + taskId + "/complete")
             .when()
-            .post(camundaUrl + "/task/{task-id}/complete", taskId);
+            .post();
 
         given()
-            .header(SERVICE_AUTHORIZATION, s2sToken)
             .contentType(APPLICATION_JSON_VALUE)
             .accept(APPLICATION_JSON_VALUE)
+            .header(SERVICE_AUTHORIZATION, s2sToken)
             .baseUri(camundaUrl)
             .when()
             .get("/history/task?taskId=" + taskId)
