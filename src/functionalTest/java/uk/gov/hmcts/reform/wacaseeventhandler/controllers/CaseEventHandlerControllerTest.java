@@ -9,7 +9,9 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
@@ -71,16 +73,21 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .post(camundaUrl + "/task/{task-id}/complete", taskId)
             .prettyPeek();
 
-        given()
-            .contentType(APPLICATION_JSON_VALUE)
-            .accept(APPLICATION_JSON_VALUE)
-            .header(SERVICE_AUTHORIZATION, s2sToken)
-            .baseUri(camundaUrl)
-            .when()
-            .log().all(true)
-            .get("/history/task?taskId=" + taskId)
-            .prettyPeek()
-            .then()
-            .body("[0].deleteReason", is("completed"));
+        await().ignoreException(AssertionError.class).pollInterval(1, SECONDS).atMost(20, SECONDS).until(
+            () -> {
+                given()
+                    .contentType(APPLICATION_JSON_VALUE)
+                    .accept(APPLICATION_JSON_VALUE)
+                    .header(SERVICE_AUTHORIZATION, s2sToken)
+                    .baseUri(camundaUrl)
+                    .when()
+                    .log().all(true)
+                    .get("/history/task?taskId=" + taskId)
+                    .prettyPeek()
+                    .then()
+                    .body("[0].deleteReason", is("completed"));
+
+                return true;
+            });
     }
 }
