@@ -5,19 +5,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.DmnStringValue;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.TaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateResponse;
 
 @ToString
 @EqualsAndHashCode(callSuper = true)
-public final class CancellationTaskEvaluateDmnResponse extends TaskEvaluateDmnResponse {
+public final class CancellationEvaluateResponse extends EvaluateResponse {
 
     private final DmnStringValue action;
     private final DmnStringValue taskCategories;
 
 
     @JsonCreator
-    public CancellationTaskEvaluateDmnResponse(@JsonProperty("action") DmnStringValue action,
-                                               @JsonProperty("taskCategories") DmnStringValue taskCategories) {
+    public CancellationEvaluateResponse(@JsonProperty("action") DmnStringValue action,
+                                        @JsonProperty("taskCategories") DmnStringValue taskCategories) {
         super();
         this.action = action;
         this.taskCategories = taskCategories;

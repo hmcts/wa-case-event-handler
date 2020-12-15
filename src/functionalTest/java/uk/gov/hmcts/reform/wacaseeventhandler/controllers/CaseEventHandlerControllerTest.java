@@ -24,7 +24,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     private String taskId;
 
     @Test
-    public void given_eventInformation_from_ccd_should_initiate_task_and_respond_with_204() {
+    public void given_task_initiated_then_cancel_task() {
+        //Given initiate task
+
         String eventToInitiateTask = "submitAppeal";
 
         EventInformation eventInformation = EventInformation.builder()
@@ -47,7 +49,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .then()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
-
         taskId = given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
             .contentType(APPLICATION_JSON_VALUE)
@@ -64,14 +65,12 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .extract()
             .path("[0].id");
 
-    }
+        // Then cancel the task
 
-    @Test
-    public void given_eventInformation_from_ccd_should_cancel_task_and_respond_with_204() {
         String eventToCancelTask = "submitReasonsForAppeal";
         String previousStateToCancelTask = "awaitingReasonsForAppeal";
 
-        EventInformation eventInformation = EventInformation.builder()
+        eventInformation = EventInformation.builder()
             .eventInstanceId("some event instance Id")
             .dateTime(LocalDateTime.now().plusDays(2))
             .caseReference(caseId)
@@ -91,10 +90,36 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .then()
             .statusCode(HttpStatus.NO_CONTENT.value());
 
+        // Assert task is deleted
+
+        given()
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .contentType(APPLICATION_JSON_VALUE)
+            .baseUri(camundaUrl)
+            .basePath("/task")
+            .param("processVariables", "caseId_eq_" + caseId)
+            .when()
+            .get()
+            .then()
+            .body("size()", is(0));
+
+        given()
+            .contentType(APPLICATION_JSON_VALUE)
+            .accept(APPLICATION_JSON_VALUE)
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .baseUri(camundaUrl)
+            .when()
+            .get("/history/task?taskId=" + taskId)
+            .then()
+            .body("[0].deleteReason", is("deleted"));
+
+        taskId = null; // no need to tear down.
+
     }
 
     @After
     public void cleanUpTask() {
+
         if (StringUtils.isNotEmpty(taskId)) {
             given()
                 .header(SERVICE_AUTHORIZATION, s2sToken)
@@ -112,6 +137,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
                 .get("/history/task?taskId=" + taskId)
                 .then()
                 .body("[0].deleteReason", is("completed"));
+
             log.info("cleanUpTask done successfully");
         } else {
             log.info("cleanUpTask not needed, this test could be a cancel task test for instance.");

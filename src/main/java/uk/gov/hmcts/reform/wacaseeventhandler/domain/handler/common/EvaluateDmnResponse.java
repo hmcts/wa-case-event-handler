@@ -9,17 +9,16 @@ import java.util.List;
 
 @ToString
 @EqualsAndHashCode
-@SuppressWarnings("PMD.GenericsNaming")
-public final class EvaluateDmnResponse<ResponseT> {
+public final class EvaluateDmnResponse<T extends EvaluateResponse> {
 
-    private final List<ResponseT> results;
+    private final List<T> results;
 
     @JsonCreator
-    public EvaluateDmnResponse(@JsonProperty("results") List<ResponseT> results) {
+    public EvaluateDmnResponse(@JsonProperty("results") List<T> results) {
         this.results = results;
     }
 
-    public List<ResponseT> getResults() {
+    public List<T> getResults() {
         return results;
     }
 }

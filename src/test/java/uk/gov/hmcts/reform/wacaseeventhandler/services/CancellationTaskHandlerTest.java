@@ -7,7 +7,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToCancelTask;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.cancellationtask.CancellationTaskEvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.cancellationtask.CancellationEvaluateRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateDmnResponse;
@@ -44,14 +44,14 @@ class CancellationTaskHandlerTest {
     @Test
     void evaluateDmn() {
 
-        CancellationTaskEvaluateDmnRequest cancellationTaskEvaluateDmnRequestVariables =
-            CancellationTaskEvaluateDmnRequest.builder()
+        CancellationEvaluateRequest cancellationTaskEvaluateDmnRequestVariables =
+            CancellationEvaluateRequest.builder()
                 .state(new DmnStringValue("some post state"))
                 .event(new DmnStringValue("some event id"))
                 .fromState(new DmnStringValue("some previous state"))
                 .build();
 
-        EvaluateDmnRequest<CancellationTaskEvaluateDmnRequest> requestParameters =
+        EvaluateDmnRequest<CancellationEvaluateRequest> requestParameters =
             new EvaluateDmnRequest<>(cancellationTaskEvaluateDmnRequestVariables);
 
         Mockito.when(workflowApiClientToCancelTask.evaluateDmn(

@@ -3,14 +3,15 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.CorrelationKeys;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.SendMessageRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.TaskEvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateTaskEvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateTaskEvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateTaskSendMessageRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateEvaluateRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateProcessVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 
 import java.util.List;
@@ -33,13 +34,13 @@ public class InitiationTaskHandler implements CaseEventHandler {
     }
 
     @Override
-    public List<InitiateTaskEvaluateDmnResponse> evaluateDmn(EventInformation eventInformation) {
+    public List<InitiateEvaluateResponse> evaluateDmn(EventInformation eventInformation) {
         String tableKey = TASK_INITIATION.getTableKey(
             eventInformation.getJurisdictionId(),
             eventInformation.getCaseTypeId()
         );
 
-        EvaluateDmnRequest<InitiateTaskEvaluateDmnRequest> requestParameters =
+        EvaluateDmnRequest<InitiateEvaluateRequest> requestParameters =
             buildBodyWithInitiateTaskEvaluateDmnRequest(
                 eventInformation.getEventId(),
                 eventInformation.getNewStateId()
@@ -48,35 +49,50 @@ public class InitiationTaskHandler implements CaseEventHandler {
         return apiClientToInitiateTask.evaluateDmn(tableKey, requestParameters).getResults();
     }
 
-    private EvaluateDmnRequest<InitiateTaskEvaluateDmnRequest> buildBodyWithInitiateTaskEvaluateDmnRequest(
+    private EvaluateDmnRequest<InitiateEvaluateRequest> buildBodyWithInitiateTaskEvaluateDmnRequest(
         String eventId,
         String newStateId
     ) {
-        InitiateTaskEvaluateDmnRequest initiateTaskEvaluateDmnRequestVariables = new InitiateTaskEvaluateDmnRequest(
+        InitiateEvaluateRequest initiateEvaluateRequestVariables = new InitiateEvaluateRequest(
             new DmnStringValue(eventId),
             new DmnStringValue(newStateId)
         );
 
-        return new EvaluateDmnRequest<>(initiateTaskEvaluateDmnRequestVariables);
+        return new EvaluateDmnRequest<>(initiateEvaluateRequestVariables);
     }
 
     @Override
-    public void handle(List<? extends TaskEvaluateDmnResponse> results, EventInformation eventInformation) {
+    public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
 
-        SendMessageRequest<InitiateTaskSendMessageRequest> sendMessageRequest = new SendMessageRequest<>(
-            MESSAGE_NAME,
-            buildBodyWithInitiateSendMessageRequest((InitiateTaskEvaluateDmnResponse) results.get(0), eventInformation)
-        );
+        SendMessageRequest<InitiateProcessVariables, CorrelationKeys> sendMessageRequest =
+            buildSendMessageRequest(results, eventInformation);
 
         apiClientToInitiateTask.sendMessage(sendMessageRequest);
     }
 
-    private InitiateTaskSendMessageRequest buildBodyWithInitiateSendMessageRequest(
-        InitiateTaskEvaluateDmnResponse response,
+    private SendMessageRequest<InitiateProcessVariables, CorrelationKeys> buildSendMessageRequest(
+        List<? extends EvaluateResponse> results,
         EventInformation eventInformation
     ) {
 
-        return InitiateTaskSendMessageRequest.builder()
+        InitiateProcessVariables processVariables = buildProcessVariables(
+            (InitiateEvaluateResponse) results.get(0),
+            eventInformation
+        );
+
+        return SendMessageRequest.<InitiateProcessVariables, CorrelationKeys>builder()
+            .messageName(MESSAGE_NAME)
+            .processVariables(processVariables)
+            .correlationKeys(null)
+            .build();
+    }
+
+    private InitiateProcessVariables buildProcessVariables(
+        InitiateEvaluateResponse response,
+        EventInformation eventInformation
+    ) {
+
+        return InitiateProcessVariables.builder()
             .caseType(new DmnStringValue(eventInformation.getCaseTypeId()))
             .dueDate(new DmnStringValue(isoDateFormatter.format(eventInformation.getDateTime())))
             .workingDaysAllowed(response.getWorkingDaysAllowed())

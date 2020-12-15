@@ -22,11 +22,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.cancellationtask.CancellationTaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.cancellationtask.CancellationEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EventInformation;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateTaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 
 import java.time.LocalDateTime;
@@ -73,14 +73,14 @@ class CaseEventHandlerControllerEndPointTest {
     }
 
     private void mockCancellationHandler() {
-        List<CancellationTaskEvaluateDmnResponse> results = List.of(new CancellationTaskEvaluateDmnResponse(
+        List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
             new DmnStringValue("some action"),
             new DmnStringValue("some category")
         ));
-        EvaluateDmnResponse<CancellationTaskEvaluateDmnResponse> cancellationResponse =
+        EvaluateDmnResponse<CancellationEvaluateResponse> cancellationResponse =
             new EvaluateDmnResponse<>(results);
 
-        ResponseEntity<EvaluateDmnResponse<CancellationTaskEvaluateDmnResponse>> responseEntity =
+        ResponseEntity<EvaluateDmnResponse<CancellationEvaluateResponse>> responseEntity =
             new ResponseEntity<>(cancellationResponse, HttpStatus.OK);
 
         String cancellationEvaluateUrl = String.format(
@@ -93,12 +93,12 @@ class CaseEventHandlerControllerEndPointTest {
             eq(HttpMethod.POST),
             ArgumentMatchers.<HttpEntity<List<HttpHeaders>>>any(),
             ArgumentMatchers
-                .<ParameterizedTypeReference<EvaluateDmnResponse<CancellationTaskEvaluateDmnResponse>>>any())
+                .<ParameterizedTypeReference<EvaluateDmnResponse<CancellationEvaluateResponse>>>any())
         ).thenReturn(responseEntity);
     }
 
-    private ResponseEntity<EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse>> mockInitiateHandler() {
-        ResponseEntity<EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse>> responseEntity =
+    private ResponseEntity<EvaluateDmnResponse<InitiateEvaluateResponse>> mockInitiateHandler() {
+        ResponseEntity<EvaluateDmnResponse<InitiateEvaluateResponse>> responseEntity =
             new ResponseEntity<>(
                 InitiateTaskHelper.buildInitiateTaskDmnResponse(),
                 HttpStatus.OK
@@ -113,7 +113,7 @@ class CaseEventHandlerControllerEndPointTest {
             eq(initiateEvaluateUrl),
             eq(HttpMethod.POST),
             ArgumentMatchers.<HttpEntity<List<HttpHeaders>>>any(),
-            ArgumentMatchers.<ParameterizedTypeReference<EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse>>>any())
+            ArgumentMatchers.<ParameterizedTypeReference<EvaluateDmnResponse<InitiateEvaluateResponse>>>any())
         ).thenReturn(responseEntity);
         return responseEntity;
     }

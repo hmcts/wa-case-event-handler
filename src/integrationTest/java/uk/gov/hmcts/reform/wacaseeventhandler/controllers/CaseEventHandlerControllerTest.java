@@ -5,11 +5,11 @@ import org.mockito.InOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.cancellationtask.CancellationTaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.cancellationtask.CancellationEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EventInformation;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateTaskEvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.warningtask.WarningTaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.warningtask.WarningEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CancellationTaskHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.InitiationTaskHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.WarningTaskHandler;
@@ -50,13 +50,13 @@ class CaseEventHandlerControllerTest {
         DmnStringValue action = new DmnStringValue("Cancel");
         DmnStringValue taskCategory = new DmnStringValue("Time extension");
         given(cancellationTaskHandlerService.evaluateDmn(any(EventInformation.class)))
-            .willReturn(List.of(new CancellationTaskEvaluateDmnResponse(action, taskCategory)));
+            .willReturn(List.of(new CancellationEvaluateResponse(action, taskCategory)));
 
         given(warningTaskHandlerService.evaluateDmn(any(EventInformation.class)))
-            .willReturn(List.of(new WarningTaskEvaluateDmnResponse()));
+            .willReturn(List.of(new WarningEvaluateResponse()));
 
         given(initiationTaskHandlerService.evaluateDmn(any(EventInformation.class)))
-            .willReturn(List.of(InitiateTaskEvaluateDmnResponse.builder().build()));
+            .willReturn(List.of(InitiateEvaluateResponse.builder().build()));
 
         EventInformation eventInformation = EventInformation.builder()
             .eventInstanceId("some id")

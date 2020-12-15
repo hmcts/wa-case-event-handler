@@ -11,12 +11,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.cancellationtask.CancellationTaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.cancellationtask.CancellationEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.CorrelationKeys;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.ProcessVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.SendMessageRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.TaskEvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.TaskSendMessageRequest;
 
 @Service
 @Slf4j
@@ -35,16 +36,16 @@ public class WorkflowApiClientToCancelTask implements WorkflowApiClient {
     }
 
     @Override
-    public EvaluateDmnResponse<CancellationTaskEvaluateDmnResponse> evaluateDmn(
+    public EvaluateDmnResponse<CancellationEvaluateResponse> evaluateDmn(
         String key,
-        EvaluateDmnRequest<? extends TaskEvaluateDmnRequest> requestParameters
+        EvaluateDmnRequest<? extends EvaluateRequest> requestParameters
     ) {
         return makePostCall(key, requestParameters).getBody();
     }
 
-    private ResponseEntity<EvaluateDmnResponse<CancellationTaskEvaluateDmnResponse>> makePostCall(
+    private ResponseEntity<EvaluateDmnResponse<CancellationEvaluateResponse>> makePostCall(
         String key,
-        EvaluateDmnRequest<? extends TaskEvaluateDmnRequest> requestParameters
+        EvaluateDmnRequest<? extends EvaluateRequest> requestParameters
     ) {
         return restTemplate.exchange(
             String.format("%s/workflow/decision-definition/key/%s/evaluate", workflowApiUrl, key),
@@ -63,7 +64,8 @@ public class WorkflowApiClientToCancelTask implements WorkflowApiClient {
     }
 
     @Override
-    public ResponseEntity<Void> sendMessage(SendMessageRequest<? extends TaskSendMessageRequest> sendMessageRequest) {
+    public ResponseEntity<Void> sendMessage(
+        SendMessageRequest<? extends ProcessVariables, ? extends CorrelationKeys> sendMessageRequest) {
         return restTemplate.exchange(
             String.format("%s/workflow/message", workflowApiUrl),
             HttpMethod.POST,

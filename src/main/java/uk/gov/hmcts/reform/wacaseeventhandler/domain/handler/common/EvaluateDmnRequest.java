@@ -5,16 +5,15 @@ import lombok.ToString;
 
 @ToString
 @EqualsAndHashCode
-@SuppressWarnings("PMD.GenericsNaming")
-public final class EvaluateDmnRequest<RequestT> {
+public final class EvaluateDmnRequest<T extends EvaluateRequest> {
 
-    private final RequestT variables;
+    private final T variables;
 
-    public EvaluateDmnRequest(RequestT variables) {
+    public EvaluateDmnRequest(T variables) {
         this.variables = variables;
     }
 
-    public RequestT getVariables() {
+    public T getVariables() {
         return variables;
     }
 }

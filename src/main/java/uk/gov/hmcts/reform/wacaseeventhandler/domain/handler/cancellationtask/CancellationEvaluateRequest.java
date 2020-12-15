@@ -4,14 +4,14 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.DmnStringValue;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.TaskEvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateRequest;
 
 import javax.validation.constraints.NotNull;
 
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @Builder
-public final class CancellationTaskEvaluateDmnRequest extends TaskEvaluateDmnRequest {
+public final class CancellationEvaluateRequest extends EvaluateRequest {
     @NotNull
     private final DmnStringValue event;
     @NotNull
@@ -19,9 +19,9 @@ public final class CancellationTaskEvaluateDmnRequest extends TaskEvaluateDmnReq
     @NotNull
     private final DmnStringValue fromState;
 
-    public CancellationTaskEvaluateDmnRequest(DmnStringValue event,
-                                              DmnStringValue state,
-                                              DmnStringValue fromState) {
+    public CancellationEvaluateRequest(DmnStringValue event,
+                                       DmnStringValue state,
+                                       DmnStringValue fromState) {
         super();
         this.event = event;
         this.state = state;
