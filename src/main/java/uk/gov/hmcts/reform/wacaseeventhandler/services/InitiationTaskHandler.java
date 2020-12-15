@@ -1,17 +1,16 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.services.initiatetask;
+package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.SendMessageRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskEvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskSendMessageRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.DmnStringValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.SendMessageRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.TaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateTaskEvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateTaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateTaskSendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 
 import java.util.List;

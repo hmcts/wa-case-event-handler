@@ -11,38 +11,38 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.cancellationtask.CancellationTaskEvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.SendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.TaskEvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.TaskSendMessageRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateTaskEvaluateDmnResponse;
 
 @Service
 @Slf4j
-public class WorkflowApiClientToInitiateTask implements WorkflowApiClient {
+public class WorkflowApiClientToCancelTask implements WorkflowApiClient {
 
     private final RestTemplate restTemplate;
     private final AuthTokenGenerator authTokenGenerator;
     private final String workflowApiUrl;
 
-    public WorkflowApiClientToInitiateTask(RestTemplate restTemplate,
-                                           AuthTokenGenerator authTokenGenerator,
-                                           @Value("${wa-workflow-api.url}") String workflowApiUrl) {
+    public WorkflowApiClientToCancelTask(RestTemplate restTemplate,
+                                         AuthTokenGenerator authTokenGenerator,
+                                         @Value("${wa-workflow-api.url}") String workflowApiUrl) {
         this.restTemplate = restTemplate;
         this.authTokenGenerator = authTokenGenerator;
         this.workflowApiUrl = workflowApiUrl;
     }
 
     @Override
-    public EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse> evaluateDmn(
+    public EvaluateDmnResponse<CancellationTaskEvaluateDmnResponse> evaluateDmn(
         String key,
         EvaluateDmnRequest<? extends TaskEvaluateDmnRequest> requestParameters
     ) {
         return makePostCall(key, requestParameters).getBody();
     }
 
-    private ResponseEntity<EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse>> makePostCall(
+    private ResponseEntity<EvaluateDmnResponse<CancellationTaskEvaluateDmnResponse>> makePostCall(
         String key,
         EvaluateDmnRequest<? extends TaskEvaluateDmnRequest> requestParameters
     ) {

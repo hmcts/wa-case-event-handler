@@ -10,6 +10,7 @@ import org.springframework.boot.test.json.JsonContent;
 import org.springframework.boot.test.json.ObjectContent;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EventInformation;
 
 import java.io.IOException;
 import java.time.LocalDateTime;

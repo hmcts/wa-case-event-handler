@@ -1,9 +1,9 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask;
+package uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskEvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.DmnStringValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.TaskEvaluateDmnRequest;
 
 @ToString
 @EqualsAndHashCode(callSuper = true)

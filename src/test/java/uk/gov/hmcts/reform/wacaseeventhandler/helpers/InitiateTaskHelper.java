@@ -2,12 +2,12 @@ package uk.gov.hmcts.reform.wacaseeventhandler.helpers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnIntegerValue;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.DmnIntegerValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.DmnStringValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateTaskEvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateTaskEvaluateDmnResponse;
 
 import java.util.List;
 

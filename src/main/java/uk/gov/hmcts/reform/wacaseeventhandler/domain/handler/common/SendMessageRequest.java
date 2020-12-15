@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.domain;
+package uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;

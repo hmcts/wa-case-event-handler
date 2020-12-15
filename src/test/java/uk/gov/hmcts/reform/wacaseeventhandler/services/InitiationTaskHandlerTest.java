@@ -9,17 +9,16 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.SendMessageRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskSendMessageRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.DmnStringValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.SendMessageRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateTaskEvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateTaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateTaskSendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.initiatetask.InitiationTaskHandler;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -33,7 +32,8 @@ class InitiationTaskHandlerTest {
 
     public static final String INPUT_DATE = "2020-12-08T15:53:36.530377";
     public static final String EXPECTED_DATE = "2020-12-08T15:53:36.530377Z";
-    public static final String DMN_NAME = "wa-task-initiation-ia-asylum";
+    private static final String DMN_NAME = "wa-task-initiation-ia-asylum";
+
     @Mock
     private WorkflowApiClientToInitiateTask apiClientToInitiateTask;
 

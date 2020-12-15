@@ -7,8 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.TaskEvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventHandler;
 
 import java.util.List;

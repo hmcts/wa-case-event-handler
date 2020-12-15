@@ -22,15 +22,18 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.cancellationtask.CancellationTaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.DmnStringValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateTaskEvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -42,7 +45,8 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.
 class CaseEventHandlerControllerEndPointTest {
 
     public static final String S2S_TOKEN = "Bearer s2s token";
-    public static final String DMN_TABLE = "wa-task-initiation-ia-asylum";
+    public static final String INITIATE_DMN_TABLE = "wa-task-initiation-ia-asylum";
+    public static final String CANCELLATION_DMN_TABLE = "wa-task-cancellation-ia-asylum";
 
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
@@ -64,23 +68,54 @@ class CaseEventHandlerControllerEndPointTest {
     }
 
     private void mockRestTemplate() {
+        mockInitiateHandler();
+        mockCancellationHandler();
+    }
+
+    private void mockCancellationHandler() {
+        List<CancellationTaskEvaluateDmnResponse> results = List.of(new CancellationTaskEvaluateDmnResponse(
+            new DmnStringValue("some action"),
+            new DmnStringValue("some category")
+        ));
+        EvaluateDmnResponse<CancellationTaskEvaluateDmnResponse> cancellationResponse =
+            new EvaluateDmnResponse<>(results);
+
+        ResponseEntity<EvaluateDmnResponse<CancellationTaskEvaluateDmnResponse>> responseEntity =
+            new ResponseEntity<>(cancellationResponse, HttpStatus.OK);
+
+        String cancellationEvaluateUrl = String.format(
+            "%s/workflow/decision-definition/key/%s/evaluate",
+            workflowApiUrl,
+            CANCELLATION_DMN_TABLE
+        );
+        Mockito.when(restTemplate.exchange(
+            eq(cancellationEvaluateUrl),
+            eq(HttpMethod.POST),
+            ArgumentMatchers.<HttpEntity<List<HttpHeaders>>>any(),
+            ArgumentMatchers
+                .<ParameterizedTypeReference<EvaluateDmnResponse<CancellationTaskEvaluateDmnResponse>>>any())
+        ).thenReturn(responseEntity);
+    }
+
+    private ResponseEntity<EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse>> mockInitiateHandler() {
         ResponseEntity<EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse>> responseEntity =
             new ResponseEntity<>(
                 InitiateTaskHelper.buildInitiateTaskDmnResponse(),
                 HttpStatus.OK
             );
 
-        String url = String.format(
+        String initiateEvaluateUrl = String.format(
             "%s/workflow/decision-definition/key/%s/evaluate",
             workflowApiUrl,
-            DMN_TABLE
+            INITIATE_DMN_TABLE
         );
         Mockito.when(restTemplate.exchange(
-            ArgumentMatchers.eq(url),
-            ArgumentMatchers.eq(HttpMethod.POST),
+            eq(initiateEvaluateUrl),
+            eq(HttpMethod.POST),
             ArgumentMatchers.<HttpEntity<List<HttpHeaders>>>any(),
             ArgumentMatchers.<ParameterizedTypeReference<EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse>>>any())
         ).thenReturn(responseEntity);
+        return responseEntity;
     }
 
     @ParameterizedTest

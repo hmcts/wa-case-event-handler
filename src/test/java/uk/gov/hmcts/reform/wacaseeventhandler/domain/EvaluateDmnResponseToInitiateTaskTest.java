@@ -7,9 +7,9 @@ import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.json.JsonContent;
 import org.springframework.boot.test.json.ObjectContent;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateTaskEvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 
 import java.io.IOException;
@@ -18,7 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @JsonTest
-@ActiveProfiles("local")
 public class EvaluateDmnResponseToInitiateTaskTest {
 
     @Autowired

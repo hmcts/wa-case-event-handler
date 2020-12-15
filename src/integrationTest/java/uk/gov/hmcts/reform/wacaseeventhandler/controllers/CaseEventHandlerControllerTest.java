@@ -5,13 +5,14 @@ import org.mockito.InOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.cancellationtask.CancellationTaskEvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.warningtask.WarningTaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.cancellationtask.CancellationTaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.DmnStringValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateTaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.warningtask.WarningTaskEvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CancellationTaskHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.InitiationTaskHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.WarningTaskHandler;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.initiatetask.InitiationTaskHandler;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -46,8 +47,10 @@ class CaseEventHandlerControllerTest {
     @Test
     void given_message_then_apply_handlers_in_order() {
 
+        DmnStringValue action = new DmnStringValue("Cancel");
+        DmnStringValue taskCategory = new DmnStringValue("Time extension");
         given(cancellationTaskHandlerService.evaluateDmn(any(EventInformation.class)))
-            .willReturn(List.of(new CancellationTaskEvaluateDmnResponse()));
+            .willReturn(List.of(new CancellationTaskEvaluateDmnResponse(action, taskCategory)));
 
         given(warningTaskHandlerService.evaluateDmn(any(EventInformation.class)))
             .willReturn(List.of(new WarningTaskEvaluateDmnResponse()));

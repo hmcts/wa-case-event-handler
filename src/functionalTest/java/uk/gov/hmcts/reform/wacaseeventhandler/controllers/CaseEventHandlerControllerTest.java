@@ -4,7 +4,7 @@ import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EventInformation;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -60,7 +60,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     @After
     public void cleanUpTask() {
-        System.out.println("*** taskId: " + taskId);
         given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
             .accept(APPLICATION_JSON_VALUE)
