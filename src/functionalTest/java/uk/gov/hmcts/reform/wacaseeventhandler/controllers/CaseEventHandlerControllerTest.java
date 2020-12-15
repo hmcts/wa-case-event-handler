@@ -11,6 +11,7 @@ import java.util.UUID;
 
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
@@ -20,7 +21,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     private String taskId;
 
     @Test
-    public void given_eventInformation_from_ccd_should_respond_with_200() {
+    public void given_eventInformation_from_ccd_should_initiate_task_and_respond_with_200() {
         EventInformation eventInformation = EventInformation.builder()
             .eventInstanceId("some event instance Id")
             .dateTime(LocalDateTime.now().plusDays(2))
@@ -29,6 +30,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .caseTypeId("Asylum")
             .eventId("submitAppeal")
             .newStateId("")
+            .previousStateId("")
             .userId("some user Id")
             .build();
 
@@ -53,6 +55,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("size()", is(1))
             .body("[0].name", is("Process Application"))
             .body("[0].formKey", is("processApplication"))
+            .assertThat().body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
 

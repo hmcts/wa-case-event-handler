@@ -1,35 +1,42 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.cancellationtask;
 
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.TaskEvaluateDmnRequest;
 
+import javax.validation.constraints.NotNull;
+
 @ToString
 @EqualsAndHashCode(callSuper = true)
+@Builder
 public final class CancellationTaskEvaluateDmnRequest extends TaskEvaluateDmnRequest {
-    private final DmnStringValue eventId;
-    private final DmnStringValue postEventState;
-    private final DmnStringValue previousStateId;
+    @NotNull
+    private final DmnStringValue event;
+    @NotNull
+    private final DmnStringValue state;
+    @NotNull
+    private final DmnStringValue fromState;
 
-    public CancellationTaskEvaluateDmnRequest(DmnStringValue eventId,
-                                              DmnStringValue postEventState,
-                                              DmnStringValue previousStateId) {
+    public CancellationTaskEvaluateDmnRequest(DmnStringValue event,
+                                              DmnStringValue state,
+                                              DmnStringValue fromState) {
         super();
-        this.eventId = eventId;
-        this.postEventState = postEventState;
-        this.previousStateId = previousStateId;
+        this.event = event;
+        this.state = state;
+        this.fromState = fromState;
     }
 
-    public DmnStringValue getEventId() {
-        return eventId;
+    public DmnStringValue getEvent() {
+        return event;
     }
 
-    public DmnStringValue getPostEventState() {
-        return postEventState;
+    public DmnStringValue getState() {
+        return state;
     }
 
-    public DmnStringValue getPreviousStateId() {
-        return previousStateId;
+    public DmnStringValue getFromState() {
+        return fromState;
     }
 }

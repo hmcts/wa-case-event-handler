@@ -45,11 +45,11 @@ class CancellationTaskHandlerTest {
     void evaluateDmn() {
 
         CancellationTaskEvaluateDmnRequest cancellationTaskEvaluateDmnRequestVariables =
-            new CancellationTaskEvaluateDmnRequest(
-                new DmnStringValue("some event id"),
-                new DmnStringValue("some post state"),
-                new DmnStringValue("some previous state")
-            );
+            CancellationTaskEvaluateDmnRequest.builder()
+                .state(new DmnStringValue("some post state"))
+                .event(new DmnStringValue("some event id"))
+                .fromState(new DmnStringValue("some previous state"))
+                .build();
 
         EvaluateDmnRequest<CancellationTaskEvaluateDmnRequest> requestParameters =
             new EvaluateDmnRequest<>(cancellationTaskEvaluateDmnRequestVariables);
@@ -65,6 +65,7 @@ class CancellationTaskHandlerTest {
             eq(DMN_NAME),
             eq(requestParameters)
         );
+
     }
 
     @Test
