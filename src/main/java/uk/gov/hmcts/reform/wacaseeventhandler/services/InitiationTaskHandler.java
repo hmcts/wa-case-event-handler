@@ -40,25 +40,24 @@ public class InitiationTaskHandler implements CaseEventHandler {
             eventInformation.getCaseTypeId()
         );
 
-        EvaluateDmnRequest<InitiateEvaluateRequest> requestParameters =
-            buildBodyWithInitiateTaskEvaluateDmnRequest(
-                eventInformation.getEventId(),
-                eventInformation.getNewStateId()
-            );
+        EvaluateDmnRequest<InitiateEvaluateRequest> requestParameters = getParameterRequest(
+            eventInformation.getEventId(),
+            eventInformation.getNewStateId()
+        );
 
         return apiClientToInitiateTask.evaluateDmn(tableKey, requestParameters).getResults();
     }
 
-    private EvaluateDmnRequest<InitiateEvaluateRequest> buildBodyWithInitiateTaskEvaluateDmnRequest(
+    private EvaluateDmnRequest<InitiateEvaluateRequest> getParameterRequest(
         String eventId,
         String newStateId
     ) {
-        InitiateEvaluateRequest initiateEvaluateRequestVariables = new InitiateEvaluateRequest(
+        InitiateEvaluateRequest variables = new InitiateEvaluateRequest(
             new DmnStringValue(eventId),
             new DmnStringValue(newStateId)
         );
 
-        return new EvaluateDmnRequest<>(initiateEvaluateRequestVariables);
+        return new EvaluateDmnRequest<>(variables);
     }
 
     @Override

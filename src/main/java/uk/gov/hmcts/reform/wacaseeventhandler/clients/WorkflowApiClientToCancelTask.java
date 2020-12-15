@@ -40,20 +40,13 @@ public class WorkflowApiClientToCancelTask implements WorkflowApiClient {
         String key,
         EvaluateDmnRequest<? extends EvaluateRequest> requestParameters
     ) {
-        return makePostCall(key, requestParameters).getBody();
-    }
-
-    private ResponseEntity<EvaluateDmnResponse<CancellationEvaluateResponse>> makePostCall(
-        String key,
-        EvaluateDmnRequest<? extends EvaluateRequest> requestParameters
-    ) {
-        return restTemplate.exchange(
+        return restTemplate.<EvaluateDmnResponse<CancellationEvaluateResponse>>exchange(
             String.format("%s/workflow/decision-definition/key/%s/evaluate", workflowApiUrl, key),
             HttpMethod.POST,
             new HttpEntity<>(requestParameters, buildHttpHeaders()),
             new ParameterizedTypeReference<>() {
             }
-        );
+        ).getBody();
     }
 
     private HttpHeaders buildHttpHeaders() {

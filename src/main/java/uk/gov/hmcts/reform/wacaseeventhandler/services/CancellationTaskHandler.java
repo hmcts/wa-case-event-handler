@@ -35,29 +35,28 @@ public class CancellationTaskHandler implements CaseEventHandler {
             eventInformation.getCaseTypeId()
         );
 
-        EvaluateDmnRequest<CancellationEvaluateRequest> requestParameters =
-            buildBodyWithCancellationTaskEvaluateDmnRequest(
-                eventInformation.getPreviousStateId(),
-                eventInformation.getEventId(),
-                eventInformation.getNewStateId()
-            );
+        EvaluateDmnRequest<CancellationEvaluateRequest> requestParameters = getParameterRequest(
+            eventInformation.getPreviousStateId(),
+            eventInformation.getEventId(),
+            eventInformation.getNewStateId()
+        );
 
         return workflowApiClientToCancelTask.evaluateDmn(tableKey, requestParameters).getResults();
     }
 
-    private EvaluateDmnRequest<CancellationEvaluateRequest> buildBodyWithCancellationTaskEvaluateDmnRequest(
+    private EvaluateDmnRequest<CancellationEvaluateRequest> getParameterRequest(
         String previousStateId,
         String eventId,
         String newStateId
     ) {
-        CancellationEvaluateRequest cancellationTaskEvaluateDmnRequestVariables =
+        CancellationEvaluateRequest variables =
             new CancellationEvaluateRequest(
                 new DmnStringValue(eventId),
                 new DmnStringValue(newStateId),
                 new DmnStringValue(previousStateId)
             );
 
-        return new EvaluateDmnRequest<>(cancellationTaskEvaluateDmnRequestVariables);
+        return new EvaluateDmnRequest<>(variables);
     }
 
     @Override
