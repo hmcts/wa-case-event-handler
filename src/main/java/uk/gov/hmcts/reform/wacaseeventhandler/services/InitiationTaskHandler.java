@@ -15,12 +15,14 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 
 import java.util.List;
 
+import static uk.gov.hmcts.reform.wacaseeventhandler.services.DmnTable.TASK_INITIATION;
+
 @Service
 @Order(3)
 public class InitiationTaskHandler implements CaseEventHandler {
 
-    private static final String DMN_NAME = "wa-task-initiation";
-    public static final String MESSAGE_NAME = "createTaskMessage";
+    private static final String MESSAGE_NAME = "createTaskMessage";
+
     private final WorkflowApiClientToInitiateTask apiClientToInitiateTask;
     private final IsoDateFormatter isoDateFormatter;
 
@@ -32,24 +34,23 @@ public class InitiationTaskHandler implements CaseEventHandler {
 
     @Override
     public List<InitiateTaskEvaluateDmnResponse> evaluateDmn(EventInformation eventInformation) {
-        return apiClientToInitiateTask.evaluateDmn(
-            getTableKey(
-                eventInformation.getJurisdictionId(),
-                eventInformation.getCaseTypeId()
-            ),
+        String tableKey = TASK_INITIATION.getTableKey(
+            eventInformation.getJurisdictionId(),
+            eventInformation.getCaseTypeId()
+        );
+
+        EvaluateDmnRequest<InitiateTaskEvaluateDmnRequest> requestParameters =
             buildBodyWithInitiateTaskEvaluateDmnRequest(
                 eventInformation.getEventId(),
                 eventInformation.getNewStateId()
-            )
-        ).getResults();
-    }
+            );
 
-    private String getTableKey(String jurisdictionId, String caseTypeId) {
-        return DMN_NAME + "-" + jurisdictionId + "-" + caseTypeId;
+        return apiClientToInitiateTask.evaluateDmn(tableKey, requestParameters).getResults();
     }
 
     private EvaluateDmnRequest<InitiateTaskEvaluateDmnRequest> buildBodyWithInitiateTaskEvaluateDmnRequest(
-        String eventId, String newStateId
+        String eventId,
+        String newStateId
     ) {
         InitiateTaskEvaluateDmnRequest initiateTaskEvaluateDmnRequestVariables = new InitiateTaskEvaluateDmnRequest(
             new DmnStringValue(eventId),
@@ -86,6 +87,5 @@ public class InitiationTaskHandler implements CaseEventHandler {
             .caseId(new DmnStringValue(eventInformation.getCaseReference()))
             .build();
     }
-
 
 }

@@ -12,11 +12,11 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.TaskEvaluate
 
 import java.util.List;
 
+import static uk.gov.hmcts.reform.wacaseeventhandler.services.DmnTable.TASK_CANCELLATION;
+
 @Service
 @Order(1)
 public class CancellationTaskHandler implements CaseEventHandler {
-
-    private static final String DMN_NAME = "wa-task-cancellation";
 
     private final WorkflowApiClientToCancelTask workflowApiClientToCancelTask;
 
@@ -26,7 +26,10 @@ public class CancellationTaskHandler implements CaseEventHandler {
 
     @Override
     public List<CancellationTaskEvaluateDmnResponse> evaluateDmn(EventInformation eventInformation) {
-        String tableKey = getTableKey(eventInformation.getJurisdictionId(), eventInformation.getCaseTypeId());
+        String tableKey = TASK_CANCELLATION.getTableKey(
+            eventInformation.getJurisdictionId(),
+            eventInformation.getCaseTypeId()
+        );
 
         EvaluateDmnRequest<CancellationTaskEvaluateDmnRequest> requestParameters =
             buildBodyWithCancellationTaskEvaluateDmnRequest(
@@ -38,12 +41,10 @@ public class CancellationTaskHandler implements CaseEventHandler {
         return workflowApiClientToCancelTask.evaluateDmn(tableKey, requestParameters).getResults();
     }
 
-    private String getTableKey(String jurisdictionId, String caseTypeId) {
-        return DMN_NAME + "-" + jurisdictionId + "-" + caseTypeId;
-    }
-
     private EvaluateDmnRequest<CancellationTaskEvaluateDmnRequest> buildBodyWithCancellationTaskEvaluateDmnRequest(
-        String previousStateId, String eventId, String newStateId
+        String previousStateId,
+        String eventId,
+        String newStateId
     ) {
         CancellationTaskEvaluateDmnRequest cancellationTaskEvaluateDmnRequestVariables =
             new CancellationTaskEvaluateDmnRequest(
