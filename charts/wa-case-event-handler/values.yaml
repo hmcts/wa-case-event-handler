@@ -10,3 +10,5 @@ java:
         - s2s-secret-case-event-handler
   environment:
     S2S_URL: "http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
+    WA_WORKFLOW_API_URL: "http://wa-workflow-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
+

@@ -24,4 +24,8 @@ bin/main/application.yaml
 *.iml
 *.ipr
 
+### osx
 .DS_Store
+
+### lombok
+lombok.config

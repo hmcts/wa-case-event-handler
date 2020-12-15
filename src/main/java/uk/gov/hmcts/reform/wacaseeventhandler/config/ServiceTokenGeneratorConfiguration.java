@@ -10,7 +10,7 @@ import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGeneratorFactory;
 @Configuration
 public class ServiceTokenGeneratorConfiguration {
 
-    @Bean(name = "caseEventHandlerAuthTokenGenerator")
+    @Bean
     public AuthTokenGenerator authTokenGenerator(
         @Value("${idam.s2s-auth.secret}") String secret,
         @Value("${idam.s2s-auth.name}") String microService,
