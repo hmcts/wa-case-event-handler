@@ -15,13 +15,12 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.SendMessageR
 
 import java.util.List;
 
-import static uk.gov.hmcts.reform.wacaseeventhandler.services.DmnTable.TASK_CANCELLATION;
+import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.TASK_CANCELLATION;
 
 @Service
 @Order(1)
 public class CancellationTaskHandler implements CaseEventHandler {
 
-    private static final String MESSAGE_NAME = "cancelTasks";
     private final WorkflowApiClientToCancelTask workflowApiClientToCancelTask;
 
     public CancellationTaskHandler(WorkflowApiClientToCancelTask workflowApiClientToCancelTask) {
@@ -64,7 +63,7 @@ public class CancellationTaskHandler implements CaseEventHandler {
 
         SendMessageRequest<ProcessVariables, CancellationCorrelationKeys> sendMessageRequest =
             SendMessageRequest.<ProcessVariables, CancellationCorrelationKeys>builder()
-                .messageName(MESSAGE_NAME)
+                .messageName(TASK_CANCELLATION.getMessageName())
                 .correlationKeys(getCorrelationKeys(eventInformation))
                 .build();
 

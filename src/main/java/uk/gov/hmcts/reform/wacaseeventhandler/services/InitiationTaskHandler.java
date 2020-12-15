@@ -16,13 +16,11 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 
 import java.util.List;
 
-import static uk.gov.hmcts.reform.wacaseeventhandler.services.DmnTable.TASK_INITIATION;
+import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.TASK_INITIATION;
 
 @Service
 @Order(3)
 public class InitiationTaskHandler implements CaseEventHandler {
-
-    private static final String MESSAGE_NAME = "createTaskMessage";
 
     private final WorkflowApiClientToInitiateTask apiClientToInitiateTask;
     private final IsoDateFormatter isoDateFormatter;
@@ -80,7 +78,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
         );
 
         return SendMessageRequest.<InitiateProcessVariables, CorrelationKeys>builder()
-            .messageName(MESSAGE_NAME)
+            .messageName(TASK_INITIATION.getMessageName())
             .processVariables(processVariables)
             .correlationKeys(null)
             .build();
