@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask;
 
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
@@ -7,6 +8,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateReq
 
 @ToString
 @EqualsAndHashCode(callSuper = true)
+@Builder
 public final class InitiateEvaluateRequest extends EvaluateRequest {
     private final DmnStringValue eventId;
     private final DmnStringValue postEventState;

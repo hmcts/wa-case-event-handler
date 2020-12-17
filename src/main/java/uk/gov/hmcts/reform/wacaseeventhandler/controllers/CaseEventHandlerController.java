@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,8 +18,11 @@ import static org.springframework.http.ResponseEntity.noContent;
 @RestController
 public class CaseEventHandlerController {
 
-    @Autowired
-    private List<CaseEventHandler> handlerServices;
+    private final List<CaseEventHandler> handlerServices;
+
+    public CaseEventHandlerController(List<CaseEventHandler> handlerServices) {
+        this.handlerServices = handlerServices;
+    }
 
     @ApiOperation("Handles the CCD case event message")
     @PostMapping(path = "/messages", consumes = {MediaType.APPLICATION_JSON_VALUE})
