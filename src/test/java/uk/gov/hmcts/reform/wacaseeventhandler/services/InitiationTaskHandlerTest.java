@@ -34,7 +34,7 @@ class InitiationTaskHandlerTest {
     public static final String INPUT_DATE = "2020-12-08T15:53:36.530377";
     public static final String EXPECTED_DATE = "2020-12-08T15:53:36.530377Z";
     private static final String DMN_NAME = "wa-task-initiation-ia-asylum";
-
+    public static final String TENANT_ID = "ia";
     @Mock
     private WorkflowApiClientToInitiateTask apiClientToInitiateTask;
 
@@ -64,14 +64,16 @@ class InitiationTaskHandlerTest {
 
         Mockito.when(apiClientToInitiateTask.evaluateDmn(
             DMN_NAME,
-            requestParameters
+            requestParameters,
+            TENANT_ID
         )).thenReturn(new EvaluateDmnResponse<>(Collections.emptyList()));
 
         handlerService.evaluateDmn(eventInformation);
 
         Mockito.verify(apiClientToInitiateTask).evaluateDmn(
             eq(DMN_NAME),
-            eq(requestParameters)
+            eq(requestParameters),
+            eq(TENANT_ID)
         );
     }
 
