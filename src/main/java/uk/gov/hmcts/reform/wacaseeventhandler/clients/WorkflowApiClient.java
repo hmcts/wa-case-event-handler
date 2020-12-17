@@ -1,13 +1,13 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.CorrelationKeys;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.ProcessVariables;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.SendMessageRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.CorrelationKeys;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
 
 public interface WorkflowApiClient {
 

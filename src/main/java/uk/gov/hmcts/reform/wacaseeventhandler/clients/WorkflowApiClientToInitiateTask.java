@@ -11,13 +11,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.CorrelationKeys;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.ProcessVariables;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.SendMessageRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.initiatetask.InitiateEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.CorrelationKeys;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
 
 @Service
 @Slf4j

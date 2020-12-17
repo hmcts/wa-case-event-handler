@@ -1,10 +1,10 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.cancellationtask;
+package uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.CorrelationKeys;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.DmnStringValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.CorrelationKeys;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
 
 @EqualsAndHashCode(callSuper = true)
 @ToString

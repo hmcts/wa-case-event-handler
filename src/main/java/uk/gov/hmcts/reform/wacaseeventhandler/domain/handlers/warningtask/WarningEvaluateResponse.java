@@ -1,8 +1,8 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.warningtask;
+package uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask;
 
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateResponse;
 
 @ToString
 @EqualsAndHashCode(callSuper = true)
