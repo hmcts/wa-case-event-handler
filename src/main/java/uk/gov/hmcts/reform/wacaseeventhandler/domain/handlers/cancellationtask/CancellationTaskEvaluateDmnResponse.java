@@ -1,11 +1,11 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.cancellationtask;
+package uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.DmnStringValue;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.TaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.TaskEvaluateDmnResponse;
 
 @ToString
 @EqualsAndHashCode(callSuper = true)

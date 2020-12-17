@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EventInformation;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.TaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.TaskEvaluateDmnResponse;
 
 import java.util.List;
 

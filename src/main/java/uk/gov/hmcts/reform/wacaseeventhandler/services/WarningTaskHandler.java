@@ -2,9 +2,9 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.EventInformation;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.common.TaskEvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handler.warningtask.WarningTaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.TaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningTaskEvaluateDmnResponse;
 
 import java.util.Collections;
 import java.util.List;
