@@ -9,6 +9,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateResponse;
@@ -18,6 +19,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmn
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CancelTaskException;
 
 @Service
 @Slf4j
@@ -59,12 +61,16 @@ public class WorkflowApiClientToCancelTask implements WorkflowApiClient {
     @Override
     public ResponseEntity<Void> sendMessage(
         SendMessageRequest<? extends ProcessVariables, ? extends CorrelationKeys> sendMessageRequest) {
-        return restTemplate.exchange(
-            String.format("%s/workflow/message", workflowApiUrl),
-            HttpMethod.POST,
-            new HttpEntity<>(sendMessageRequest, buildHttpHeaders()),
-            Void.class
-        );
+        try {
+            return restTemplate.exchange(
+                String.format("%s/workflow/message", workflowApiUrl),
+                HttpMethod.POST,
+                new HttpEntity<>(sendMessageRequest, buildHttpHeaders()),
+                Void.class
+            );
+        } catch (RestClientException e) {
+            throw new CancelTaskException("Error to cancel task with body: " + sendMessageRequest, e);
+        }
     }
 
 }
