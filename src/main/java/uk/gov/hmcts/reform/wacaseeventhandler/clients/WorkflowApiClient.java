@@ -1,20 +1,22 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.SendMessageRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskEvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskEvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskSendMessageRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.CorrelationKeys;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
 
 public interface WorkflowApiClient {
 
-    EvaluateDmnResponse<? extends TaskEvaluateDmnResponse> evaluateDmn(
+    EvaluateDmnResponse<? extends EvaluateResponse> evaluateDmn(
         String key,
-        EvaluateDmnRequest<? extends TaskEvaluateDmnRequest> requestParameters
+        EvaluateDmnRequest<? extends EvaluateRequest> requestParameters
     );
 
-    ResponseEntity<Void> sendMessage(SendMessageRequest<? extends TaskSendMessageRequest> sendMessageRequest);
+    ResponseEntity<Void> sendMessage(
+        SendMessageRequest<? extends ProcessVariables, ? extends CorrelationKeys> sendMessageRequest);
 
 }

@@ -9,17 +9,17 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EventInformation;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.SendMessageRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskSendMessageRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.CorrelationKeys;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateProcessVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.initiatetask.InitiationTaskHandler;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -33,12 +33,13 @@ class InitiationTaskHandlerTest {
 
     public static final String INPUT_DATE = "2020-12-08T15:53:36.530377";
     public static final String EXPECTED_DATE = "2020-12-08T15:53:36.530377Z";
-    public static final String DMN_NAME = "wa-task-initiation-ia-asylum";
+    private static final String DMN_NAME = "wa-task-initiation-ia-asylum";
+
     @Mock
     private WorkflowApiClientToInitiateTask apiClientToInitiateTask;
 
     @Captor
-    private ArgumentCaptor<SendMessageRequest<InitiateTaskSendMessageRequest>> captor;
+    private ArgumentCaptor<SendMessageRequest<InitiateProcessVariables, CorrelationKeys>> captor;
 
     @Mock
     private IsoDateFormatter isoDateFormatter;
@@ -58,7 +59,7 @@ class InitiationTaskHandlerTest {
     @Test
     void evaluateDmn() {
 
-        EvaluateDmnRequest<InitiateTaskEvaluateDmnRequest> requestParameters =
+        EvaluateDmnRequest<InitiateEvaluateRequest> requestParameters =
             InitiateTaskHelper.buildInitiateTaskDmnRequest();
 
         Mockito.when(apiClientToInitiateTask.evaluateDmn(
@@ -80,24 +81,24 @@ class InitiationTaskHandlerTest {
         Mockito.when(isoDateFormatter.format(eq(LocalDateTime.parse(INPUT_DATE))))
             .thenReturn(EXPECTED_DATE);
 
-        InitiateTaskEvaluateDmnResponse initiateTaskResponse = InitiateTaskEvaluateDmnResponse.builder()
+        InitiateEvaluateResponse initiateTaskResponse = InitiateEvaluateResponse.builder()
             .group(new DmnStringValue("TCW"))
             .name(new DmnStringValue("Process Application"))
             .taskId(new DmnStringValue("processApplication"))
             .build();
 
-        List<InitiateTaskEvaluateDmnResponse> results = List.of(initiateTaskResponse);
+        List<InitiateEvaluateResponse> results = List.of(initiateTaskResponse);
 
         handlerService.handle(results, eventInformation);
 
         Mockito.verify(apiClientToInitiateTask).sendMessage(captor.capture());
-        SendMessageRequest<InitiateTaskSendMessageRequest> actualSendMessageRequest = captor.getValue();
+        SendMessageRequest<InitiateProcessVariables, CorrelationKeys> actualSendMessageRequest = captor.getValue();
 
         assertThat(actualSendMessageRequest).isEqualTo(getExpectedSendMessageRequest());
     }
 
-    private SendMessageRequest<InitiateTaskSendMessageRequest> getExpectedSendMessageRequest() {
-        InitiateTaskSendMessageRequest expectedInitiateTaskSendMessageRequest = InitiateTaskSendMessageRequest.builder()
+    private SendMessageRequest<InitiateProcessVariables, CorrelationKeys> getExpectedSendMessageRequest() {
+        InitiateProcessVariables expectedInitiateTaskSendMessageRequest = InitiateProcessVariables.builder()
             .caseType(new DmnStringValue("asylum"))
             .group(new DmnStringValue("TCW"))
             .jurisdiction(new DmnStringValue("ia"))
@@ -109,7 +110,7 @@ class InitiationTaskHandlerTest {
 
         return new SendMessageRequest<>(
             "createTaskMessage",
-            expectedInitiateTaskSendMessageRequest
-        );
+            expectedInitiateTaskSendMessageRequest,
+                null);
     }
 }

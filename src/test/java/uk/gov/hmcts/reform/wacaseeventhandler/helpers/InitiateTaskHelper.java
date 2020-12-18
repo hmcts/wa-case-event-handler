@@ -2,12 +2,12 @@ package uk.gov.hmcts.reform.wacaseeventhandler.helpers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnIntegerValue;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnIntegerValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
 
 import java.util.List;
 
@@ -17,8 +17,8 @@ public final class InitiateTaskHelper {
         //not called
     }
 
-    public static EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse> buildInitiateTaskDmnResponse() {
-        InitiateTaskEvaluateDmnResponse result = InitiateTaskEvaluateDmnResponse.builder()
+    public static EvaluateDmnResponse<InitiateEvaluateResponse> buildInitiateTaskDmnResponse() {
+        InitiateEvaluateResponse result = InitiateEvaluateResponse.builder()
             .taskId(new DmnStringValue("processApplication"))
             .group(new DmnStringValue("TCW"))
             .workingDaysAllowed(new DmnIntegerValue(2))
@@ -28,13 +28,13 @@ public final class InitiateTaskHelper {
         return new EvaluateDmnResponse<>(List.of(result));
     }
 
-    public static EvaluateDmnRequest<InitiateTaskEvaluateDmnRequest> buildInitiateTaskDmnRequest() {
+    public static EvaluateDmnRequest<InitiateEvaluateRequest> buildInitiateTaskDmnRequest() {
         DmnStringValue eventId = new DmnStringValue("submitAppeal");
         DmnStringValue postEventState = new DmnStringValue("");
-        InitiateTaskEvaluateDmnRequest initiateTaskEvaluateDmnRequestVariables =
-            new InitiateTaskEvaluateDmnRequest(eventId, postEventState);
+        InitiateEvaluateRequest initiateEvaluateRequestVariables =
+            new InitiateEvaluateRequest(eventId, postEventState);
 
-        return new EvaluateDmnRequest<>(initiateTaskEvaluateDmnRequestVariables);
+        return new EvaluateDmnRequest<>(initiateEvaluateRequestVariables);
     }
 
     public static String asJsonString(final Object obj) throws JsonProcessingException {

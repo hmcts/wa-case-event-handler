@@ -9,38 +9,40 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.CorrelationKeys;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CancelTaskException;
 
 @Service
 @Slf4j
-public class WorkflowApiClientToInitiateTask implements WorkflowApiClient {
+public class WorkflowApiClientToCancelTask implements WorkflowApiClient {
 
     private final RestTemplate restTemplate;
     private final AuthTokenGenerator authTokenGenerator;
     private final String workflowApiUrl;
 
-    public WorkflowApiClientToInitiateTask(RestTemplate restTemplate,
-                                           AuthTokenGenerator authTokenGenerator,
-                                           @Value("${wa-workflow-api.url}") String workflowApiUrl) {
+    public WorkflowApiClientToCancelTask(RestTemplate restTemplate,
+                                         AuthTokenGenerator authTokenGenerator,
+                                         @Value("${wa-workflow-api.url}") String workflowApiUrl) {
         this.restTemplate = restTemplate;
         this.authTokenGenerator = authTokenGenerator;
         this.workflowApiUrl = workflowApiUrl;
     }
 
     @Override
-    public EvaluateDmnResponse<InitiateEvaluateResponse> evaluateDmn(
+    public EvaluateDmnResponse<CancellationEvaluateResponse> evaluateDmn(
         String key,
         EvaluateDmnRequest<? extends EvaluateRequest> requestParameters
     ) {
-        return restTemplate.<EvaluateDmnResponse<InitiateEvaluateResponse>>exchange(
+        return restTemplate.<EvaluateDmnResponse<CancellationEvaluateResponse>>exchange(
             String.format("%s/workflow/decision-definition/key/%s/evaluate", workflowApiUrl, key),
             HttpMethod.POST,
             new HttpEntity<>(requestParameters, buildHttpHeaders()),
@@ -58,14 +60,17 @@ public class WorkflowApiClientToInitiateTask implements WorkflowApiClient {
 
     @Override
     public ResponseEntity<Void> sendMessage(
-        SendMessageRequest<? extends ProcessVariables, ? extends CorrelationKeys> sendMessageRequest
-    ) {
-        return restTemplate.exchange(
-            String.format("%s/workflow/message", workflowApiUrl),
-            HttpMethod.POST,
-            new HttpEntity<>(sendMessageRequest, buildHttpHeaders()),
-            Void.class
-        );
+        SendMessageRequest<? extends ProcessVariables, ? extends CorrelationKeys> sendMessageRequest) {
+        try {
+            return restTemplate.exchange(
+                String.format("%s/workflow/message", workflowApiUrl),
+                HttpMethod.POST,
+                new HttpEntity<>(sendMessageRequest, buildHttpHeaders()),
+                Void.class
+            );
+        } catch (RestClientException e) {
+            throw new CancelTaskException("Error to cancel task with body: " + sendMessageRequest, e);
+        }
     }
 
 }

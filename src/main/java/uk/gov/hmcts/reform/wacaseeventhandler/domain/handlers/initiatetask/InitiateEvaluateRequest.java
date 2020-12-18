@@ -1,19 +1,19 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask;
+package uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskEvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateRequest;
 
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @Builder
-public final class InitiateTaskEvaluateDmnRequest extends TaskEvaluateDmnRequest {
+public final class InitiateEvaluateRequest extends EvaluateRequest {
     private final DmnStringValue eventId;
     private final DmnStringValue postEventState;
 
-    public InitiateTaskEvaluateDmnRequest(DmnStringValue eventId, DmnStringValue postEventState) {
+    public InitiateEvaluateRequest(DmnStringValue eventId, DmnStringValue postEventState) {
         super();
         this.eventId = eventId;
         this.postEventState = postEventState;

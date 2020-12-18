@@ -14,11 +14,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.EvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskEvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask.InitiateTaskEvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.eq;
@@ -57,24 +57,24 @@ class WorkflowApiClientToInitiateTaskTest {
             eq(getExpectedUrl()),
             eq(HttpMethod.POST),
             eq(getExpectedEntity()),
-            eq(new ParameterizedTypeReference<EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse>>() {
+            eq(new ParameterizedTypeReference<EvaluateDmnResponse<InitiateEvaluateResponse>>() {
             })
         ))
             .thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
 
-        EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse> actualResponse = client.evaluateDmn(
+        EvaluateDmnResponse<InitiateEvaluateResponse> actualResponse = client.evaluateDmn(
             TABLE_KEY,
-            new EvaluateDmnRequest<>(InitiateTaskEvaluateDmnRequest.builder().build())
+            new EvaluateDmnRequest<>(InitiateEvaluateRequest.builder().build())
         );
 
         assertThat(actualResponse).isEqualTo(
-            new ResponseEntity<EvaluateDmnResponse<InitiateTaskEvaluateDmnResponse>>(HttpStatus.NO_CONTENT).getBody());
+            new ResponseEntity<EvaluateDmnResponse<InitiateEvaluateResponse>>(HttpStatus.NO_CONTENT).getBody());
 
     }
 
-    private HttpEntity<EvaluateDmnRequest<? extends TaskEvaluateDmnRequest>> getExpectedEntity() {
-        EvaluateDmnRequest<? extends TaskEvaluateDmnRequest> requestParameters =
-            new EvaluateDmnRequest<>(InitiateTaskEvaluateDmnRequest.builder().build());
+    private HttpEntity<EvaluateDmnRequest<? extends EvaluateRequest>> getExpectedEntity() {
+        EvaluateDmnRequest<? extends EvaluateRequest> requestParameters =
+            new EvaluateDmnRequest<>(InitiateEvaluateRequest.builder().build());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

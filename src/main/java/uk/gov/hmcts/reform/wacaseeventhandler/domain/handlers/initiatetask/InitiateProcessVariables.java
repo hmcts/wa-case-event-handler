@@ -1,16 +1,16 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.domain.initiatetask;
+package uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnIntegerValue;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.DmnStringValue;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.TaskSendMessageRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnIntegerValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
 
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @Builder
-public final class InitiateTaskSendMessageRequest extends TaskSendMessageRequest {
+public final class InitiateProcessVariables extends ProcessVariables {
 
     private final DmnStringValue dueDate;
     private final DmnIntegerValue workingDaysAllowed;

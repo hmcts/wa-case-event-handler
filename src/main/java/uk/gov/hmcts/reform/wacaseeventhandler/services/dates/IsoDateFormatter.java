@@ -7,7 +7,7 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 
 @Service
-public class  IsoDateFormatter implements DateFormatter {
+public class IsoDateFormatter implements DateFormatter {
 
     @Override
     public String format(LocalDateTime dateTime) {

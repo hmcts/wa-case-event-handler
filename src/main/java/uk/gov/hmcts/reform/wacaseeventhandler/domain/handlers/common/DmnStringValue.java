@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.domain;
+package uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -7,20 +7,20 @@ import lombok.ToString;
 
 @ToString
 @EqualsAndHashCode
-public final class DmnIntegerValue {
+public final class DmnStringValue {
 
     @JsonProperty("value")
-    private final Integer value;
+    private final String value;
     @JsonProperty("type")
     private final String type;
 
     @JsonCreator
-    public DmnIntegerValue(Integer value) {
+    public DmnStringValue(String value) {
         this.value = value;
-        this.type = "Integer";
+        this.type = "String";
     }
 
-    public Integer getValue() {
+    public String getValue() {
         return value;
     }
 

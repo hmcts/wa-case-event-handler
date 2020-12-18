@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.domain;
+package uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
