@@ -27,10 +27,12 @@ class CaseEventHandlerControllerTest {
         List<CaseEventHandler> handlerServices = List.of(initiationTaskHandler);
         CaseEventHandlerController controller = new CaseEventHandlerController(handlerServices);
 
-        ResponseEntity<Void> response = controller.caseEventHandler(EventInformation.builder()
-                                                                        .jurisdictionId("ia")
-                                                                        .caseTypeId("asylum")
-                                                                        .build());
+        ResponseEntity<Void> response = controller.caseEventHandler(
+            EventInformation.builder()
+                .jurisdictionId("ia")
+                .caseTypeId("asylum")
+                .build()
+        );
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
 
