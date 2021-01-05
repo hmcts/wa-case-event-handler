@@ -61,20 +61,19 @@ public class CancellationTaskHandler implements CaseEventHandler {
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
 
+        CancellationEvaluateResponse cancellationEvaluateResponse = (CancellationEvaluateResponse) results.get(0);
+        String taskCategory = cancellationEvaluateResponse.getTaskCategories().getValue();
+
         SendMessageRequest<ProcessVariables, CancellationCorrelationKeys> sendMessageRequest =
             SendMessageRequest.<ProcessVariables, CancellationCorrelationKeys>builder()
                 .messageName(TASK_CANCELLATION.getMessageName())
-                .correlationKeys(getCorrelationKeys(eventInformation))
+                .correlationKeys(CancellationCorrelationKeys.builder()
+                                     .taskCategory(new DmnStringValue(taskCategory))
+                                     .build())
                 .build();
 
         workflowApiClientToCancelTask.sendMessage(sendMessageRequest);
 
-    }
-
-    private CancellationCorrelationKeys getCorrelationKeys(EventInformation eventInformation) {
-        return CancellationCorrelationKeys.builder()
-            .caseId(new DmnStringValue(eventInformation.getCaseReference()))
-            .build();
     }
 
 }

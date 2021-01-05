@@ -69,7 +69,8 @@ public class WorkflowApiClientToCancelTask implements WorkflowApiClient {
                 Void.class
             );
         } catch (RestClientException e) {
-            throw new CancelTaskException("Error to cancel task with body: " + sendMessageRequest, e);
+            log.info("Might be due to not being able to correlate message. Carry on with other handlers..." + e);
+            return ResponseEntity.noContent().build();
         }
     }
 

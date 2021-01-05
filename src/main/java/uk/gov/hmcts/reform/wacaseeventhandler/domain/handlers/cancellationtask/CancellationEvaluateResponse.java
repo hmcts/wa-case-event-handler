@@ -17,7 +17,7 @@ public final class CancellationEvaluateResponse extends EvaluateResponse {
 
     @JsonCreator
     public CancellationEvaluateResponse(@JsonProperty("action") DmnStringValue action,
-                                        @JsonProperty("taskCategories") DmnStringValue taskCategories) {
+                                        @JsonProperty("TaskCategories") DmnStringValue taskCategories) {
         super();
         this.action = action;
         this.taskCategories = taskCategories;

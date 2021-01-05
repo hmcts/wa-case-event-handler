@@ -80,7 +80,6 @@ public class InitiationTaskHandler implements CaseEventHandler {
         return SendMessageRequest.<InitiateProcessVariables, CorrelationKeys>builder()
             .messageName(TASK_INITIATION.getMessageName())
             .processVariables(processVariables)
-            .correlationKeys(null)
             .build();
     }
 
@@ -98,6 +97,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
             .name(response.getName())
             .taskId(response.getTaskId())
             .caseId(new DmnStringValue(eventInformation.getCaseReference()))
+            .taskCategory(response.getTaskCategory())
             .build();
     }
 
