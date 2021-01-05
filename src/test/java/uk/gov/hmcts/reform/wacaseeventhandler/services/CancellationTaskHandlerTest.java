@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringVa
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CancellationTaskHandler;
 
 import java.time.LocalDateTime;
 import java.util.Collections;

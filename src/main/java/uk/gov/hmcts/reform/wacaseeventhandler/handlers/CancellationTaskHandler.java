@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.services;
+package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
