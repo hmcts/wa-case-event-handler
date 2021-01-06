@@ -37,7 +37,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         // Then cancel the task1
         String eventToCancelTask = "submitReasonsForAppeal";
         String previousStateToCancelTask = "awaitingReasonsForAppeal";
-        sendMessage(caseIdForTask1, eventToCancelTask, previousStateToCancelTask);
+        sendMessage(caseIdForTask1, eventToCancelTask, previousStateToCancelTask, "");
 
         // Assert the task1 is deleted
         assertTaskDoesNotExist(caseIdForTask1);
@@ -72,7 +72,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("size()", is(0));
     }
 
-    private void sendMessage(String caseId, String event, String previousState) {
+    private void sendMessage(String caseId, String event, String previousState, String newStateId) {
         EventInformation eventInformation = EventInformation.builder()
             .eventInstanceId("some event instance Id")
             .dateTime(LocalDateTime.now().plusDays(2))
@@ -80,7 +80,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .jurisdictionId("IA")
             .caseTypeId("Asylum")
             .eventId(event)
-            .newStateId("")
+            .newStateId(newStateId)
             .previousStateId(previousState)
             .userId("some user Id")
             .build();
@@ -95,9 +95,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     private String initiateTaskForGivenId(String caseId) {
-        String eventToInitiateTask = "submitAppeal";
+        String eventToInitiateTask = "submitTimeExtension";
 
-        sendMessage(caseId, eventToInitiateTask, "");
+        sendMessage(caseId, eventToInitiateTask, "", "");
 
         return findTaskForGivenCaseId(caseId);
     }
@@ -113,8 +113,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .get()
             .then()
             .body("size()", is(1))
-            .body("[0].name", is("Process Application"))
-            .body("[0].formKey", is("processApplication"))
+            .body("[0].name", is("Decide On Time Extension"))
+            .body("[0].formKey", is("decideOnTimeExtension"))
             .assertThat().body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
