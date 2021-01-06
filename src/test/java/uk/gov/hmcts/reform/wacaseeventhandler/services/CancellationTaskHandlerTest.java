@@ -23,6 +23,8 @@ import static org.mockito.ArgumentMatchers.eq;
 class CancellationTaskHandlerTest {
 
     private static final String DMN_NAME = "wa-task-cancellation-ia-asylum";
+    public static final String TENANT_ID = "ia";
+
 
     @Mock
     private WorkflowApiClientToCancelTask workflowApiClientToCancelTask;
@@ -56,14 +58,16 @@ class CancellationTaskHandlerTest {
 
         Mockito.when(workflowApiClientToCancelTask.evaluateDmn(
             DMN_NAME,
-            requestParameters
+            requestParameters,
+            TENANT_ID
         )).thenReturn(new EvaluateDmnResponse<>(Collections.emptyList()));
 
         handlerService.evaluateDmn(eventInformation);
 
         Mockito.verify(workflowApiClientToCancelTask).evaluateDmn(
             eq(DMN_NAME),
-            eq(requestParameters)
+            eq(requestParameters),
+            eq(TENANT_ID)
         );
 
     }

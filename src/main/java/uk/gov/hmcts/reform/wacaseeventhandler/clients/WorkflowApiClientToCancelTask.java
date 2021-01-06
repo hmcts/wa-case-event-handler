@@ -40,10 +40,11 @@ public class WorkflowApiClientToCancelTask implements WorkflowApiClient {
     @Override
     public EvaluateDmnResponse<CancellationEvaluateResponse> evaluateDmn(
         String key,
-        EvaluateDmnRequest<? extends EvaluateRequest> requestParameters
+        EvaluateDmnRequest<? extends EvaluateRequest> requestParameters,
+        String tenantId
     ) {
         return restTemplate.<EvaluateDmnResponse<CancellationEvaluateResponse>>exchange(
-            String.format("%s/workflow/decision-definition/key/%s/evaluate", workflowApiUrl, key),
+            String.format("%s/workflow/decision-definition/key/%s/tenant-id/%s/evaluate", workflowApiUrl, key,tenantId),
             HttpMethod.POST,
             new HttpEntity<>(requestParameters, buildHttpHeaders()),
             new ParameterizedTypeReference<>() {
