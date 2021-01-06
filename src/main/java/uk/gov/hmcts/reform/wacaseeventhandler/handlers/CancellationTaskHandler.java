@@ -48,32 +48,41 @@ public class CancellationTaskHandler implements CaseEventHandler {
         String eventId,
         String newStateId
     ) {
-        CancellationEvaluateRequest variables =
-            new CancellationEvaluateRequest(
-                new DmnStringValue(eventId),
-                new DmnStringValue(newStateId),
-                new DmnStringValue(previousStateId)
-            );
+        CancellationEvaluateRequest variables = new CancellationEvaluateRequest(
+            new DmnStringValue(eventId),
+            new DmnStringValue(newStateId),
+            new DmnStringValue(previousStateId)
+        );
 
         return new EvaluateDmnRequest<>(variables);
     }
 
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
+        results.stream()
+            .filter(response -> response instanceof CancellationEvaluateResponse)
+            .map(response -> (CancellationEvaluateResponse) response)
+            .forEach(cancellationResponse -> sendMessageToCancelTasksForGivenCorrelations(
+                eventInformation.getCaseReference(),
+                cancellationResponse.getTaskCategories().getValue()
+            ));
+    }
 
-        CancellationEvaluateResponse cancellationEvaluateResponse = (CancellationEvaluateResponse) results.get(0);
-        String taskCategory = cancellationEvaluateResponse.getTaskCategories().getValue();
+    private void sendMessageToCancelTasksForGivenCorrelations(String caseReference, String category) {
+        workflowApiClientToCancelTask.sendMessage(buildSendMessageRequest(category, caseReference));
+    }
 
-        SendMessageRequest<ProcessVariables, CancellationCorrelationKeys> sendMessageRequest =
-            SendMessageRequest.<ProcessVariables, CancellationCorrelationKeys>builder()
-                .messageName(TASK_CANCELLATION.getMessageName())
-                .correlationKeys(CancellationCorrelationKeys.builder()
-                                     .taskCategory(new DmnStringValue(taskCategory))
-                                     .build())
-                .build();
-
-        workflowApiClientToCancelTask.sendMessage(sendMessageRequest);
-
+    private SendMessageRequest<ProcessVariables, CancellationCorrelationKeys> buildSendMessageRequest(
+        String taskCategory,
+        String caseReference
+    ) {
+        return SendMessageRequest.<ProcessVariables, CancellationCorrelationKeys>builder()
+            .messageName(TASK_CANCELLATION.getMessageName())
+            .correlationKeys(CancellationCorrelationKeys.builder()
+                                 .caseId(new DmnStringValue(caseReference))
+                                 .taskCategory(new DmnStringValue(taskCategory))
+                                 .build())
+            .build();
     }
 
 }

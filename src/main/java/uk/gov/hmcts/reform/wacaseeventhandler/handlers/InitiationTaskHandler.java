@@ -60,11 +60,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
 
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
-
-        SendMessageRequest<InitiateProcessVariables, CorrelationKeys> sendMessageRequest =
-            buildSendMessageRequest(results, eventInformation);
-
-        apiClientToInitiateTask.sendMessage(sendMessageRequest);
+        apiClientToInitiateTask.sendMessage(buildSendMessageRequest(results, eventInformation));
     }
 
     private SendMessageRequest<InitiateProcessVariables, CorrelationKeys> buildSendMessageRequest(
