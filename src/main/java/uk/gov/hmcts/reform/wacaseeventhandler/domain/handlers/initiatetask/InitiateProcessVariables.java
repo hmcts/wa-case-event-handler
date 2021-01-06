@@ -20,6 +20,7 @@ public final class InitiateProcessVariables extends ProcessVariables {
     private final DmnStringValue jurisdiction;
     private final DmnStringValue caseType;
     private final DmnStringValue caseId;
+    private final DmnStringValue delayUntil;
 
     public DmnStringValue getDueDate() {
         return dueDate;
@@ -51,5 +52,9 @@ public final class InitiateProcessVariables extends ProcessVariables {
 
     public DmnIntegerValue getWorkingDaysAllowed() {
         return workingDaysAllowed;
+    }
+
+    public DmnStringValue getDelayUntil() {
+        return delayUntil;
     }
 }

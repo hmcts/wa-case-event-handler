@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.Initi
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateProcessVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.TASK_INITIATION;
@@ -24,11 +25,13 @@ public class InitiationTaskHandler implements CaseEventHandler {
 
     private final WorkflowApiClientToInitiateTask apiClientToInitiateTask;
     private final IsoDateFormatter isoDateFormatter;
+    private final DueDateService dueDateService;
 
     public InitiationTaskHandler(WorkflowApiClientToInitiateTask apiClientToInitiateTask,
-                                 IsoDateFormatter isoDateFormatter) {
+                                 IsoDateFormatter isoDateFormatter, DueDateService dueDateService) {
         this.apiClientToInitiateTask = apiClientToInitiateTask;
         this.isoDateFormatter = isoDateFormatter;
+        this.dueDateService = dueDateService;
     }
 
     @Override
@@ -89,15 +92,20 @@ public class InitiationTaskHandler implements CaseEventHandler {
         EventInformation eventInformation
     ) {
 
+        ZonedDateTime delayUntil = dueDateService.calculateDueDate(
+            ZonedDateTime.parse(isoDateFormatter.format(eventInformation.getDateTime())),
+                                    response.getWorkingDaysAllowed().getValue()
+        );
+
         return InitiateProcessVariables.builder()
             .caseType(new DmnStringValue(eventInformation.getCaseTypeId()))
-            .dueDate(new DmnStringValue(isoDateFormatter.format(eventInformation.getDateTime())))
             .workingDaysAllowed(response.getWorkingDaysAllowed())
             .group(response.getGroup())
             .jurisdiction(new DmnStringValue(eventInformation.getJurisdictionId()))
             .name(response.getName())
             .taskId(response.getTaskId())
             .caseId(new DmnStringValue(eventInformation.getCaseReference()))
+            .delayUntil(new DmnStringValue(delayUntil.toString()))
             .build();
     }
 
