@@ -19,7 +19,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmn
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CancelTaskException;
 
 @Service
 @Slf4j
