@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -23,16 +24,26 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
-    public void given_initiated_tasks_then_cancel_task() {
+    public void given_initiate_tasks_with_time_extension_category_then_cancel_task() {
         // Given multiple existing tasks
 
         // create task1
         String caseIdForTask1 = UUID.randomUUID().toString();
-        String task1Id = initiateTaskForGivenId(caseIdForTask1);
+        String task1Id = initiateTaskForGivenId(
+            caseIdForTask1,
+            "submitTimeExtension",
+            "",
+            "decideOnTimeExtension"
+        );
 
         // create task2
         String caseIdForTask2 = UUID.randomUUID().toString();
-        String task2Id = initiateTaskForGivenId(caseIdForTask2);
+        String task2Id = initiateTaskForGivenId(
+            caseIdForTask2,
+            "submitTimeExtension",
+            "",
+            "decideOnTimeExtension"
+        );
 
         // Then cancel the task1
         String eventToCancelTask = "submitReasonsForAppeal";
@@ -43,8 +54,36 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertTaskDoesNotExist(caseIdForTask1);
         assertTaskDeleteReason(task1Id, "deleted");
 
-        // add tasks to tear down.
+        // tear down task2
         taskToTearDown = task2Id;
+    }
+
+
+    @Test
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+    public void given_initiate_tasks_with_follow_up_overdue_category_then_cancel_task() {
+        // Given multiple existing tasks
+
+        // create task1
+        String caseIdForTask1 = UUID.randomUUID().toString();
+        String task1Id = initiateTaskForGivenId(
+            caseIdForTask1,
+            "requestRespondentEvidence",
+            "awaitingRespondentEvidence",
+            "followUpOverdueRespondentEvidence"
+        );
+
+        // Then cancel the task1
+        String eventToCancelTask = "uploadHomeOfficeBundle";
+        String previousStateToCancelTask = "awaitingRespondentEvidence";
+        sendMessage(caseIdForTask1, eventToCancelTask, previousStateToCancelTask, "");
+
+        // Assert the task1 is deleted
+        assertTaskDoesNotExist(caseIdForTask1);
+        assertTaskDeleteReason(task1Id, "deleted");
+
+        // add tasks to tear down.
+//        taskToTearDown = task2Id;
     }
 
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
@@ -94,27 +133,25 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .statusCode(HttpStatus.NO_CONTENT.value());
     }
 
-    private String initiateTaskForGivenId(String caseId) {
-        String eventToInitiateTask = "submitTimeExtension";
+    private String initiateTaskForGivenId(String caseId, String eventId, String newStateId, String taskIdDmnColumn) {
 
-        sendMessage(caseId, eventToInitiateTask, "", "");
+        sendMessage(caseId, eventId, "", newStateId);
 
-        return findTaskForGivenCaseId(caseId);
+        return findTaskForGivenCaseId(caseId, taskIdDmnColumn);
     }
 
-    private String findTaskForGivenCaseId(String caseId) {
+    private String findTaskForGivenCaseId(String caseId, String taskIdDmnColumn) {
         return given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
             .contentType(APPLICATION_JSON_VALUE)
             .baseUri(camundaUrl)
             .basePath("/task")
-            .param("processVariables", "caseId_eq_" + caseId)
+            .param("processVariables", "caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn)
             .when()
             .get()
             .then()
             .body("size()", is(1))
-            .body("[0].name", is("Decide On Time Extension"))
-            .body("[0].formKey", is("decideOnTimeExtension"))
+            .body("[0].formKey", is(taskIdDmnColumn))
             .assertThat().body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
@@ -122,14 +159,16 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     @After
     public void cleanUpTask() {
-        given()
-            .header(SERVICE_AUTHORIZATION, s2sToken)
-            .accept(APPLICATION_JSON_VALUE)
-            .contentType(APPLICATION_JSON_VALUE)
-            .when()
-            .post(camundaUrl + "/task/{task-id}/complete", taskToTearDown);
+        if (StringUtils.isNotEmpty(taskToTearDown)) {
+            given()
+                .header(SERVICE_AUTHORIZATION, s2sToken)
+                .accept(APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
+                .when()
+                .post(camundaUrl + "/task/{task-id}/complete", taskToTearDown);
 
-        assertTaskDeleteReason(taskToTearDown, "completed");
+            assertTaskDeleteReason(taskToTearDown, "completed");
+        }
     }
 
 }

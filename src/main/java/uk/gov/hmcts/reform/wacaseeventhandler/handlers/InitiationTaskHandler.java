@@ -1,9 +1,11 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.CorrelationKeys;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnIntegerValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateResponse;
@@ -87,13 +89,13 @@ public class InitiationTaskHandler implements CaseEventHandler {
         return InitiateProcessVariables.builder()
             .caseType(new DmnStringValue(eventInformation.getCaseTypeId()))
             .dueDate(new DmnStringValue(isoDateFormatter.format(eventInformation.getDateTime())))
-            .workingDaysAllowed(initiateEvaluateResponse.getWorkingDaysAllowed())
+            .workingDaysAllowed(initiateEvaluateResponse.getWorkingDaysAllowed() == null ? new DmnIntegerValue(0) : initiateEvaluateResponse.getWorkingDaysAllowed())
             .group(initiateEvaluateResponse.getGroup())
             .jurisdiction(new DmnStringValue(eventInformation.getJurisdictionId()))
             .name(initiateEvaluateResponse.getName())
             .taskId(initiateEvaluateResponse.getTaskId())
             .caseId(new DmnStringValue(eventInformation.getCaseReference()))
-            .taskCategory(initiateEvaluateResponse.getTaskCategory())
+            .taskCategory(initiateEvaluateResponse.getTaskCategory() == null ? new DmnStringValue("something") : initiateEvaluateResponse.getTaskCategory())
             .build();
     }
 
