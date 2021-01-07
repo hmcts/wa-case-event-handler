@@ -10,6 +10,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.CorrelationKeys;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnIntegerValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
@@ -128,6 +129,7 @@ class InitiationTaskHandlerTest {
             .taskCategory(new DmnStringValue(taskCategory))
             .caseId(new DmnStringValue("some case reference"))
             .dueDate(new DmnStringValue(EXPECTED_DATE))
+            .workingDaysAllowed(new DmnIntegerValue(0))
             .build();
 
         return new SendMessageRequest<>(

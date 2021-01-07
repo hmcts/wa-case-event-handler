@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
-import org.apache.commons.lang.StringUtils;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
@@ -89,7 +88,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
         return InitiateProcessVariables.builder()
             .caseType(new DmnStringValue(eventInformation.getCaseTypeId()))
             .dueDate(new DmnStringValue(isoDateFormatter.format(eventInformation.getDateTime())))
-            .workingDaysAllowed(initiateEvaluateResponse.getWorkingDaysAllowed() == null ? new DmnIntegerValue(0) : initiateEvaluateResponse.getWorkingDaysAllowed())
+            .workingDaysAllowed(cannotBeNull(initiateEvaluateResponse))
             .group(initiateEvaluateResponse.getGroup())
             .jurisdiction(new DmnStringValue(eventInformation.getJurisdictionId()))
             .name(initiateEvaluateResponse.getName())
@@ -97,6 +96,11 @@ public class InitiationTaskHandler implements CaseEventHandler {
             .caseId(new DmnStringValue(eventInformation.getCaseReference()))
             .taskCategory(initiateEvaluateResponse.getTaskCategory())
             .build();
+    }
+
+    private DmnIntegerValue cannotBeNull(InitiateEvaluateResponse initiateEvaluateResponse) {
+        return initiateEvaluateResponse.getWorkingDaysAllowed() == null ? new DmnIntegerValue(0) :
+            initiateEvaluateResponse.getWorkingDaysAllowed();
     }
 
 }
