@@ -60,40 +60,40 @@ public class InitiationTaskHandler implements CaseEventHandler {
 
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
-        apiClientToInitiateTask.sendMessage(buildSendMessageRequest(results, eventInformation));
+        results.stream()
+            .filter(result -> result instanceof InitiateEvaluateResponse)
+            .map(result -> (InitiateEvaluateResponse) result)
+            .forEach(initiateEvaluateResponse -> apiClientToInitiateTask.sendMessage(
+                buildSendMessageRequest(initiateEvaluateResponse, eventInformation)
+            ));
     }
 
     private SendMessageRequest<InitiateProcessVariables, CorrelationKeys> buildSendMessageRequest(
-        List<? extends EvaluateResponse> results,
+        InitiateEvaluateResponse initiateEvaluateResponse,
         EventInformation eventInformation
     ) {
 
-        InitiateProcessVariables processVariables = buildProcessVariables(
-            (InitiateEvaluateResponse) results.get(0),
-            eventInformation
-        );
-
         return SendMessageRequest.<InitiateProcessVariables, CorrelationKeys>builder()
             .messageName(TASK_INITIATION.getMessageName())
-            .processVariables(processVariables)
+            .processVariables(buildProcessVariables(initiateEvaluateResponse, eventInformation))
             .build();
     }
 
     private InitiateProcessVariables buildProcessVariables(
-        InitiateEvaluateResponse response,
+        InitiateEvaluateResponse initiateEvaluateResponse,
         EventInformation eventInformation
     ) {
 
         return InitiateProcessVariables.builder()
             .caseType(new DmnStringValue(eventInformation.getCaseTypeId()))
             .dueDate(new DmnStringValue(isoDateFormatter.format(eventInformation.getDateTime())))
-            .workingDaysAllowed(response.getWorkingDaysAllowed())
-            .group(response.getGroup())
+            .workingDaysAllowed(initiateEvaluateResponse.getWorkingDaysAllowed())
+            .group(initiateEvaluateResponse.getGroup())
             .jurisdiction(new DmnStringValue(eventInformation.getJurisdictionId()))
-            .name(response.getName())
-            .taskId(response.getTaskId())
+            .name(initiateEvaluateResponse.getName())
+            .taskId(initiateEvaluateResponse.getTaskId())
             .caseId(new DmnStringValue(eventInformation.getCaseReference()))
-            .taskCategory(response.getTaskCategory())
+            .taskCategory(initiateEvaluateResponse.getTaskCategory())
             .build();
     }
 

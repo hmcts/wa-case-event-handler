@@ -60,11 +60,11 @@ public class CancellationTaskHandler implements CaseEventHandler {
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
         results.stream()
-            .filter(response -> response instanceof CancellationEvaluateResponse)
-            .map(response -> (CancellationEvaluateResponse) response)
-            .forEach(cancellationResponse -> sendMessageToCancelTasksForGivenCorrelations(
+            .filter(result -> result instanceof CancellationEvaluateResponse)
+            .map(result -> (CancellationEvaluateResponse) result)
+            .forEach(cancellationEvaluateResponse -> sendMessageToCancelTasksForGivenCorrelations(
                 eventInformation.getCaseReference(),
-                cancellationResponse.getTaskCategories().getValue()
+                cancellationEvaluateResponse.getTaskCategories().getValue()
             ));
     }
 
