@@ -4,6 +4,7 @@
 
 def type = "java"
 def product = "wa"
+def tenantId = "ia"
 def component = "case-event-handler"
 
 def secrets = [
@@ -23,7 +24,7 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
     ]
 }
 
-withPipeline(type, product, component) {
+withPipeline(type, product, component, tenantId) {
     disableLegacyDeployment()
 
     env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
