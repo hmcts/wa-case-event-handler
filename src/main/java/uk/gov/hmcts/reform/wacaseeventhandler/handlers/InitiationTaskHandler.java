@@ -95,7 +95,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
             .name(initiateEvaluateResponse.getName())
             .taskId(initiateEvaluateResponse.getTaskId())
             .caseId(new DmnStringValue(eventInformation.getCaseReference()))
-            .taskCategory(initiateEvaluateResponse.getTaskCategory() == null ? new DmnStringValue("something") : initiateEvaluateResponse.getTaskCategory())
+            .taskCategory(initiateEvaluateResponse.getTaskCategory())
             .build();
     }
 

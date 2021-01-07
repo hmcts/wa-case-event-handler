@@ -29,11 +29,12 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // create task1
         String caseIdForTask1 = UUID.randomUUID().toString();
+        String taskIdDmnColumn = "decideOnTimeExtension";
         String task1Id = initiateTaskForGivenId(
             caseIdForTask1,
             "submitTimeExtension",
             "",
-            "decideOnTimeExtension"
+            taskIdDmnColumn
         );
 
         // create task2
@@ -42,7 +43,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             caseIdForTask2,
             "submitTimeExtension",
             "",
-            "decideOnTimeExtension"
+            taskIdDmnColumn
         );
 
         // Then cancel the task1
@@ -51,26 +52,28 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         sendMessage(caseIdForTask1, eventToCancelTask, previousStateToCancelTask, "");
 
         // Assert the task1 is deleted
-        assertTaskDoesNotExist(caseIdForTask1);
+        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
         assertTaskDeleteReason(task1Id, "deleted");
 
         // tear down task2
         taskToTearDown = task2Id;
     }
 
-
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_initiate_tasks_with_follow_up_overdue_category_then_cancel_task() {
         // Given multiple existing tasks
 
-        // create task1
+        // create task1,
+        // notice this creates two tasks with the follow up category because the initiate dmn table
+        // has multiple rules matching this event and state.
         String caseIdForTask1 = UUID.randomUUID().toString();
+        String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
         String task1Id = initiateTaskForGivenId(
             caseIdForTask1,
             "requestRespondentEvidence",
             "awaitingRespondentEvidence",
-            "followUpOverdueRespondentEvidence"
+            taskIdDmnColumn
         );
 
         // Then cancel the task1
@@ -79,11 +82,15 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         sendMessage(caseIdForTask1, eventToCancelTask, previousStateToCancelTask, "");
 
         // Assert the task1 is deleted
-        assertTaskDoesNotExist(caseIdForTask1);
+        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
         assertTaskDeleteReason(task1Id, "deleted");
 
         // add tasks to tear down.
-//        taskToTearDown = task2Id;
+        String taskCreatedAsResultOfTheMultipleDmnRule = findTaskForGivenCaseId(
+            caseIdForTask1,
+            "provideRespondentEvidence"
+        );
+        taskToTearDown = taskCreatedAsResultOfTheMultipleDmnRule;
     }
 
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
@@ -98,13 +105,16 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("[0].deleteReason", is(expectedDeletedReason));
     }
 
-    private void assertTaskDoesNotExist(String caseIdForTask1) {
+    private void assertTaskDoesNotExist(String caseId, String taskIdDmnColumn) {
         given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
             .contentType(APPLICATION_JSON_VALUE)
             .baseUri(camundaUrl)
             .basePath("/task")
-            .param("processVariables", "caseId_eq_" + caseIdForTask1)
+            .param(
+                "processVariables",
+                "caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn
+            )
             .when()
             .get()
             .then()
