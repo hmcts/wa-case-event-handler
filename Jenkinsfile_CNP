@@ -5,6 +5,8 @@
 def type = "java"
 def product = "wa"
 def component = "case-event-handler"
+def tenantId = "ia"
+def s2sServiceName = "wa_case_event_handler"
 
 def secrets = [
     'wa-${env}' : [
@@ -23,7 +25,7 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
     ]
 }
 
-withPipeline(type, product, component) {
+withCamundaOnlyPipeline(type, product, component, s2sServiceName, tenantId) {
     disableLegacyDeployment()
 
     env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
