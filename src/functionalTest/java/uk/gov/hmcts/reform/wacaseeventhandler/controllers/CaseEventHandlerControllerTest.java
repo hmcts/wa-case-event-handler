@@ -23,28 +23,55 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
-    public void given_initiated_tasks_then_cancel_task() {
-        // Given multiple existing tasks
-
+    public void given_initiated_tasks_then_cancel_task() throws InterruptedException {
         // create task1
         String caseIdForTask1 = UUID.randomUUID().toString();
-        String task1Id = initiateTaskForGivenId(caseIdForTask1);
+        String task1Id = initiateTaskForGivenId(caseIdForTask1, "uploadHomeOfficeBundle",
+                                                "awaitingRespondentEvidence", "",
+                                                false, "Review Respondent Evidence",
+                                                "reviewRespondentEvidence");
 
         // create task2
         String caseIdForTask2 = UUID.randomUUID().toString();
-        String task2Id = initiateTaskForGivenId(caseIdForTask2);
+        String task2Id = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
+                                                "", "",
+                                                false, "Process Application",
+                                                "processApplication");
 
         // Then cancel the task1
-        String eventToCancelTask = "submitReasonsForAppeal";
-        String previousStateToCancelTask = "awaitingReasonsForAppeal";
-        sendMessage(caseIdForTask1, eventToCancelTask, previousStateToCancelTask);
-
-        // Assert the task1 is deleted
+        sendMessage(caseIdForTask1, "uploadHomeOfficeBundle", "", "awaitingRespondentEvidence", false);
         assertTaskDoesNotExist(caseIdForTask1);
         assertTaskDeleteReason(task1Id, "deleted");
 
         // add tasks to tear down.
         taskToTearDown = task2Id;
+    }
+
+    @Test
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+    public void given_initiated_tasks_with_delayedTimer_then_cancel_task() throws InterruptedException {
+        // create task1
+        String caseIdForTask1 = UUID.randomUUID().toString();
+        String task1Id = initiateTaskForGivenId(caseIdForTask1, "uploadHomeOfficeBundle",
+                                      "awaitingRespondentEvidence", "",
+                                      true, "Review Respondent Evidence",
+                                      "reviewRespondentEvidence");
+
+        // create task2
+        String caseIdForTask2 = UUID.randomUUID().toString();
+        String task2Id = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
+                                                "caseUnderReview", "",
+                                                true, "Process Application",
+                                                "processApplication");
+
+        // Then cancel the task1
+        sendMessage(caseIdForTask1, "uploadHomeOfficeBundle", "", "awaitingRespondentEvidence", false);
+        assertTaskDoesNotExist(caseIdForTask1);
+        assertTaskDeleteReason(task1Id, "deleted");
+
+        // add tasks to tear down.
+        taskToTearDown = task2Id;
+
     }
 
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
@@ -72,15 +99,23 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("size()", is(0));
     }
 
-    private void sendMessage(String caseId, String event, String previousState) {
+    private void sendMessage(String caseId, String event, String newState,
+                             String previousState, boolean taskDelay) {
+
+        LocalDateTime delayTimer = LocalDateTime.now();
+
+        if (taskDelay) {
+            delayTimer = LocalDateTime.now().plusSeconds(2);
+        }
+
         EventInformation eventInformation = EventInformation.builder()
             .eventInstanceId("some event instance Id")
-            .dateTime(LocalDateTime.now().plusDays(2))
+            .dateTime(delayTimer)
             .caseReference(caseId)
             .jurisdictionId("IA")
             .caseTypeId("Asylum")
             .eventId(event)
-            .newStateId("")
+            .newStateId(newState)
             .previousStateId(previousState)
             .userId("some user Id")
             .build();
@@ -94,15 +129,18 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .statusCode(HttpStatus.NO_CONTENT.value());
     }
 
-    private String initiateTaskForGivenId(String caseId) {
-        String eventToInitiateTask = "submitAppeal";
+    private String initiateTaskForGivenId(String caseId, String eventId, String newStateId, String previousStateId,
+                                          boolean taskDelay, String name, String formKey) throws InterruptedException {
+        sendMessage(caseId, eventId, newStateId, previousStateId, taskDelay);
 
-        sendMessage(caseId, eventToInitiateTask, "");
+        if (taskDelay) {
+            Thread.sleep(5000);
+        }
 
-        return findTaskForGivenCaseId(caseId);
+        return findTaskForGivenCaseId(caseId, name, formKey);
     }
 
-    private String findTaskForGivenCaseId(String caseId) {
+    private String findTaskForGivenCaseId(String caseId, String name, String formKey) {
         return given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
             .contentType(APPLICATION_JSON_VALUE)
@@ -113,8 +151,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .get()
             .then()
             .body("size()", is(1))
-            .body("[0].name", is("Process Application"))
-            .body("[0].formKey", is("processApplication"))
+            .body("[0].name", is(name))
+            .body("[0].formKey", is(formKey))
             .assertThat().body("[0].id", notNullValue())
             .extract()
             .path("[0].id");

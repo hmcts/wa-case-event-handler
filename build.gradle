@@ -262,6 +262,7 @@ dependencies {
   }
 
   testCompile group: 'pl.pojo', name: 'pojo-tester', version: '0.7.6'
+  testCompile group: 'com.jparams', name: 'to-string-verifier', version: '1.4.8'
   testCompile group: 'com.google.guava', name: 'guava-testlib', version: '30.1-jre'
   testCompile group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
   testCompile group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity

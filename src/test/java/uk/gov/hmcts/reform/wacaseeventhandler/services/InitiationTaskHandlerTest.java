@@ -10,6 +10,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.CorrelationKeys;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnIntegerValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
@@ -22,11 +23,14 @@ import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class InitiationTaskHandlerTest {
@@ -43,6 +47,9 @@ class InitiationTaskHandlerTest {
 
     @Mock
     private IsoDateFormatter isoDateFormatter;
+
+    @Mock
+    private DueDateService dueDateService;
 
     @InjectMocks
     private InitiationTaskHandler handlerService;
@@ -77,7 +84,6 @@ class InitiationTaskHandlerTest {
 
     @Test
     void handle() {
-
         Mockito.when(isoDateFormatter.format(eq(LocalDateTime.parse(INPUT_DATE))))
             .thenReturn(EXPECTED_DATE);
 
@@ -85,9 +91,13 @@ class InitiationTaskHandlerTest {
             .group(new DmnStringValue("TCW"))
             .name(new DmnStringValue("Process Application"))
             .taskId(new DmnStringValue("processApplication"))
+            .workingDaysAllowed(new DmnIntegerValue(0))
             .build();
 
         List<InitiateEvaluateResponse> results = List.of(initiateTaskResponse);
+
+        when(dueDateService.calculateDueDate(ZonedDateTime.parse(EXPECTED_DATE), 0))
+            .thenReturn(ZonedDateTime.parse(EXPECTED_DATE));
 
         handlerService.handle(results, eventInformation);
 
@@ -98,6 +108,7 @@ class InitiationTaskHandlerTest {
     }
 
     private SendMessageRequest<InitiateProcessVariables, CorrelationKeys> getExpectedSendMessageRequest() {
+
         InitiateProcessVariables expectedInitiateTaskSendMessageRequest = InitiateProcessVariables.builder()
             .caseType(new DmnStringValue("asylum"))
             .group(new DmnStringValue("TCW"))
@@ -106,6 +117,9 @@ class InitiationTaskHandlerTest {
             .taskId(new DmnStringValue("processApplication"))
             .caseId(new DmnStringValue("some case reference"))
             .dueDate(new DmnStringValue(EXPECTED_DATE))
+            .workingDaysAllowed(new DmnIntegerValue(0))
+            .delayUntil(new DmnStringValue(ZonedDateTime.parse(EXPECTED_DATE)
+                                               .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
             .build();
 
         return new SendMessageRequest<>(

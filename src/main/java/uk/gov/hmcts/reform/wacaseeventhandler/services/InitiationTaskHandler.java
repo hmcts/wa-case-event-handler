@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.Initi
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.TASK_INITIATION;
@@ -91,21 +92,22 @@ public class InitiationTaskHandler implements CaseEventHandler {
         InitiateEvaluateResponse response,
         EventInformation eventInformation
     ) {
+        String eventInfoDt = isoDateFormatter.format(eventInformation.getDateTime());
 
         ZonedDateTime delayUntil = dueDateService.calculateDueDate(
-            ZonedDateTime.parse(isoDateFormatter.format(eventInformation.getDateTime())),
+            ZonedDateTime.parse(eventInfoDt),
                                     response.getWorkingDaysAllowed().getValue()
         );
-
         return InitiateProcessVariables.builder()
             .caseType(new DmnStringValue(eventInformation.getCaseTypeId()))
+            .dueDate(new DmnStringValue(eventInfoDt))
             .workingDaysAllowed(response.getWorkingDaysAllowed())
             .group(response.getGroup())
             .jurisdiction(new DmnStringValue(eventInformation.getJurisdictionId()))
             .name(response.getName())
             .taskId(response.getTaskId())
             .caseId(new DmnStringValue(eventInformation.getCaseReference()))
-            .delayUntil(new DmnStringValue(delayUntil.toString()))
+            .delayUntil(new DmnStringValue(delayUntil.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
             .build();
     }
 
