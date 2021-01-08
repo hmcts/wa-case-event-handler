@@ -26,7 +26,7 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
 }
 
 withCamundaOnlyPipeline(type, product, component, s2sServiceName, tenantId) {}
-withPipeline(type, product, component, s2sServiceName) {
+withPipeline(type, product, component) {
     disableLegacyDeployment()
 
     env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
