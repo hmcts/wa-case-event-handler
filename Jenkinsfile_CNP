@@ -6,7 +6,7 @@ def type = "java"
 def product = "wa"
 def component = "case-event-handler"
 def tenantId = "ia"
-def s2sServiceName = "wa_case_event_handler"
+def s2sServiceName = "case_event_handler"
 
 def secrets = [
     'wa-${env}' : [
