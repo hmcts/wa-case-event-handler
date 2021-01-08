@@ -1,12 +1,10 @@
 #!groovy
 
-@Library("Infrastructure@camunda-multi-tenant")
+@Library("Infrastructure")
 
 def type = "java"
 def product = "wa"
 def component = "case-event-handler"
-def tenantId = "ia"
-def s2sServiceName = "case_event_handler"
 
 def secrets = [
     'wa-${env}' : [
@@ -25,7 +23,7 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
     ]
 }
 
-withCamundaOnlyPipeline(type, product, component, s2sServiceName, tenantId) {
+withPipeline(type, product, component) {
     disableLegacyDeployment()
 
     env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
