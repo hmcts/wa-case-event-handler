@@ -96,7 +96,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
 
         ZonedDateTime delayUntil = dueDateService.calculateDueDate(
             ZonedDateTime.parse(eventInfoDt),
-                                    response.getWorkingDaysAllowed().getValue()
+                                    response.getWorkingDaysAllowed()
         );
         return InitiateProcessVariables.builder()
             .caseType(new DmnStringValue(eventInformation.getCaseTypeId()))

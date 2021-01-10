@@ -96,7 +96,7 @@ class InitiationTaskHandlerTest {
 
         List<InitiateEvaluateResponse> results = List.of(initiateTaskResponse);
 
-        when(dueDateService.calculateDueDate(ZonedDateTime.parse(EXPECTED_DATE), 0))
+        when(dueDateService.calculateDueDate(ZonedDateTime.parse(EXPECTED_DATE), new DmnIntegerValue(0)))
             .thenReturn(ZonedDateTime.parse(EXPECTED_DATE));
 
         handlerService.handle(results, eventInformation);

@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnIntegerValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates.HolidayService;
 
 import java.time.ZoneId;
@@ -32,7 +33,7 @@ class DueDateServiceTest {
         assertThrows(IllegalStateException.class, () -> {
             underTest.calculateDueDate(
                 null,
-                0
+                new DmnIntegerValue(0)
             );
         });
     }
@@ -41,7 +42,7 @@ class DueDateServiceTest {
     void ifADueDateIsAlreadySetDoNotCalculateANewOne() {
         ZonedDateTime providedDueDate = ZonedDateTime.now();
         ZonedDateTime calculatedDueDate = underTest.calculateDueDate(
-            providedDueDate, 0
+            providedDueDate, new DmnIntegerValue(0)
         );
 
         assertThat(calculatedDueDate, is(providedDueDate));
@@ -104,7 +105,7 @@ class DueDateServiceTest {
         dateService.setCurrentDateTime(startDay);
 
         ZonedDateTime calculatedDueDate = underTest.calculateDueDate(
-            null, leadTimeDays
+            null, new DmnIntegerValue(leadTimeDays)
         );
 
         assertThat(calculatedDueDate, is(expectedDueDate));
