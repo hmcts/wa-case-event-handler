@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -23,24 +24,95 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
-    public void given_initiated_tasks_then_cancel_task() throws InterruptedException {
+    public void given_initiate_tasks_with_time_extension_category_then_cancel_task() {
+        // Given multiple existing tasks
+
         // create task1
         String caseIdForTask1 = UUID.randomUUID().toString();
-        String task1Id = initiateTaskForGivenId(caseIdForTask1, "uploadHomeOfficeBundle",
-                                                "awaitingRespondentEvidence", "",
-                                                false, "Review Respondent Evidence",
-                                                "reviewRespondentEvidence");
+        String taskIdDmnColumn = "decideOnTimeExtension";
+        String task1Id = initiateTaskForGivenId(
+            caseIdForTask1,
+            "submitTimeExtension",
+            "", "",
+            false,
+            taskIdDmnColumn
+        );
 
         // create task2
         String caseIdForTask2 = UUID.randomUUID().toString();
-        String task2Id = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
-                                                "", "",
-                                                false, "Process Application",
-                                                "processApplication");
+        String task2Id = initiateTaskForGivenId(
+            caseIdForTask2,
+            "submitTimeExtension",
+            "", "", false,
+            taskIdDmnColumn
+        );
 
         // Then cancel the task1
-        sendMessage(caseIdForTask1, "uploadHomeOfficeBundle", "", "awaitingRespondentEvidence", false);
-        assertTaskDoesNotExist(caseIdForTask1);
+        String eventToCancelTask = "submitReasonsForAppeal";
+        String previousStateToCancelTask = "awaitingReasonsForAppeal";
+        sendMessage(caseIdForTask1, eventToCancelTask, previousStateToCancelTask,
+                    "", false);
+
+        // Assert the task1 is deleted
+        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
+        assertTaskDeleteReason(task1Id, "deleted");
+
+        // tear down task2
+        taskToTearDown = task2Id;
+    }
+
+    @Test
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+    public void given_initiate_tasks_with_follow_up_overdue_category_then_cancel_task() {
+        // Given multiple existing tasks
+
+        // create task1,
+        // notice this creates two tasks with the follow up category because the initiate dmn table
+        // has multiple rules matching this event and state.
+        String caseIdForTask1 = UUID.randomUUID().toString();
+        String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
+        String task1Id = initiateTaskForGivenId(
+            caseIdForTask1,
+            "requestRespondentEvidence",
+            "", "awaitingRespondentEvidence", false,
+            taskIdDmnColumn
+        );
+
+        // Then cancel the task1
+        String eventToCancelTask = "uploadHomeOfficeBundle";
+        String previousStateToCancelTask = "awaitingRespondentEvidence";
+        sendMessage(caseIdForTask1, eventToCancelTask, previousStateToCancelTask, "", false);
+
+        // Assert the task1 is deleted
+        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
+        assertTaskDeleteReason(task1Id, "deleted");
+
+        // add tasks to tear down.
+        String taskCreatedAsResultOfTheMultipleDmnRule = findTaskForGivenCaseId(
+            caseIdForTask1,
+            "provideRespondentEvidence"
+        );
+        taskToTearDown = taskCreatedAsResultOfTheMultipleDmnRule;
+    }
+
+    @Test
+    public void given_initiated_tasks_with_delayTimer_toCurrentTime_then_cancel_task() throws InterruptedException {
+        // create task1
+        String caseIdForTask1 = UUID.randomUUID().toString();
+        String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
+        String task1Id = initiateTaskForGivenId(caseIdForTask1, "requestRespondentEvidence",
+                                                "", "awaitingRespondentEvidence",
+                                                false, taskIdDmnColumn);
+
+        // create task2
+        String caseIdForTask2 = UUID.randomUUID().toString();
+        final String task2Id = initiateTaskForGivenId(caseIdForTask2, "uploadHomeOfficeBundle",
+                                                "", "awaitingRespondentEvidence",
+                                                false, "reviewRespondentEvidence");
+
+        // Then cancel the task1
+        sendMessage(caseIdForTask1, "uploadHomeOfficeBundle", "awaitingRespondentEvidence", "", false);
+        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
         assertTaskDeleteReason(task1Id, "deleted");
 
         // add tasks to tear down.
@@ -48,30 +120,27 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
-    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
-    public void given_initiated_tasks_with_delayedTimer_then_cancel_task() throws InterruptedException {
+    public void given_initiated_tasks_with_delayTimer_toFuture_then_cancel_task() {
         // create task1
         String caseIdForTask1 = UUID.randomUUID().toString();
-        String task1Id = initiateTaskForGivenId(caseIdForTask1, "uploadHomeOfficeBundle",
-                                      "awaitingRespondentEvidence", "",
-                                      true, "Review Respondent Evidence",
-                                      "reviewRespondentEvidence");
+        String taskIdDmnColumn = "followUpOverdueCaseBuilding";
+        String task1Id = initiateTaskForGivenId(caseIdForTask1, "requestCaseBuilding",
+                                                "", "caseBuilding",
+                                                true, taskIdDmnColumn);
 
         // create task2
         String caseIdForTask2 = UUID.randomUUID().toString();
-        String task2Id = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
-                                                "caseUnderReview", "",
-                                                true, "Process Application",
-                                                "processApplication");
+        final String task2Id = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
+                                                "", "",
+                                                true, "processApplication");
 
         // Then cancel the task1
-        sendMessage(caseIdForTask1, "uploadHomeOfficeBundle", "", "awaitingRespondentEvidence", false);
-        assertTaskDoesNotExist(caseIdForTask1);
+        sendMessage(caseIdForTask1, "submitCase", "caseBuilding", "", false);
+        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
         assertTaskDeleteReason(task1Id, "deleted");
 
         // add tasks to tear down.
         taskToTearDown = task2Id;
-
     }
 
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
@@ -86,28 +155,29 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("[0].deleteReason", is(expectedDeletedReason));
     }
 
-    private void assertTaskDoesNotExist(String caseIdForTask1) {
+    private void assertTaskDoesNotExist(String caseId, String taskIdDmnColumn) {
         given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
             .contentType(APPLICATION_JSON_VALUE)
             .baseUri(camundaUrl)
             .basePath("/task")
-            .param("processVariables", "caseId_eq_" + caseIdForTask1)
+            .param(
+                "processVariables",
+                "caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn
+            )
             .when()
             .get()
             .then()
             .body("size()", is(0));
     }
 
-    private void sendMessage(String caseId, String event, String newState,
-                             String previousState, boolean taskDelay) {
-
+    private void sendMessage(String caseId, String event, String previousStateId,
+                             String newStateId, boolean taskDelay) {
         LocalDateTime delayTimer = LocalDateTime.now();
 
         if (taskDelay) {
             delayTimer = LocalDateTime.now().plusSeconds(2);
         }
-
         EventInformation eventInformation = EventInformation.builder()
             .eventInstanceId("some event instance Id")
             .dateTime(delayTimer)
@@ -115,8 +185,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .jurisdictionId("IA")
             .caseTypeId("Asylum")
             .eventId(event)
-            .newStateId(newState)
-            .previousStateId(previousState)
+            .newStateId(newStateId)
+            .previousStateId(previousStateId)
             .userId("some user Id")
             .build();
 
@@ -129,30 +199,35 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .statusCode(HttpStatus.NO_CONTENT.value());
     }
 
-    private String initiateTaskForGivenId(String caseId, String eventId, String newStateId, String previousStateId,
-                                          boolean taskDelay, String name, String formKey) throws InterruptedException {
-        sendMessage(caseId, eventId, newStateId, previousStateId, taskDelay);
+    private String initiateTaskForGivenId(String caseId, String eventId,
+                                          String previousStateId, String newStateId,
+                                          boolean delayUntil, String taskIdDmnColumn) {
 
-        if (taskDelay) {
-            Thread.sleep(5000);
+        sendMessage(caseId, eventId, previousStateId, newStateId, delayUntil);
+
+        try {
+            if (delayUntil) {
+                Thread.sleep(5000);
+            }
+        } catch (InterruptedException exp) {
+            log.error(exp.getMessage());
         }
 
-        return findTaskForGivenCaseId(caseId, name, formKey);
+        return findTaskForGivenCaseId(caseId, taskIdDmnColumn);
     }
 
-    private String findTaskForGivenCaseId(String caseId, String name, String formKey) {
+    private String findTaskForGivenCaseId(String caseId, String taskIdDmnColumn) {
         return given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
             .contentType(APPLICATION_JSON_VALUE)
             .baseUri(camundaUrl)
             .basePath("/task")
-            .param("processVariables", "caseId_eq_" + caseId)
+            .param("processVariables", "caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn)
             .when()
             .get()
             .then()
             .body("size()", is(1))
-            .body("[0].name", is(name))
-            .body("[0].formKey", is(formKey))
+            .body("[0].formKey", is(taskIdDmnColumn))
             .assertThat().body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
@@ -160,14 +235,16 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     @After
     public void cleanUpTask() {
-        given()
-            .header(SERVICE_AUTHORIZATION, s2sToken)
-            .accept(APPLICATION_JSON_VALUE)
-            .contentType(APPLICATION_JSON_VALUE)
-            .when()
-            .post(camundaUrl + "/task/{task-id}/complete", taskToTearDown);
+        if (StringUtils.isNotEmpty(taskToTearDown)) {
+            given()
+                .header(SERVICE_AUTHORIZATION, s2sToken)
+                .accept(APPLICATION_JSON_VALUE)
+                .contentType(APPLICATION_JSON_VALUE)
+                .when()
+                .post(camundaUrl + "/task/{task-id}/complete", taskToTearDown);
 
-        assertTaskDeleteReason(taskToTearDown, "completed");
+            assertTaskDeleteReason(taskToTearDown, "completed");
+        }
     }
 
 }

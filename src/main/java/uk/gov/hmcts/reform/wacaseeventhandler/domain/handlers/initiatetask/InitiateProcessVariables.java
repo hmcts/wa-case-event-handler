@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -10,6 +11,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVari
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public final class InitiateProcessVariables extends ProcessVariables {
 
     private final DmnStringValue dueDate;
@@ -21,6 +23,7 @@ public final class InitiateProcessVariables extends ProcessVariables {
     private final DmnStringValue caseType;
     private final DmnStringValue caseId;
     private final DmnStringValue delayUntil;
+    private final DmnStringValue taskCategory;
 
     public DmnStringValue getDueDate() {
         return dueDate;
@@ -56,5 +59,9 @@ public final class InitiateProcessVariables extends ProcessVariables {
 
     public DmnStringValue getDelayUntil() {
         return delayUntil;
+    }
+
+    public DmnStringValue getTaskCategory() {
+        return taskCategory;
     }
 }

@@ -11,9 +11,12 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringVa
 @Builder
 public class CancellationCorrelationKeys extends CorrelationKeys {
 
+    private final DmnStringValue taskCategory;
     private final DmnStringValue caseId;
-    //todo correlate with the taskCategories
 
+    public DmnStringValue getTaskCategory() {
+        return taskCategory;
+    }
 
     public DmnStringValue getCaseId() {
         return caseId;
