@@ -205,6 +205,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         sendMessage(caseId, eventId, previousStateId, newStateId, delayUntil);
 
+        // if the delayUntil is true, then the taskCreation process waits for delayUntil timer
+        // to expire. The task is delayed for 2 seconds,
+        // so manually waiting for 5 seconds for process to start
         try {
             if (delayUntil) {
                 Thread.sleep(5000);

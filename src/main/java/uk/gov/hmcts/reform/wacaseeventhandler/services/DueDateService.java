@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnIntegerValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates.HolidayService;
 
 import java.time.DayOfWeek;
@@ -18,16 +17,16 @@ public class DueDateService {
         this.holidayService = holidayService;
     }
 
-    public ZonedDateTime calculateDueDate(ZonedDateTime dueDate, DmnIntegerValue workingDaysAllowed) {
+    public ZonedDateTime calculateDueDate(ZonedDateTime dueDate, int workingDaysAllowed) {
         if (dueDate != null) {
             return dueDate;
         }
-        if (workingDaysAllowed != null && workingDaysAllowed.getValue() == 0) {
+        if (workingDaysAllowed == 0) {
             throw new IllegalStateException(
                 "Should either have a due date or have got the working days allowed for task"
             );
         }
-        return addWorkingDays(workingDaysAllowed.getValue());
+        return addWorkingDays(workingDaysAllowed);
     }
 
     public ZonedDateTime addWorkingDays(int numberOfDays) {

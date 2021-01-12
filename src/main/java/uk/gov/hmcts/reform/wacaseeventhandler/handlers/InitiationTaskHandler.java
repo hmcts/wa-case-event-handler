@@ -93,12 +93,12 @@ public class InitiationTaskHandler implements CaseEventHandler {
 
         ZonedDateTime delayUntil = dueDateService.calculateDueDate(
             ZonedDateTime.parse(eventInfoDt),
-            initiateEvaluateResponse.getWorkingDaysAllowed()
+            cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()).getValue()
         );
         return InitiateProcessVariables.builder()
             .caseType(new DmnStringValue(eventInformation.getCaseTypeId()))
             .dueDate(new DmnStringValue(isoDateFormatter.format(eventInformation.getDateTime())))
-            .workingDaysAllowed(cannotBeNull(initiateEvaluateResponse))
+            .workingDaysAllowed(cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()))
             .group(initiateEvaluateResponse.getGroup())
             .jurisdiction(new DmnStringValue(eventInformation.getJurisdictionId()))
             .name(initiateEvaluateResponse.getName())
@@ -109,9 +109,8 @@ public class InitiationTaskHandler implements CaseEventHandler {
             .build();
     }
 
-    private DmnIntegerValue cannotBeNull(InitiateEvaluateResponse initiateEvaluateResponse) {
-        return initiateEvaluateResponse.getWorkingDaysAllowed() == null ? new DmnIntegerValue(0) :
-            initiateEvaluateResponse.getWorkingDaysAllowed();
+    private DmnIntegerValue cannotBeNull(DmnIntegerValue workingDaysAllowed) {
+        return workingDaysAllowed == null ? new DmnIntegerValue(0) : workingDaysAllowed;
     }
 
 }

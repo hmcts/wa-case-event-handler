@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnIntegerValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates.HolidayService;
 
 import java.time.ZoneId;
@@ -30,19 +29,17 @@ class DueDateServiceTest {
 
     @Test
     void haveToSetEitherADueDateOrHaveWorkingDays() {
-        assertThrows(IllegalStateException.class, () -> {
-            underTest.calculateDueDate(
-                null,
-                new DmnIntegerValue(0)
-            );
-        });
+        assertThrows(IllegalStateException.class, () -> underTest.calculateDueDate(
+            null,
+            0
+        ));
     }
 
     @Test
     void ifADueDateIsAlreadySetDoNotCalculateANewOne() {
         ZonedDateTime providedDueDate = ZonedDateTime.now();
         ZonedDateTime calculatedDueDate = underTest.calculateDueDate(
-            providedDueDate, new DmnIntegerValue(0)
+            providedDueDate, 0
         );
 
         assertThat(calculatedDueDate, is(providedDueDate));
@@ -104,9 +101,7 @@ class DueDateServiceTest {
     private void checkWorkingDays(ZonedDateTime startDay, int leadTimeDays, ZonedDateTime expectedDueDate) {
         dateService.setCurrentDateTime(startDay);
 
-        ZonedDateTime calculatedDueDate = underTest.calculateDueDate(
-            null, new DmnIntegerValue(leadTimeDays)
-        );
+        ZonedDateTime calculatedDueDate = underTest.calculateDueDate(null, leadTimeDays);
 
         assertThat(calculatedDueDate, is(expectedDueDate));
     }
