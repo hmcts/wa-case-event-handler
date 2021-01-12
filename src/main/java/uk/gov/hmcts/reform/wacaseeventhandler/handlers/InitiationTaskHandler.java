@@ -1,9 +1,10 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.services;
+package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.CorrelationKeys;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnIntegerValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateResponse;
@@ -60,45 +61,46 @@ public class InitiationTaskHandler implements CaseEventHandler {
 
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
-
-        SendMessageRequest<InitiateProcessVariables, CorrelationKeys> sendMessageRequest =
-            buildSendMessageRequest(results, eventInformation);
-
-        apiClientToInitiateTask.sendMessage(sendMessageRequest);
+        results.stream()
+            .filter(result -> result instanceof InitiateEvaluateResponse)
+            .map(result -> (InitiateEvaluateResponse) result)
+            .forEach(initiateEvaluateResponse -> apiClientToInitiateTask.sendMessage(
+                buildSendMessageRequest(initiateEvaluateResponse, eventInformation)
+            ));
     }
 
     private SendMessageRequest<InitiateProcessVariables, CorrelationKeys> buildSendMessageRequest(
-        List<? extends EvaluateResponse> results,
+        InitiateEvaluateResponse initiateEvaluateResponse,
         EventInformation eventInformation
     ) {
 
-        InitiateProcessVariables processVariables = buildProcessVariables(
-            (InitiateEvaluateResponse) results.get(0),
-            eventInformation
-        );
-
         return SendMessageRequest.<InitiateProcessVariables, CorrelationKeys>builder()
             .messageName(TASK_INITIATION.getMessageName())
-            .processVariables(processVariables)
-            .correlationKeys(null)
+            .processVariables(buildProcessVariables(initiateEvaluateResponse, eventInformation))
             .build();
     }
 
     private InitiateProcessVariables buildProcessVariables(
-        InitiateEvaluateResponse response,
+        InitiateEvaluateResponse initiateEvaluateResponse,
         EventInformation eventInformation
     ) {
 
         return InitiateProcessVariables.builder()
             .caseType(new DmnStringValue(eventInformation.getCaseTypeId()))
             .dueDate(new DmnStringValue(isoDateFormatter.format(eventInformation.getDateTime())))
-            .workingDaysAllowed(response.getWorkingDaysAllowed())
-            .group(response.getGroup())
+            .workingDaysAllowed(cannotBeNull(initiateEvaluateResponse))
+            .group(initiateEvaluateResponse.getGroup())
             .jurisdiction(new DmnStringValue(eventInformation.getJurisdictionId()))
-            .name(response.getName())
-            .taskId(response.getTaskId())
+            .name(initiateEvaluateResponse.getName())
+            .taskId(initiateEvaluateResponse.getTaskId())
             .caseId(new DmnStringValue(eventInformation.getCaseReference()))
+            .taskCategory(initiateEvaluateResponse.getTaskCategory())
             .build();
+    }
+
+    private DmnIntegerValue cannotBeNull(InitiateEvaluateResponse initiateEvaluateResponse) {
+        return initiateEvaluateResponse.getWorkingDaysAllowed() == null ? new DmnIntegerValue(0) :
+            initiateEvaluateResponse.getWorkingDaysAllowed();
     }
 
 }

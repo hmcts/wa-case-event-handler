@@ -17,17 +17,20 @@ public final class InitiateEvaluateResponse extends EvaluateResponse {
     private final DmnStringValue group;
     private final DmnIntegerValue workingDaysAllowed;
     private final DmnStringValue name;
+    private final DmnStringValue taskCategory;
 
     @JsonCreator
     public InitiateEvaluateResponse(@JsonProperty("taskId") DmnStringValue taskId,
                                     @JsonProperty("group") DmnStringValue group,
                                     @JsonProperty("workingDaysAllowed") DmnIntegerValue workingDaysAllowed,
-                                    @JsonProperty("name") DmnStringValue name) {
+                                    @JsonProperty("name") DmnStringValue name,
+                                    @JsonProperty("taskCategory") DmnStringValue taskCategory) {
         super();
         this.taskId = taskId;
         this.group = group;
         this.workingDaysAllowed = workingDaysAllowed;
         this.name = name;
+        this.taskCategory = taskCategory;
     }
 
     public DmnStringValue getTaskId() {
@@ -44,5 +47,9 @@ public final class InitiateEvaluateResponse extends EvaluateResponse {
 
     public DmnStringValue getName() {
         return name;
+    }
+
+    public DmnStringValue getTaskCategory() {
+        return taskCategory;
     }
 }
