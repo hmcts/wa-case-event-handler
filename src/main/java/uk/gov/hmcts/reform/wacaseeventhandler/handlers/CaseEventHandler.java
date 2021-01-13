@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.services;
+package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;

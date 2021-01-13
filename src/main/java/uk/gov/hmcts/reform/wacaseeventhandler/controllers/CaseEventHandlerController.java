@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CaseEventHandler;
 
 import java.util.List;
 import javax.validation.Valid;
