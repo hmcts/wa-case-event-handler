@@ -10,9 +10,9 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringVa
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningEvaluateResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.CancellationTaskHandler;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.InitiationTaskHandler;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.WarningTaskHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CancellationTaskHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.handlers.InitiationTaskHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.handlers.WarningTaskHandler;
 
 import java.time.LocalDateTime;
 import java.util.List;

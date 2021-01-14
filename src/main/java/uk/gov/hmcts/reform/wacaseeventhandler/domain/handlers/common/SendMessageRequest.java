@@ -9,8 +9,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Builder
-public final class SendMessageRequest
-    <T extends ProcessVariables, S extends CorrelationKeys> {
+public final class SendMessageRequest<T extends ProcessVariables, S extends CorrelationKeys> {
 
     private final String messageName;
     private final T processVariables;

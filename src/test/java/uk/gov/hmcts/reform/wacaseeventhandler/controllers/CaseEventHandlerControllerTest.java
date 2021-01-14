@@ -8,8 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventHandler;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.InitiationTaskHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CaseEventHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.handlers.InitiationTaskHandler;
 
 import java.util.List;
 

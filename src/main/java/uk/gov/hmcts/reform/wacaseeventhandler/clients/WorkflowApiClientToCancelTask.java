@@ -19,7 +19,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmn
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CancelTaskException;
 
 @Service
 @Slf4j
@@ -69,7 +68,8 @@ public class WorkflowApiClientToCancelTask implements WorkflowApiClient {
                 Void.class
             );
         } catch (RestClientException e) {
-            throw new CancelTaskException("Error to cancel task with body: " + sendMessageRequest, e);
+            log.info("Might be due to not being able to correlate message. Carry on with other handlers..." + e);
+            return ResponseEntity.noContent().build();
         }
     }
 
