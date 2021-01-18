@@ -33,7 +33,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String task1Id = initiateTaskForGivenId(
             caseIdForTask1,
             "submitTimeExtension",
-            "",
+            "", "",
+            false,
             taskIdDmnColumn
         );
 
@@ -42,14 +43,15 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String task2Id = initiateTaskForGivenId(
             caseIdForTask2,
             "submitTimeExtension",
-            "",
+            "", "", false,
             taskIdDmnColumn
         );
 
         // Then cancel the task1
         String eventToCancelTask = "submitReasonsForAppeal";
         String previousStateToCancelTask = "awaitingReasonsForAppeal";
-        sendMessage(caseIdForTask1, eventToCancelTask, previousStateToCancelTask, "");
+        sendMessage(caseIdForTask1, eventToCancelTask, previousStateToCancelTask,
+                    "", false);
 
         // Assert the task1 is deleted
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
@@ -72,14 +74,14 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String task1Id = initiateTaskForGivenId(
             caseIdForTask1,
             "requestRespondentEvidence",
-            "awaitingRespondentEvidence",
+            "", "awaitingRespondentEvidence", false,
             taskIdDmnColumn
         );
 
         // Then cancel the task1
         String eventToCancelTask = "uploadHomeOfficeBundle";
         String previousStateToCancelTask = "awaitingRespondentEvidence";
-        sendMessage(caseIdForTask1, eventToCancelTask, previousStateToCancelTask, "");
+        sendMessage(caseIdForTask1, eventToCancelTask, previousStateToCancelTask, "", false);
 
         // Assert the task1 is deleted
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
@@ -91,6 +93,57 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             "provideRespondentEvidence"
         );
         taskToTearDown = taskCreatedAsResultOfTheMultipleDmnRule;
+    }
+
+    @Test
+    public void given_initiated_tasks_with_delayTimer_toCurrentTime_with_followup_overdue_than_cancel_task() {
+        String caseIdForTask1 = UUID.randomUUID().toString();
+        String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
+        String task1Id = initiateTaskForGivenId(caseIdForTask1, "requestRespondentEvidence",
+                                                "", "awaitingRespondentEvidence",
+                                                false, taskIdDmnColumn);
+
+        // Then cancel the task1
+        sendMessage(caseIdForTask1, "uploadHomeOfficeBundle", "awaitingRespondentEvidence", "", false);
+        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
+        assertTaskDeleteReason(task1Id, "deleted");
+    }
+
+    @Test
+    public void given_initiated_tasks_with_delayTimer_toFuture_with_followup_overdue_than_cancel_task() {
+        // create task1
+        String caseIdForTask1 = UUID.randomUUID().toString();
+        String taskIdDmnColumn = "followUpOverdueCaseBuilding";
+        String task1Id = initiateTaskForGivenId(caseIdForTask1, "requestCaseBuilding",
+                                                "", "caseBuilding",
+                                                true, taskIdDmnColumn);
+
+        // Then cancel the task1
+        sendMessage(caseIdForTask1, "submitCase", "caseBuilding", "", false);
+        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
+        assertTaskDeleteReason(task1Id, "deleted");
+    }
+
+    @Test
+    public void given_initiated_tasks_with_delayTimer_toFuture_and_without_followup_overdue_then_complete_task() {
+        String caseIdForTask2 = UUID.randomUUID().toString();
+        final String taskId = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
+                                                      "", "",
+                                                      true, "processApplication");
+
+        // add tasks to tear down.
+        taskToTearDown = taskId;
+    }
+
+    @Test
+    public void given_initiated_tasks_with_delayTimer_toCurrentTime_and_without_followup_overdue_then_complete_task() {
+        String caseIdForTask2 = UUID.randomUUID().toString();
+        final String taskId = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
+                                                     "", "",
+                                                     false, "processApplication");
+
+        // add tasks to tear down.
+        taskToTearDown = taskId;
     }
 
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
@@ -121,16 +174,22 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("size()", is(0));
     }
 
-    private void sendMessage(String caseId, String event, String previousState, String newStateId) {
+    private void sendMessage(String caseId, String event, String previousStateId,
+                             String newStateId, boolean taskDelay) {
+        LocalDateTime delayTimer = LocalDateTime.now();
+
+        if (taskDelay) {
+            delayTimer = LocalDateTime.now().plusSeconds(2);
+        }
         EventInformation eventInformation = EventInformation.builder()
             .eventInstanceId("some event instance Id")
-            .dateTime(LocalDateTime.now().plusDays(2))
+            .dateTime(delayTimer)
             .caseReference(caseId)
             .jurisdictionId("IA")
             .caseTypeId("Asylum")
             .eventId(event)
             .newStateId(newStateId)
-            .previousStateId(previousState)
+            .previousStateId(previousStateId)
             .userId("some user Id")
             .build();
 
@@ -143,9 +202,22 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .statusCode(HttpStatus.NO_CONTENT.value());
     }
 
-    private String initiateTaskForGivenId(String caseId, String eventId, String newStateId, String taskIdDmnColumn) {
+    private String initiateTaskForGivenId(String caseId, String eventId,
+                                          String previousStateId, String newStateId,
+                                          boolean delayUntil, String taskIdDmnColumn) {
 
-        sendMessage(caseId, eventId, "", newStateId);
+        sendMessage(caseId, eventId, previousStateId, newStateId, delayUntil);
+
+        // if the delayUntil is true, then the taskCreation process waits for delayUntil timer
+        // to expire. The task is delayed for 2 seconds,
+        // so manually waiting for 5 seconds for process to start
+        try {
+            if (delayUntil) {
+                Thread.sleep(5000);
+            }
+        } catch (InterruptedException exp) {
+            log.error(exp.getMessage());
+        }
 
         return findTaskForGivenCaseId(caseId, taskIdDmnColumn);
     }
