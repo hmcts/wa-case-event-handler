@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInform
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.hamcrest.CoreMatchers.is;
@@ -211,12 +212,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         // if the delayUntil is true, then the taskCreation process waits for delayUntil timer
         // to expire. The task is delayed for 2 seconds,
         // so manually waiting for 5 seconds for process to start
-        try {
-            if (delayUntil) {
-                Thread.sleep(5000);
-            }
-        } catch (InterruptedException exp) {
-            log.error(exp.getMessage());
+        if (delayUntil) {
+            waitSeconds(5);
+        } else {
+            waitSeconds(1);
         }
 
         return findTaskForGivenCaseId(caseId, taskIdDmnColumn);
@@ -253,4 +252,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         }
     }
 
+    private void waitSeconds(int seconds) {
+        try {
+            TimeUnit.SECONDS.sleep(seconds);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 }
