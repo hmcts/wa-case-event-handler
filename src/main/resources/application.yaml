@@ -31,3 +31,11 @@ govUkHolidays:
   url: https://www.gov.uk/
 
 
+amqp:
+  host: ${AMQP_HOST:ccd-servicebus-demo.servicebus.windows.net}
+  username: ${AMQP_USERNAME:SendAndRecieveCCDMessage}
+  password: ${AMQP_PASSWORD:eYfgBSLzEi0dijBMpvfBWw7kC8CTPkLXZLgeuUiKXZ0=}
+  topic: ${TOPIC_NAME:wa-case-event-handler-topic}
+  subscription: ${SUBSCRIPTION_NAME:wa-case-event-handler-subscription}
+  # DO NOT SET THIS 'true' IN PRODUCTION!
+  trustAllCerts: ${TRUST_ALL_CERTS:false}

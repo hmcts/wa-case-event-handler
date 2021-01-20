@@ -1,10 +1,15 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.jms.core.JmsTemplate;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
 
@@ -22,6 +27,15 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonS
 public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest {
 
     private String taskToTearDown;
+
+    @Value("${amqp.topic}")
+    private String destination;
+
+    @Autowired
+    private JmsTemplate jmsTemplate;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
@@ -183,9 +197,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             delayTimer = LocalDateTime.now().plusSeconds(2);
         }
         EventInformation eventInformation = EventInformation.builder()
-            .eventInstanceId("some event instance Id")
-            .dateTime(delayTimer)
-            .caseReference(caseId)
+            .eventInstanceId("eventInstanceId")
+            .eventTimeStamp(delayTimer)
+            .caseId(caseId)
             .jurisdictionId("IA")
             .caseTypeId("Asylum")
             .eventId(event)
@@ -194,6 +208,16 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .userId("some user Id")
             .build();
 
+        try {
+            String message = objectMapper.writeValueAsString(eventInformation);
+
+            //jmsTemplate.convertAndSend(destination, message);
+            jmsTemplate.send(destination , session -> session.createTextMessage(message));
+        } catch (JsonProcessingException exp) {
+            exp.printStackTrace();
+        }
+
+        waitSeconds(5);
         given()
             .contentType(APPLICATION_JSON_VALUE)
             .body(asJsonString(eventInformation))

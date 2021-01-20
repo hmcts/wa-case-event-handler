@@ -14,6 +14,7 @@ import org.springframework.jms.core.JmsTemplate;
 import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.JmsErrorHandler;
 
 import javax.jms.ConnectionFactory;
+import javax.jms.Session;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -46,7 +47,6 @@ public class MessagingConfig {
         if (jmsSslContext != null) {
             jmsConnectionFactory.setSslContext(jmsSslContext);
         }
-
         return new CachingConnectionFactory(jmsConnectionFactory);
     }
 
@@ -96,12 +96,13 @@ public class MessagingConfig {
     @Bean
     public JmsTemplate jmsTemplate(ConnectionFactory jmsConnectionFactory) {
         JmsTemplate returnValue = new JmsTemplate();
+        //returnValue.setSessionAcknowledgeMode();
         returnValue.setConnectionFactory(jmsConnectionFactory);
         return returnValue;
     }
 
     @Bean
-    public JmsListenerContainerFactory topicJmsListenerContainerFactory(ConnectionFactory connectionFactory) {
+    public JmsListenerContainerFactory jmsListenerContainerFactory(ConnectionFactory connectionFactory) {
         log.info("Creating JMSListenerContainer bean for topics..");
         DefaultJmsListenerContainerFactory returnValue = new DefaultJmsListenerContainerFactory();
         returnValue.setConnectionFactory(connectionFactory);

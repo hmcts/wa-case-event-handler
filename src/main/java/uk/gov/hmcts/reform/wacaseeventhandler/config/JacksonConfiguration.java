@@ -44,12 +44,12 @@ public class JacksonConfiguration {
         return objectMapper;
     }
 
-    @Bean
+/*    @Bean
     public MessageConverter jacksonJmsMessageConverter() {
         MappingJackson2MessageConverter converter = new MappingJackson2MessageConverter();
         converter.setTargetType(MessageType.TEXT);
-        converter.setTypeIdPropertyName("_type");
+        converter.setTypeIdPropertyName("caseId");
 
         return converter;
-    }
+    }*/
 }

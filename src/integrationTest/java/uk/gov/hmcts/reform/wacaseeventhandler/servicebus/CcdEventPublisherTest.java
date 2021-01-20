@@ -1,29 +1,24 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
+package uk.gov.hmcts.reform.wacaseeventhandler.servicebus;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.jms.core.MessageCreator;
+import org.springframework.jms.core.MessagePostProcessor;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit4.SpringRunner;
-import uk.gov.hmcts.reform.wacaseeventhandler.Application;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
 
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.Session;
-import java.time.LocalDateTime;
+import javax.jms.*;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -31,11 +26,7 @@ import java.util.concurrent.TimeUnit;
 public class CcdEventPublisherTest {
 
     @Value("${amqp.topic}")
-    private String topic;
-    @Value("${amqp.subscription}")
-    private String subscription;
-    @Value("${amqp.host}")
-    private String host;
+    private String destination;
 
     @Autowired
     private JmsTemplate jmsTemplate;
@@ -44,12 +35,14 @@ public class CcdEventPublisherTest {
     private ObjectMapper objectMapper;
 
     @Test
-    public void sendMessage() throws JsonProcessingException {
+    public void sendMessage() throws JsonProcessingException, JMSException {
         EventInformation eventInformation = buildMessage();
         String eventInfo = objectMapper.writeValueAsString(eventInformation);
 
-        jmsTemplate.convertAndSend(topic, eventInfo);
-        //jmsTemplate.send(topic, session -> session.createTextMessage(eventInfo));
+        jmsTemplate.convertAndSend(destination, eventInfo, message -> {
+            message.setJMSCorrelationID(eventInformation.getCaseId());
+            return message;
+        });
 
         waitSeconds(1);
     }

@@ -11,10 +11,4 @@ feign:
 spring.jackson.serialization.indent_output: true
 
 amqp:
-  host: ${AMQP_HOST:localhost}
-  username: ${AMQP_USERNAME:guest}
-  password: ${AMQP_PASSWORD:}
   topic: ${TOPIC_NAME:test.topic}
-  subscription: ${SUBSCRIPTION_NAME:test.queue}
-  # DO NOT SET THIS 'true' IN PRODUCTION!
-  trustAllCerts: ${TRUST_ALL_CERTS:false}

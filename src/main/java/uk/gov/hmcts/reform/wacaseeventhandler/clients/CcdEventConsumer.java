@@ -6,13 +6,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.jms.support.JmsHeaders;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CaseEventHandler;
 
+import javax.jms.Session;
 import java.util.List;
 
 @Component
@@ -33,14 +36,11 @@ public class CcdEventConsumer {
         containerFactory = "jmsListenerContainerFactory",
         subscription = "${amqp.subscription}"
     )
-    public void onMessage(String message) {
-
+    public void onMessage(String message, @Headers MessageHeaders headers, Session session) {
         try {
             EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
-            log.debug(String.format("Message received : %s", eventInformation.toString()));
-            if(!"ia".equals(eventInformation.getJurisdictionId())) {
-                throw new RuntimeException();
-            }
+            System.out.println(String.format("Message received : %s", eventInformation.toString()));
+            //handleMessage(eventInformation);
         } catch (JsonProcessingException exp) {
             log.error("Unable to parse event", exp);
         }
