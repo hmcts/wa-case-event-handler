@@ -8,7 +8,6 @@ import org.junit.After;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.jms.core.JmsTemplate;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
@@ -21,7 +20,6 @@ import static net.serenitybdd.rest.SerenityRest.given;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
 @Slf4j
 public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest {
@@ -212,19 +210,12 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             String message = objectMapper.writeValueAsString(eventInformation);
 
             //jmsTemplate.convertAndSend(destination, message);
-            jmsTemplate.send(destination , session -> session.createTextMessage(message));
+            jmsTemplate.send(destination, session -> session.createTextMessage(message));
         } catch (JsonProcessingException exp) {
             exp.printStackTrace();
         }
 
-        waitSeconds(5);
-        given()
-            .contentType(APPLICATION_JSON_VALUE)
-            .body(asJsonString(eventInformation))
-            .when()
-            .post("/messages")
-            .then()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+        waitSeconds(1);
     }
 
     private String initiateTaskForGivenId(String caseId, String eventId,

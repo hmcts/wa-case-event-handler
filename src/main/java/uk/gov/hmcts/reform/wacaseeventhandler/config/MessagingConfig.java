@@ -13,15 +13,14 @@ import org.springframework.jms.connection.CachingConnectionFactory;
 import org.springframework.jms.core.JmsTemplate;
 import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.JmsErrorHandler;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.Session;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import javax.jms.ConnectionFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 @Configuration
 @Profile("!local")
@@ -33,6 +32,7 @@ public class MessagingConfig {
         return String.format("amqps://%1s?amqp.idleTimeout=3600000", host);
     }
 
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
     @Bean
     public ConnectionFactory jmsConnectionFactory(@Value("${spring.application.name}") final String clientId,
                                                   @Value("${amqp.username}") final String username,
