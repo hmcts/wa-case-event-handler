@@ -240,6 +240,7 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
+  implementation group: 'org.springframework', name: 'spring-jms'
   implementation('org.springframework.boot:spring-boot-starter-validation')
 
   implementation group: 'io.springfox', name: 'springfox-swagger2', version: versions.springfoxSwagger
@@ -249,6 +250,7 @@ dependencies {
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.2.5.RELEASE'
   implementation group: 'uk.gov.hmcts.reform', name: 'properties-volume-spring-boot-starter', version: '0.1.0'
 
+  implementation group: 'org.apache.qpid', name: 'qpid-jms-client', version: '0.56.0'
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.13.3'
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.13.3'
 
@@ -265,6 +267,7 @@ dependencies {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
+  testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-activemq'
 
   testCompile group: 'pl.pojo', name: 'pojo-tester', version: '0.7.6'
   testCompile group: 'com.jparams', name: 'to-string-verifier', version: '1.4.8'
