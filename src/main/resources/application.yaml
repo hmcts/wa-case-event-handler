@@ -36,6 +36,6 @@ amqp:
   username: ${AMQP_USERNAME:SendAndRecieveCCDMessage}
   password: ${AMQP_PASSWORD:eYfgBSLzEi0dijBMpvfBWw7kC8CTPkLXZLgeuUiKXZ0=}
   topic: ${TOPIC_NAME:wa-case-event-handler-topic}
-  subscription: ${SUBSCRIPTION_NAME:wa-case-event-handler-subscription}
+  subscription: ${SUBSCRIPTION_NAME:wa-case-event-handler-subscription-aat}
   # DO NOT SET THIS 'true' IN PRODUCTION!
   trustAllCerts: ${TRUST_ALL_CERTS:false}
