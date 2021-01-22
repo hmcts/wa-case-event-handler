@@ -3,12 +3,12 @@ java:
   image: ${IMAGE_NAME}
   ingressHost: ${SERVICE_FQDN}
 
-  servicebus:
-    resourceGroup: wa
-    enabled: true
-    teamName: WA
-    serviceplan: standard
-    setup:
-      topics:
-        - name: ccd-case-events-test
-          subscriptionNeeded: yes
+servicebus:
+  resourceGroup: wa
+  enabled: true
+  teamName: WA
+  serviceplan: standard
+  setup:
+    topics:
+      - name: ccd-case-events-test
+        subscriptionNeeded: yes
