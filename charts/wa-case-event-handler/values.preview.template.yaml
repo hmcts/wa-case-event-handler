@@ -4,9 +4,9 @@ java:
   ingressHost: ${SERVICE_FQDN}
 
   servicebus:
+    resourceGroup: wa
     enabled: true
     teamName: WA
-    resourceGroup: wa
     serviceplan: standard
     setup:
       topics:
