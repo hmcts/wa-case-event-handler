@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.CorrelationKeys;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
@@ -39,37 +38,37 @@ public class WorkflowApiClientToWarnTask implements WorkflowApiClient {
 
     @Override
     public EvaluateDmnResponse<WarningEvaluateResponse> evaluateDmn(
-        String key,
-        EvaluateDmnRequest<? extends EvaluateRequest> requestParameters
+        String keys,
+        EvaluateDmnRequest<? extends EvaluateRequest> requestParameter
     ) {
         return restTemplate.<EvaluateDmnResponse<WarningEvaluateResponse>>exchange(
-            String.format("%s/workflow/decision-definition/key/%s/evaluate", workflowApiUrl, key),
+            String.format("%s/workflow/decision-definition/key/%s/evaluate", workflowApiUrl, keys),
             HttpMethod.POST,
-            new HttpEntity<>(requestParameters, buildHttpHeaders()),
+            new HttpEntity<>(requestParameter, buildHttpHeader()),
             new ParameterizedTypeReference<>() {
             }
         ).getBody();
     }
 
-    private HttpHeaders buildHttpHeaders() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("ServiceAuthorization", authTokenGenerator.generate());
-        return headers;
+    private HttpHeaders buildHttpHeader() {
+        var header = new HttpHeaders();
+        header.setContentType(MediaType.APPLICATION_JSON);
+        header.set("ServiceAuthorization", authTokenGenerator.generate());
+        return header;
     }
 
     @Override
     public ResponseEntity<Void> sendMessage(
-        SendMessageRequest<? extends ProcessVariables, ? extends CorrelationKeys> sendMessageRequest) {
+        SendMessageRequest<? extends ProcessVariables, ? extends CorrelationKeys> messageRequest) {
         try {
             return restTemplate.exchange(
                 String.format("%s/workflow/message", workflowApiUrl),
                 HttpMethod.POST,
-                new HttpEntity<>(sendMessageRequest, buildHttpHeaders()),
+                new HttpEntity<>(messageRequest, buildHttpHeader()),
                 Void.class
             );
         } catch (RestClientException e) {
-            log.info("Might be due to not being able to correlate message. Carry on with other handlers..." + e);
+            log.info("Might be due to not being able to correlate message, Carry on with other handlers..." + e);
             return ResponseEntity.noContent().build();
         }
     }

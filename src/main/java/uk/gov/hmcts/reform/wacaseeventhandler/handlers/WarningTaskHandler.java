@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToWarnTask;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationCorrelationKeys;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateResponse;
@@ -61,7 +60,7 @@ public class WarningTaskHandler implements CaseEventHandler {
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
         results.stream()
-            .filter(result -> result instanceof CancellationEvaluateResponse)
+            .filter(result -> result instanceof WarningEvaluateResponse)
             .map(result -> (WarningEvaluateResponse) result)
             .forEach(cancellationEvaluateResponse -> sendMessageToWarnTasksForGivenCorrelations(
                 eventInformation.getCaseReference(),

@@ -47,13 +47,14 @@ class CaseEventHandlerControllerTest {
     @Test
     void given_message_then_apply_handlers_in_order() {
 
-        DmnStringValue action = new DmnStringValue("Cancel");
+        DmnStringValue cancelAction = new DmnStringValue("Cancel");
+        DmnStringValue warnAction = new DmnStringValue("Warn");
         DmnStringValue taskCategory = new DmnStringValue("Time extension");
         given(cancellationTaskHandlerService.evaluateDmn(any(EventInformation.class)))
-            .willReturn(List.of(new CancellationEvaluateResponse(action, taskCategory)));
+            .willReturn(List.of(new CancellationEvaluateResponse(cancelAction, taskCategory)));
 
         given(warningTaskHandlerService.evaluateDmn(any(EventInformation.class)))
-            .willReturn(List.of(new WarningEvaluateResponse()));
+            .willReturn(List.of(new WarningEvaluateResponse(warnAction)));
 
         given(initiationTaskHandlerService.evaluateDmn(any(EventInformation.class)))
             .willReturn(List.of(InitiateEvaluateResponse.builder().build()));
