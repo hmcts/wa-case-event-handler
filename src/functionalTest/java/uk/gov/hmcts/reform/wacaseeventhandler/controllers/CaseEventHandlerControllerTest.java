@@ -1,9 +1,16 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
+import com.azure.messaging.servicebus.ServiceBusMessage;
+import com.azure.messaging.servicebus.ServiceBusSenderClient;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
@@ -22,6 +29,9 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonS
 public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest {
 
     private String taskToTearDown;
+
+    @Autowired
+    private ServiceBusSenderClient sender;
 
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
@@ -48,6 +58,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             taskIdDmnColumn
         );
 
+        waitSeconds(2);
         // Then cancel the task1
         String eventToCancelTask = "submitReasonsForAppeal";
         String previousStateToCancelTask = "awaitingReasonsForAppeal";
@@ -145,6 +156,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // add tasks to tear down.
         taskToTearDown = taskId;
+
+        //sender.close();
     }
 
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
@@ -194,19 +207,24 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .userId("some user Id")
             .build();
 
-        given()
-            .contentType(APPLICATION_JSON_VALUE)
-            .body(asJsonString(eventInformation))
-            .when()
-            .post("/messages")
-            .then()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            String json = mapper.writeValueAsString(eventInformation);
+            ServiceBusMessage message = new ServiceBusMessage(json.getBytes());
+            message.setSessionId(caseId);
+
+            sender.sendMessage(message);
+
+        } catch (JsonProcessingException exp) {
+           log.error("Error occured while serialization", exp);
+        }
     }
 
     private String initiateTaskForGivenId(String caseId, String eventId,
                                           String previousStateId, String newStateId,
                                           boolean delayUntil, String taskIdDmnColumn) {
 
+        System.out.println("CaseId Before sending the message::::::::::::"+caseId);
         sendMessage(caseId, eventId, previousStateId, newStateId, delayUntil);
 
         // if the delayUntil is true, then the taskCreation process waits for delayUntil timer
@@ -218,10 +236,13 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             waitSeconds(1);
         }
 
+        waitSeconds(2);
         return findTaskForGivenCaseId(caseId, taskIdDmnColumn);
     }
 
     private String findTaskForGivenCaseId(String caseId, String taskIdDmnColumn) {
+
+        System.out.println("CaseId searching for a task::::::::::::"+caseId);
         return given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
             .contentType(APPLICATION_JSON_VALUE)

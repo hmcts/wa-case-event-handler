@@ -1,3 +1,11 @@
 targets:
   instance: ${TEST_URL:http://localhost:8088}
   camunda: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
+
+
+azure:
+  host: Endpoint=sb://wa-case-handler-servicebus-dev.servicebus.windows.net/;SharedAccessKeyName=SendAndRecieveCCDMessage;SharedAccessKey=BYL/fT3MGrEA1BtjIOM+iarzVh8WvRzoi9JGD2FhKR0=
+  username: SendAndRecieveCCDMessage
+  password: BYL/fT3MGrEA1BtjIOM+iarzVh8WvRzoi9JGD2FhKR0=
+  topic: wa-case-handler-topic-sessions-ft
+  subscription: wa-case-handler-topic-sessions-ft-sub
