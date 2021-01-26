@@ -5,6 +5,7 @@ import com.azure.messaging.servicebus.*;
 import com.azure.messaging.servicebus.models.ServiceBusReceiveMode;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
@@ -26,6 +27,12 @@ public class AzureServiceBusConfiguration {
     @Value("${azure.subscription}")
     private String subscription;
 
+    @Autowired
+    private ConsumerMessageProcessor messageProcessor;
+
+    @Autowired
+    private ConsumerMessageErrorProcessor errorProcessor;
+
     @Bean
     public ServiceBusSenderClient createConnection() {
         ServiceBusSenderClient sender = new ServiceBusClientBuilder()
@@ -37,6 +44,7 @@ public class AzureServiceBusConfiguration {
         return sender;
     }
 
+/*
     @Bean
     public ServiceBusSessionReceiverAsyncClient serviceBusSessionReceiverConfig() {
         ServiceBusSessionReceiverAsyncClient sessionReceiver = new ServiceBusClientBuilder()
@@ -50,20 +58,24 @@ public class AzureServiceBusConfiguration {
 
         return sessionReceiver;
     }
+*/
 
-/*    @Bean
-    public ServiceBusProcessorClient serviceBusProcessorClient() {
-        ServiceBusProcessorClient sessionProcessor = new ServiceBusClientBuilder()
-            .connectionString("<< connection-string >>")
+
+    @Bean
+    public void serviceBusProcessorClient() {
+        ServiceBusProcessorClient processor = new ServiceBusClientBuilder()
+            .connectionString(host)
             .sessionProcessor()
-            .queueName("<< session-enabled queue name >>")
-            .maxConcurrentSessions(2)
-            .processMessage(new CcdMessageProcessor(null, null))
-            .processError(onError)
+            .topicName(topic)
+            .subscriptionName(subscription)
+            .processMessage(messageProcessor.receiveMessageWithSession())
+            .processError(errorProcessor.errorHandler())
+            .maxConcurrentSessions(500)
+            //.maxConcurrentCalls(2)
             .buildProcessorClient();
 
-        // Start the processor in the background
-        sessionProcessor.start();
-    }*/
+        processor.start();
+    }
+
 
 }

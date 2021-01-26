@@ -24,24 +24,29 @@ public class TestPublisher extends SpringBootFunctionalBaseTest {
 
     @Test
     public void sendMessage1() throws InterruptedException {
-        String str = "This message is with session ::::: caseId";
         ServiceBusMessage message = new ServiceBusMessage("This message is with session ::::: event");
-        message.setSessionId("event1");
+        message.setSessionId("event");
 
         sender.sendMessage(message);
 
-        Thread.sleep(1000);
+        Thread.sleep(5000);
 
-        message = new ServiceBusMessage("This message is with session :::::: caseId");
+        message = new ServiceBusMessage("This message is with session :::::: event1");
+        message.setSessionId("event1");
+        sender.sendMessage(message);
+
+        Thread.sleep(5000);
+
+        message = new ServiceBusMessage("This message is with session :::::: event");
         message.setSessionId("event");
         sender.sendMessage(message);
 
-        Thread.sleep(1000);
-
-        message = new ServiceBusMessage("This message is with session :::::: hello");
-        message.setSessionId("event1");
+        Thread.sleep(5000);
+        message = new ServiceBusMessage("This message is with session :::::: event2");
+        message.setSessionId("event2");
         sender.sendMessage(message);
 
+        Thread.sleep(5000);
         sender.close();
     }
 }

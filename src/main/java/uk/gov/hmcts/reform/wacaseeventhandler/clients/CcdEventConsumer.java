@@ -16,7 +16,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.CcdMessageProcessor;
 @Slf4j
 public class CcdEventConsumer {
 
-    @Value("${azure.host}")
+/*    @Value("${azure.host}")
     private String host;
     @Value("${azure.topic}")
     private String topic;
@@ -46,14 +46,14 @@ public class CcdEventConsumer {
                 System.out.printf("Session: %s. Sequence #: %s. Contents: %s%n", message.getSessionId(),
                                   message.getSequenceNumber(), message.getBody());
 
-/*                boolean flag = messageProcessor.processMesssage(new String(message.getBody().toBytes()));
+*//*                boolean flag = messageProcessor.processMesssage(new String(message.getBody().toBytes()));
                 if(flag) {
                     sessionReceiver.acceptNextSession();
-                }*/
+                }*//*
 
             }, error -> System.err.println("Error occurred: " + error));
 
-    }
+    }*/
 
 
 }
