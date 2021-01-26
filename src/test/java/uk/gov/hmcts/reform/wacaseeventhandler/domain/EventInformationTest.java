@@ -10,17 +10,22 @@ import org.springframework.boot.test.json.JsonContent;
 import org.springframework.boot.test.json.ObjectContent;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import pl.pojo.tester.api.assertion.Method;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
 @RunWith(SpringRunner.class)
 @JsonTest
 @ActiveProfiles("local")
 public class EventInformationTest {
+
+    private final Class classToTest = EvaluateDmnResponse.class;
 
     @Autowired
     private JacksonTester<EventInformation> jacksonTester;
@@ -55,6 +60,18 @@ public class EventInformationTest {
         JsonContent<EventInformation> eventInformationJsonContent = jacksonTester.write(validEventInformation);
 
         assertThat(eventInformationJsonContent).isEqualToJson("valid-event-information.json");
+    }
+
+    @Test
+    public void isWellImplemented() {
+        assertPojoMethodsFor(classToTest)
+            .testing(Method.GETTER)
+            .testing(Method.CONSTRUCTOR)
+            .testing(Method.EQUALS)
+            .testing(Method.HASH_CODE)
+            .testing(Method.TO_STRING)
+            .areWellImplemented();
+
     }
 
 }

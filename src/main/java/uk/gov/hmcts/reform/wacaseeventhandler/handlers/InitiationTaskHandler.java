@@ -13,8 +13,11 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessage
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateProcessVariables;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.TASK_INITIATION;
@@ -25,11 +28,13 @@ public class InitiationTaskHandler implements CaseEventHandler {
 
     private final WorkflowApiClientToInitiateTask apiClientToInitiateTask;
     private final IsoDateFormatter isoDateFormatter;
+    private final DueDateService dueDateService;
 
     public InitiationTaskHandler(WorkflowApiClientToInitiateTask apiClientToInitiateTask,
-                                 IsoDateFormatter isoDateFormatter) {
+                                 IsoDateFormatter isoDateFormatter, DueDateService dueDateService) {
         this.apiClientToInitiateTask = apiClientToInitiateTask;
         this.isoDateFormatter = isoDateFormatter;
+        this.dueDateService = dueDateService;
     }
 
     @Override
@@ -86,23 +91,28 @@ public class InitiationTaskHandler implements CaseEventHandler {
         InitiateEvaluateResponse initiateEvaluateResponse,
         EventInformation eventInformation
     ) {
+        String eventInfoDt = isoDateFormatter.format(eventInformation.getDateTime());
 
+        ZonedDateTime delayUntil = dueDateService.calculateDueDate(
+            ZonedDateTime.parse(eventInfoDt),
+            cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()).getValue()
+        );
         return InitiateProcessVariables.builder()
             .caseType(new DmnStringValue(eventInformation.getCaseTypeId()))
             .dueDate(new DmnStringValue(isoDateFormatter.format(eventInformation.getDateTime())))
-            .workingDaysAllowed(cannotBeNull(initiateEvaluateResponse))
+            .workingDaysAllowed(cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()))
             .group(initiateEvaluateResponse.getGroup())
             .jurisdiction(new DmnStringValue(eventInformation.getJurisdictionId()))
             .name(initiateEvaluateResponse.getName())
             .taskId(initiateEvaluateResponse.getTaskId())
             .caseId(new DmnStringValue(eventInformation.getCaseReference()))
             .taskCategory(initiateEvaluateResponse.getTaskCategory())
+            .delayUntil(new DmnStringValue(delayUntil.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
             .build();
     }
 
-    private DmnIntegerValue cannotBeNull(InitiateEvaluateResponse initiateEvaluateResponse) {
-        return initiateEvaluateResponse.getWorkingDaysAllowed() == null ? new DmnIntegerValue(0) :
-            initiateEvaluateResponse.getWorkingDaysAllowed();
+    private DmnIntegerValue cannotBeNull(DmnIntegerValue workingDaysAllowed) {
+        return workingDaysAllowed == null ? new DmnIntegerValue(0) : workingDaysAllowed;
     }
 
 }
