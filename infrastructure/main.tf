@@ -56,19 +56,19 @@ module "servicebus-namespace" {
 }
 
 //Create topic
-module "wa-case-event-handler-topic" {
+module "topic" {
   source                = "git@github.com:hmcts/terraform-module-servicebus-topic?ref=master"
   name                  = local.topic_name
-  namespace_name        = local.servicebus_namespace_name
+  namespace_name        = module.servicebus-namespace.name
   resource_group_name   = local.resource_group_name
 }
 
 //Create subscription
-module "wa-case-event-handler-subscription" {
+module "subscription" {
   source                = "git@github.com:hmcts/terraform-module-servicebus-subscription?ref=master"
   template_body         = data.template_file.subscription_template.rendered
   name                  = local.subscription_name
-  namespace_name        = local.servicebus_namespace_name
+  namespace_name        = module.servicebus-namespace.name
+  topic_name            = module.topic.name
   resource_group_name   = local.resource_group_name
-  topic_name            = local.topic_name
 }
