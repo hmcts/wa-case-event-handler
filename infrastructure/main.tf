@@ -39,31 +39,31 @@ locals {
       )
     )
 }
-
-//Create namespace
-module "servicebus-namespace" {
-  source              = "git@github.com:hmcts/terraform-module-servicebus-namespace?ref=master"
-  name                = local.servicebus_namespace_name
-  location            = var.location
-  resource_group_name = local.resource_group_name
-  env                 = var.env
-  common_tags         = local.tags
-  sku                 = "Premium"
-}
-
-//Create topic
-module "topic" {
-  source                = "git@github.com:hmcts/terraform-module-servicebus-topic?ref=master"
-  name                  = local.topic_name
-  namespace_name        = module.servicebus-namespace.name
-  resource_group_name   = local.resource_group_name
-}
+//
+////Create namespace
+//module "servicebus-namespace" {
+//  source              = "git@github.com:hmcts/terraform-module-servicebus-namespace?ref=master"
+//  name                = local.servicebus_namespace_name
+//  location            = var.location
+//  resource_group_name = local.resource_group_name
+//  env                 = var.env
+//  common_tags         = local.tags
+//  sku                 = "Premium"
+//}
+//
+////Create topic
+//module "topic" {
+//  source                = "git@github.com:hmcts/terraform-module-servicebus-topic?ref=master"
+//  name                  = local.topic_name
+//  namespace_name        = module.servicebus-namespace.name
+//  resource_group_name   = local.resource_group_name
+//}
 
 //Create subscription
 module "subscription" {
   source                = "git@github.com:hmcts/terraform-module-servicebus-subscription?ref=master"
   name                  = local.subscription_name
-  namespace_name        = module.servicebus-namespace.name
-  topic_name            = module.topic.name
+  namespace_name        = local.servicebus_namespace_name
+  topic_name            = local.topic_name
   resource_group_name   = local.resource_group_name
 }
