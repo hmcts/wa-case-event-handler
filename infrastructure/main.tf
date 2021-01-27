@@ -61,7 +61,7 @@ module "wa-case-event-handler-topic" {
 
 //Create subscription
 module "wa-case-event-handler-subscription" {
-  source                = "git@github.com:hmcts/terraform-module-servicebus-subscription?ref=master"
+  source                = "git@github.com:hmcts/terraform-module-servicebus-subscription?ref=servicebus_subscription_tf"
   name                  = local.subscription_name
   namespace_name        = local.servicebus_namespace_name
   resource_group_name   = local.resource_group_name
