@@ -7,11 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Test;
-import org.junit.jupiter.api.AfterAll;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
 
@@ -23,7 +20,6 @@ import static net.serenitybdd.rest.SerenityRest.given;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
-import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
 @Slf4j
 public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest {
@@ -49,6 +45,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             taskIdDmnColumn
         );
 
+        waitSeconds(2);
         // create task2
         String caseIdForTask2 = UUID.randomUUID().toString();
         String task2Id = initiateTaskForGivenId(
@@ -58,13 +55,13 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             taskIdDmnColumn
         );
 
-        waitSeconds(2);
         // Then cancel the task1
         String eventToCancelTask = "submitReasonsForAppeal";
         String previousStateToCancelTask = "awaitingReasonsForAppeal";
         sendMessage(caseIdForTask1, eventToCancelTask, previousStateToCancelTask,
                     "", false);
 
+        waitSeconds(5);
         // Assert the task1 is deleted
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
         assertTaskDeleteReason(task1Id, "deleted");
@@ -95,6 +92,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String previousStateToCancelTask = "awaitingRespondentEvidence";
         sendMessage(caseIdForTask1, eventToCancelTask, previousStateToCancelTask, "", false);
 
+        waitSeconds(5);
         // Assert the task1 is deleted
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
         assertTaskDeleteReason(task1Id, "deleted");
@@ -117,6 +115,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // Then cancel the task1
         sendMessage(caseIdForTask1, "uploadHomeOfficeBundle", "awaitingRespondentEvidence", "", false);
+        waitSeconds(5);
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
         assertTaskDeleteReason(task1Id, "deleted");
     }
@@ -132,6 +131,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // Then cancel the task1
         sendMessage(caseIdForTask1, "submitCase", "caseBuilding", "", false);
+        waitSeconds(5);
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
         assertTaskDeleteReason(task1Id, "deleted");
     }
@@ -156,8 +156,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // add tasks to tear down.
         taskToTearDown = taskId;
-
-        //sender.close();
     }
 
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
@@ -217,6 +215,20 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         } catch (JsonProcessingException exp) {
            log.error("Error occured while serialization", exp);
+        }
+    }
+
+    private void sendMessageToTopic(EventInformation eventInformation) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            String json = mapper.writeValueAsString(eventInformation);
+            ServiceBusMessage message = new ServiceBusMessage(json.getBytes());
+            message.setSessionId(eventInformation.getCaseReference());
+
+            sender.sendMessage(message);
+
+        } catch (JsonProcessingException exp) {
+            log.error("Error occured while serialization", exp);
         }
     }
 

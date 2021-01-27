@@ -15,7 +15,7 @@ import java.util.List;
 public class CcdMessageProcessor {
 
     private final List<CaseEventHandler> handlerServices;
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
     public CcdMessageProcessor(List<CaseEventHandler> handlerServices, ObjectMapper objectMapper) {
         this.handlerServices = handlerServices;
