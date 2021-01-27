@@ -66,7 +66,6 @@ module "topic" {
 //Create subscription
 module "subscription" {
   source                = "git@github.com:hmcts/terraform-module-servicebus-subscription?ref=master"
-  template_body         = data.template_file.subscription_template.rendered
   name                  = local.subscription_name
   namespace_name        = module.servicebus-namespace.name
   topic_name            = module.topic.name
