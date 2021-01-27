@@ -40,6 +40,10 @@ locals {
     )
 }
 
+
+data "template_file" "subscription_template" {
+  template = "${file("${path.module}/templates/subscription_template.json")}"
+}
 //Create namespace
 module "servicebus-namespace" {
   source              = "git@github.com:hmcts/terraform-module-servicebus-namespace?ref=master"
@@ -62,6 +66,7 @@ module "wa-case-event-handler-topic" {
 //Create subscription
 module "wa-case-event-handler-subscription" {
   source                = "git@github.com:hmcts/terraform-module-servicebus-subscription?ref=master"
+  template_body         = data.template_file.subscription_template.rendered
   name                  = local.subscription_name
   namespace_name        = local.servicebus_namespace_name
   resource_group_name   = local.resource_group_name
