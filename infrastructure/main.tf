@@ -40,10 +40,6 @@ locals {
     )
 }
 
-
-data "template_file" "subscription_template" {
-  template = "${file("${path.module}/templates/subscription_template.json")}"
-}
 //Create namespace
 module "servicebus-namespace" {
   source              = "git@github.com:hmcts/terraform-module-servicebus-namespace?ref=master"
