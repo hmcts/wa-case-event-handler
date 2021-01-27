@@ -61,9 +61,10 @@ locals {
 
 //Create subscription
 module "subscription" {
-  source                = "git@github.com:hmcts/terraform-module-servicebus-subscription?ref=master"
+  source                = "git@github.com:hmcts/terraform-module-servicebus-subscription?ref=require_session"
   name                  = local.subscription_name
   namespace_name        = local.servicebus_namespace_name
   topic_name            = local.topic_name
   resource_group_name   = local.resource_group_name
+  require_session       = true
 }
