@@ -27,8 +27,8 @@ resource "azurerm_key_vault_secret" "s2s_secret_case_event_handler" {
 // Azure service bus to be moved to shared infra
 
 locals {
-  topic_name        = "${var.product}-wa-case-event-topic-${var.env}"
-  subscription_name = "${var.product}-wa-case-event-subscription-${var.env}"
+  topic_name        = "${var.product}-case-event-topic-${var.env}"
+  subscription_name = "${var.product}-case-event-subscription-${var.env}"
   servicebus_namespace_name       = "${var.product}-servicebus-${var.env}"
   resource_group_name             = "${var.product}-${var.env}"
   tags = merge(
