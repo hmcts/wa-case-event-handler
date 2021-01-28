@@ -33,7 +33,7 @@ locals {
   resource_group_name             = "${var.product}-${var.env}"
   topic_name_test_ccd = "wa-case-event-handler-topic-sessions-ft"
   servicebus_namespace_name_test_ccd = "ccd-servicebus-demo"
-  resource_group_name_test_ccd = "ccd-demo"
+  resource_group_name_test_ccd = "ccd-shared-demo"
 
 tags = merge(
       var.common_tags,
