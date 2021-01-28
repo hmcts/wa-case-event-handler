@@ -31,11 +31,12 @@ spring:
 govUkHolidays:
   url: https://www.gov.uk/
 
-
 azure:
   host: Endpoint=sb://ccd-servicebus-demo.servicebus.windows.net/;SharedAccessKeyName=SendAndRecieveCCDMessage;SharedAccessKey=CODpsFFOlXV6DfDD6PgA8W7Bv9r2eDKcObjWk4NpVXo=;
   username: SendAndRecieveCCDMessage
   password: CODpsFFOlXV6DfDD6PgA8W7Bv9r2eDKcObjWk4NpVXo=
   topic: wa-case-event-handler-topic-sessions
   subscription: wa-case-event-handler-topic-sessions-sub
+  numberOfConcurrentSessions: 1
 
+enableServiceBus: false

@@ -3,10 +3,11 @@ package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 import com.azure.messaging.servicebus.ServiceBusErrorContext;
 import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
 import com.azure.messaging.servicebus.ServiceBusReceivedMessageContext;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CcdMessageProcessor;
 
@@ -14,34 +15,36 @@ import java.util.function.Consumer;
 
 @Slf4j
 @Component
-@Profile("aat")
+@ConditionalOnProperty("enableServiceBus")
 public class CcdEventMessageConsumer {
-
-    private final String host;
-    private final String topic;
-    private final String subscription;
 
     private final CcdMessageProcessor processor;
 
-    public CcdEventMessageConsumer(CcdMessageProcessor processor,
-                                   @Value("${azure.host}") String host,
-                                   @Value("${azure.topic}") String topic,
-                                   @Value("${azure.topic}") String subscription) {
+    @Autowired
+    public CcdEventMessageConsumer(CcdMessageProcessor processor) {
         this.processor = processor;
-        this.host = host;
-        this.topic = topic;
-        this.subscription = subscription;
     }
 
     @Bean
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public Consumer<ServiceBusReceivedMessageContext> consumeMessage() {
-        return context -> processor.processMesssage(
-            new String(context.getMessage().getBody().toBytes()));
+        return context -> {
+            ServiceBusReceivedMessage message = context.getMessage();
+            try {
+                processor.processMesssage(new String(message.getBody().toBytes()));
+            } catch (JsonProcessingException exp) {
+                // This should be sent to deadletter queue
+                log.error("Error occured while parsing the incoming message", exp);
+            }
+        };
     }
 
+    @SuppressWarnings("PMD.AvoidThrowingRawExceptionTypes")
     @Bean
     public Consumer<ServiceBusErrorContext> handleError() {
-        return context -> log.error(context.getEntityPath(), context.getException());
+        // This should be send to deadletter queue
+        return context -> log.error("Error occurred while receving message",
+                                    context.getErrorSource(), context.getException());
     }
 
 }

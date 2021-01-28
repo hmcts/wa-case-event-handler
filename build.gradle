@@ -251,15 +251,8 @@ dependencies {
 
   implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.0.0'
 
-/*  implementation group: 'com.microsoft.azure', name: 'azure', version: '1.37.0'
-  implementation group: 'com.microsoft.azure', name: 'azure-servicebus', version: '3.4.0'
-  implementation group: 'io.projectreactor', name: 'reactor-core', version: '3.4.0'
-  implementation group: 'com.azure', name: 'azure-core', version: '1.10.0'
-  implementation group: 'commons-cli', name: 'commons-cli', version: '1.4'*/
-
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.13.3'
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.13.3'
-
 
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: '9.0.40'
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: '9.0.40'

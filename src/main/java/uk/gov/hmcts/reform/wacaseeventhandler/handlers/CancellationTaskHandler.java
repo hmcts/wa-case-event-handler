@@ -63,7 +63,7 @@ public class CancellationTaskHandler implements CaseEventHandler {
             .filter(result -> result instanceof CancellationEvaluateResponse)
             .map(result -> (CancellationEvaluateResponse) result)
             .forEach(cancellationEvaluateResponse -> sendMessageToCancelTasksForGivenCorrelations(
-                eventInformation.getCaseReference(),
+                eventInformation.getCaseId(),
                 cancellationEvaluateResponse.getTaskCategories().getValue()
             ));
     }

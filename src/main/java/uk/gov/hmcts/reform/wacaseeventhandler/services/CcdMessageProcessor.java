@@ -22,21 +22,16 @@ public class CcdMessageProcessor {
         this.objectMapper = objectMapper;
     }
 
-    public boolean processMesssage(String message) {
-        try {
-            EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
-            log.debug(String.format("Message received : %s", eventInformation.toString()));
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    public void processMesssage(String message) throws JsonProcessingException {
+        EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
+        log.info(String.format("Message received from topic: %s", eventInformation.toString()));
 
-            for (CaseEventHandler handler : handlerServices) {
-                List<? extends EvaluateResponse> results = handler.evaluateDmn(eventInformation);
-                if (!results.isEmpty()) {
-                    handler.handle(results, eventInformation);
-                }
+        for (CaseEventHandler handler : handlerServices) {
+            List<? extends EvaluateResponse> results = handler.evaluateDmn(eventInformation);
+            if (!results.isEmpty()) {
+                handler.handle(results, eventInformation);
             }
-            return true;
-        } catch (JsonProcessingException exp) {
-            log.error("Unable to parse event", exp);
-            throw new RuntimeException(exp);
         }
     }
 
