@@ -66,5 +66,5 @@ module "subscription" {
   namespace_name        = local.servicebus_namespace_name
   topic_name            = local.topic_name
   resource_group_name   = local.resource_group_name
-  require_session       = true
+  requires_session      = true
 }
