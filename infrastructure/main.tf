@@ -31,7 +31,11 @@ locals {
   subscription_name = "${var.product}-case-event-subscription-${var.env}"
   servicebus_namespace_name       = "${var.product}-servicebus-${var.env}"
   resource_group_name             = "${var.product}-${var.env}"
-  tags = merge(
+  topic_name_test_ccd = "wa-case-event-handler-topic-sessions-ft"
+  servicebus_namespace_name_test_ccd = "ccd-servicebus-demo"
+  resource_group_name_test_ccd = "ccd-demo"
+
+tags = merge(
       var.common_tags,
       map(
         "Team Contact", "#wa-tech",
@@ -50,7 +54,7 @@ locals {
 //  common_tags         = local.tags
 //  sku                 = "Premium"
 //}
-//
+
 ////Create topic
 //module "topic" {
 //  source                = "git@github.com:hmcts/terraform-module-servicebus-topic?ref=master"
@@ -63,8 +67,8 @@ locals {
 module "subscription" {
   source                = "git@github.com:hmcts/terraform-module-servicebus-subscription?ref=require_session"
   name                  = local.subscription_name
-  namespace_name        = local.servicebus_namespace_name
-  topic_name            = local.topic_name
-  resource_group_name   = local.resource_group_name
+  namespace_name        = local.servicebus_namespace_name_test_ccd
+  topic_name            = local.topic_name_test_ccd
+  resource_group_name   = local.resource_group_name_test_ccd
   requires_session      = true
 }
