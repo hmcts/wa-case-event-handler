@@ -11,7 +11,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateRes
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningResponse;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ public class WarningTaskHandler implements CaseEventHandler {
     }
 
     @Override
-    public List<WarningEvaluateResponse> evaluateDmn(EventInformation eventInformation) {
+    public List<WarningResponse> evaluateDmn(EventInformation eventInformation) {
         String tableKey = TASK_WARN.getTableKey(
             eventInformation.getJurisdictionId(),
             eventInformation.getCaseTypeId()
@@ -60,16 +60,13 @@ public class WarningTaskHandler implements CaseEventHandler {
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
         results.stream()
-            .filter(result -> result instanceof WarningEvaluateResponse)
-            .map(result -> (WarningEvaluateResponse) result)
-            .forEach(cancellationEvaluateResponse -> sendMessageToWarnTasksForGivenCorrelations(
-                eventInformation.getCaseReference(),
+            .filter(result -> result instanceof WarningResponse)
+            .map(result -> (WarningResponse) result)
+            .forEach(cancellationEvaluateResponse -> workflowApiClientToWarnTask.sendMessage(
+                buildSendMessageRequest(
+                    null,
                 cancellationEvaluateResponse.getAction().getValue()
-            ));
-    }
-
-    private void sendMessageToWarnTasksForGivenCorrelations(String caseReference, String category) {
-        workflowApiClientToWarnTask.sendMessage(buildSendMessageRequest(category, caseReference));
+            )));
     }
 
     private SendMessageRequest<ProcessVariables, CancellationCorrelationKeys> buildSendMessageRequest(

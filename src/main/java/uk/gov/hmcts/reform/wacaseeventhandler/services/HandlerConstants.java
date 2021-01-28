@@ -4,7 +4,7 @@ public enum HandlerConstants {
 
     TASK_CANCELLATION("wa-task-cancellation", "cancelTasks"),
     TASK_INITIATION("wa-task-initiation", "createTaskMessage"),
-    TASK_WARN("wa-task-cancellation", "warnProcess");
+    TASK_WARN("wa-task-warning", "warnProcess");
 
     private final String tableName;
     private final String messageName;

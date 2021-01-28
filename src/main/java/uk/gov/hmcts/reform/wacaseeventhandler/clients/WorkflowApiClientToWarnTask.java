@@ -18,7 +18,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmn
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningResponse;
 
 @Service
 @Slf4j
@@ -37,11 +37,11 @@ public class WorkflowApiClientToWarnTask implements WorkflowApiClient {
     }
 
     @Override
-    public EvaluateDmnResponse<WarningEvaluateResponse> evaluateDmn(
+    public EvaluateDmnResponse<WarningResponse> evaluateDmn(
         String keys,
         EvaluateDmnRequest<? extends EvaluateRequest> requestParameter
     ) {
-        return restTemplate.<EvaluateDmnResponse<WarningEvaluateResponse>>exchange(
+        return restTemplate.<EvaluateDmnResponse<WarningResponse>>exchange(
             String.format("%s/workflow/decision-definition/key/%s/evaluate", workflowApiUrl, keys),
             HttpMethod.POST,
             new HttpEntity<>(requestParameter, buildHttpHeader()),

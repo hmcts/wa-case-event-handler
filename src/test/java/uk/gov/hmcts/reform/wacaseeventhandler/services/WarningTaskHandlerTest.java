@@ -10,13 +10,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToWarnTask;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationCorrelationKeys;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.WarningTaskHandler;
 
 import java.time.LocalDateTime;
@@ -24,6 +26,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -32,7 +35,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class WarningTaskHandlerTest {
 
-    private static final String DMN_NAME = "wa-task-cancellation-ia-asylum";
+    private static final String DMN_NAME = "wa-task-warning-ia-asylum";
     public static final String WARN_TASKS_MESSAGE_NAME = "warnProcess";
 
 
@@ -56,7 +59,7 @@ class WarningTaskHandlerTest {
         .build();
 
     @Test
-    void evaluateDmn() {
+    void should_call_evaluateDmn_and_return_empty_list_response() {
         CancellationEvaluateRequest cancellationTaskEvaluateDmnRequestVariables =
             CancellationEvaluateRequest.builder()
                 .state(new DmnStringValue("some post state"))
@@ -72,27 +75,63 @@ class WarningTaskHandlerTest {
             requestParameters
         )).thenReturn(new EvaluateDmnResponse<>(Collections.emptyList()));
 
-        handlerService.evaluateDmn(eventInformation);
+        List<WarningResponse> response = handlerService.evaluateDmn(eventInformation);
+
+        verify(workflowApiClientToWarnTask).evaluateDmn(
+            eq(DMN_NAME),
+            eq(requestParameters)
+        );
+        assertEquals(response.size(),0);
+
+
+    }
+
+    @Test
+    void should_call_evaluateDmn_and_with_results() {
+        CancellationEvaluateRequest cancellationTaskEvaluateDmnRequestVariables =
+            CancellationEvaluateRequest.builder()
+                .state(new DmnStringValue("some post state"))
+                .event(new DmnStringValue("some event id"))
+                .fromState(new DmnStringValue("some previous state"))
+                .build();
+
+        EvaluateDmnRequest<CancellationEvaluateRequest> requestParameters =
+            new EvaluateDmnRequest<>(cancellationTaskEvaluateDmnRequestVariables);
+
+        when(workflowApiClientToWarnTask.evaluateDmn(
+            DMN_NAME,
+            requestParameters
+        )).thenReturn(new EvaluateDmnResponse<>(List.of(new WarningResponse(new DmnStringValue("testValue")))));
+
+        List<WarningResponse> response = handlerService.evaluateDmn(eventInformation);
 
         verify(workflowApiClientToWarnTask).evaluateDmn(
             eq(DMN_NAME),
             eq(requestParameters)
         );
 
+        assertEquals(1, response.size());
+        assertEquals("testValue", response.get(0).getAction().getValue());
+
+
     }
 
 
     @Test
-    void handle() {
-        WarningEvaluateResponse result1 = WarningEvaluateResponse.builder()
+    void handle_send_message_with_results() {
+        WarningResponse result1 = WarningResponse.builder()
             .action(new DmnStringValue("Warn"))
             .build();
 
-        WarningEvaluateResponse result2 = WarningEvaluateResponse.builder()
+        WarningResponse result2 = WarningResponse.builder()
             .action(new DmnStringValue("Warn"))
             .build();
 
-        List<WarningEvaluateResponse> results = List.of(result1, result2);
+        CancellationEvaluateResponse result3 = CancellationEvaluateResponse.builder()
+            .action(new DmnStringValue("Cancel"))
+            .build();
+
+        List<EvaluateResponse> results = List.of(result1, result2,result3);
 
         handlerService.handle(results, eventInformation);
 
@@ -101,13 +140,25 @@ class WarningTaskHandlerTest {
 
         assertSendMessageRequest(
             sendMessageRequestCaptor.getAllValues().get(0),
-            "Warn"
+            "some case reference"
         );
+
 
         assertSendMessageRequest(
             sendMessageRequestCaptor.getAllValues().get(1),
-            "Warn"
+            "some case reference"
         );
+
+    }
+
+    @Test
+    void handle_send_message_with_empty_results() {
+        List<EvaluateResponse> results = Collections.emptyList();
+
+        handlerService.handle(results, eventInformation);
+
+        verify(workflowApiClientToWarnTask, times(0))
+            .sendMessage(sendMessageRequestCaptor.capture());
 
     }
 
@@ -120,7 +171,7 @@ class WarningTaskHandlerTest {
 
         assertThat(sendMessageRequest.getCorrelationKeys())
             .isEqualTo(CancellationCorrelationKeys.builder()
-                           .caseId(new DmnStringValue("some case reference"))
+                           .caseId(new DmnStringValue("Warn"))
                            .taskCategory(new DmnStringValue(category))
                            .build());
     }

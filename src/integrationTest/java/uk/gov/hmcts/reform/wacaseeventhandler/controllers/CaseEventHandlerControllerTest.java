@@ -9,7 +9,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.C
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CancellationTaskHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.InitiationTaskHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.WarningTaskHandler;
@@ -54,7 +54,7 @@ class CaseEventHandlerControllerTest {
             .willReturn(List.of(new CancellationEvaluateResponse(cancelAction, taskCategory)));
 
         given(warningTaskHandlerService.evaluateDmn(any(EventInformation.class)))
-            .willReturn(List.of(new WarningEvaluateResponse(warnAction)));
+            .willReturn(List.of(new WarningResponse(warnAction)));
 
         given(initiationTaskHandlerService.evaluateDmn(any(EventInformation.class)))
             .willReturn(List.of(InitiateEvaluateResponse.builder().build()));

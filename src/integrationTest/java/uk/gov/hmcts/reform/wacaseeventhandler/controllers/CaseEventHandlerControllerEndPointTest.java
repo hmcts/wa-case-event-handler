@@ -27,7 +27,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringVa
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 
 import java.time.LocalDateTime;
@@ -104,13 +104,13 @@ class CaseEventHandlerControllerEndPointTest {
 
 
     private void mockWarningHandler() {
-        List<WarningEvaluateResponse> results = List.of(new WarningEvaluateResponse(
+        List<WarningResponse> results = List.of(new WarningResponse(
             new DmnStringValue("some action")
         ));
-        EvaluateDmnResponse<WarningEvaluateResponse> cancellationResponse =
+        EvaluateDmnResponse<WarningResponse> cancellationResponse =
             new EvaluateDmnResponse<>(results);
 
-        ResponseEntity<EvaluateDmnResponse<WarningEvaluateResponse>> responseEntity =
+        ResponseEntity<EvaluateDmnResponse<WarningResponse>> responseEntity =
             new ResponseEntity<>(cancellationResponse, HttpStatus.OK);
 
         String cancellationEvaluateUrl = String.format(
@@ -123,7 +123,7 @@ class CaseEventHandlerControllerEndPointTest {
             eq(HttpMethod.POST),
             ArgumentMatchers.<HttpEntity<List<HttpHeaders>>>any(),
             ArgumentMatchers
-                .<ParameterizedTypeReference<EvaluateDmnResponse<WarningEvaluateResponse>>>any())
+                .<ParameterizedTypeReference<EvaluateDmnResponse<WarningResponse>>>any())
         ).thenReturn(responseEntity);
     }
 

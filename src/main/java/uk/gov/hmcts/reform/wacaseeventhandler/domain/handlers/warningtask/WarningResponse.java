@@ -11,12 +11,12 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateRes
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @Builder
-public final class WarningEvaluateResponse extends EvaluateResponse {
+public final class WarningResponse extends EvaluateResponse {
 
     private final DmnStringValue action;
 
     @JsonCreator
-    public WarningEvaluateResponse(@JsonProperty("action") DmnStringValue action) {
+    public WarningResponse(@JsonProperty("action") DmnStringValue action) {
         super();
         this.action = action;
     }
