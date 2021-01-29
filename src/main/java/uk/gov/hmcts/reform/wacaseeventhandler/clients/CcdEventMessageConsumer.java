@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
 import com.azure.messaging.servicebus.ServiceBusErrorContext;
-import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
 import com.azure.messaging.servicebus.ServiceBusReceivedMessageContext;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
@@ -27,16 +26,17 @@ public class CcdEventMessageConsumer {
 
     @Bean
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-    public Consumer<ServiceBusReceivedMessageContext> consumeMessage() {
-        return context -> {
-            ServiceBusReceivedMessage message = context.getMessage();
-            try {
-                processor.processMesssage(new String(message.getBody().toBytes()));
-            } catch (JsonProcessingException exp) {
-                // This should be sent to deadletter queue
-                log.error("Error occured while parsing the incoming message", exp);
-            }
-        };
+    public Consumer<ServiceBusReceivedMessageContext> consumeMessageFromChannel() {
+        return context -> readMessage(context.getMessage().getBody().toBytes());
+    }
+
+    public void readMessage(byte[] data) {
+        try {
+            processor.processMesssage(new String(data));
+        } catch (JsonProcessingException exp) {
+            // This should be sent to deadletter queue
+            log.error("Error occured while parsing the incoming message", exp);
+        }
     }
 
     @SuppressWarnings("PMD.AvoidThrowingRawExceptionTypes")

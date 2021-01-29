@@ -34,7 +34,7 @@ public class ServiceBusPublisherConfiguration {
     }
 
     @PreDestroy
-    public void closeSender() {
+    public void close() {
         if (publisher != null) {
             publisher.close();
         }

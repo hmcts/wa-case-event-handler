@@ -38,7 +38,7 @@ public class ServiceBusConfiguration {
             .topicName(topic)
             .subscriptionName(subscription)
             .maxConcurrentSessions(Integer.valueOf(numberOfConcurrentSessions))
-            .processMessage(consumer.consumeMessage())
+            .processMessage(consumer.consumeMessageFromChannel())
             .processError(consumer.handleError())
             .buildProcessorClient();
 
@@ -46,7 +46,7 @@ public class ServiceBusConfiguration {
     }
 
     @PreDestroy
-    public void closeConsumer() {
+    public void close() {
         if (serviceBusClient != null) {
             serviceBusClient.close();
         }
