@@ -3,11 +3,10 @@ targets:
   camunda: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
 
 azure:
-  host: Endpoint=sb://wa-case-handler-servicebus-dev.servicebus.windows.net/;SharedAccessKeyName=SendAndRecieveCCDMessage;SharedAccessKey=8gA8KcaE/e1bBMSVmYE2jaFYMwCkoLhsfTsqn7aJoqs=
-  username: SendAndRecieveCCDMessage
-  password: 8gA8KcaE/e1bBMSVmYE2jaFYMwCkoLhsfTsqn7aJoqs=
-  topic: wa-case-handler-topic-sessions-ft
-  subscription: wa-case-handler-topic-sessions-ft-sub
-  numberOfConcurrentSessions: 11
-
-enableServiceBus: false
+  host: ${AZURE_SERVICE_BUS_HOST}
+  username: ${AZURE_SHARED_POLICY_KEY}
+  password: ${AZURE_SHARED_POLICY_KEY_SECRET}
+  topic: ${AZURE_TOPIC_NAME}
+  subscription: ${AZURE_SUBSCRIPTION_NAME}
+  numberOfConcurrentSessions: ${AZURE_CONCURRENT_SESSIONS}
+  enableASB: ${AZURE_SERVICE_BUS_TOGGLE:false}

@@ -31,11 +31,10 @@ govUkHolidays:
   url: https://www.gov.uk/
 
 azure:
-  host: Endpoint=sb://ccd-servicebus-demo.servicebus.windows.net/;SharedAccessKeyName=SendAndRecieveCCDMessage;SharedAccessKey=CODpsFFOlXV6DfDD6PgA8W7Bv9r2eDKcObjWk4NpVXo=;
-  username: SendAndRecieveCCDMessage
-  password: CODpsFFOlXV6DfDD6PgA8W7Bv9r2eDKcObjWk4NpVXo=
-  topic: wa-case-event-handler-topic-sessions
-  subscription: wa-case-event-handler-topic-sessions-sub
-  numberOfConcurrentSessions: 1
-
-enableServiceBus: false
+  host: ${AZURE_SERVICE_BUS_HOST}
+  username: ${AZURE_SHARED_POLICY_KEY}
+  password: ${AZURE_SHARED_POLICY_KEY_SECRET}
+  topic: ${AZURE_TOPIC_NAME}
+  subscription: ${AZURE_SUBSCRIPTION_NAME}
+  numberOfConcurrentSessions: ${AZURE_CONCURRENT_SESSIONS}
+  enableASB: ${AZURE_SERVICE_BUS_TOGGLE:false}

@@ -12,7 +12,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.clients.CcdEventMessageConsumer;
 import javax.annotation.PreDestroy;
 
 @Configuration
-@ConditionalOnProperty("enableServiceBus")
+@ConditionalOnProperty("azure.enableASB")
 public class ServiceBusConfiguration {
 
     @Value("${azure.host}")

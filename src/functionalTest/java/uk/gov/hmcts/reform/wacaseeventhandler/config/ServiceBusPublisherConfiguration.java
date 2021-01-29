@@ -12,7 +12,7 @@ import javax.annotation.PreDestroy;
 
 @Configuration
 @ConfigurationProperties()
-@ConditionalOnProperty("enableServiceBus")
+@ConditionalOnProperty("azure.enableASB")
 public class ServiceBusPublisherConfiguration {
 
     @Value("${azure.host}")

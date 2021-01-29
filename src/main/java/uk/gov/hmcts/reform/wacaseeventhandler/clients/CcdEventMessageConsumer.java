@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 
 @Slf4j
 @Component
-@ConditionalOnProperty("enableServiceBus")
+@ConditionalOnProperty("azure.enableASB")
 public class CcdEventMessageConsumer {
 
     private final CcdMessageProcessor processor;
