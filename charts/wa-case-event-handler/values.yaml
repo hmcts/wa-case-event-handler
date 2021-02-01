@@ -10,6 +10,7 @@ java:
         - s2s-secret-case-event-handler
   environment:
     S2S_URL: "http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
+    WA_WORKFLOW_API_URL: "http://wa-workflow-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     POSTGRES_PORT: 5432
     POSTGRES_HOST: wa-case-event-handler-postgres-db-{{ .Values.global.environment }}.postgres.database.azure.com
     POSTGRES_USERNAME: wa-ceh@ia-timed-event-service-postgres-11-db-{{ .Values.global.environment }}

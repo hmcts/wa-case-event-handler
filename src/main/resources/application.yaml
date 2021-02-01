@@ -19,6 +19,8 @@ idam:
   s2s-authorised:
     services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps}
 
+wa-workflow-api:
+  url: ${WA_WORKFLOW_API_URL:http://localhost:8099}
 
 spring:
   application:
@@ -34,3 +36,9 @@ spring:
     enabled: true
     baselineOnMigrate: true
     schemas: ${POSTGRES_NAME:wa_case_event_handler}
+  jackson:
+    serialization:
+      indent_output: true
+
+govUkHolidays:
+  url: https://www.gov.uk/
