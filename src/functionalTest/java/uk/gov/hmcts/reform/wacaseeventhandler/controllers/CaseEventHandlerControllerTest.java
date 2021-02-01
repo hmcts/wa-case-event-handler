@@ -231,6 +231,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .when()
             .get()
             .then()
+            .statusCode(HttpStatus.OK.value())
             .body("size()", is(1))
             .body("[0].formKey", is(taskIdDmnColumn))
             .assertThat().body("[0].id", notNullValue())
