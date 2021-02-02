@@ -132,8 +132,8 @@ class CaseEventHandlerControllerEndPointTest {
     private static Stream<Scenario> scenarioProvider() {
         EventInformation validEventInformation = EventInformation.builder()
             .eventInstanceId("some event instance Id")
-            .dateTime(LocalDateTime.now())
-            .caseReference("some case reference")
+            .eventTimeStamp(LocalDateTime.now())
+            .caseId("some case reference")
             .jurisdictionId("ia")
             .caseTypeId("asylum")
             .eventId("some event Id")
@@ -148,7 +148,7 @@ class CaseEventHandlerControllerEndPointTest {
 
         EventInformation invalidEventInformationBecauseMandatoryFieldCannotBeNull = EventInformation.builder()
             .eventInstanceId(null)
-            .caseReference("some case reference")
+            .caseId("some case reference")
             .jurisdictionId("somme jurisdiction Id")
             .caseTypeId("some case type Id")
             .eventId("some event Id")
@@ -163,7 +163,7 @@ class CaseEventHandlerControllerEndPointTest {
 
         EventInformation invalidEventInformationBecauseMandatoryFieldCannotBeEmpty = EventInformation.builder()
             .eventInstanceId("")
-            .caseReference("some case reference")
+            .caseId("some case reference")
             .jurisdictionId("somme jurisdiction Id")
             .caseTypeId("some case type Id")
             .eventId("some event Id")

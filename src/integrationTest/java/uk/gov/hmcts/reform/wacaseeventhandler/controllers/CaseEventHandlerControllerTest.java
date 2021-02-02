@@ -62,8 +62,8 @@ class CaseEventHandlerControllerTest {
             .eventInstanceId("some id")
             .caseTypeId("some case type")
             .jurisdictionId("some jurisdiction")
-            .dateTime(LocalDateTime.parse(FIXED_DATE))
-            .caseReference("some case reference")
+            .eventTimeStamp(LocalDateTime.parse(FIXED_DATE))
+            .caseId("some case reference")
             .build();
 
         controller.caseEventHandler(eventInformation);
