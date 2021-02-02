@@ -11,3 +11,12 @@ spring:
     username: sa
     password:
     platform: h2
+
+azure:
+  host: ${AZURE_SERVICE_BUS_HOST}
+  username: ${AZURE_SHARED_POLICY_KEY}
+  password: ${AZURE_SHARED_POLICY_KEY_SECRET}
+  topic: ${AZURE_TOPIC_NAME}
+  subscription: ${AZURE_SUBSCRIPTION_NAME}
+  numberOfConcurrentSessions: ${AZURE_CONCURRENT_SESSIONS}
+  enableASB: ${AZURE_SERVICE_BUS_TOGGLE:false}

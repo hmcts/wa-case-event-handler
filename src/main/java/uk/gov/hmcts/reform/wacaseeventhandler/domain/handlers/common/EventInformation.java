@@ -20,9 +20,9 @@ public final class EventInformation {
     @NotEmpty
     private final String eventInstanceId;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
-    private final LocalDateTime dateTime;
+    private final LocalDateTime eventTimeStamp;
     @NotEmpty
-    private final String caseReference;
+    private final String caseId;
     @NotEmpty
     private final String jurisdictionId;
     @NotEmpty
@@ -36,8 +36,8 @@ public final class EventInformation {
 
     @JsonCreator
     public EventInformation(@JsonProperty("eventInstanceId") String eventInstanceId,
-                            @JsonProperty("dateTime")LocalDateTime dateTime,
-                            @JsonProperty("caseReference") String caseReference,
+                            @JsonProperty("eventTimeStamp")LocalDateTime eventTimeStamp,
+                            @JsonProperty("caseId") String caseId,
                             @JsonProperty("jurisdictionId") String jurisdictionId,
                             @JsonProperty("caseTypeId") String caseTypeId,
                             @JsonProperty("eventId") String eventId,
@@ -45,8 +45,8 @@ public final class EventInformation {
                             @JsonProperty("newStateId") String newStateId,
                             @JsonProperty("userId") String userId) {
         this.eventInstanceId = eventInstanceId;
-        this.dateTime = dateTime;
-        this.caseReference = caseReference;
+        this.eventTimeStamp = eventTimeStamp;
+        this.caseId = caseId;
         this.jurisdictionId = jurisdictionId.toLowerCase(Locale.ENGLISH);
         this.caseTypeId = caseTypeId.toLowerCase(Locale.ENGLISH);
         this.eventId = eventId;
@@ -68,11 +68,11 @@ public final class EventInformation {
     }
 
     public LocalDateTime getDateTime() {
-        return dateTime;
+        return eventTimeStamp;
     }
 
-    public String getCaseReference() {
-        return caseReference;
+    public String getCaseId() {
+        return caseId;
     }
 
     public String getEventId() {
