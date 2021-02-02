@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootIntegrationBaseTest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateResponse;
@@ -23,7 +24,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.inOrder;
 
-class CaseEventHandlerControllerTest extends SpringBootIntegrationBaseTest {
+@SpringBootTest(classes = {
+    CaseEventHandlerController.class,
+    CancellationTaskHandler.class,
+    InitiationTaskHandler.class,
+    WarningTaskHandler.class
+})
+class CaseEventHandlerControllerTest {
 
     public static final String FIXED_DATE = "2020-12-07T17:39:22.232622";
     @MockBean
