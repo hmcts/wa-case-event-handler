@@ -24,11 +24,14 @@ import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class InitiationTaskHandlerTest {
@@ -46,6 +49,9 @@ class InitiationTaskHandlerTest {
     @Mock
     private IsoDateFormatter isoDateFormatter;
 
+    @Mock
+    private DueDateService dueDateService;
+
     @InjectMocks
     private InitiationTaskHandler handlerService;
 
@@ -54,8 +60,8 @@ class InitiationTaskHandlerTest {
         .newStateId("")
         .jurisdictionId("ia")
         .caseTypeId("asylum")
-        .caseReference("some case reference")
-        .dateTime(LocalDateTime.parse(INPUT_DATE))
+        .caseId("some case reference")
+        .eventTimeStamp(LocalDateTime.parse(INPUT_DATE))
         .build();
 
     @Test
@@ -81,7 +87,6 @@ class InitiationTaskHandlerTest {
 
     @Test
     void handle() {
-
         Mockito.when(isoDateFormatter.format(eq(LocalDateTime.parse(INPUT_DATE))))
             .thenReturn(EXPECTED_DATE);
 
@@ -89,6 +94,7 @@ class InitiationTaskHandlerTest {
             .group(new DmnStringValue("TCW"))
             .name(new DmnStringValue("Process Application"))
             .taskId(new DmnStringValue("processApplication"))
+            .workingDaysAllowed(new DmnIntegerValue(0))
             .taskCategory(new DmnStringValue("Case progression"))
             .build();
 
@@ -96,10 +102,14 @@ class InitiationTaskHandlerTest {
             .group(new DmnStringValue("external"))
             .name(new DmnStringValue("Decide On Time Extension"))
             .taskId(new DmnStringValue("decideOnTimeExtension"))
+            .workingDaysAllowed(new DmnIntegerValue(0))
             .taskCategory(new DmnStringValue("Time extension"))
             .build();
 
         List<InitiateEvaluateResponse> results = List.of(initiateTaskResponse1, initiateTaskResponse2);
+
+        when(dueDateService.calculateDueDate(ZonedDateTime.parse(EXPECTED_DATE), 0))
+            .thenReturn(ZonedDateTime.parse(EXPECTED_DATE));
 
         handlerService.handle(results, eventInformation);
 
@@ -137,6 +147,8 @@ class InitiationTaskHandlerTest {
             .caseId(new DmnStringValue("some case reference"))
             .dueDate(new DmnStringValue(EXPECTED_DATE))
             .workingDaysAllowed(new DmnIntegerValue(0))
+            .delayUntil(new DmnStringValue(ZonedDateTime.parse(EXPECTED_DATE)
+                                               .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
             .build();
 
         return new SendMessageRequest<>(

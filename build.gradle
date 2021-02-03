@@ -107,6 +107,11 @@ task smoke(type: Test) {
   classpath = sourceSets.smokeTest.runtimeClasspath
 }
 
+task tests {
+  description = "Runs junit , integration and functional tests"
+  dependsOn test, integration, functional
+}
+
 checkstyle {
   maxWarnings = 0
   toolVersion = '8.29'
@@ -244,6 +249,8 @@ dependencies {
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.2.5.RELEASE'
   implementation group: 'uk.gov.hmcts.reform', name: 'properties-volume-spring-boot-starter', version: '0.1.0'
 
+  implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.0.0'
+
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.13.3'
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.13.3'
 
@@ -262,6 +269,7 @@ dependencies {
   }
 
   testCompile group: 'pl.pojo', name: 'pojo-tester', version: '0.7.6'
+  testCompile group: 'com.jparams', name: 'to-string-verifier', version: '1.4.8'
   testCompile group: 'com.google.guava', name: 'guava-testlib', version: '30.1-jre'
   testCompile group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
   testCompile group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity

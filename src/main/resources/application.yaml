@@ -26,3 +26,15 @@ spring:
   application:
     name: WA Case Event Handler
   jackson.serialization.indent_output: true
+
+govUkHolidays:
+  url: https://www.gov.uk/
+
+azure:
+  host: ${AZURE_SERVICE_BUS_HOST}
+  username: ${AZURE_SHARED_POLICY_KEY}
+  password: ${AZURE_SHARED_POLICY_KEY_SECRET}
+  topic: ${AZURE_TOPIC_NAME}
+  subscription: ${AZURE_SUBSCRIPTION_NAME}
+  numberOfConcurrentSessions: ${AZURE_CONCURRENT_SESSIONS}
+  enableASB: ${AZURE_SERVICE_BUS_TOGGLE:false}
