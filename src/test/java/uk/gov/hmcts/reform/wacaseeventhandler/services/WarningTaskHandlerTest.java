@@ -36,6 +36,7 @@ import static org.mockito.Mockito.when;
 class WarningTaskHandlerTest {
 
     private static final String DMN_NAME = "wa-task-warning-ia-asylum";
+    public static final String TENANT_ID = "ia";
     public static final String WARN_TASKS_MESSAGE_NAME = "warnProcess";
 
 
@@ -54,8 +55,7 @@ class WarningTaskHandlerTest {
         .previousStateId("some previous state")
         .jurisdictionId("ia")
         .caseTypeId("asylum")
-        .caseReference("some case reference")
-        .dateTime(LocalDateTime.now())
+        .eventTimeStamp(LocalDateTime.now())
         .build();
 
     @Test
@@ -72,14 +72,16 @@ class WarningTaskHandlerTest {
 
         when(workflowApiClientToWarnTask.evaluateDmn(
             DMN_NAME,
-            requestParameters
+            requestParameters,
+            TENANT_ID
         )).thenReturn(new EvaluateDmnResponse<>(Collections.emptyList()));
 
-        List<WarningResponse> response = handlerService.evaluateDmn(eventInformation);
+        List<? extends EvaluateResponse> response = handlerService.evaluateDmn(eventInformation);
 
         verify(workflowApiClientToWarnTask).evaluateDmn(
             eq(DMN_NAME),
-            eq(requestParameters)
+            eq(requestParameters),
+            eq(TENANT_ID)
         );
         assertEquals(response.size(),0);
 
@@ -100,18 +102,19 @@ class WarningTaskHandlerTest {
 
         when(workflowApiClientToWarnTask.evaluateDmn(
             DMN_NAME,
-            requestParameters
+            requestParameters,
+            TENANT_ID
         )).thenReturn(new EvaluateDmnResponse<>(List.of(new WarningResponse(new DmnStringValue("testValue")))));
 
-        List<WarningResponse> response = handlerService.evaluateDmn(eventInformation);
+        List<? extends EvaluateResponse> response = handlerService.evaluateDmn(eventInformation);
 
         verify(workflowApiClientToWarnTask).evaluateDmn(
             eq(DMN_NAME),
-            eq(requestParameters)
+            eq(requestParameters),
+            eq(TENANT_ID)
         );
 
         assertEquals(1, response.size());
-        assertEquals("testValue", response.get(0).getAction().getValue());
 
 
     }

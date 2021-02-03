@@ -28,7 +28,7 @@ public class WarningTaskHandler implements CaseEventHandler {
     }
 
     @Override
-    public List<WarningResponse> evaluateDmn(EventInformation eventInformation) {
+    public List<? extends EvaluateResponse> evaluateDmn(EventInformation eventInformation) {
         String tableKey = TASK_WARN.getTableKey(
             eventInformation.getJurisdictionId(),
             eventInformation.getCaseTypeId()
@@ -40,7 +40,9 @@ public class WarningTaskHandler implements CaseEventHandler {
             eventInformation.getNewStateId()
         );
 
-        return workflowApiClientToWarnTask.evaluateDmn(tableKey, requestParameters).getResults();
+        return workflowApiClientToWarnTask.evaluateDmn(tableKey,
+                                                       requestParameters,
+                                                       "ia").getResults();
     }
 
     private EvaluateDmnRequest<CancellationEvaluateRequest> getParameterRequest(
