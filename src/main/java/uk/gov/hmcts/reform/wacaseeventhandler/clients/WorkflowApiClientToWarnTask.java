@@ -12,12 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.CorrelationKeys;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.*;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningResponse;
 
 @Service
@@ -36,26 +31,22 @@ public class WorkflowApiClientToWarnTask implements WorkflowApiClient {
         this.workflowApiUrl = workflowApiUrl;
     }
 
-    @Override
-    public EvaluateDmnResponse<WarningResponse> evaluateDmn(
-        String keys,
-        EvaluateDmnRequest<? extends EvaluateRequest> requestParameter
-    ) {
-        return restTemplate.<EvaluateDmnResponse<WarningResponse>>exchange(
-            String.format("%s/workflow/decision-definition/key/%s/evaluate", workflowApiUrl, keys),
-            HttpMethod.POST,
-            new HttpEntity<>(requestParameter, buildHttpHeader()),
-            new ParameterizedTypeReference<>() {
-            }
-        ).getBody();
-    }
-
     private HttpHeaders buildHttpHeader() {
         var header = new HttpHeaders();
         header.setContentType(MediaType.APPLICATION_JSON);
         header.set("ServiceAuthorization", authTokenGenerator.generate());
         return header;
     }
+
+    @Override
+    public EvaluateDmnResponse<? extends EvaluateResponse> evaluateDmn(String key, EvaluateDmnRequest<? extends EvaluateRequest> requestParameters, String tenantId) {
+        return restTemplate.<EvaluateDmnResponse<WarningResponse>>exchange(
+            String.format("%s/workflow/decision-definition/key/%s/evaluate", workflowApiUrl, key),
+            HttpMethod.POST,
+            new HttpEntity<>(requestParameters, buildHttpHeader()),
+            new ParameterizedTypeReference<>() {
+            }
+        ).getBody();    }
 
     @Override
     public ResponseEntity<Void> sendMessage(
