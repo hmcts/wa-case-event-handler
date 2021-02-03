@@ -60,8 +60,8 @@ class InitiationTaskHandlerTest {
         .newStateId("")
         .jurisdictionId("ia")
         .caseTypeId("asylum")
-        .caseReference("some case reference")
-        .dateTime(LocalDateTime.parse(INPUT_DATE))
+        .caseId("some case reference")
+        .eventTimeStamp(LocalDateTime.parse(INPUT_DATE))
         .build();
 
     @Test

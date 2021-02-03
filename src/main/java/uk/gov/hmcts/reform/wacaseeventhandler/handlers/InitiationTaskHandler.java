@@ -105,7 +105,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
             .jurisdiction(new DmnStringValue(eventInformation.getJurisdictionId()))
             .name(initiateEvaluateResponse.getName())
             .taskId(initiateEvaluateResponse.getTaskId())
-            .caseId(new DmnStringValue(eventInformation.getCaseReference()))
+            .caseId(new DmnStringValue(eventInformation.getCaseId()))
             .taskCategory(initiateEvaluateResponse.getTaskCategory())
             .delayUntil(new DmnStringValue(delayUntil.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
             .build();
