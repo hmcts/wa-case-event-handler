@@ -51,6 +51,7 @@ class CancellationTaskHandlerTest {
         .previousStateId("some previous state")
         .jurisdictionId("ia")
         .caseTypeId("asylum")
+        .caseId("some case reference")
         .eventTimeStamp(LocalDateTime.now())
         .build();
 

@@ -54,7 +54,7 @@ class CaseEventHandlerControllerTest {
             .willReturn(List.of(new CancellationEvaluateResponse(cancelAction, taskCategory)));
 
         given(warningTaskHandlerService.evaluateDmn(any(EventInformation.class)))
-            .willReturn(List.of(new WarningResponse(warnAction)));
+            .willReturn(List.of(new WarningResponse(warnAction,taskCategory)));
 
         given(initiationTaskHandlerService.evaluateDmn(any(EventInformation.class)))
             .willReturn(List.of(InitiateEvaluateResponse.builder().build()));

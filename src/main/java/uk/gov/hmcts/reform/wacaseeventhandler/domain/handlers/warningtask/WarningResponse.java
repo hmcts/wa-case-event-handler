@@ -14,15 +14,21 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateRes
 public final class WarningResponse extends EvaluateResponse {
 
     private final DmnStringValue action;
+    private final DmnStringValue taskCategories;
 
     @JsonCreator
-    public WarningResponse(@JsonProperty("action") DmnStringValue action) {
+    public WarningResponse(@JsonProperty("action") DmnStringValue action,
+                           @JsonProperty("TaskCategories") DmnStringValue taskCategories) {
         super();
         this.action = action;
+        this.taskCategories = taskCategories;
     }
 
     public DmnStringValue getAction() {
         return action;
     }
 
+    public DmnStringValue getTaskCategories() {
+        return taskCategories;
+    }
 }

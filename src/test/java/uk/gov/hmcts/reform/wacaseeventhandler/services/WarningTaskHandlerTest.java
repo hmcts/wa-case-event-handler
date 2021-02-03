@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class WarningTaskHandlerTest {
 
-    private static final String DMN_NAME = "wa-task-warning-ia-asylum";
+    private static final String DMN_NAME = "wa-task-initiation-ia-asylum";
     public static final String TENANT_ID = "ia";
     public static final String WARN_TASKS_MESSAGE_NAME = "warnProcess";
 
@@ -55,6 +55,7 @@ class WarningTaskHandlerTest {
         .previousStateId("some previous state")
         .jurisdictionId("ia")
         .caseTypeId("asylum")
+        .caseId("some case reference")
         .eventTimeStamp(LocalDateTime.now())
         .build();
 
@@ -104,7 +105,8 @@ class WarningTaskHandlerTest {
             DMN_NAME,
             requestParameters,
             TENANT_ID
-        )).thenReturn(new EvaluateDmnResponse<>(List.of(new WarningResponse(new DmnStringValue("testValue")))));
+        )).thenReturn(new EvaluateDmnResponse<>(List.of(new WarningResponse(new DmnStringValue("testValue"),
+                                                                            new DmnStringValue("testCategory")))));
 
         List<? extends EvaluateResponse> response = handlerService.evaluateDmn(eventInformation);
 
@@ -142,16 +144,12 @@ class WarningTaskHandlerTest {
             .sendMessage(sendMessageRequestCaptor.capture());
 
         assertSendMessageRequest(
-            sendMessageRequestCaptor.getAllValues().get(0),
-            "some case reference"
+            sendMessageRequestCaptor.getAllValues().get(0)
         );
-
 
         assertSendMessageRequest(
-            sendMessageRequestCaptor.getAllValues().get(1),
-            "some case reference"
+            sendMessageRequestCaptor.getAllValues().get(1)
         );
-
     }
 
     @Test
@@ -166,16 +164,14 @@ class WarningTaskHandlerTest {
     }
 
     private void assertSendMessageRequest(
-        SendMessageRequest<ProcessVariables, CancellationCorrelationKeys> sendMessageRequest,
-        String category
-    ) {
+        SendMessageRequest<ProcessVariables, CancellationCorrelationKeys> sendMessageRequest) {
 
         assertThat(sendMessageRequest.getMessageName()).isEqualTo(WARN_TASKS_MESSAGE_NAME);
 
         assertThat(sendMessageRequest.getCorrelationKeys())
             .isEqualTo(CancellationCorrelationKeys.builder()
                            .caseId(new DmnStringValue("Warn"))
-                           .taskCategory(new DmnStringValue(category))
+                           .taskCategory(new DmnStringValue(null))
                            .build());
     }
 }

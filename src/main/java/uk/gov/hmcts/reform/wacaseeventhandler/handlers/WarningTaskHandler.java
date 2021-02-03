@@ -28,7 +28,7 @@ public class WarningTaskHandler implements CaseEventHandler {
     }
 
     @Override
-    public List<? extends EvaluateResponse> evaluateDmn(EventInformation eventInformation) {
+    public List<WarningResponse> evaluateDmn(EventInformation eventInformation) {
         String tableKey = TASK_WARN.getTableKey(
             eventInformation.getJurisdictionId(),
             eventInformation.getCaseTypeId()

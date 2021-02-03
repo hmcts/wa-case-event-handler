@@ -46,7 +46,6 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.
 class CaseEventHandlerControllerEndPointTest {
 
     public static final String S2S_TOKEN = "Bearer s2s token";
-    public static final String DMN_TABLE = "wa-task-initiation-ia-asylum";
     public static final String TENANT_ID = "ia";
     public static final String INITIATE_DMN_TABLE = "wa-task-initiation-ia-asylum";
     public static final String CANCELLATION_DMN_TABLE = "wa-task-cancellation-ia-asylum";
@@ -105,7 +104,8 @@ class CaseEventHandlerControllerEndPointTest {
 
     private void mockWarningHandler() {
         List<WarningResponse> results = List.of(new WarningResponse(
-            new DmnStringValue("some action")
+            new DmnStringValue("some action"),
+            new DmnStringValue("some category")
         ));
         EvaluateDmnResponse<WarningResponse> cancellationResponse =
             new EvaluateDmnResponse<>(results);
