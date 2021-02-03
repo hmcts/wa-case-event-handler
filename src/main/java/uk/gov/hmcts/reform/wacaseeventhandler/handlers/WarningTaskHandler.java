@@ -41,8 +41,7 @@ public class WarningTaskHandler implements CaseEventHandler {
         );
 
         return workflowApiClientToWarnTask.evaluateDmn(tableKey,
-                                                       requestParameters,
-                                                       "ia").getResults();
+                                                       requestParameters, "ia").getResults();
     }
 
     private EvaluateDmnRequest<CancellationEvaluateRequest> getParameterRequest(
