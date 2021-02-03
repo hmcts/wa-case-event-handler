@@ -13,7 +13,8 @@ public interface WorkflowApiClient {
 
     EvaluateDmnResponse<? extends EvaluateResponse> evaluateDmn(
         String key,
-        EvaluateDmnRequest<? extends EvaluateRequest> requestParameters
+        EvaluateDmnRequest<? extends EvaluateRequest> requestParameters,
+        String tenantId
     );
 
     ResponseEntity<Void> sendMessage(
