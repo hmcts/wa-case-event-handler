@@ -42,6 +42,8 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.
 class CaseEventHandlerControllerEndPointTest extends SpringBootIntegrationBaseTest {
 
     public static final String S2S_TOKEN = "Bearer s2s token";
+    public static final String DMN_TABLE = "wa-task-initiation-ia-asylum";
+    public static final String TENANT_ID = "ia";
     public static final String INITIATE_DMN_TABLE = "wa-task-initiation-ia-asylum";
     public static final String CANCELLATION_DMN_TABLE = "wa-task-cancellation-ia-asylum";
 
@@ -136,9 +138,10 @@ class CaseEventHandlerControllerEndPointTest extends SpringBootIntegrationBaseTe
             new ResponseEntity<>(cancellationResponse, HttpStatus.OK);
 
         String cancellationEvaluateUrl = String.format(
-            "%s/workflow/decision-definition/key/%s/evaluate",
+            "%s/workflow/decision-definition/key/%s/tenant-id/%s/evaluate",
             workflowApiUrl,
-            CANCELLATION_DMN_TABLE
+            CANCELLATION_DMN_TABLE,
+            TENANT_ID
         );
         Mockito.when(restTemplate.exchange(
             eq(cancellationEvaluateUrl),
@@ -157,9 +160,10 @@ class CaseEventHandlerControllerEndPointTest extends SpringBootIntegrationBaseTe
             );
 
         String initiateEvaluateUrl = String.format(
-            "%s/workflow/decision-definition/key/%s/evaluate",
+            "%s/workflow/decision-definition/key/%s/tenant-id/%s/evaluate",
             workflowApiUrl,
-            INITIATE_DMN_TABLE
+            INITIATE_DMN_TABLE,
+            TENANT_ID
         );
         Mockito.when(restTemplate.exchange(
             eq(initiateEvaluateUrl),
