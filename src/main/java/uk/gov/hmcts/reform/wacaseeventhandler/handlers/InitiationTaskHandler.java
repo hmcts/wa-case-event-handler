@@ -44,12 +44,14 @@ public class InitiationTaskHandler implements CaseEventHandler {
             eventInformation.getCaseTypeId()
         );
 
+        String tenantId = TASK_INITIATION.getTenantId(eventInformation.getJurisdictionId());
+
         EvaluateDmnRequest<InitiateEvaluateRequest> requestParameters = getParameterRequest(
             eventInformation.getEventId(),
             eventInformation.getNewStateId()
         );
 
-        return apiClientToInitiateTask.evaluateDmn(tableKey, requestParameters).getResults();
+        return apiClientToInitiateTask.evaluateDmn(tableKey, requestParameters,tenantId).getResults();
     }
 
     private EvaluateDmnRequest<InitiateEvaluateRequest> getParameterRequest(
@@ -103,7 +105,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
             .jurisdiction(new DmnStringValue(eventInformation.getJurisdictionId()))
             .name(initiateEvaluateResponse.getName())
             .taskId(initiateEvaluateResponse.getTaskId())
-            .caseId(new DmnStringValue(eventInformation.getCaseReference()))
+            .caseId(new DmnStringValue(eventInformation.getCaseId()))
             .taskCategory(initiateEvaluateResponse.getTaskCategory())
             .delayUntil(new DmnStringValue(delayUntil.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
             .build();

@@ -33,6 +33,7 @@ import static org.mockito.Mockito.when;
 class CancellationTaskHandlerTest {
 
     private static final String DMN_NAME = "wa-task-cancellation-ia-asylum";
+    public static final String TENANT_ID = "ia";
     public static final String CANCEL_TASKS_MESSAGE_NAME = "cancelTasks";
 
     @Mock
@@ -50,8 +51,8 @@ class CancellationTaskHandlerTest {
         .previousStateId("some previous state")
         .jurisdictionId("ia")
         .caseTypeId("asylum")
-        .caseReference("some case reference")
-        .dateTime(LocalDateTime.now())
+        .caseId("some case reference")
+        .eventTimeStamp(LocalDateTime.now())
         .build();
 
 
@@ -70,14 +71,16 @@ class CancellationTaskHandlerTest {
 
         when(workflowApiClientToCancelTask.evaluateDmn(
             DMN_NAME,
-            requestParameters
+            requestParameters,
+            TENANT_ID
         )).thenReturn(new EvaluateDmnResponse<>(Collections.emptyList()));
 
         handlerService.evaluateDmn(eventInformation);
 
         verify(workflowApiClientToCancelTask).evaluateDmn(
             eq(DMN_NAME),
-            eq(requestParameters)
+            eq(requestParameters),
+            eq(TENANT_ID)
         );
 
     }

@@ -45,6 +45,8 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.
 class CaseEventHandlerControllerEndPointTest {
 
     public static final String S2S_TOKEN = "Bearer s2s token";
+    public static final String DMN_TABLE = "wa-task-initiation-ia-asylum";
+    public static final String TENANT_ID = "ia";
     public static final String INITIATE_DMN_TABLE = "wa-task-initiation-ia-asylum";
     public static final String CANCELLATION_DMN_TABLE = "wa-task-cancellation-ia-asylum";
 
@@ -84,9 +86,10 @@ class CaseEventHandlerControllerEndPointTest {
             new ResponseEntity<>(cancellationResponse, HttpStatus.OK);
 
         String cancellationEvaluateUrl = String.format(
-            "%s/workflow/decision-definition/key/%s/evaluate",
+            "%s/workflow/decision-definition/key/%s/tenant-id/%s/evaluate",
             workflowApiUrl,
-            CANCELLATION_DMN_TABLE
+            CANCELLATION_DMN_TABLE,
+            TENANT_ID
         );
         Mockito.when(restTemplate.exchange(
             eq(cancellationEvaluateUrl),
@@ -105,9 +108,10 @@ class CaseEventHandlerControllerEndPointTest {
             );
 
         String initiateEvaluateUrl = String.format(
-            "%s/workflow/decision-definition/key/%s/evaluate",
+            "%s/workflow/decision-definition/key/%s/tenant-id/%s/evaluate",
             workflowApiUrl,
-            INITIATE_DMN_TABLE
+            INITIATE_DMN_TABLE,
+            TENANT_ID
         );
         Mockito.when(restTemplate.exchange(
             eq(initiateEvaluateUrl),
@@ -132,8 +136,8 @@ class CaseEventHandlerControllerEndPointTest {
     private static Stream<Scenario> scenarioProvider() {
         EventInformation validEventInformation = EventInformation.builder()
             .eventInstanceId("some event instance Id")
-            .dateTime(LocalDateTime.now())
-            .caseReference("some case reference")
+            .eventTimeStamp(LocalDateTime.now())
+            .caseId("some case reference")
             .jurisdictionId("ia")
             .caseTypeId("asylum")
             .eventId("some event Id")
@@ -148,7 +152,7 @@ class CaseEventHandlerControllerEndPointTest {
 
         EventInformation invalidEventInformationBecauseMandatoryFieldCannotBeNull = EventInformation.builder()
             .eventInstanceId(null)
-            .caseReference("some case reference")
+            .caseId("some case reference")
             .jurisdictionId("somme jurisdiction Id")
             .caseTypeId("some case type Id")
             .eventId("some event Id")
@@ -163,7 +167,7 @@ class CaseEventHandlerControllerEndPointTest {
 
         EventInformation invalidEventInformationBecauseMandatoryFieldCannotBeEmpty = EventInformation.builder()
             .eventInstanceId("")
-            .caseReference("some case reference")
+            .caseId("some case reference")
             .jurisdictionId("somme jurisdiction Id")
             .caseTypeId("some case type Id")
             .eventId("some event Id")

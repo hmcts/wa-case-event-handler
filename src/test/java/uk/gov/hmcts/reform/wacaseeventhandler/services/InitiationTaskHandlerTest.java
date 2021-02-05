@@ -39,7 +39,7 @@ class InitiationTaskHandlerTest {
     public static final String INPUT_DATE = "2020-12-08T15:53:36.530377";
     public static final String EXPECTED_DATE = "2020-12-08T15:53:36.530377Z";
     private static final String DMN_NAME = "wa-task-initiation-ia-asylum";
-
+    public static final String TENANT_ID = "ia";
     @Mock
     private WorkflowApiClientToInitiateTask apiClientToInitiateTask;
 
@@ -60,8 +60,8 @@ class InitiationTaskHandlerTest {
         .newStateId("")
         .jurisdictionId("ia")
         .caseTypeId("asylum")
-        .caseReference("some case reference")
-        .dateTime(LocalDateTime.parse(INPUT_DATE))
+        .caseId("some case reference")
+        .eventTimeStamp(LocalDateTime.parse(INPUT_DATE))
         .build();
 
     @Test
@@ -70,12 +70,19 @@ class InitiationTaskHandlerTest {
         EvaluateDmnRequest<InitiateEvaluateRequest> requestParameters =
             InitiateTaskHelper.buildInitiateTaskDmnRequest();
 
-        Mockito.when(apiClientToInitiateTask.evaluateDmn(DMN_NAME, requestParameters))
-            .thenReturn(new EvaluateDmnResponse<>(Collections.emptyList()));
+        Mockito.when(apiClientToInitiateTask.evaluateDmn(
+            DMN_NAME,
+            requestParameters,
+            TENANT_ID
+        )).thenReturn(new EvaluateDmnResponse<>(Collections.emptyList()));
 
         handlerService.evaluateDmn(eventInformation);
 
-        Mockito.verify(apiClientToInitiateTask).evaluateDmn(eq(DMN_NAME), eq(requestParameters));
+        Mockito.verify(apiClientToInitiateTask).evaluateDmn(
+            eq(DMN_NAME),
+            eq(requestParameters),
+            eq(TENANT_ID)
+        );
     }
 
     @Test

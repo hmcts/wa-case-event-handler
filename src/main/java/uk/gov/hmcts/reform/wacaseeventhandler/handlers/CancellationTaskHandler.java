@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessage
 import java.util.List;
 
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.TASK_CANCELLATION;
+import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.TASK_INITIATION;
 
 @Service
 @Order(1)
@@ -34,13 +35,16 @@ public class CancellationTaskHandler implements CaseEventHandler {
             eventInformation.getCaseTypeId()
         );
 
+        String tenantId = TASK_INITIATION.getTenantId(eventInformation.getJurisdictionId());
+
+
         EvaluateDmnRequest<CancellationEvaluateRequest> requestParameters = getParameterRequest(
             eventInformation.getPreviousStateId(),
             eventInformation.getEventId(),
             eventInformation.getNewStateId()
         );
 
-        return workflowApiClientToCancelTask.evaluateDmn(tableKey, requestParameters).getResults();
+        return workflowApiClientToCancelTask.evaluateDmn(tableKey, requestParameters, tenantId).getResults();
     }
 
     private EvaluateDmnRequest<CancellationEvaluateRequest> getParameterRequest(
@@ -63,7 +67,7 @@ public class CancellationTaskHandler implements CaseEventHandler {
             .filter(result -> result instanceof CancellationEvaluateResponse)
             .map(result -> (CancellationEvaluateResponse) result)
             .forEach(cancellationEvaluateResponse -> sendMessageToCancelTasksForGivenCorrelations(
-                eventInformation.getCaseReference(),
+                eventInformation.getCaseId(),
                 cancellationEvaluateResponse.getTaskCategories().getValue()
             ));
     }
