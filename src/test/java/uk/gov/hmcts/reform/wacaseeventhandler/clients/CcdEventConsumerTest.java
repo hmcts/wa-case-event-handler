@@ -34,13 +34,10 @@ public class CcdEventConsumerTest {
     private ServiceBusSessionReceiverClient sessionReceiverClient;
 
     @Mock
-    private ServiceBusReceiverClient syncClient;
+    private ServiceBusReceiverClient receiverClient;
 
     @Mock
     private ServiceBusReceivedMessage messageStream;
-
-    @Mock
-    private IterableStream<ServiceBusReceivedMessage> iterableStream;
 
     private CcdEventConsumer underTest;
 
@@ -61,7 +58,7 @@ public class CcdEventConsumerTest {
 
     @Test
     void given_session_is_accepted_when_message_is_consumed() throws IOException {
-        when(sessionReceiverClient.acceptNextSession()).thenReturn(syncClient);
+        when(sessionReceiverClient.acceptNextSession()).thenReturn(receiverClient);
         when(messageStream.getBody()).thenReturn(BinaryData.fromBytes("testMessage".getBytes()));
 
         final Flux<ServiceBusReceivedMessage> iterableStreamFlux = Flux.<ServiceBusReceivedMessage>create(
@@ -70,21 +67,21 @@ public class CcdEventConsumerTest {
                 sink.complete();
             }).subscribeOn(Schedulers.single());
 
-        when(syncClient.receiveMessages(1)).thenReturn(new IterableStream<>(iterableStreamFlux));
+        when(receiverClient.receiveMessages(1)).thenReturn(new IterableStream<>(iterableStreamFlux));
 
         doNothing().when(processor).processMesssage(any());
 
-        doNothing().when(syncClient).complete(messageStream);
+        doNothing().when(receiverClient).complete(messageStream);
 
         underTest.consumeMessage(sessionReceiverClient);
 
         verify(processor, Mockito.times(1)).processMesssage("testMessage");
-        verify(syncClient, Mockito.times(1)).complete(messageStream);
+        verify(receiverClient, Mockito.times(1)).complete(messageStream);
     }
 
     @Test
     void given_session_is_accepted_when_invalid_message_consumed() throws IOException {
-        when(sessionReceiverClient.acceptNextSession()).thenReturn(syncClient);
+        when(sessionReceiverClient.acceptNextSession()).thenReturn(receiverClient);
         when(messageStream.getBody()).thenReturn(BinaryData.fromBytes("testMessage".getBytes()));
 
         final Flux<ServiceBusReceivedMessage> iterableStreamFlux = Flux.<ServiceBusReceivedMessage>create(
@@ -93,14 +90,14 @@ public class CcdEventConsumerTest {
                 sink.complete();
             }).subscribeOn(Schedulers.single());
 
-        when(syncClient.receiveMessages(1)).thenReturn(new IterableStream<>(iterableStreamFlux));
+        when(receiverClient.receiveMessages(1)).thenReturn(new IterableStream<>(iterableStreamFlux));
 
         doThrow(JsonProcessingException.class).when(processor).processMesssage(any());
 
         underTest.consumeMessage(sessionReceiverClient);
 
         verify(processor, Mockito.times(1)).processMesssage("testMessage");
-        verify(syncClient, Mockito.times(0)).complete(messageStream);
+        verify(receiverClient, Mockito.times(0)).complete(messageStream);
     }
 
 }
