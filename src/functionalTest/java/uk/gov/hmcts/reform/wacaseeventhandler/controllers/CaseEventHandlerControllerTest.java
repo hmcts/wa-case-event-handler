@@ -39,7 +39,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             taskIdDmnColumn
         );
 
-        waitSeconds(2);
         // create task2
         String caseIdForTask2 = UUID.randomUUID().toString();
         String task2Id = initiateTaskForGivenId(
@@ -49,14 +48,12 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             taskIdDmnColumn
         );
 
-        waitSeconds(2);
         // Then cancel the task1
         String eventToCancelTask = "submitReasonsForAppeal";
         String previousStateToCancelTask = "awaitingReasonsForAppeal";
         sendMessage(caseIdForTask1, eventToCancelTask, previousStateToCancelTask,
                     "", false);
 
-        waitSeconds(2);
         // Assert the task1 is deleted
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
         assertTaskDeleteReason(task1Id, "deleted");
@@ -82,14 +79,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             taskIdDmnColumn
         );
 
-        waitSeconds(2);
-
         // Then cancel the task1
         String eventToCancelTask = "uploadHomeOfficeBundle";
         String previousStateToCancelTask = "awaitingRespondentEvidence";
         sendMessage(caseIdForTask1, eventToCancelTask, previousStateToCancelTask, "", false);
-
-        waitSeconds(2);
 
         // Assert the task1 is deleted
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
@@ -110,11 +103,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         final String task1Id = initiateTaskForGivenId(caseIdForTask1, "requestRespondentEvidence",
                                                 "", "awaitingRespondentEvidence",
                                                 false, taskIdDmnColumn);
-        waitSeconds(2);
         // Then cancel the task1
         sendMessage(caseIdForTask1, "uploadHomeOfficeBundle", "awaitingRespondentEvidence", "", false);
-
-        waitSeconds(2);
 
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
         assertTaskDeleteReason(task1Id, "deleted");
@@ -128,12 +118,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         final String task1Id = initiateTaskForGivenId(caseIdForTask1, "requestCaseBuilding",
                                                 "", "caseBuilding",
                                                 true, taskIdDmnColumn);
-        waitSeconds(2);
-
         // Then cancel the task1
         sendMessage(caseIdForTask1, "submitCase", "caseBuilding", "", false);
-
-        waitSeconds(2);
 
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
         assertTaskDeleteReason(task1Id, "deleted");
@@ -210,6 +196,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         if (publisher != null) {
             publishMessageToTopic(eventInformation);
+
+            waitSeconds(2);
         } else {
             callRestEndpoint(eventInformation);
         }
@@ -248,7 +236,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             waitSeconds(1);
         }
 
-        waitSeconds(2);
         return findTaskForGivenCaseId(caseId, taskIdDmnColumn);
     }
 
