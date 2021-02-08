@@ -14,6 +14,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.ServiceBusConfiguration;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CcdMessageProcessor;
 
 import java.io.IOException;
@@ -25,7 +26,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class CcdEventConsumerTest {
+class CcdEventConsumerTest {
+
+    @Mock
+    private ServiceBusConfiguration serviceBusConfiguration;
 
     @Mock
     private CcdMessageProcessor processor;
@@ -43,12 +47,11 @@ public class CcdEventConsumerTest {
 
     @BeforeEach
     void setUp() {
-        underTest = new CcdEventConsumer(processor, "host",
-                                         "topic", "subscription", 1);
+        underTest = new CcdEventConsumer(serviceBusConfiguration, processor);
     }
 
     @Test
-    void given_session_is_accepted_when_receiver_thrown_error() throws IOException {
+    void given_session_is_accepted_when_receiver_throws_error() throws IOException {
         when(sessionReceiverClient.acceptNextSession()).thenThrow(IllegalStateException.class);
 
         underTest.consumeMessage(sessionReceiverClient);

@@ -1,18 +1,14 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
-import com.azure.core.amqp.AmqpRetryOptions;
-import com.azure.messaging.servicebus.ServiceBusClientBuilder;
 import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.ServiceBusConfiguration;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CcdMessageProcessor;
-
-import java.time.Duration;
 
 @Slf4j
 @Component
@@ -21,24 +17,14 @@ import java.time.Duration;
 @SuppressWarnings("PMD.DoNotUseThreads")
 public class CcdEventConsumer implements Runnable {
 
-    private final String hostName;
-    private final String topicName;
-    private final String subscriptionName;
-    private final int retryTime;
-
+    private final ServiceBusConfiguration serviceBusConfiguration;
     private final CcdMessageProcessor ccdMessageProcessor;
 
-    public CcdEventConsumer(CcdMessageProcessor ccdMessageProcessor,
-                            @Value("${azure.servicebus.host-name}") String hostName,
-                            @Value("${azure.servicebus.topic-name}") String topicName,
-                            @Value("${azure.servicebus.subscription-name}") String subscriptionName,
-                            @Value("${azure.servicebus.retry-duration}") int retryTime
+    public CcdEventConsumer(ServiceBusConfiguration serviceBusConfiguration,
+                            CcdMessageProcessor ccdMessageProcessor
     ) {
+        this.serviceBusConfiguration = serviceBusConfiguration;
         this.ccdMessageProcessor = ccdMessageProcessor;
-        this.hostName = hostName;
-        this.topicName = topicName;
-        this.subscriptionName = subscriptionName;
-        this.retryTime = retryTime;
     }
 
     @Override
@@ -72,14 +58,7 @@ public class CcdEventConsumer implements Runnable {
     }
 
     private ServiceBusSessionReceiverClient createSessionReceiver() {
-        return new ServiceBusClientBuilder()
-            .connectionString(hostName)
-            .retryOptions(new AmqpRetryOptions().setTryTimeout(
-                Duration.ofSeconds(retryTime)))
-            .sessionReceiver()
-            .topicName(topicName)
-            .subscriptionName(subscriptionName)
-            .buildClient();
+        return serviceBusConfiguration.createSessionReceiver();
     }
 
 }

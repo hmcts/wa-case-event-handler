@@ -13,7 +13,7 @@ import java.util.stream.IntStream;
 
 @Configuration
 @ConditionalOnProperty("azure.servicebus.enableASB")
-public class CcdEventConfiguration {
+public class CcdEventExecutor {
 
     @Value("${azure.servicebus.threads}")
     private int concurrentSessions;

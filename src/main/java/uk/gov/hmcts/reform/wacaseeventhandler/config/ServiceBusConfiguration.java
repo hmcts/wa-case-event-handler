@@ -1,0 +1,38 @@
+package uk.gov.hmcts.reform.wacaseeventhandler.config;
+
+import com.azure.core.amqp.AmqpRetryOptions;
+import com.azure.messaging.servicebus.ServiceBusClientBuilder;
+import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+import java.time.Duration;
+
+@Component
+@Scope("prototype")
+@ConditionalOnProperty("azure.servicebus.enableASB")
+public class ServiceBusConfiguration {
+
+    @Value("${azure.servicebus.host-name}")
+    private String hostName;
+    @Value("${azure.servicebus.topic-name}")
+    private String topicName;
+    @Value("${azure.servicebus.subscription-name}")
+    private String subscriptionName;
+    @Value("${azure.servicebus.retry-duration}")
+    private int retryTime;
+
+    public ServiceBusSessionReceiverClient createSessionReceiver() {
+        return new ServiceBusClientBuilder()
+            .connectionString(hostName)
+            .retryOptions(new AmqpRetryOptions().setTryTimeout(
+                Duration.ofSeconds(Integer.valueOf(retryTime))))
+            .sessionReceiver()
+            .topicName(topicName)
+            .subscriptionName(subscriptionName)
+            .buildClient();
+    }
+
+}
