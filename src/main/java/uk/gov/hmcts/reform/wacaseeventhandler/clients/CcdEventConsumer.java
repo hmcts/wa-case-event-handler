@@ -28,8 +28,9 @@ public class CcdEventConsumer implements Runnable {
     }
 
     @Override
+    @SuppressWarnings("squid:S2189")
     public void run() {
-        try (ServiceBusSessionReceiverClient sessionReceiver = createSessionReceiver()) {
+        try (ServiceBusSessionReceiverClient sessionReceiver = serviceBusConfiguration.createSessionReceiver()) {
             while (true) {
                 consumeMessage(sessionReceiver);
             }
@@ -57,8 +58,5 @@ public class CcdEventConsumer implements Runnable {
         }
     }
 
-    private ServiceBusSessionReceiverClient createSessionReceiver() {
-        return serviceBusConfiguration.createSessionReceiver();
-    }
 
 }
