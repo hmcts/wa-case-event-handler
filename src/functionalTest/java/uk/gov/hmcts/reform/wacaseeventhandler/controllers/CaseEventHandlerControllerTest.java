@@ -236,6 +236,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             waitSeconds(1);
         }
 
+        waitSeconds(2);
         return findTaskForGivenCaseId(caseId, taskIdDmnColumn);
     }
 
