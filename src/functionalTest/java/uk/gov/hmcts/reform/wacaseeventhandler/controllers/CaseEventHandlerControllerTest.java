@@ -4,7 +4,6 @@ import com.azure.messaging.servicebus.ServiceBusMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
@@ -25,7 +24,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     private String taskToTearDown;
 
     @Test
-    @Ignore
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_initiate_tasks_with_time_extension_category_then_cancel_task() {
         // Given multiple existing tasks
@@ -65,7 +63,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
-    @Ignore
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_initiate_tasks_with_follow_up_overdue_category_then_cancel_task() {
         // Given multiple existing tasks
@@ -107,20 +104,15 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
                                                 "", "awaitingRespondentEvidence",
                                                 false, taskIdDmnColumn);
 
-        log.info(String.format("Cancelling task for caseId : %s", caseIdForTask1));
         // Then cancel the task1
         sendMessage(caseIdForTask1, "uploadHomeOfficeBundle", "awaitingRespondentEvidence", "", false);
 
-        log.info(String.format("Task cancelled for caseId : %s", caseIdForTask1));
-
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
 
-        log.info(String.format("Task does not exist for caseId : %s", caseIdForTask1));
         assertTaskDeleteReason(task1Id, "deleted");
     }
 
     @Test
-    @Ignore
     public void given_initiated_tasks_with_delayTimer_toFuture_with_followup_overdue_than_cancel_task() {
         // create task1
         String caseIdForTask1 = UUID.randomUUID().toString();
@@ -136,7 +128,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
-    @Ignore
     public void given_initiated_tasks_with_delayTimer_toFuture_and_without_followup_overdue_then_complete_task() {
         String caseIdForTask2 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
@@ -148,7 +139,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
-    @Ignore
     public void given_initiated_tasks_with_delayTimer_toCurrentTime_and_without_followup_overdue_then_complete_task() {
         String caseIdForTask2 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
@@ -248,7 +238,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             waitSeconds(5);
         }
 
-        log.info(String.format("Message sent for caseId : %s", caseId));
         return findTaskForGivenCaseId(caseId, taskIdDmnColumn);
     }
 
