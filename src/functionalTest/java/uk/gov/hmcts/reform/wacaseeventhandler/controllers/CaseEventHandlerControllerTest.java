@@ -128,6 +128,44 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+    public void given_initiate_tasks_with_follow_up_overdue_category_then_warn_task() {
+        // Given multiple existing tasks
+
+        // create task1,
+        // notice this creates two tasks with the follow up category because the initiate dmn table
+        // has multiple rules matching this event and state.
+        String caseIdForTask1 = UUID.randomUUID().toString();
+        String taskIdDmnColumn = "allocateFtpaToJudge";
+        String task1Id = initiateTaskForGivenId(
+            caseIdForTask1,
+            "applyForFTPAAppellant",
+            "", "", false,
+            taskIdDmnColumn
+        );
+
+        waitSeconds(2);
+
+        // Then cancel the task1
+        String eventToWarnlTask = "uploadHomeOfficeBundle";
+        String previousStateToWarnlTask = "awaitingRespondentEvidence";
+        sendMessage(caseIdForTask1, eventToWarnlTask, previousStateToWarnlTask, "", false);
+
+        waitSeconds(2);
+
+        // Assert the task1 is deleted
+        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
+        assertTaskDeleteReason(task1Id, "warn");
+
+        // add tasks to tear down.
+        String taskCreatedAsResultOfTheMultipleDmnRule = findTaskForGivenCaseId(
+            caseIdForTask1,
+            "provideRespondentEvidence"
+        );
+        taskToTearDown = taskCreatedAsResultOfTheMultipleDmnRule;
+    }
+
+    @Test
     public void given_initiated_tasks_with_delayTimer_toFuture_and_without_followup_overdue_then_complete_task() {
         String caseIdForTask2 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
@@ -147,44 +185,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // add tasks to tear down.
         taskToTearDown = taskId;
-    }
-
-    @Test
-    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
-    public void given_initiate_tasks_with_follow_up_overdue_category_then_warn_task() {
-        // Given multiple existing tasks
-
-        // create task1,
-        // notice this creates two tasks with the follow up category because the initiate dmn table
-        // has multiple rules matching this event and state.
-        String caseIdForTask1 = UUID.randomUUID().toString();
-        String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
-        String task1Id = initiateTaskForGivenId(
-            caseIdForTask1,
-            "makeAnApplication",
-            "", "makeAnApplication", false,
-            taskIdDmnColumn
-        );
-
-        waitSeconds(2);
-
-        // Then warn the task1
-        String eventToWarnTask = "makeAnApplication";
-        String previousStateToWarnTask = "";
-        sendMessage(caseIdForTask1, eventToWarnTask, previousStateToWarnTask, "", false);
-
-        waitSeconds(2);
-
-        // Assert the task1 is deleted
-        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-        assertTaskDeleteReason(task1Id, "Warn");
-
-        // add tasks to tear down.
-        String taskCreatedAsResultOfTheMultipleDmnRule = findTaskForGivenCaseId(
-            caseIdForTask1,
-            "provideRespondentEvidence"
-        );
-        taskToTearDown = taskCreatedAsResultOfTheMultipleDmnRule;
     }
 
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
