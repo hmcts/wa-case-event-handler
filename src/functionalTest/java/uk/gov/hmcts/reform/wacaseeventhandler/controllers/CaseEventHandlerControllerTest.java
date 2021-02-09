@@ -149,6 +149,44 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         taskToTearDown = taskId;
     }
 
+    @Test
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+    public void given_initiate_tasks_with_follow_up_overdue_category_then_warn_task() {
+        // Given multiple existing tasks
+
+        // create task1,
+        // notice this creates two tasks with the follow up category because the initiate dmn table
+        // has multiple rules matching this event and state.
+        String caseIdForTask1 = UUID.randomUUID().toString();
+        String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
+        String task1Id = initiateTaskForGivenId(
+            caseIdForTask1,
+            "makeAnApplication",
+            "", "makeAnApplication", false,
+            taskIdDmnColumn
+        );
+
+        waitSeconds(2);
+
+        // Then warn the task1
+        String eventToWarnTask = "makeAnApplication";
+        String previousStateToWarnTask = "";
+        sendMessage(caseIdForTask1, eventToWarnTask, previousStateToWarnTask, "", false);
+
+        waitSeconds(2);
+
+        // Assert the task1 is deleted
+        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
+        assertTaskDeleteReason(task1Id, "Warn");
+
+        // add tasks to tear down.
+        String taskCreatedAsResultOfTheMultipleDmnRule = findTaskForGivenCaseId(
+            caseIdForTask1,
+            "provideRespondentEvidence"
+        );
+        taskToTearDown = taskCreatedAsResultOfTheMultipleDmnRule;
+    }
+
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
         given()
             .contentType(APPLICATION_JSON_VALUE)
