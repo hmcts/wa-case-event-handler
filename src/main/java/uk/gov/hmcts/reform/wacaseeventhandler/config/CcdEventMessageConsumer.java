@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.clients;
+package uk.gov.hmcts.reform.wacaseeventhandler.config;
 
 import com.azure.messaging.servicebus.ServiceBusErrorContext;
 import com.azure.messaging.servicebus.ServiceBusReceivedMessageContext;

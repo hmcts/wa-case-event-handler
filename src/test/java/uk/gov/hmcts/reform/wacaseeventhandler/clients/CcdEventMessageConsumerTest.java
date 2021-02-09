@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.CcdEventMessageConsumer;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CcdMessageProcessor;
 
 import static org.mockito.Mockito.doNothing;
