@@ -233,7 +233,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         // to expire. The task is delayed for 2 seconds,
         // so manually waiting for 5 seconds for process to start
         if (delayUntil) {
-            waitSeconds(5);
+            waitSeconds(10);
         } else {
             waitSeconds(5);
         }
