@@ -245,7 +245,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         if (delayUntil) {
             waitSeconds(5);
         } else {
-            waitSeconds(1);
+            waitSeconds(5);
         }
 
         log.info(String.format("Message sent for caseId : %s", caseId));
