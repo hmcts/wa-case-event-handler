@@ -4,20 +4,18 @@ import com.azure.messaging.servicebus.ServiceBusClientBuilder;
 import com.azure.messaging.servicebus.ServiceBusSenderClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PreDestroy;
 
 @Configuration
-@ConfigurationProperties()
-@ConditionalOnProperty("azure.enableASB")
-public class ServiceBusPublisherConfiguration {
+@ConditionalOnProperty("azure.servicebus.enableASB")
+public class CcdEventPublisherConfiguration {
 
-    @Value("${azure.host}")
+    @Value("${azure.servicebus.host-name}")
     private String host;
-    @Value("${azure.topic}")
+    @Value("${azure.servicebus.topic-name}")
     private String topic;
 
     private ServiceBusSenderClient publisher;
