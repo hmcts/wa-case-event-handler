@@ -107,15 +107,15 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
                                                 "", "awaitingRespondentEvidence",
                                                 false, taskIdDmnColumn);
 
-        log.info(String.format("Cancelling task for caseId : %s"), caseIdForTask1);
+        log.info(String.format("Cancelling task for caseId : %s", caseIdForTask1));
         // Then cancel the task1
         sendMessage(caseIdForTask1, "uploadHomeOfficeBundle", "awaitingRespondentEvidence", "", false);
 
-        log.info(String.format("Task cancelled for caseId : %s"), caseIdForTask1);
+        log.info(String.format("Task cancelled for caseId : %s", caseIdForTask1));
 
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
 
-        log.info(String.format("Task does not exist for caseId : %s"), caseIdForTask1);
+        log.info(String.format("Task does not exist for caseId : %s", caseIdForTask1));
         assertTaskDeleteReason(task1Id, "deleted");
     }
 
@@ -248,13 +248,13 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             waitSeconds(1);
         }
 
-        log.info(String.format("Message sent for caseId : %s"), caseId);
+        log.info(String.format("Message sent for caseId : %s", caseId));
         return findTaskForGivenCaseId(caseId, taskIdDmnColumn);
     }
 
     private String findTaskForGivenCaseId(String caseId, String taskIdDmnColumn) {
 
-        log.info(String.format("Finding task for caseId : %s"), caseId);
+        log.info(String.format("Finding task for caseId : %s", caseId));
         return given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
             .contentType(APPLICATION_JSON_VALUE)
