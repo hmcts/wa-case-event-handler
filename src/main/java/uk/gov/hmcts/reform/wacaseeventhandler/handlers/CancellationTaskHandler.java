@@ -2,16 +2,17 @@ package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToCancelTask;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationCorrelationKeys;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.WorkflowService;
 
 import java.util.List;
 
@@ -22,12 +23,13 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.T
 @Order(1)
 public class CancellationTaskHandler implements CaseEventHandler {
 
-    private final WorkflowApiClientToCancelTask workflowApiClientToCancelTask;
+    private final WorkflowService workflowService;
 
-    public CancellationTaskHandler(WorkflowApiClientToCancelTask workflowApiClientToCancelTask) {
-        this.workflowApiClientToCancelTask = workflowApiClientToCancelTask;
+    public CancellationTaskHandler(WorkflowService workflowService) {
+        this.workflowService = workflowService;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<CancellationEvaluateResponse> evaluateDmn(EventInformation eventInformation) {
         String tableKey = TASK_CANCELLATION.getTableKey(
@@ -44,7 +46,8 @@ public class CancellationTaskHandler implements CaseEventHandler {
             eventInformation.getNewStateId()
         );
 
-        return workflowApiClientToCancelTask.evaluateDmn(tableKey, requestParameters, tenantId).getResults();
+        EvaluateDmnResponse<? extends EvaluateResponse> response = workflowService.evaluateDmn(tableKey, tenantId, requestParameters);
+        return (List<CancellationEvaluateResponse>) response.getResults();
     }
 
     private EvaluateDmnRequest<CancellationEvaluateRequest> getParameterRequest(
@@ -73,7 +76,7 @@ public class CancellationTaskHandler implements CaseEventHandler {
     }
 
     private void sendMessageToCancelTasksForGivenCorrelations(String caseReference, String category) {
-        workflowApiClientToCancelTask.sendMessage(buildSendMessageRequest(category, caseReference));
+        workflowService.sendMessage(buildSendMessageRequest(category, caseReference));
     }
 
     private SendMessageRequest<ProcessVariables, CancellationCorrelationKeys> buildSendMessageRequest(
@@ -83,9 +86,9 @@ public class CancellationTaskHandler implements CaseEventHandler {
         return SendMessageRequest.<ProcessVariables, CancellationCorrelationKeys>builder()
             .messageName(TASK_CANCELLATION.getMessageName())
             .correlationKeys(CancellationCorrelationKeys.builder()
-                                 .caseId(new DmnStringValue(caseReference))
-                                 .taskCategory(new DmnStringValue(taskCategory))
-                                 .build())
+                .caseId(new DmnStringValue(caseReference))
+                .taskCategory(new DmnStringValue(taskCategory))
+                .build())
             .build();
     }
 

@@ -23,10 +23,11 @@ public class CcdMessageProcessor {
     }
 
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-    public void processMesssage(String message) throws JsonProcessingException {
+    public void processMessage(String message) throws JsonProcessingException {
         EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
         log.info(String.format("Message received from topic: %s", eventInformation.toString()));
 
+        //Create idempotent key with caseId
         for (CaseEventHandler handler : handlerServices) {
             List<? extends EvaluateResponse> results = handler.evaluateDmn(eventInformation);
             if (!results.isEmpty()) {

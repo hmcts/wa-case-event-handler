@@ -2,11 +2,11 @@ package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.CorrelationKeys;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnIntegerValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.Initi
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateProcessVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.WorkflowService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 
 import java.time.ZonedDateTime;
@@ -26,17 +27,19 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.T
 @Order(3)
 public class InitiationTaskHandler implements CaseEventHandler {
 
-    private final WorkflowApiClientToInitiateTask apiClientToInitiateTask;
+    private final WorkflowService workflowService;
     private final IsoDateFormatter isoDateFormatter;
     private final DueDateService dueDateService;
 
-    public InitiationTaskHandler(WorkflowApiClientToInitiateTask apiClientToInitiateTask,
-                                 IsoDateFormatter isoDateFormatter, DueDateService dueDateService) {
-        this.apiClientToInitiateTask = apiClientToInitiateTask;
+    public InitiationTaskHandler(WorkflowService workflowService,
+                                 IsoDateFormatter isoDateFormatter,
+                                 DueDateService dueDateService) {
+        this.workflowService = workflowService;
         this.isoDateFormatter = isoDateFormatter;
         this.dueDateService = dueDateService;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public List<InitiateEvaluateResponse> evaluateDmn(EventInformation eventInformation) {
         String tableKey = TASK_INITIATION.getTableKey(
@@ -51,8 +54,8 @@ public class InitiationTaskHandler implements CaseEventHandler {
             eventInformation.getNewStateId()
         );
 
-        return apiClientToInitiateTask.evaluateDmn(tableKey, requestParameters,tenantId).getResults();
-    }
+        EvaluateDmnResponse<? extends EvaluateResponse> response = workflowService.evaluateDmn(tableKey, tenantId, requestParameters);
+        return (List<InitiateEvaluateResponse>) response.getResults();    }
 
     private EvaluateDmnRequest<InitiateEvaluateRequest> getParameterRequest(
         String eventId,
@@ -71,7 +74,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
         results.stream()
             .filter(result -> result instanceof InitiateEvaluateResponse)
             .map(result -> (InitiateEvaluateResponse) result)
-            .forEach(initiateEvaluateResponse -> apiClientToInitiateTask.sendMessage(
+            .forEach(initiateEvaluateResponse -> workflowService.sendMessage(
                 buildSendMessageRequest(initiateEvaluateResponse, eventInformation)
             ));
     }

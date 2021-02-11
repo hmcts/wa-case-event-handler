@@ -47,7 +47,7 @@ public class CcdEventConsumer implements Runnable {
                                               new String(message.getBody().toBytes()),
                                               Thread.currentThread().getName()
                             );
-                            ccdMessageProcessor.processMesssage(new String(message.getBody().toBytes()));
+                            ccdMessageProcessor.processMessage(new String(message.getBody().toBytes()));
                             receiver.complete(message);
                         } catch (JsonProcessingException exp) {
                             log.error("Unable to parse event", exp);
