@@ -15,10 +15,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessage
 import static java.util.Objects.requireNonNull;
 
 @Service
-@SuppressWarnings({
-    "PMD.DataflowAnomalyAnalysis", "PMD.LawOfDemeter",
-    "PMD.AvoidDuplicateLiterals", "PMD.TooManyMethods", "PMD.UseConcurrentHashMap",
-    "PMD.ExcessiveImports"})
 public class WorkflowService {
 
     private final WorkflowApi workflowApi;
