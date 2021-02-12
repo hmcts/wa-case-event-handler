@@ -4,6 +4,7 @@ import com.microsoft.applicationinsights.boot.dependencies.apachecommons.codec.d
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Locale;
 import java.util.Objects;
 
 @Slf4j
@@ -15,7 +16,7 @@ public class IdempotencyKeyGenerator {
         Objects.requireNonNull(messageId, "messageId cannot be null");
         Objects.requireNonNull(eventId, "eventId cannot be null");
         String concatenatedString = messageId + eventId;
-        String idempotencyKey = DigestUtils.md5Hex(concatenatedString).toUpperCase();
+        String idempotencyKey = DigestUtils.md5Hex(concatenatedString).toUpperCase(Locale.ENGLISH);
         log.debug("Idempotency key generated: {}", idempotencyKey);
         return idempotencyKey;
     }
