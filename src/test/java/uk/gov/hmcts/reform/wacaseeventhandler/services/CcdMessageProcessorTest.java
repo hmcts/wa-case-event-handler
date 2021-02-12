@@ -44,7 +44,7 @@ public class CcdMessageProcessorTest {
         when(mapper.readValue(incomingMessage, EventInformation.class))
             .thenReturn(buildMessage());
 
-        processor.processMesssage(incomingMessage);
+        processor.processMessage(incomingMessage);
 
         verify(mapper, Mockito.times(1))
             .readValue(incomingMessage, EventInformation.class);
@@ -63,7 +63,7 @@ public class CcdMessageProcessorTest {
         when(mapper.readValue(incomingMessage, EventInformation.class))
             .thenReturn(buildMessage());
 
-        processor.processMesssage(incomingMessage);
+        processor.processMessage(incomingMessage);
 
         verify(mapper, Mockito.times(1))
             .readValue(incomingMessage, EventInformation.class);

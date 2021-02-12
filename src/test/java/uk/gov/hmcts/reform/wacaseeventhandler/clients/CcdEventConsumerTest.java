@@ -56,7 +56,7 @@ class CcdEventConsumerTest {
 
         underTest.consumeMessage(sessionReceiverClient);
 
-        verify(processor, Mockito.times(0)).processMesssage("testMessage");
+        verify(processor, Mockito.times(0)).processMessage("testMessage");
     }
 
     @Test
@@ -72,13 +72,13 @@ class CcdEventConsumerTest {
 
         when(receiverClient.receiveMessages(1)).thenReturn(new IterableStream<>(iterableStreamFlux));
 
-        doNothing().when(processor).processMesssage(any());
+        doNothing().when(processor).processMessage(any());
 
         doNothing().when(receiverClient).complete(messageStream);
 
         underTest.consumeMessage(sessionReceiverClient);
 
-        verify(processor, Mockito.times(1)).processMesssage("testMessage");
+        verify(processor, Mockito.times(1)).processMessage("testMessage");
         verify(receiverClient, Mockito.times(1)).complete(messageStream);
     }
 
@@ -95,11 +95,11 @@ class CcdEventConsumerTest {
 
         when(receiverClient.receiveMessages(1)).thenReturn(new IterableStream<>(iterableStreamFlux));
 
-        doThrow(JsonProcessingException.class).when(processor).processMesssage(any());
+        doThrow(JsonProcessingException.class).when(processor).processMessage(any());
 
         underTest.consumeMessage(sessionReceiverClient);
 
-        verify(processor, Mockito.times(1)).processMesssage("testMessage");
+        verify(processor, Mockito.times(1)).processMessage("testMessage");
         verify(receiverClient, Mockito.times(0)).complete(messageStream);
     }
 
