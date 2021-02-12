@@ -262,9 +262,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
                         .header(SERVICE_AUTHORIZATION, s2sToken)
                         .contentType(APPLICATION_JSON_VALUE)
                         .baseUri(camundaUrl)
-                        .basePath("/task" + filter)
                         .when()
-                        .get();
+                        .get("/task" + filter);
 
                     result.then()
                         .body("size()", is(1))
