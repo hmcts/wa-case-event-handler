@@ -14,12 +14,16 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.*;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.CorrelationKeys;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
 
@@ -84,8 +88,8 @@ class WorkflowApiClientToInitiateTaskTest {
         return new HttpEntity<>(requestParameters, headers);
     }
 
-    private HttpEntity<SendMessageRequest<? extends ProcessVariables, ? extends CorrelationKeys>> getExpectedSendEntity() {
-
+    private HttpEntity<SendMessageRequest<? extends ProcessVariables,
+        ? extends CorrelationKeys>> getExpectedSendEntity() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("ServiceAuthorization", BEARER_S_2_S_TOKEN);
@@ -122,7 +126,7 @@ class WorkflowApiClientToInitiateTaskTest {
             .thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
 
         ResponseEntity<Void> actualResponse = client.sendMessage(
-           new SendMessageRequest<>(
+            new SendMessageRequest<>(
                "warnTask",
                null,
                null

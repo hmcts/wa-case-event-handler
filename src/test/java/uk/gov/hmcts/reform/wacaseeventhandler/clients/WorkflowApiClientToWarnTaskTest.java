@@ -16,9 +16,12 @@ import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.CorrelationKeys;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -94,8 +97,43 @@ import static org.mockito.Mockito.when;
         );
     }
 
+    private HttpEntity<SendMessageRequest<? extends ProcessVariables,
+        ? extends CorrelationKeys>> getExpectedSendEntity() {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("ServiceAuthorization", BEARER_S_2_S_TOKEN);
+
+        return new HttpEntity<>(new SendMessageRequest<>("warnTask",null, null), headers);
+    }
+
+    private String getExpectedSendMessageUrl() {
+        return String.format(
+            "%s/workflow/message",
+            HTTP_WORKFLOW_API_URL
+        );
+    }
+
+
     @Test
     void sendMessage() {
+        when(authTokenGenerator.generate()).thenReturn(BEARER_S_2_S_TOKEN);
+
+        when(restTemplate.exchange(
+            eq(getExpectedSendMessageUrl()),
+            eq(HttpMethod.POST),
+            eq(getExpectedSendEntity()),
+            eq(Void.class)
+        ))
+            .thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
+
+        ResponseEntity<Void> actualResponse = client.sendMessage(
+            new SendMessageRequest<>(
+                "warnTask",
+                null,
+                null
+            )
+        );
     }
 }
 
