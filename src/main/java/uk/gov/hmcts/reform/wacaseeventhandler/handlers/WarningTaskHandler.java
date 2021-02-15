@@ -18,7 +18,7 @@ import java.util.List;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.TASK_WARN;
 
 @Service
-@Order(3)
+@Order(4)
 public class WarningTaskHandler implements CaseEventHandler {
 
     private final WorkflowApiClientToWarnTask workflowApiClientToWarnTask;
