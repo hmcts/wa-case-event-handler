@@ -10,8 +10,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.ServiceBusConfiguration;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdMessageLogger;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdMessageProcessor;
+import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CcdEventException;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventLogger;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.DeadLetterService;
 
 import java.util.Map;
@@ -30,16 +31,16 @@ public class CcdEventConsumer implements Runnable {
 
     private final int retryAttempts;
     private final ServiceBusConfiguration serviceBusConfiguration;
-    private final CcdMessageProcessor ccdMessageProcessor;
+    private final CcdEventProcessor ccdEventProcessor;
     private final DeadLetterService deadLetterService;
 
     public CcdEventConsumer(ServiceBusConfiguration serviceBusConfiguration,
-                            CcdMessageProcessor ccdMessageProcessor,
+                            CcdEventProcessor ccdEventProcessor,
                             DeadLetterService deadLetterService,
                             @Value("${azure.servicebus.retry-attempts}") int retryAttempts
     ) {
         this.serviceBusConfiguration = serviceBusConfiguration;
-        this.ccdMessageProcessor = ccdMessageProcessor;
+        this.ccdEventProcessor = ccdEventProcessor;
         this.deadLetterService = deadLetterService;
         this.retryAttempts = retryAttempts;
     }
@@ -66,14 +67,14 @@ public class CcdEventConsumer implements Runnable {
                         try {
                             log.info(String.format("Processing case details: %s", loggerMsg));
 
-                            ccdMessageProcessor.processMesssage(incomingMessage);
+                            ccdEventProcessor.processMesssage(incomingMessage);
                             receiver.complete(message);
 
                             log.info(String.format("Processing completed successfully: "
                                                        + "on case details %s", loggerMsg));
                         } catch (JsonProcessingException exp) {
                             handleJsonError(receiver, message, loggerMsg, incomingMessage, exp);
-                        } catch (RuntimeException exp) {
+                        } catch (CcdEventException exp) {
                             handleApplicationError(receiver, message, loggerMsg, incomingMessage, exp);
                         }
                     });
@@ -113,7 +114,7 @@ public class CcdEventConsumer implements Runnable {
     private String getLoggerMsg(ServiceBusReceivedMessage message) {
         final Map<String, Object> msgProperties = message.getApplicationProperties();
 
-        return CcdMessageLogger.builder()
+        return CcdEventLogger.builder()
             .caseId((String) msgProperties.get(CASE_ID))
             .eventId((String) msgProperties.get(EVENT_ID))
             .jurisdictionId((String) msgProperties.get(JURISDICTION_ID))

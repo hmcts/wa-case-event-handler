@@ -5,7 +5,7 @@ import pl.pojo.tester.api.assertion.Method;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-public class DeadLetterMessageTest {
+class DeadLetterMessageTest {
 
     private final Class classToTest = DeadLetterMessage.class;
 

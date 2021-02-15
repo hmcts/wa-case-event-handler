@@ -18,7 +18,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.ServiceBusConfiguration;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdMessageProcessor;
+import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CcdEventException;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.DeadLetterService;
 
 import java.io.IOException;
@@ -35,7 +36,7 @@ class CcdEventConsumerTest {
     @Mock
     private ServiceBusConfiguration serviceBusConfiguration;
     @Mock
-    private CcdMessageProcessor processor;
+    private CcdEventProcessor processor;
     @Mock
     private ServiceBusSessionReceiverClient sessionReceiverClient;
     @Mock
@@ -110,7 +111,7 @@ class CcdEventConsumerTest {
         when(amqpAnnotatedMessage.getHeader()).thenReturn(header);
         when(header.getDeliveryCount()).thenReturn(1L);
 
-        doThrow(RuntimeException.class).when(processor).processMesssage(any());
+        doThrow(CcdEventException.class).when(processor).processMesssage(any());
 
         doNothing().when(receiverClient).abandon(any());
 
@@ -132,7 +133,7 @@ class CcdEventConsumerTest {
 
         when(deadLetterService.handleApplicationError(any(), any())).thenReturn(new DeadLetterOptions());
 
-        doThrow(RuntimeException.class).when(processor).processMesssage(any());
+        doThrow(CcdEventException.class).when(processor).processMesssage(any());
 
         doNothing().when(receiverClient).deadLetter(any(), any());
 

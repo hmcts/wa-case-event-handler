@@ -20,7 +20,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class DeadLetterServiceTest {
+class DeadLetterServiceTest {
 
     @Mock
     private ObjectMapper mapper;

@@ -5,7 +5,7 @@ import lombok.ToString;
 
 @Builder
 @ToString
-public class CcdMessageLogger {
+public class CcdEventLogger {
 
     private String caseId;
     private String caseTypeId;
