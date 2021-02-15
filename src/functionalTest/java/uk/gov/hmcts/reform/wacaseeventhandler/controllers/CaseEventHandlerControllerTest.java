@@ -127,76 +127,76 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertTaskDeleteReason(task1Id, "deleted");
     }
 
-    //@Test
-    //@SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
-    //public void given_initiate_tasks_with_follow_up_overdue_category_then_warn_task() {
-    //    // Given multiple existing tasks
-    //
-    //    // create task1,
-    //    // notice this creates two tasks with the follow up category because the initiate dmn table
-    //    String caseIdForTask1 = UUID.randomUUID().toString();
-    //    String taskIdDmnColumn = "allocateFtpaToJudge";
-    //    String task1Id = initiateTaskForGivenId(
-    //        caseIdForTask1,
-    //        "applyForFTPAAppellant",
-    //        "", "", false,
-    //        taskIdDmnColumn
-    //    );
-    //
-    //    waitSeconds(2);
-    //
-    //    // Then warn the task1
-    //    String eventToWarnlTask = "uploadHomeOfficeBundle";
-    //    String previousStateToWarnlTask = "awaitingRespondentEvidence";
-    //    sendMessage(caseIdForTask1, eventToWarnlTask, previousStateToWarnlTask, "", false);
-    //
-    //    waitSeconds(2);
-    //
-    //    // Assert the task1 is deleted
-    //    assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-    //    assertTaskDeleteReason(task1Id, "warn");
-    //
-    //    // add tasks to tear down.
-    //    String taskCreatedAsResultOfTheMultipleDmnRule = findTaskForGivenCaseId(
-    //        caseIdForTask1,
-    //        "provideRespondentEvidence"
-    //    );
-    //    taskToTearDown = taskCreatedAsResultOfTheMultipleDmnRule;
-    //}
+    @Test
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+    public void given_initiate_tasks_with_follow_up_overdue_category_then_warn_task() {
+        // Given multiple existing tasks
 
-    //@Test
-    //@SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
-    //public void given_initiate_tasks_with_follow_up_overdue_category_then_warn_task_with_no() {
-    //    // Given multiple existing tasks
-    //
-    //    // create task1,
-    //    // notice this creates two tasks with the follow up category because the initiate dmn table
-    //    String caseIdForTask1 = UUID.randomUUID().toString();
-    //    String taskIdDmnColumn = "allocateFtpaToJudge";
-    //    String task1Id = initiateTaskForGivenId(
-    //        caseIdForTask1,
-    //        "applyForFTPAAppellant",
-    //        "", "", false,
-    //        taskIdDmnColumn
-    //    );
-    //
-    //    waitSeconds(2);
-    //
-    //    sendMessage(caseIdForTask1, "applyForFTPAAppellant",
-    //                "", "makeAnApplication", false);
-    //
-    //    // Assert the task1 is warn
-    //    assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-    //    assertTaskDeleteReason(task1Id, "warn");
-    //
-    //    // add tasks to tear down.
-    //    String taskCreatedAsResultOfTheMultipleDmnRule = findTaskForGivenCaseId(
-    //        caseIdForTask1,
-    //        "provideRespondentEvidence"
-    //    );
-    //
-    //    taskToTearDown = taskCreatedAsResultOfTheMultipleDmnRule;
-    //}
+        // create task1,
+        // notice this creates two tasks with the follow up category because the initiate dmn table
+        String caseIdForTask1 = UUID.randomUUID().toString();
+        String taskIdDmnColumn = "allocateFtpaToJudge";
+        String task1Id = initiateTaskForGivenId(
+            caseIdForTask1,
+            "applyForFTPAAppellant",
+            "", "", false,
+            taskIdDmnColumn
+        );
+
+        waitSeconds(2);
+
+        // Then warn the task1
+        String eventToWarnlTask = "uploadHomeOfficeBundle";
+        String previousStateToWarnlTask = "awaitingRespondentEvidence";
+        sendMessage(caseIdForTask1, eventToWarnlTask, previousStateToWarnlTask, "", false);
+
+        waitSeconds(2);
+
+        // Assert the task1 is deleted
+        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
+        assertTaskDeleteReason(task1Id, "warn");
+
+        // add tasks to tear down.
+        String taskCreatedAsResultOfTheMultipleDmnRule = findTaskForGivenCaseId(
+            caseIdForTask1,
+            "provideRespondentEvidence"
+        );
+        taskToTearDown = taskCreatedAsResultOfTheMultipleDmnRule;
+    }
+
+    @Test
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+    public void given_initiate_tasks_with_follow_up_overdue_category_then_warn_task_with_no() {
+        // Given multiple existing tasks
+
+        // create task1,
+        // notice this creates two tasks with the follow up category because the initiate dmn table
+        String caseIdForTask1 = UUID.randomUUID().toString();
+        String taskIdDmnColumn = "allocateFtpaToJudge";
+        String task1Id = initiateTaskForGivenId(
+            caseIdForTask1,
+            "applyForFTPAAppellant",
+            "", "", false,
+            taskIdDmnColumn
+        );
+
+        waitSeconds(2);
+
+        sendMessage(caseIdForTask1, "applyForFTPAAppellant",
+                    "", "makeAnApplication", false);
+
+        // Assert the task1 is warn
+        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
+        assertTaskDeleteReason(task1Id, "warn");
+
+        // add tasks to tear down.
+        String taskCreatedAsResultOfTheMultipleDmnRule = findTaskForGivenCaseId(
+            caseIdForTask1,
+            "provideRespondentEvidence"
+        );
+
+        taskToTearDown = taskCreatedAsResultOfTheMultipleDmnRule;
+    }
 
     @Test
     public void given_initiated_tasks_with_delayTimer_toFuture_and_without_followup_overdue_then_complete_task() {

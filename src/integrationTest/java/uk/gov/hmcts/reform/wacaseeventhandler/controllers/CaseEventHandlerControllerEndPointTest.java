@@ -27,7 +27,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringVa
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
-//import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 
 import java.time.LocalDateTime;
@@ -72,7 +72,7 @@ class CaseEventHandlerControllerEndPointTest {
     private void mockRestTemplate() {
         mockInitiateHandler();
         mockCancellationHandler();
-        //mockWarningHandler();
+        mockWarningHandler();
     }
 
     private void mockCancellationHandler() {
@@ -102,30 +102,30 @@ class CaseEventHandlerControllerEndPointTest {
     }
 
 
-    //private void mockWarningHandler() {
-    //    List<WarningResponse> results = List.of(new WarningResponse(
-    //        new DmnStringValue("some action"),
-    //        new DmnStringValue("some category")
-    //    ));
-    //    EvaluateDmnResponse<WarningResponse> cancellationResponse =
-    //        new EvaluateDmnResponse<>(results);
-    //
-    //    ResponseEntity<EvaluateDmnResponse<WarningResponse>> responseEntity =
-    //        new ResponseEntity<>(cancellationResponse, HttpStatus.OK);
-    //
-    //    String cancellationEvaluateUrl = String.format(
-    //        "%s/workflow/decision-definition/key/%s/evaluate",
-    //        workflowApiUrl,
-    //        CANCELLATION_DMN_TABLE
-    //    );
-    //    Mockito.when(restTemplate.exchange(
-    //        eq(cancellationEvaluateUrl),
-    //        eq(HttpMethod.POST),
-    //        ArgumentMatchers.<HttpEntity<List<HttpHeaders>>>any(),
-    //        ArgumentMatchers
-    //            .<ParameterizedTypeReference<EvaluateDmnResponse<WarningResponse>>>any())
-    //    ).thenReturn(responseEntity);
-    //}
+    private void mockWarningHandler() {
+        List<WarningResponse> results = List.of(new WarningResponse(
+            new DmnStringValue("some action"),
+            new DmnStringValue("some category")
+        ));
+        EvaluateDmnResponse<WarningResponse> cancellationResponse =
+            new EvaluateDmnResponse<>(results);
+
+        ResponseEntity<EvaluateDmnResponse<WarningResponse>> responseEntity =
+            new ResponseEntity<>(cancellationResponse, HttpStatus.OK);
+
+        String cancellationEvaluateUrl = String.format(
+            "%s/workflow/decision-definition/key/%s/evaluate",
+            workflowApiUrl,
+            CANCELLATION_DMN_TABLE
+        );
+        Mockito.when(restTemplate.exchange(
+            eq(cancellationEvaluateUrl),
+            eq(HttpMethod.POST),
+            ArgumentMatchers.<HttpEntity<List<HttpHeaders>>>any(),
+            ArgumentMatchers
+                .<ParameterizedTypeReference<EvaluateDmnResponse<WarningResponse>>>any())
+        ).thenReturn(responseEntity);
+    }
 
     private ResponseEntity<EvaluateDmnResponse<InitiateEvaluateResponse>> mockInitiateHandler() {
         ResponseEntity<EvaluateDmnResponse<InitiateEvaluateResponse>> responseEntity =
