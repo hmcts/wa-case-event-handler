@@ -6,7 +6,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,6 +15,9 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInform
 
 import java.time.LocalDateTime;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
@@ -32,7 +34,7 @@ class DeadLetterServiceTest {
         .newStateId("")
         .jurisdictionId("ia")
         .caseTypeId("asylum")
-        .caseId("some case reference")
+        .caseId("caseId")
         .eventTimeStamp(LocalDateTime.now())
         .build();
 
@@ -43,25 +45,29 @@ class DeadLetterServiceTest {
 
     @Test
     void test_handle_parsing_error() throws JsonProcessingException {
-        String exception = "Parsing Error";
-
         when(mapper.writeValueAsString(any())).thenReturn("DeadLetter Description");
 
         final DeadLetterOptions deadLetterOptions = deadLetterService.handleParsingError(
-            "testMessage", exception
+            "testMessage", "Parsing Error"
         );
 
-        Assertions.assertNotNull(deadLetterOptions);
-        Assertions.assertEquals("MessageDeserializationError", deadLetterOptions.getDeadLetterReason());
-        Assertions.assertNotNull(deadLetterOptions.getDeadLetterErrorDescription());
+        assertNotNull(deadLetterOptions);
+        assertEquals("MessageDeserializationError", deadLetterOptions.getDeadLetterReason());
+        assertNotNull(deadLetterOptions.getDeadLetterErrorDescription());
     }
 
     @Test
     void test_handle_parsing_error_with_json_exception() throws JsonProcessingException {
         when(mapper.writeValueAsString(any())).thenThrow(JsonParseException.class);
 
-        Assertions.assertThrows(RuntimeException.class, () -> deadLetterService
-            .handleParsingError("testMessage", "Parsing Error"));
+        final DeadLetterOptions deadLetterOptions = deadLetterService.handleParsingError(
+            "testMessage", "Parsing Error"
+        );
+
+        assertNotNull(deadLetterOptions);
+        assertEquals("MessageDeserializationError", deadLetterOptions.getDeadLetterReason());
+        assertEquals("Unable to deserialize receivedMessage",
+                                deadLetterOptions.getDeadLetterErrorDescription());
     }
 
     @Test
@@ -69,14 +75,14 @@ class DeadLetterServiceTest {
         String event = createEvent();
 
         when(mapper.readValue(event, EventInformation.class)).thenReturn(eventInformation);
-        when(mapper.writeValueAsString(any())).thenReturn("DeadLetter Description");
+        when(mapper.writeValueAsString(any())).thenReturn(event);
 
         final DeadLetterOptions deadLetterOptions = deadLetterService
             .handleApplicationError(event, "Downstream Error");
 
-        Assertions.assertNotNull(deadLetterOptions);
-        Assertions.assertEquals("ApplicationProcessingError", deadLetterOptions.getDeadLetterReason());
-        Assertions.assertNotNull(deadLetterOptions.getDeadLetterErrorDescription());
+        assertNotNull(deadLetterOptions);
+        assertEquals("ApplicationProcessingError", deadLetterOptions.getDeadLetterReason());
+        assertTrue(deadLetterOptions.getDeadLetterErrorDescription().contains("caseId"));
     }
 
     @Test
@@ -86,8 +92,13 @@ class DeadLetterServiceTest {
         when(mapper.readValue(event, EventInformation.class)).thenReturn(eventInformation);
         when(mapper.writeValueAsString(any())).thenThrow(JsonParseException.class);
 
-        Assertions.assertThrows(RuntimeException.class, () -> deadLetterService
-            .handleApplicationError(event, "Downstream Error"));
+        final DeadLetterOptions deadLetterOptions = deadLetterService
+            .handleApplicationError(event, "Downstream Error");
+
+        assertNotNull(deadLetterOptions);
+        assertEquals("ApplicationProcessingError", deadLetterOptions.getDeadLetterReason());
+        assertEquals("Unable to deserialize receivedMessage",
+                                deadLetterOptions.getDeadLetterErrorDescription());
     }
 
     private String createEvent() throws JsonProcessingException {

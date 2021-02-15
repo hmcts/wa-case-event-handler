@@ -9,8 +9,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.ServiceBusConfiguration;
-import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CcdEventException;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventLogger;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.DeadLetterService;
@@ -70,11 +71,11 @@ public class CcdEventConsumer implements Runnable {
                             ccdEventProcessor.processMesssage(incomingMessage);
                             receiver.complete(message);
 
-                            log.info(String.format("Processing completed successfully: "
-                                                       + "on case details %s", loggerMsg));
+                            log.info(String.format("Processing completed successfully"
+                                                       + " on case details: %s", loggerMsg));
                         } catch (JsonProcessingException exp) {
                             handleJsonError(receiver, message, loggerMsg, incomingMessage, exp);
-                        } catch (CcdEventException exp) {
+                        } catch (ResourceAccessException exp) {
                             handleApplicationError(receiver, message, loggerMsg, incomingMessage, exp);
                         }
                     });
@@ -85,18 +86,18 @@ public class CcdEventConsumer implements Runnable {
 
     private void handleJsonError(ServiceBusReceiverClient receiver, ServiceBusReceivedMessage message,
                                  String loggerMsg, String incomingMessage, JsonProcessingException exp) {
-        log.error(String.format("Unable to parse incoming message: %s on case details %s",
+        log.error(String.format("Unable to parse incoming message: %s on case details: %s",
                                 incomingMessage, loggerMsg
         ), exp);
 
         receiver.deadLetter(message, deadLetterService
-
             .handleParsingError(incomingMessage, exp.getMessage()));
+
         log.warn(String.format("Dead lettering: %s", loggerMsg));
     }
 
     private void handleApplicationError(ServiceBusReceiverClient receiver, ServiceBusReceivedMessage message,
-                                        String loggerMsg, String incomingMessage, RuntimeException exp) {
+                                        String loggerMsg, String incomingMessage, RestClientException exp) {
         log.error(String.format("Unable to process case details: %s", loggerMsg), exp);
 
         final Long deliveryCount = message.getRawAmqpMessage().getHeader().getDeliveryCount();

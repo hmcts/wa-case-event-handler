@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
-import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CcdEventException;
 
 @Slf4j
 @Service
@@ -14,6 +13,7 @@ public class DeadLetterService {
 
     private static final String MESSAGE_DESERIALIZATION_ERROR = "MessageDeserializationError";
     private static final String APPLICATION_PROCESSING_ERROR = "ApplicationProcessingError";
+    public static final String UNABLE_TO_DESERIALIZE_RECEIVED_MESSAGE = "Unable to deserialize receivedMessage";
 
     private final ObjectMapper objectMapper;
 
@@ -31,7 +31,8 @@ public class DeadLetterService {
             return createResponse(APPLICATION_PROCESSING_ERROR, deadLetterDescription);
         } catch (JsonProcessingException exp) {
             //should not come here. Have to catch exception from json
-            throw new CcdEventException("Unable to deserialize receivedMessage", exp);
+            log.error(UNABLE_TO_DESERIALIZE_RECEIVED_MESSAGE, exp);
+            return createResponse(APPLICATION_PROCESSING_ERROR, UNABLE_TO_DESERIALIZE_RECEIVED_MESSAGE);
         }
     }
 
@@ -43,8 +44,8 @@ public class DeadLetterService {
             return createResponse(MESSAGE_DESERIALIZATION_ERROR, deadLetterDescription);
         } catch (JsonProcessingException exp) {
             //should not come here. Have to catch exception from json
-            log.error("Unable to serialize DeadLetterMessage", exp);
-            throw new CcdEventException("Unable to deserialize receivedMessage", exp);
+            log.error(UNABLE_TO_DESERIALIZE_RECEIVED_MESSAGE, exp);
+            return createResponse(MESSAGE_DESERIALIZATION_ERROR, UNABLE_TO_DESERIALIZE_RECEIVED_MESSAGE);
         }
     }
 

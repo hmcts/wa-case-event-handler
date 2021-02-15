@@ -15,10 +15,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.client.ResourceAccessException;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.ServiceBusConfiguration;
-import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CcdEventException;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.DeadLetterService;
 
@@ -111,7 +111,7 @@ class CcdEventConsumerTest {
         when(amqpAnnotatedMessage.getHeader()).thenReturn(header);
         when(header.getDeliveryCount()).thenReturn(1L);
 
-        doThrow(CcdEventException.class).when(processor).processMesssage(any());
+        doThrow(ResourceAccessException.class).when(processor).processMesssage(any());
 
         doNothing().when(receiverClient).abandon(any());
 
@@ -133,7 +133,7 @@ class CcdEventConsumerTest {
 
         when(deadLetterService.handleApplicationError(any(), any())).thenReturn(new DeadLetterOptions());
 
-        doThrow(CcdEventException.class).when(processor).processMesssage(any());
+        doThrow(ResourceAccessException.class).when(processor).processMesssage(any());
 
         doNothing().when(receiverClient).deadLetter(any(), any());
 
