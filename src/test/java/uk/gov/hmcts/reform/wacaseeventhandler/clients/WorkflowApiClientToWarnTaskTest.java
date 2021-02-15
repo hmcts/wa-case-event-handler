@@ -58,11 +58,11 @@ import static org.mockito.Mockito.when;
         when(authTokenGenerator.generate()).thenReturn(BEARER_S_2_S_TOKEN);
 
         when(restTemplate.exchange(
-            eq(getExpectedUrl()),
-            eq(HttpMethod.POST),
-            eq(getExpectedEntity()),
-            eq(new ParameterizedTypeReference<EvaluateDmnResponse<WarningResponse>>() {
-            })
+            getExpectedUrl(),
+            HttpMethod.POST,
+            getExpectedEntity(),
+            new ParameterizedTypeReference<EvaluateDmnResponse<WarningResponse>>() {
+            }
         ))
             .thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
 
@@ -120,10 +120,10 @@ import static org.mockito.Mockito.when;
         when(authTokenGenerator.generate()).thenReturn(BEARER_S_2_S_TOKEN);
 
         when(restTemplate.exchange(
-            eq(getExpectedSendMessageUrl()),
-            eq(HttpMethod.POST),
-            eq(getExpectedSendEntity()),
-            eq(Void.class)
+            getExpectedSendMessageUrl(),
+            HttpMethod.POST,
+            getExpectedSendEntity(),
+            Void.class
         ))
             .thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
 
@@ -134,6 +134,8 @@ import static org.mockito.Mockito.when;
                 null
             )
         );
+
+        assertThat(actualResponse.getStatusCode().is2xxSuccessful());
     }
 }
 
