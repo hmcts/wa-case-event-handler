@@ -12,7 +12,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInform
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
