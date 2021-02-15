@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
+import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
 import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -71,27 +72,9 @@ public class CcdEventConsumer implements Runnable {
                             log.info(String.format("Processing completed successfully: "
                                                        + "on case details %s", loggerMsg));
                         } catch (JsonProcessingException exp) {
-                            log.error(String.format("Unable to parse incoming message: %s on case details %s",
-                                                    incomingMessage, loggerMsg), exp);
-
-                            receiver.deadLetter(message, deadLetterService
-
-                                .handleParsingError(incomingMessage, exp.getMessage()));
-                            log.warn(String.format("Dead lettering: %s", loggerMsg));
+                            handleJsonError(receiver, message, loggerMsg, incomingMessage, exp);
                         } catch (RuntimeException exp) {
-                            log.error(String.format("Unable to process case details: %s", loggerMsg), exp);
-
-                            final Long deliveryCount = message.getRawAmqpMessage().getHeader().getDeliveryCount();
-                            if (deliveryCount >= retryAttempts) {
-                                receiver.deadLetter(message, deadLetterService
-                                    .handleApplicationError(incomingMessage, exp.getMessage()));
-
-                                log.warn(String.format("Max delivery count reached. Dead Lettering: %s", loggerMsg));
-                            } else {
-                                receiver.abandon(message);
-                                log.warn(String.format("Retrying to process case details: %s", loggerMsg));
-                            }
-
+                            handleApplicationError(receiver, message, loggerMsg, incomingMessage, exp);
                         }
                     });
         } catch (IllegalStateException exp) {
@@ -99,7 +82,35 @@ public class CcdEventConsumer implements Runnable {
         }
     }
 
-    private String getLoggerMsg(com.azure.messaging.servicebus.ServiceBusReceivedMessage message) {
+    private void handleJsonError(ServiceBusReceiverClient receiver, ServiceBusReceivedMessage message,
+                                 String loggerMsg, String incomingMessage, JsonProcessingException exp) {
+        log.error(String.format("Unable to parse incoming message: %s on case details %s",
+                                incomingMessage, loggerMsg
+        ), exp);
+
+        receiver.deadLetter(message, deadLetterService
+
+            .handleParsingError(incomingMessage, exp.getMessage()));
+        log.warn(String.format("Dead lettering: %s", loggerMsg));
+    }
+
+    private void handleApplicationError(ServiceBusReceiverClient receiver, ServiceBusReceivedMessage message,
+                                        String loggerMsg, String incomingMessage, RuntimeException exp) {
+        log.error(String.format("Unable to process case details: %s", loggerMsg), exp);
+
+        final Long deliveryCount = message.getRawAmqpMessage().getHeader().getDeliveryCount();
+        if (deliveryCount >= retryAttempts) {
+            receiver.deadLetter(message, deadLetterService
+                .handleApplicationError(incomingMessage, exp.getMessage()));
+
+            log.warn(String.format("Max delivery count reached. Dead Lettering: %s", loggerMsg));
+        } else {
+            receiver.abandon(message);
+            log.warn(String.format("Retrying to process case details: %s", loggerMsg));
+        }
+    }
+
+    private String getLoggerMsg(ServiceBusReceivedMessage message) {
         final Map<String, Object> msgProperties = message.getApplicationProperties();
 
         return CcdMessageLogger.builder()
