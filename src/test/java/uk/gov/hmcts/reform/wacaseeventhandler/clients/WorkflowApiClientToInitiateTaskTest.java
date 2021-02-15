@@ -106,31 +106,4 @@ class WorkflowApiClientToInitiateTaskTest {
         );
     }
 
-    private String getExpectedSendMessageUrl() {
-        return String.format(
-            "%s/workflow/message",
-            HTTP_WORKFLOW_API_URL
-        );
-    }
-
-    @Test
-    void sendMessage() {
-        when(authTokenGenerator.generate()).thenReturn(BEARER_S_2_S_TOKEN);
-
-        when(restTemplate.exchange(
-            eq(getExpectedSendMessageUrl()),
-            eq(HttpMethod.POST),
-            eq(getExpectedSendEntity()),
-            eq(Void.class)
-        ))
-            .thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
-
-        ResponseEntity<Void> actualResponse = client.sendMessage(
-            new SendMessageRequest<>(
-               "warnTask",
-               null,
-               null
-           )
-        );
-    }
 }
