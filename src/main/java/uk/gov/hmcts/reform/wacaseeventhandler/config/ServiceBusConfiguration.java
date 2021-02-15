@@ -36,11 +36,7 @@ public class ServiceBusConfiguration {
 
     private AmqpRetryOptions retryOptions() {
         AmqpRetryOptions retryOptions = new AmqpRetryOptions();
-        //retryOptions.setMaxRetries(3);
         retryOptions.setTryTimeout(Duration.ofSeconds(Integer.valueOf(retryTime)));
-        //retryOptions.setDelay(Duration.ofSeconds(5));
-        //retryOptions.setMaxDelay(Duration.ofMinutes(1));
-        //retryOptions.setMode(AmqpRetryMode.FIXED);
 
         return retryOptions;
     }
