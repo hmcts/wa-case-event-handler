@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInform
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -199,6 +200,42 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+    public void given_initiate_tasks_with_follow_up_overdue_category_then_warn_task_with_no_to_yes() {
+        // Given multiple existing tasks
+
+        // create task1,
+        // notice this creates two tasks with the follow up category because the initiate dmn table
+        String caseIdForTask1 = UUID.randomUUID().toString();
+        String taskIdDmnColumn = "allocateFtpaToJudge";
+        String task1Id = initiateTaskForGivenId(
+            caseIdForTask1,
+            "applyForFTPAAppellant",
+            "", "", false,
+            taskIdDmnColumn
+        );
+
+        waitSeconds(2);
+        assertTaskHasWarnings(caseIdForTask1,taskIdDmnColumn,false);
+
+        sendMessage(caseIdForTask1, "applyForFTPAAppellant",
+                    "", "makeAnApplication", false);
+
+        // Assert the task1 is warn
+        assertTaskHasWarnings(caseIdForTask1,taskIdDmnColumn,true);
+        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
+        assertTaskDeleteReason(task1Id, "warn");
+
+        // add tasks to tear down.
+        String taskCreatedAsResultOfTheMultipleDmnRule = findTaskForGivenCaseId(
+            caseIdForTask1,
+            "provideRespondentEvidence"
+        );
+
+        taskToTearDown = taskCreatedAsResultOfTheMultipleDmnRule;
+    }
+
+    @Test
     public void given_initiated_tasks_with_delayTimer_toFuture_and_without_followup_overdue_then_complete_task() {
         String caseIdForTask2 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
@@ -246,6 +283,22 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .get()
             .then()
             .body("size()", is(0));
+    }
+
+    private void assertTaskHasWarnings(String caseId, String taskIdDmnColumn, boolean hasWarningValue) {
+        given()
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .contentType(APPLICATION_JSON_VALUE)
+            .baseUri(camundaUrl)
+            .basePath("/task")
+            .param(
+                "processVariables",
+                "caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn
+            )
+            .when()
+            .get()
+            .then()
+            .body("[0].hasWarnings", is(hasWarningValue));
     }
 
     private void sendMessage(String caseId, String event, String previousStateId,
