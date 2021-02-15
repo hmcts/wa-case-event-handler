@@ -71,18 +71,18 @@ class CaseEventHandlerControllerTest {
 
         InOrder inOrder = inOrder(
             cancellationTaskHandlerService,
-            warningTaskHandlerService,
-            initiationTaskHandlerService
+            initiationTaskHandlerService,
+            warningTaskHandlerService
         );
 
         inOrder.verify(cancellationTaskHandlerService).evaluateDmn(any(EventInformation.class));
         inOrder.verify(cancellationTaskHandlerService).handle(anyList(), eq(eventInformation));
 
-        inOrder.verify(warningTaskHandlerService).evaluateDmn(any(EventInformation.class));
-        inOrder.verify(warningTaskHandlerService).handle(anyList(), eq(eventInformation));
-
         inOrder.verify(initiationTaskHandlerService).evaluateDmn(any(EventInformation.class));
         inOrder.verify(initiationTaskHandlerService).handle(anyList(), eq(eventInformation));
+
+        inOrder.verify(warningTaskHandlerService).evaluateDmn(any(EventInformation.class));
+        inOrder.verify(warningTaskHandlerService).handle(anyList(), eq(eventInformation));
 
     }
 }
