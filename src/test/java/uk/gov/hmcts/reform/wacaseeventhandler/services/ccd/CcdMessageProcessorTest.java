@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.services;
+package uk.gov.hmcts.reform.wacaseeventhandler.services.ccd;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

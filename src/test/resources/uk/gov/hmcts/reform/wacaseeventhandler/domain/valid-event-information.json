@@ -1,10 +1,10 @@
 {
-  "eventInstanceId" : "some event instance Id",
-  "eventTimeStamp" : "2020-12-07T17:39:22.232622",
-  "caseId" : "some case reference",
-  "jurisdictionId" : "ia",
-  "caseTypeId" : "asylum",
-  "eventId" : "some event Id",
-  "newStateId" : "some new state Id",
-  "userId" : "some user Id"
+  "EventInstanceId" : "some event instance Id",
+  "EventTimeStamp" : "2020-12-07T17:39:22.232622",
+  "CaseId" : "some case reference",
+  "JurisdictionId" : "ia",
+  "CaseTypeId" : "asylum",
+  "EventId" : "some event Id",
+  "NewStateId" : "some new state Id",
+  "UserId" : "some user Id"
 }

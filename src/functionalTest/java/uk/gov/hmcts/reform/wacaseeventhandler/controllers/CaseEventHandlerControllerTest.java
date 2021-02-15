@@ -149,6 +149,16 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         taskToTearDown = taskId;
     }
 
+    @Test
+    public void given_invalid_ccd_event_when_consumed_message_deadlettered() {
+        if (publisher != null) {
+            ServiceBusMessage message = new ServiceBusMessage("testMessage");
+            message.setSessionId(UUID.randomUUID().toString());
+
+            publisher.sendMessage(message);
+        }
+    }
+
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
         given()
             .contentType(APPLICATION_JSON_VALUE)
