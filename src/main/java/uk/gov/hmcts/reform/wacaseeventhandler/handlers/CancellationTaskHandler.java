@@ -19,7 +19,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.T
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.TASK_INITIATION;
 
 @Service
-@Order(1)
+@Order(2)
 public class CancellationTaskHandler implements CaseEventHandler {
 
     private final WorkflowApiClientToCancelTask workflowApiClientToCancelTask;
