@@ -9,10 +9,10 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.C
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
-//import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CancellationTaskHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.InitiationTaskHandler;
-//import uk.gov.hmcts.reform.wacaseeventhandler.handlers.WarningTaskHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.handlers.WarningTaskHandler;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,8 +26,8 @@ import static org.mockito.Mockito.inOrder;
 @SpringBootTest(classes = {
     CaseEventHandlerController.class,
     CancellationTaskHandler.class,
-    InitiationTaskHandler.class
-    //WarningTaskHandler.class
+    InitiationTaskHandler.class,
+    WarningTaskHandler.class
 })
 class CaseEventHandlerControllerTest {
 
@@ -38,8 +38,8 @@ class CaseEventHandlerControllerTest {
     @MockBean
     private InitiationTaskHandler initiationTaskHandlerService;
 
-    //@MockBean
-    //private WarningTaskHandler warningTaskHandlerService;
+    @MockBean
+    private WarningTaskHandler warningTaskHandlerService;
 
     @Autowired
     private CaseEventHandlerController controller;
@@ -53,8 +53,8 @@ class CaseEventHandlerControllerTest {
         given(cancellationTaskHandlerService.evaluateDmn(any(EventInformation.class)))
             .willReturn(List.of(new CancellationEvaluateResponse(cancelAction, taskCategory)));
 
-        //given(warningTaskHandlerService.evaluateDmn(any(EventInformation.class)))
-        //    .willReturn(List.of(new WarningResponse(warnAction,taskCategory)));
+        given(warningTaskHandlerService.evaluateDmn(any(EventInformation.class)))
+            .willReturn(List.of(new WarningResponse(warnAction,taskCategory)));
 
         given(initiationTaskHandlerService.evaluateDmn(any(EventInformation.class)))
             .willReturn(List.of(InitiateEvaluateResponse.builder().build()));
@@ -71,15 +71,15 @@ class CaseEventHandlerControllerTest {
 
         InOrder inOrder = inOrder(
             cancellationTaskHandlerService,
-            //warningTaskHandlerService,
+            warningTaskHandlerService,
             initiationTaskHandlerService
         );
 
         inOrder.verify(cancellationTaskHandlerService).evaluateDmn(any(EventInformation.class));
         inOrder.verify(cancellationTaskHandlerService).handle(anyList(), eq(eventInformation));
-        //
-        //inOrder.verify(warningTaskHandlerService).evaluateDmn(any(EventInformation.class));
-        //inOrder.verify(warningTaskHandlerService).handle(anyList(), eq(eventInformation));
+
+        inOrder.verify(warningTaskHandlerService).evaluateDmn(any(EventInformation.class));
+        inOrder.verify(warningTaskHandlerService).handle(anyList(), eq(eventInformation));
 
         inOrder.verify(initiationTaskHandlerService).evaluateDmn(any(EventInformation.class));
         inOrder.verify(initiationTaskHandlerService).handle(anyList(), eq(eventInformation));

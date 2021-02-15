@@ -34,6 +34,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -73,6 +74,7 @@ class CaseEventHandlerControllerEndPointTest {
         mockInitiateHandler();
         mockCancellationHandler();
         mockWarningHandler();
+        mockWarningHandlerWithFalse();
     }
 
     private void mockCancellationHandler() {
@@ -125,6 +127,38 @@ class CaseEventHandlerControllerEndPointTest {
             ArgumentMatchers
                 .<ParameterizedTypeReference<EvaluateDmnResponse<WarningResponse>>>any())
         ).thenReturn(responseEntity);
+    }
+
+    private void mockWarningHandlerWithFalse() {
+        List<WarningResponse> results = List.of(new WarningResponse(
+            new DmnStringValue("Warn"),
+            new DmnStringValue("some task cat")
+        ));
+        EvaluateDmnResponse<WarningResponse> cancellationResponse =
+            new EvaluateDmnResponse<>(results);
+
+        ResponseEntity<EvaluateDmnResponse<WarningResponse>> responseEntity =
+            new ResponseEntity<>(cancellationResponse, HttpStatus.OK);
+
+        String cancellationEvaluateUrl = String.format(
+            "%s/workflow/decision-definition/key/%s/evaluate",
+            workflowApiUrl,
+            CANCELLATION_DMN_TABLE
+        );
+        Mockito.when(restTemplate.exchange(
+            eq(cancellationEvaluateUrl),
+            eq(HttpMethod.POST),
+            ArgumentMatchers.<HttpEntity<List<HttpHeaders>>>any(),
+            ArgumentMatchers
+                .<ParameterizedTypeReference<EvaluateDmnResponse<WarningResponse>>>any())
+        ).thenReturn(responseEntity);
+
+        assertThat("Warn").isEqualTo(
+            responseEntity.getBody()
+                .getResults()
+                .get(0)
+                .getAction()
+                .getValue());
     }
 
     private ResponseEntity<EvaluateDmnResponse<InitiateEvaluateResponse>> mockInitiateHandler() {
