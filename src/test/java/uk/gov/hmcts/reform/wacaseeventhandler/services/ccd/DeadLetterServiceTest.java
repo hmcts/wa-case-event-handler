@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
@@ -53,7 +52,7 @@ class DeadLetterServiceTest {
 
         assertNotNull(deadLetterOptions);
         assertEquals("MessageDeserializationError", deadLetterOptions.getDeadLetterReason());
-        assertNotNull(deadLetterOptions.getDeadLetterErrorDescription());
+        assertEquals("DeadLetter Description", deadLetterOptions.getDeadLetterErrorDescription());
     }
 
     @Test
@@ -82,7 +81,7 @@ class DeadLetterServiceTest {
 
         assertNotNull(deadLetterOptions);
         assertEquals("ApplicationProcessingError", deadLetterOptions.getDeadLetterReason());
-        assertTrue(deadLetterOptions.getDeadLetterErrorDescription().contains("caseId"));
+        assertEquals(event, deadLetterOptions.getDeadLetterErrorDescription());
     }
 
     @Test
