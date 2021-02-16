@@ -41,8 +41,10 @@ public class WarningTaskHandler implements CaseEventHandler {
             eventInformation.getNewStateId()
         );
 
-        return workflowApiClientToWarnTask.evaluateDmn(tableKey,
+        var evaluateDmnResponse = workflowApiClientToWarnTask.evaluateDmn(tableKey,
                                                        requestParameters, "ia").getResults();
+
+        return evaluateDmnResponse;
     }
 
     private EvaluateDmnRequest<CancellationEvaluateRequest> getParameterRequest(
@@ -64,16 +66,14 @@ public class WarningTaskHandler implements CaseEventHandler {
         results.stream()
             .filter(result -> result instanceof WarningResponse)
             .filter(result -> ((WarningResponse) result).getAction().getValue().equals("Warn"))
-            .map(WarningResponse.class::cast)
+            .map(result -> (WarningResponse) result)
             .forEach(cancellationEvaluateResponse -> workflowApiClientToWarnTask.sendMessage(
                 buildSendMessageRequest(
-                    null,
-                eventInformation.getCaseId()
-            )));
+                    eventInformation.getCaseId()
+                )));
     }
 
     private SendMessageRequest<ProcessVariables, CancellationCorrelationKeys> buildSendMessageRequest(
-        String taskCategory,
         String caseReference
     ) {
         return SendMessageRequest.<ProcessVariables, CancellationCorrelationKeys>builder()

@@ -89,10 +89,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertTaskDeleteReason(task1Id, "deleted");
 
         // add tasks to tear down.
-        taskToTearDown = findTaskForGivenCaseId(
+        String taskCreatedAsResultOfTheMultipleDmnRule = findTaskForGivenCaseId(
             caseIdForTask1,
             "provideRespondentEvidence"
         );
+        taskToTearDown = taskCreatedAsResultOfTheMultipleDmnRule;
     }
 
     @Test
@@ -128,44 +129,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
-    public void given_initiate_tasks_with_follow_up_overdue_category_then_warn_task() {
-        // Given multiple existing tasks
-
-        // create task1,
-        // notice this creates two tasks with the follow up category because the initiate dmn table
-        String caseIdForTask1 = UUID.randomUUID().toString();
-        String taskIdDmnColumn = "allocateFtpaToJudge";
-        String task1Id = initiateTaskForGivenId(
-            caseIdForTask1,
-            "applyForFTPAAppellant",
-            "", "", false,
-            taskIdDmnColumn
-        );
-
-        waitSeconds(10);
-
-        // Then warn the task1
-        String eventToWarnlTask = "makeAnApplication";
-        String previousStateToWarnlTask = "awaitingRespondentEvidence";
-//        assertTaskHasWarnings(caseIdForTask1,taskIdDmnColumn,true);
-        sendMessage(caseIdForTask1, eventToWarnlTask, "", "", false);
-
-//        waitSeconds(10);
-
-        // Assert the task1 is deleted
-//        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-//        assertTaskDeleteReason(task1Id, "warn");
-
-        // add tasks to tear down.
-//        String taskCreatedAsResultOfTheMultipleDmnRule = findTaskForGivenCaseId(
-//            caseIdForTask1,
-//            "provideRespondentEvidence"
-//        );
-//        taskToTearDown = taskCreatedAsResultOfTheMultipleDmnRule;
-    }
-
-    @Test
-    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_initiate_tasks_with_follow_up_overdue_category_then_warn_task_with_no() {
         // Given multiple existing tasks
 
@@ -176,27 +139,19 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String task1Id = initiateTaskForGivenId(
             caseIdForTask1,
             "applyForFTPAAppellant",
-            "", "", false,
+            "", "", true,
             taskIdDmnColumn
         );
 
-        waitSeconds(2);
-        assertTaskHasWarnings(caseIdForTask1,taskIdDmnColumn,false);
 
-        sendMessage(caseIdForTask1, "applyForFTPAAppellant",
-                    "", "makeAnApplication", false);
+        sendMessage(caseIdForTask1, "makeAnApplication",
+                    "", "", false);
 
+        waitSeconds(10);
+
+        assertTaskHasWarnings(caseIdForTask1,task1Id,false);
         // Assert the task1 is warn
-        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-        assertTaskDeleteReason(task1Id, "warn");
 
-        // add tasks to tear down.
-        String taskCreatedAsResultOfTheMultipleDmnRule = findTaskForGivenCaseId(
-            caseIdForTask1,
-            "provideRespondentEvidence"
-        );
-
-        taskToTearDown = taskCreatedAsResultOfTheMultipleDmnRule;
     }
 
     @Test
@@ -249,20 +204,17 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("size()", is(0));
     }
 
-    private void assertTaskHasWarnings(String caseId, String taskIdDmnColumn, boolean hasWarningValue) {
+    private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
         given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
             .contentType(APPLICATION_JSON_VALUE)
             .baseUri(camundaUrl)
             .basePath("/task")
-            .param(
-                "processVariables",
-                "caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn
-            )
             .when()
-            .get()
+            .get("/{id}/variables", taskId)
+            .prettyPeek()
             .then()
-            .body("[0].hasWarnings", is(hasWarningValue));
+            .body("hasWarnings.value", is(hasWarningValue));
     }
 
     private void sendMessage(String caseId, String event, String previousStateId,
