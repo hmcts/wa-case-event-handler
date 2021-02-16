@@ -35,8 +35,7 @@ public class CancellationTaskHandler implements CaseEventHandler {
             eventInformation.getCaseTypeId()
         );
 
-        String tenantId = TASK_INITIATION.getTenantId(eventInformation.getJurisdictionId());
-
+        String tenantId = eventInformation.getJurisdictionId();
 
         EvaluateDmnRequest<CancellationEvaluateRequest> requestParameters = getParameterRequest(
             eventInformation.getPreviousStateId(),
@@ -65,11 +64,16 @@ public class CancellationTaskHandler implements CaseEventHandler {
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
         results.stream()
             .filter(result -> result instanceof CancellationEvaluateResponse)
+            .filter(result -> ((CancellationEvaluateResponse) result).getAction().getValue().equals("Cancel"))
             .map(result -> (CancellationEvaluateResponse) result)
-            .forEach(cancellationEvaluateResponse -> sendMessageToCancelTasksForGivenCorrelations(
-                eventInformation.getCaseId(),
-                cancellationEvaluateResponse.getTaskCategories().getValue()
-            ));
+            .forEach(cancellationEvaluateResponse -> {
+                DmnStringValue taskCategories = cancellationEvaluateResponse.getTaskCategories();
+                String value = taskCategories.getValue();
+                sendMessageToCancelTasksForGivenCorrelations(
+                    eventInformation.getCaseId(),
+                    value
+                );
+            });
     }
 
     private void sendMessageToCancelTasksForGivenCorrelations(String caseReference, String category) {

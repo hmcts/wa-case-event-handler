@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToWarnTask;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationCorrelationKeys;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateResponse;
@@ -62,11 +63,12 @@ public class WarningTaskHandler implements CaseEventHandler {
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
         results.stream()
             .filter(result -> result instanceof WarningResponse)
+            .filter(result -> ((WarningResponse) result).getAction().getValue().equals("Warn"))
             .map(WarningResponse.class::cast)
             .forEach(cancellationEvaluateResponse -> workflowApiClientToWarnTask.sendMessage(
                 buildSendMessageRequest(
                     null,
-                cancellationEvaluateResponse.getAction().getValue()
+                eventInformation.getCaseId()
             )));
     }
 
@@ -78,7 +80,6 @@ public class WarningTaskHandler implements CaseEventHandler {
             .messageName(TASK_WARN.getMessageName())
             .correlationKeys(CancellationCorrelationKeys.builder()
                                  .caseId(new DmnStringValue(caseReference))
-                                 .taskCategory(new DmnStringValue(taskCategory))
                                  .build())
             .build();
     }
