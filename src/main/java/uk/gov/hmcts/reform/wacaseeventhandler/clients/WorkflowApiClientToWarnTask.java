@@ -52,7 +52,7 @@ public class WorkflowApiClientToWarnTask implements WorkflowApiClient {
             String.format("%s/workflow/decision-definition/key/%s/tenant-id/%s/evaluate", workflowApiUrl, key,tenantId),
             HttpMethod.POST,
             new HttpEntity<>(requestParameters, buildHttpHeader()),
-            new ParameterizedTypeReference<>(   ) {
+            new ParameterizedTypeReference<>() {
             }
         ).getBody();
     }
