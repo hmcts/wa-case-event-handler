@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
-import org.springframework.core.annotation.Order;
+/*import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToWarnTask;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationCorrelationKeys;
@@ -82,6 +82,6 @@ public class WarningTaskHandler implements CaseEventHandler {
                                  .build())
             .build();
     }
-}
+}*/
 
 
