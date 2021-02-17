@@ -19,6 +19,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.T
 
 @Service
 @Order(1)
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class CancellationTaskHandler implements CaseEventHandler {
 
     private final WorkflowApiClientToCancelTask workflowApiClientToCancelTask;

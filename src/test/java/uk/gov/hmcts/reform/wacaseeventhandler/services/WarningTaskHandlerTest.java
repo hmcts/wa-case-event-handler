@@ -105,10 +105,11 @@ class WarningTaskHandlerTest {
             DMN_NAME,
             requestParameters,
             TENANT_ID
-        )).thenReturn(new EvaluateDmnResponse<WarningResponse>
-                                  (List.of(new WarningResponse(
-                                      new DmnStringValue("testValue"),
-                                      new DmnStringValue("testCategory")))));
+        )).thenReturn(new EvaluateDmnResponse<WarningResponse>(List.of(new WarningResponse(
+            new DmnStringValue("testValue"),
+            new DmnStringValue("testCategory"))
+                              ))
+        );
 
         List<? extends EvaluateResponse> response = handlerService.evaluateDmn(eventInformation);
 
