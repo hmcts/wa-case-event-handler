@@ -40,10 +40,9 @@ public class WarningTaskHandler implements CaseEventHandler {
             eventInformation.getNewStateId()
         );
 
-        var evaluateDmnResponse = workflowApiClientToWarnTask.evaluateDmn(tableKey,
+        return workflowApiClientToWarnTask.evaluateDmn(tableKey,
                                                        requestParameters, "ia").getResults();
 
-        return evaluateDmnResponse;
     }
 
     private EvaluateDmnRequest<CancellationEvaluateRequest> getParameterRequest(

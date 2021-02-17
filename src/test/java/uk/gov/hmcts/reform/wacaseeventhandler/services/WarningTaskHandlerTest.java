@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class WarningTaskHandlerTest {
 
-    private static final String DMN_NAME = "wa-task-initiation-ia-asylum";
+    private static final String DMN_NAME = "wa-task-cancellation-ia-asylum";
     public static final String TENANT_ID = "ia";
     public static final String WARN_TASKS_MESSAGE_NAME = "warnProcess";
 
@@ -105,7 +105,7 @@ class WarningTaskHandlerTest {
             DMN_NAME,
             requestParameters,
             TENANT_ID
-        )).thenReturn(new EvaluateDmnResponse<>(List.of(new WarningResponse(new DmnStringValue("testValue"),
+        )).thenReturn(new EvaluateDmnResponse<WarningResponse>(List.of(new WarningResponse(new DmnStringValue("testValue"),
                                                                             new DmnStringValue("testCategory")))));
 
         List<? extends EvaluateResponse> response = handlerService.evaluateDmn(eventInformation);
@@ -170,8 +170,7 @@ class WarningTaskHandlerTest {
 
         assertThat(sendMessageRequest.getCorrelationKeys())
             .isEqualTo(CancellationCorrelationKeys.builder()
-                           .caseId(new DmnStringValue("Warn"))
-                           .taskCategory(new DmnStringValue(null))
+                           .caseId(new DmnStringValue("some case reference"))
                            .build());
     }
 }
