@@ -143,15 +143,22 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             taskIdDmnColumn
         );
 
+        given()
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("{\"value\" : \"true\", \"type\" : \"boolean\"}")
+            .baseUri(camundaUrl)
+            .basePath("/task")
+            .when()
+            .put("/{id}/localVariables/hasWarnings", task1Id)
+            .then()
+            .statusCode(HttpStatus.NO_CONTENT.value());
 
         sendMessage(caseIdForTask1, "makeAnApplication",
                     "", "", false);
 
-        waitSeconds(10);
-
-        assertTaskHasWarnings(caseIdForTask1,task1Id,false);
-        // Assert the task1 is warn
-
+        waitSeconds(17);
+        assertTaskHasWarnings(caseIdForTask1,task1Id,true);
     }
 
     @Test
