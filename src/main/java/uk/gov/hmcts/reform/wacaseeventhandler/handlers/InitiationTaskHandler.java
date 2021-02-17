@@ -44,12 +44,14 @@ public class InitiationTaskHandler implements CaseEventHandler {
             eventInformation.getCaseTypeId()
         );
 
+        String tenantId = TASK_INITIATION.getTenantId(eventInformation.getJurisdictionId());
+
         EvaluateDmnRequest<InitiateEvaluateRequest> requestParameters = getParameterRequest(
             eventInformation.getEventId(),
             eventInformation.getNewStateId()
         );
 
-        return apiClientToInitiateTask.evaluateDmn(tableKey, requestParameters).getResults();
+        return apiClientToInitiateTask.evaluateDmn(tableKey, requestParameters,tenantId).getResults();
     }
 
     private EvaluateDmnRequest<InitiateEvaluateRequest> getParameterRequest(

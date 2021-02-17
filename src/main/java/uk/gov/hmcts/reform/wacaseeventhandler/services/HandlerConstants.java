@@ -25,4 +25,8 @@ public enum HandlerConstants {
         return tableName + "-" + jurisdictionId + "-" + caseTypeId;
     }
 
+    public String getTenantId(String tenantId) {
+        return tenantId;
+    }
+
 }

@@ -29,6 +29,7 @@ class WorkflowApiClientToCancelTaskTest {
 
     public static final String HTTP_WORKFLOW_API_URL = "http://workflowApiUrl";
     public static final String TABLE_KEY = "someTableKey";
+    public static final String TENANT_ID = "ia";
     public static final String BEARER_S_2_S_TOKEN = "some Bearer s2s token";
 
     @Mock
@@ -63,7 +64,8 @@ class WorkflowApiClientToCancelTaskTest {
 
         EvaluateDmnResponse<CancellationEvaluateResponse> actualResponse = client.evaluateDmn(
             TABLE_KEY,
-            new EvaluateDmnRequest<>(CancellationEvaluateRequest.builder().build())
+            new EvaluateDmnRequest<>(CancellationEvaluateRequest.builder().build()),
+            TENANT_ID
         );
 
         assertThat(actualResponse).isEqualTo(
@@ -84,9 +86,10 @@ class WorkflowApiClientToCancelTaskTest {
 
     private String getExpectedUrl() {
         return String.format(
-            "%s/workflow/decision-definition/key/%s/evaluate",
+            "%s/workflow/decision-definition/key/%s/tenant-id/%s/evaluate",
             HTTP_WORKFLOW_API_URL,
-            TABLE_KEY
+            TABLE_KEY,
+            TENANT_ID
         );
     }
 
