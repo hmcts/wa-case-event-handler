@@ -27,12 +27,18 @@ public class ServiceBusConfiguration {
     public ServiceBusSessionReceiverClient createSessionReceiver() {
         return new ServiceBusClientBuilder()
             .connectionString(hostName)
-            .retryOptions(new AmqpRetryOptions().setTryTimeout(
-                Duration.ofSeconds(Integer.valueOf(retryTime))))
+            .retryOptions(retryOptions())
             .sessionReceiver()
             .topicName(topicName)
             .subscriptionName(subscriptionName)
             .buildClient();
+    }
+
+    private AmqpRetryOptions retryOptions() {
+        AmqpRetryOptions retryOptions = new AmqpRetryOptions();
+        retryOptions.setTryTimeout(Duration.ofSeconds(Integer.valueOf(retryTime)));
+
+        return retryOptions;
     }
 
 }
