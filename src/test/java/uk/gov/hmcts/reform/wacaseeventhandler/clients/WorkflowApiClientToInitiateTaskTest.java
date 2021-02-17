@@ -30,6 +30,7 @@ class WorkflowApiClientToInitiateTaskTest {
 
     public static final String HTTP_WORKFLOW_API_URL = "http://workflowApiUrl";
     public static final String TABLE_KEY = "someTableKey";
+    public static final String TENANT_ID = "someTenantId";
     public static final String BEARER_S_2_S_TOKEN = "some Bearer s2s token";
 
     @Mock
@@ -64,7 +65,8 @@ class WorkflowApiClientToInitiateTaskTest {
 
         EvaluateDmnResponse<InitiateEvaluateResponse> actualResponse = client.evaluateDmn(
             TABLE_KEY,
-            new EvaluateDmnRequest<>(InitiateEvaluateRequest.builder().build())
+            new EvaluateDmnRequest<>(InitiateEvaluateRequest.builder().build()),
+            TENANT_ID
         );
 
         assertThat(actualResponse).isEqualTo(
@@ -85,9 +87,10 @@ class WorkflowApiClientToInitiateTaskTest {
 
     private String getExpectedUrl() {
         return String.format(
-            "%s/workflow/decision-definition/key/%s/evaluate",
+            "%s/workflow/decision-definition/key/%s/tenant-id/%s/evaluate",
             HTTP_WORKFLOW_API_URL,
-            TABLE_KEY
+            TABLE_KEY,
+            TENANT_ID
         );
     }
 

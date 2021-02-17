@@ -44,12 +44,14 @@ public class InitiationTaskHandler implements CaseEventHandler {
             eventInformation.getCaseTypeId()
         );
 
+        String tenantId = TASK_INITIATION.getTenantId(eventInformation.getJurisdictionId());
+
         EvaluateDmnRequest<InitiateEvaluateRequest> requestParameters = getParameterRequest(
             eventInformation.getEventId(),
             eventInformation.getNewStateId()
         );
 
-        return apiClientToInitiateTask.evaluateDmn(tableKey, requestParameters).getResults();
+        return apiClientToInitiateTask.evaluateDmn(tableKey, requestParameters,tenantId).getResults();
     }
 
     private EvaluateDmnRequest<InitiateEvaluateRequest> getParameterRequest(
@@ -89,7 +91,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
         InitiateEvaluateResponse initiateEvaluateResponse,
         EventInformation eventInformation
     ) {
-        String eventInfoDt = isoDateFormatter.format(eventInformation.getDateTime());
+        String eventInfoDt = isoDateFormatter.format(eventInformation.getEventTimeStamp());
 
         ZonedDateTime delayUntil = dueDateService.calculateDueDate(
             ZonedDateTime.parse(eventInfoDt),
@@ -97,7 +99,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
         );
         return InitiateProcessVariables.builder()
             .caseType(new DmnStringValue(eventInformation.getCaseTypeId()))
-            .dueDate(new DmnStringValue(isoDateFormatter.format(eventInformation.getDateTime())))
+            .dueDate(new DmnStringValue(isoDateFormatter.format(eventInformation.getEventTimeStamp())))
             .workingDaysAllowed(cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()))
             .group(initiateEvaluateResponse.getGroup())
             .jurisdiction(new DmnStringValue(eventInformation.getJurisdictionId()))

@@ -2,7 +2,9 @@ package uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -20,6 +22,7 @@ public final class EventInformation {
     @NotEmpty
     private final String eventInstanceId;
     @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private final LocalDateTime eventTimeStamp;
     @NotEmpty
     private final String caseId;
@@ -35,15 +38,15 @@ public final class EventInformation {
     private final String userId;
 
     @JsonCreator
-    public EventInformation(@JsonProperty("eventInstanceId") String eventInstanceId,
-                            @JsonProperty("eventTimeStamp")LocalDateTime eventTimeStamp,
-                            @JsonProperty("caseId") String caseId,
-                            @JsonProperty("jurisdictionId") String jurisdictionId,
-                            @JsonProperty("caseTypeId") String caseTypeId,
-                            @JsonProperty("eventId") String eventId,
-                            @JsonProperty("previousStateId") String previousStateId,
-                            @JsonProperty("newStateId") String newStateId,
-                            @JsonProperty("userId") String userId) {
+    public EventInformation(@JsonProperty("EventInstanceId") String eventInstanceId,
+                            @JsonProperty("EventTimeStamp")LocalDateTime eventTimeStamp,
+                            @JsonProperty("CaseId") String caseId,
+                            @JsonProperty("JurisdictionId") String jurisdictionId,
+                            @JsonProperty("CaseTypeId") String caseTypeId,
+                            @JsonProperty("EventId") String eventId,
+                            @JsonProperty("PreviousStateId") String previousStateId,
+                            @JsonProperty("NewStateId") String newStateId,
+                            @JsonProperty("UserId") String userId) {
         this.eventInstanceId = eventInstanceId;
         this.eventTimeStamp = eventTimeStamp;
         this.caseId = caseId;
@@ -67,7 +70,7 @@ public final class EventInformation {
         return eventInstanceId;
     }
 
-    public LocalDateTime getDateTime() {
+    public LocalDateTime getEventTimeStamp() {
         return eventTimeStamp;
     }
 

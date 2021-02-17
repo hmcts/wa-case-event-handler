@@ -3,10 +3,11 @@ targets:
   camunda: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
 
 azure:
-  host: ${AZURE_SERVICE_BUS_HOST}
-  username: ${AZURE_SHARED_POLICY_KEY}
-  password: ${AZURE_SHARED_POLICY_KEY_SECRET}
-  topic: ${AZURE_TOPIC_NAME}
-  subscription: ${AZURE_SUBSCRIPTION_NAME}
-  numberOfConcurrentSessions: ${AZURE_CONCURRENT_SESSIONS}
-  enableASB: ${AZURE_SERVICE_BUS_TOGGLE:false}
+  servicebus:
+    host-name: ${AZURE_SERVICE_BUS_HOST_URL}
+    topic-name: ${AZURE_SERVICE_BUS_TOPIC_NAME}
+    subscription-Name: ${AZURE_SERVICE_BUS_SUBSCRIPTION_NAME}
+    retry-duration: ${AZURE_SERVICE_BUS_RETRY_DURATION:60}
+    threads: ${AZURE_SERVICE_BUS_CONCURRENT_SESSIONS:1}
+    enableASB: ${AZURE_SERVICE_BUS_FEATURE_TOGGLE:false}
+    retry-attempts: ${AZURE_SERVICE_BUS_RETRY_ATTEMPTS:0}
