@@ -14,26 +14,25 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.CorrelationKeys;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.when;
 
-
 @ExtendWith(MockitoExtension.class)
-class WorkflowApiClientToInitiateTaskTest {
+ class WorkflowApiClientToWarnTaskTest {
 
     public static final String HTTP_WORKFLOW_API_URL = "http://workflowApiUrl";
     public static final String TABLE_KEY = "someTableKey";
-    public static final String TENANT_ID = "someTenantId";
+    public static final String TENANT_ID = "ia";
     public static final String BEARER_S_2_S_TOKEN = "some Bearer s2s token";
 
     @Mock
@@ -42,11 +41,11 @@ class WorkflowApiClientToInitiateTaskTest {
     @Mock
     private AuthTokenGenerator authTokenGenerator;
 
-    private WorkflowApiClientToInitiateTask client;
+    private WorkflowApiClientToWarnTask client;
 
     @BeforeEach
     void setUp() {
-        client = new WorkflowApiClientToInitiateTask(
+        client = new WorkflowApiClientToWarnTask(
             restTemplate,
             authTokenGenerator,
             HTTP_WORKFLOW_API_URL
@@ -58,43 +57,34 @@ class WorkflowApiClientToInitiateTaskTest {
         when(authTokenGenerator.generate()).thenReturn(BEARER_S_2_S_TOKEN);
 
         when(restTemplate.exchange(
-            eq(getExpectedUrl()),
-            eq(HttpMethod.POST),
-            eq(getExpectedEntity()),
-            eq(new ParameterizedTypeReference<EvaluateDmnResponse<InitiateEvaluateResponse>>() {
-            })
+            getExpectedUrl(),
+            HttpMethod.POST,
+            getExpectedEntity(),
+            new ParameterizedTypeReference<EvaluateDmnResponse<WarningResponse>>() {
+            }
         ))
             .thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
 
-        EvaluateDmnResponse<InitiateEvaluateResponse> actualResponse = client.evaluateDmn(
+        EvaluateDmnResponse<WarningResponse> actualResponse = client.evaluateDmn(
             TABLE_KEY,
-            new EvaluateDmnRequest<>(InitiateEvaluateRequest.builder().build()),
+            new EvaluateDmnRequest<>(CancellationEvaluateRequest.builder().build()),
             TENANT_ID
         );
 
         assertThat(actualResponse).isEqualTo(
-            new ResponseEntity<EvaluateDmnResponse<InitiateEvaluateResponse>>(HttpStatus.NO_CONTENT).getBody());
+            new ResponseEntity<EvaluateDmnResponse<CancellationEvaluateResponse>>(HttpStatus.NO_CONTENT).getBody());
 
     }
 
     private HttpEntity<EvaluateDmnRequest<? extends EvaluateRequest>> getExpectedEntity() {
         EvaluateDmnRequest<? extends EvaluateRequest> requestParameters =
-            new EvaluateDmnRequest<>(InitiateEvaluateRequest.builder().build());
+            new EvaluateDmnRequest<>(CancellationEvaluateRequest.builder().build());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("ServiceAuthorization", BEARER_S_2_S_TOKEN);
 
         return new HttpEntity<>(requestParameters, headers);
-    }
-
-    private HttpEntity<SendMessageRequest<? extends ProcessVariables,
-        ? extends CorrelationKeys>> getExpectedSendEntity() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("ServiceAuthorization", BEARER_S_2_S_TOKEN);
-
-        return new HttpEntity<>(new SendMessageRequest<>("warnTask",null, null), headers);
     }
 
     private String getExpectedUrl() {
@@ -106,4 +96,45 @@ class WorkflowApiClientToInitiateTaskTest {
         );
     }
 
+    private HttpEntity<SendMessageRequest<? extends ProcessVariables,
+        ? extends CorrelationKeys>> getExpectedSendEntity() {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("ServiceAuthorization", BEARER_S_2_S_TOKEN);
+
+        return new HttpEntity<>(new SendMessageRequest<>("warnTask",null, null), headers);
+    }
+
+    private String getExpectedSendMessageUrl() {
+        return String.format(
+            "%s/workflow/message",
+            HTTP_WORKFLOW_API_URL
+        );
+    }
+
+
+    @Test
+    void sendMessage() {
+        when(authTokenGenerator.generate()).thenReturn(BEARER_S_2_S_TOKEN);
+
+        when(restTemplate.exchange(
+            getExpectedSendMessageUrl(),
+            HttpMethod.POST,
+            getExpectedSendEntity(),
+            Void.class
+        ))
+            .thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
+
+        ResponseEntity<Void> actualResponse = client.sendMessage(
+            new SendMessageRequest<>(
+                "warnTask",
+                null,
+                null
+            )
+        );
+
+        assertThat(actualResponse.getStatusCode().is2xxSuccessful());
+    }
 }
+

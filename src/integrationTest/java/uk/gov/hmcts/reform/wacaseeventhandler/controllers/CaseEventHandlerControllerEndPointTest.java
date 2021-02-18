@@ -27,12 +27,14 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringVa
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -45,7 +47,6 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.
 class CaseEventHandlerControllerEndPointTest {
 
     public static final String S2S_TOKEN = "Bearer s2s token";
-    public static final String DMN_TABLE = "wa-task-initiation-ia-asylum";
     public static final String TENANT_ID = "ia";
     public static final String INITIATE_DMN_TABLE = "wa-task-initiation-ia-asylum";
     public static final String CANCELLATION_DMN_TABLE = "wa-task-cancellation-ia-asylum";
@@ -72,6 +73,8 @@ class CaseEventHandlerControllerEndPointTest {
     private void mockRestTemplate() {
         mockInitiateHandler();
         mockCancellationHandler();
+        mockWarningHandler();
+        mockWarningHandlerWithFalse();
     }
 
     private void mockCancellationHandler() {
@@ -98,6 +101,64 @@ class CaseEventHandlerControllerEndPointTest {
             ArgumentMatchers
                 .<ParameterizedTypeReference<EvaluateDmnResponse<CancellationEvaluateResponse>>>any())
         ).thenReturn(responseEntity);
+    }
+
+
+    private void mockWarningHandler() {
+        List<WarningResponse> results = List.of(new WarningResponse(
+            new DmnStringValue("some action"),
+            new DmnStringValue("some category")
+        ));
+        EvaluateDmnResponse<WarningResponse> cancellationResponse =
+            new EvaluateDmnResponse<>(results);
+
+        ResponseEntity<EvaluateDmnResponse<WarningResponse>> responseEntity =
+            new ResponseEntity<>(cancellationResponse, HttpStatus.OK);
+
+        String cancellationEvaluateUrl = String.format(
+            "%s/workflow/decision-definition/key/%s/evaluate",
+            workflowApiUrl,
+            CANCELLATION_DMN_TABLE
+        );
+        Mockito.when(restTemplate.exchange(
+            eq(cancellationEvaluateUrl),
+            eq(HttpMethod.POST),
+            ArgumentMatchers.<HttpEntity<List<HttpHeaders>>>any(),
+            ArgumentMatchers
+                .<ParameterizedTypeReference<EvaluateDmnResponse<WarningResponse>>>any())
+        ).thenReturn(responseEntity);
+    }
+
+    private void mockWarningHandlerWithFalse() {
+        List<WarningResponse> results = List.of(new WarningResponse(
+            new DmnStringValue("Warn"),
+            new DmnStringValue("some task cat")
+        ));
+        EvaluateDmnResponse<WarningResponse> cancellationResponse =
+            new EvaluateDmnResponse<>(results);
+
+        ResponseEntity<EvaluateDmnResponse<WarningResponse>> responseEntity =
+            new ResponseEntity<>(cancellationResponse, HttpStatus.OK);
+
+        String cancellationEvaluateUrl = String.format(
+            "%s/workflow/decision-definition/key/%s/evaluate",
+            workflowApiUrl,
+            CANCELLATION_DMN_TABLE
+        );
+        Mockito.when(restTemplate.exchange(
+            eq(cancellationEvaluateUrl),
+            eq(HttpMethod.POST),
+            ArgumentMatchers.<HttpEntity<List<HttpHeaders>>>any(),
+            ArgumentMatchers
+                .<ParameterizedTypeReference<EvaluateDmnResponse<WarningResponse>>>any())
+        ).thenReturn(responseEntity);
+
+        assertThat("Warn").isEqualTo(
+            responseEntity.getBody()
+                .getResults()
+                .get(0)
+                .getAction()
+                .getValue());
     }
 
     private ResponseEntity<EvaluateDmnResponse<InitiateEvaluateResponse>> mockInitiateHandler() {
