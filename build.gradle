@@ -249,7 +249,7 @@ dependencies {
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.2.7.RELEASE'
   implementation group: 'uk.gov.hmcts.reform', name: 'properties-volume-spring-boot-starter', version: '0.1.0'
 
-  implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.0.0'
+  implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.0.2'
 
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.13.3'
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.13.3'
