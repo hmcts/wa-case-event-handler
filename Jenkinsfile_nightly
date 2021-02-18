@@ -12,6 +12,8 @@ def product = "wa"
 def component = "case-event-handler"
 
 withNightlyPipeline(type, product, component) {
-    enableMutationTest()
+
+  enableSecurityScan()
+  enableMutationTest()
     enableSlackNotifications('#wa-build')
 }
