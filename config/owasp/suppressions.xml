@@ -15,10 +15,10 @@
     <cve>CVE-2020-10663</cve>
     <cve>CVE-2020-7712</cve>
    </suppress>
-  <suppress>
+<!--  <suppress>
     <notes><![CDATA[
     Inherited from com.azure:azure-messaging-servicebus waiting on an update
     ]]></notes>
     <cve>CVE-2021-21290</cve>
-   </suppress>
+   </suppress>-->
 </suppressions>
