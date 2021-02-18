@@ -9,7 +9,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.C
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CancellationTaskHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.InitiationTaskHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.WarningTaskHandler;
@@ -47,13 +47,14 @@ class CaseEventHandlerControllerTest {
     @Test
     void given_message_then_apply_handlers_in_order() {
 
-        DmnStringValue action = new DmnStringValue("Cancel");
+        DmnStringValue cancelAction = new DmnStringValue("Cancel");
+        DmnStringValue warnAction = new DmnStringValue("Warn");
         DmnStringValue taskCategory = new DmnStringValue("Time extension");
         given(cancellationTaskHandlerService.evaluateDmn(any(EventInformation.class)))
-            .willReturn(List.of(new CancellationEvaluateResponse(action, taskCategory)));
+            .willReturn(List.of(new CancellationEvaluateResponse(cancelAction, taskCategory)));
 
         given(warningTaskHandlerService.evaluateDmn(any(EventInformation.class)))
-            .willReturn(List.of(new WarningEvaluateResponse()));
+            .willReturn(List.of(new WarningResponse(warnAction,taskCategory)));
 
         given(initiationTaskHandlerService.evaluateDmn(any(EventInformation.class)))
             .willReturn(List.of(InitiateEvaluateResponse.builder().build()));
@@ -70,9 +71,10 @@ class CaseEventHandlerControllerTest {
 
         InOrder inOrder = inOrder(
             cancellationTaskHandlerService,
-            warningTaskHandlerService,
-            initiationTaskHandlerService
+            initiationTaskHandlerService,
+            warningTaskHandlerService
         );
+
 
         inOrder.verify(cancellationTaskHandlerService).evaluateDmn(any(EventInformation.class));
         inOrder.verify(cancellationTaskHandlerService).handle(anyList(), eq(eventInformation));

@@ -128,6 +128,40 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+    public void given_initiate_tasks_with_follow_up_overdue_category_then_warn_task_with_no() {
+        // Given multiple existing tasks
+
+        // create task1,
+        // notice this creates two tasks with the follow up category because the initiate dmn table
+        String caseIdForTask1 = UUID.randomUUID().toString();
+        String taskIdDmnColumn = "allocateFtpaToJudge";
+        String task1Id = initiateTaskForGivenId(
+            caseIdForTask1,
+            "applyForFTPAAppellant",
+            "", "", true,
+            taskIdDmnColumn
+        );
+
+        given()
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("{\"value\" : \"true\", \"type\" : \"boolean\"}")
+            .baseUri(camundaUrl)
+            .basePath("/task")
+            .when()
+            .put("/{id}/localVariables/hasWarnings", task1Id)
+            .then()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        sendMessage(caseIdForTask1, "makeAnApplication",
+                    "", "", false);
+
+        waitSeconds(17);
+        assertTaskHasWarnings(caseIdForTask1,task1Id,true);
+    }
+
+    @Test
     public void given_initiated_tasks_with_delayTimer_toFuture_and_without_followup_overdue_then_complete_task() {
         String caseIdForTask2 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
@@ -175,6 +209,19 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .get()
             .then()
             .body("size()", is(0));
+    }
+
+    private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
+        given()
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .contentType(APPLICATION_JSON_VALUE)
+            .baseUri(camundaUrl)
+            .basePath("/task")
+            .when()
+            .get("/{id}/variables", taskId)
+            .prettyPeek()
+            .then()
+            .body("hasWarnings.value", is(hasWarningValue));
     }
 
     private void sendMessage(String caseId, String event, String previousStateId,
