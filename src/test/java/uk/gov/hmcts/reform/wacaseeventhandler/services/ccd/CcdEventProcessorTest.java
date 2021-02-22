@@ -44,7 +44,7 @@ class CcdEventProcessorTest {
         when(mapper.readValue(incomingMessage, EventInformation.class))
             .thenReturn(buildMessage());
 
-        processor.processMesssage(incomingMessage);
+        processor.processMessage(incomingMessage);
 
         verify(mapper, Mockito.times(1))
             .readValue(incomingMessage, EventInformation.class);
@@ -63,7 +63,7 @@ class CcdEventProcessorTest {
         when(mapper.readValue(incomingMessage, EventInformation.class))
             .thenReturn(buildMessage());
 
-        processor.processMesssage(incomingMessage);
+        processor.processMessage(incomingMessage);
 
         verify(mapper, Mockito.times(1))
             .readValue(incomingMessage, EventInformation.class);

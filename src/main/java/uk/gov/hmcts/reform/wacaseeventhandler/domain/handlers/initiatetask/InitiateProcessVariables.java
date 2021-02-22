@@ -8,12 +8,13 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnIntegerV
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
 
+@Builder
 @ToString
 @EqualsAndHashCode(callSuper = true)
-@Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public final class InitiateProcessVariables extends ProcessVariables {
 
+    private final DmnStringValue idempotencyKey;
     private final DmnStringValue dueDate;
     private final DmnIntegerValue workingDaysAllowed;
     private final DmnStringValue name;
@@ -25,8 +26,16 @@ public final class InitiateProcessVariables extends ProcessVariables {
     private final DmnStringValue delayUntil;
     private final DmnStringValue taskCategory;
 
+    public DmnStringValue getIdempotencyKey() {
+        return idempotencyKey;
+    }
+
     public DmnStringValue getDueDate() {
         return dueDate;
+    }
+
+    public DmnIntegerValue getWorkingDaysAllowed() {
+        return workingDaysAllowed;
     }
 
     public DmnStringValue getName() {
@@ -51,10 +60,6 @@ public final class InitiateProcessVariables extends ProcessVariables {
 
     public DmnStringValue getCaseId() {
         return caseId;
-    }
-
-    public DmnIntegerValue getWorkingDaysAllowed() {
-        return workingDaysAllowed;
     }
 
     public DmnStringValue getDelayUntil() {

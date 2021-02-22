@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.Initi
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateProcessVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.IdempotencyKeyGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 
 import java.time.ZonedDateTime;
@@ -27,12 +28,16 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.T
 public class InitiationTaskHandler implements CaseEventHandler {
 
     private final WorkflowApiClientToInitiateTask apiClientToInitiateTask;
+    private final IdempotencyKeyGenerator idempotencyKeyGenerator;
     private final IsoDateFormatter isoDateFormatter;
     private final DueDateService dueDateService;
 
     public InitiationTaskHandler(WorkflowApiClientToInitiateTask apiClientToInitiateTask,
-                                 IsoDateFormatter isoDateFormatter, DueDateService dueDateService) {
+                                 IdempotencyKeyGenerator idempotencyKeyGenerator,
+                                 IsoDateFormatter isoDateFormatter,
+                                 DueDateService dueDateService) {
         this.apiClientToInitiateTask = apiClientToInitiateTask;
+        this.idempotencyKeyGenerator = idempotencyKeyGenerator;
         this.isoDateFormatter = isoDateFormatter;
         this.dueDateService = dueDateService;
     }
@@ -51,7 +56,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
             eventInformation.getNewStateId()
         );
 
-        return apiClientToInitiateTask.evaluateDmn(tableKey, requestParameters,tenantId).getResults();
+        return apiClientToInitiateTask.evaluateDmn(tableKey, requestParameters, tenantId).getResults();
     }
 
     private EvaluateDmnRequest<InitiateEvaluateRequest> getParameterRequest(
@@ -97,7 +102,14 @@ public class InitiationTaskHandler implements CaseEventHandler {
             ZonedDateTime.parse(eventInfoDt),
             cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()).getValue()
         );
+
+        String idempotencyKey = idempotencyKeyGenerator.generateIdempotencyKey(
+            eventInformation.getEventInstanceId(),
+            initiateEvaluateResponse.getTaskId().getValue()
+        );
+
         return InitiateProcessVariables.builder()
+            .idempotencyKey(new DmnStringValue(idempotencyKey))
             .caseType(new DmnStringValue(eventInformation.getCaseTypeId()))
             .dueDate(new DmnStringValue(isoDateFormatter.format(eventInformation.getEventTimeStamp())))
             .workingDaysAllowed(cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()))
