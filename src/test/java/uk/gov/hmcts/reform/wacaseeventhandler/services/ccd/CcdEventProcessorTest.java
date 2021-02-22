@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.services;
+package uk.gov.hmcts.reform.wacaseeventhandler.services.ccd;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class CcdMessageProcessorTest {
+class CcdEventProcessorTest {
 
     @Mock
     private InitiationTaskHandler initiationTaskHandler;
@@ -30,7 +30,7 @@ public class CcdMessageProcessorTest {
     @Mock
     private ObjectMapper mapper;
 
-    private CcdMessageProcessor processor;
+    private CcdEventProcessor processor;
 
     @Test
     void given_evaluateDmn_returns_something_then_caseEventHandler_does_handle() throws JsonProcessingException {
@@ -38,7 +38,7 @@ public class CcdMessageProcessorTest {
         when(initiationTaskHandler.evaluateDmn(any(EventInformation.class))).thenReturn(results);
 
         List<CaseEventHandler> handlerServices = List.of(initiationTaskHandler);
-        processor = new CcdMessageProcessor(handlerServices, mapper);
+        processor = new CcdEventProcessor(handlerServices, mapper);
 
         String incomingMessage = asJsonString(buildMessage());
         when(mapper.readValue(incomingMessage, EventInformation.class))
@@ -57,7 +57,7 @@ public class CcdMessageProcessorTest {
     void given_evaluateDmn_returns_nothing_then_caseEventHandler_does_not_handle() throws JsonProcessingException {
         List<CaseEventHandler> handlerServices = List.of(initiationTaskHandler);
 
-        processor = new CcdMessageProcessor(handlerServices, mapper);
+        processor = new CcdEventProcessor(handlerServices, mapper);
 
         String incomingMessage = asJsonString(buildMessage());
         when(mapper.readValue(incomingMessage, EventInformation.class))

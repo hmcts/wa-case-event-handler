@@ -8,7 +8,7 @@ public class CreatorObjectMapper {
     }
 
     public static String asJsonString(final Object obj) {
-        return jsonString(obj, new ObjectMapper().setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE));
+        return jsonString(obj, new ObjectMapper().setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE));
     }
 
     private static String jsonString(Object obj, ObjectMapper mapper) {

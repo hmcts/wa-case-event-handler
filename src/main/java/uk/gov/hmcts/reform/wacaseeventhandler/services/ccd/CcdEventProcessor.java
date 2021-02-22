@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.services;
+package uk.gov.hmcts.reform.wacaseeventhandler.services.ccd;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,12 +12,12 @@ import java.util.List;
 
 @Slf4j
 @Service
-public class CcdMessageProcessor {
+public class CcdEventProcessor {
 
     private final List<CaseEventHandler> handlerServices;
     private final ObjectMapper objectMapper;
 
-    public CcdMessageProcessor(List<CaseEventHandler> handlerServices, ObjectMapper objectMapper) {
+    public CcdEventProcessor(List<CaseEventHandler> handlerServices, ObjectMapper objectMapper) {
         this.handlerServices = handlerServices;
         this.objectMapper = objectMapper;
     }
