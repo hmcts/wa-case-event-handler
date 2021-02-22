@@ -68,7 +68,7 @@ public class CcdEventConsumer implements Runnable {
                         try {
                             log.info(String.format("Processing case details: %s", loggerMsg));
 
-                            ccdEventProcessor.processMesssage(incomingMessage);
+                            ccdEventProcessor.processMessage(incomingMessage);
                             receiver.complete(message);
 
                             log.info(String.format("Processing completed successfully"
