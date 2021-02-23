@@ -1,6 +1,6 @@
 {
   "10054_Cookie Without SameSite Attribute_http://wa-task-configuration-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore",
-  "10096_Timestamp Disclosure - Unix_http://wa-task-configuration-api-aat.service.core-compute-aat.internal/task/task-id_POST",: "ignore",
+  "10096_Timestamp Disclosure - Unix_http://wa-task-configuration-api-aat.service.core-compute-aat.internal/task/task-id_POST": "ignore",
   "10096_Timestamp Disclosure - Unix_http://wa-task-configuration-api-aat.service.core-compute-aat.internal/task/task-id/configuration_POST": "ignore",
   "10096_Timestamp Disclosure - Unix_http://wa-task-configuration-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore",
   "90022_Application Error Disclosure_http://wa-task-configuration-api-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore",
