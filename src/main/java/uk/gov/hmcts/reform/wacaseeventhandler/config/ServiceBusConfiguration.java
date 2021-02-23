@@ -15,8 +15,8 @@ import java.time.Duration;
 @ConditionalOnProperty("azure.servicebus.enableASB")
 public class ServiceBusConfiguration {
 
-    @Value("${azure.servicebus.host-name}")
-    private String hostName;
+    @Value("${azure.servicebus.connection-string}")
+    private String connectionString;
     @Value("${azure.servicebus.topic-name}")
     private String topicName;
     @Value("${azure.servicebus.subscription-name}")
@@ -26,7 +26,7 @@ public class ServiceBusConfiguration {
 
     public ServiceBusSessionReceiverClient createSessionReceiver() {
         return new ServiceBusClientBuilder()
-            .connectionString(hostName)
+            .connectionString(connectionString)
             .retryOptions(retryOptions())
             .sessionReceiver()
             .topicName(topicName)
