@@ -63,7 +63,7 @@ class CcdEventConsumerTest {
 
         underTest.consumeMessage(sessionReceiverClient);
 
-        verify(processor, Mockito.times(0)).processMesssage("testMessage");
+        verify(processor, Mockito.times(0)).processMessage("testMessage");
         verify(receiverClient, Mockito.times(0)).complete(messageStream);
         verify(receiverClient, Mockito.times(0)).abandon(any());
         verify(receiverClient, Mockito.times(0)).deadLetter(any(), any());
@@ -73,13 +73,13 @@ class CcdEventConsumerTest {
     void given_session_is_accepted_when_message_is_consumed() throws IOException {
         attachMessageToReceiver();
 
-        doNothing().when(processor).processMesssage(any());
+        doNothing().when(processor).processMessage(any());
 
         doNothing().when(receiverClient).complete(messageStream);
 
         underTest.consumeMessage(sessionReceiverClient);
 
-        verify(processor, Mockito.times(1)).processMesssage("testMessage");
+        verify(processor, Mockito.times(1)).processMessage("testMessage");
         verify(receiverClient, Mockito.times(1)).complete(messageStream);
         verify(receiverClient, Mockito.times(0)).abandon(any());
         verify(receiverClient, Mockito.times(0)).deadLetter(any(), any());
@@ -89,14 +89,14 @@ class CcdEventConsumerTest {
     void given_session_is_accepted_when_invalid_message_consumed() throws IOException {
         attachMessageToReceiver();
 
-        doThrow(JsonProcessingException.class).when(processor).processMesssage(any());
+        doThrow(JsonProcessingException.class).when(processor).processMessage(any());
 
         when(deadLetterService.handleParsingError(any(), any())).thenReturn(new DeadLetterOptions());
         doNothing().when(receiverClient).deadLetter(any(), any());
 
         underTest.consumeMessage(sessionReceiverClient);
 
-        verify(processor, Mockito.times(1)).processMesssage("testMessage");
+        verify(processor, Mockito.times(1)).processMessage("testMessage");
         verify(receiverClient, Mockito.times(0)).complete(messageStream);
         verify(receiverClient, Mockito.times(1)).deadLetter(any(), any());
     }
@@ -111,13 +111,13 @@ class CcdEventConsumerTest {
         when(amqpAnnotatedMessage.getHeader()).thenReturn(header);
         when(header.getDeliveryCount()).thenReturn(1L);
 
-        doThrow(ResourceAccessException.class).when(processor).processMesssage(any());
+        doThrow(ResourceAccessException.class).when(processor).processMessage(any());
 
         doNothing().when(receiverClient).abandon(any());
 
         underTest.consumeMessage(sessionReceiverClient);
 
-        verify(processor, Mockito.times(1)).processMesssage("testMessage");
+        verify(processor, Mockito.times(1)).processMessage("testMessage");
         verify(receiverClient, Mockito.times(0)).complete(messageStream);
         verify(receiverClient, Mockito.times(1)).abandon(any());
     }
@@ -133,13 +133,13 @@ class CcdEventConsumerTest {
 
         when(deadLetterService.handleApplicationError(any(), any())).thenReturn(new DeadLetterOptions());
 
-        doThrow(ResourceAccessException.class).when(processor).processMesssage(any());
+        doThrow(ResourceAccessException.class).when(processor).processMessage(any());
 
         doNothing().when(receiverClient).deadLetter(any(), any());
 
         underTest.consumeMessage(sessionReceiverClient);
 
-        verify(processor, Mockito.times(1)).processMesssage("testMessage");
+        verify(processor, Mockito.times(1)).processMessage("testMessage");
         verify(receiverClient, Mockito.times(0)).complete(messageStream);
         verify(receiverClient, Mockito.times(0)).abandon(any());
         verify(receiverClient, Mockito.times(1)).deadLetter(any(), any());

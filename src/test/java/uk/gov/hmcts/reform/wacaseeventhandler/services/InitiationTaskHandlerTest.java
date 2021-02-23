@@ -28,6 +28,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -42,6 +43,8 @@ class InitiationTaskHandlerTest {
     public static final String TENANT_ID = "ia";
     @Mock
     private WorkflowApiClientToInitiateTask apiClientToInitiateTask;
+    @Mock
+    private IdempotencyKeyGenerator idempotencyKeyGenerator;
 
     @Captor
     private ArgumentCaptor<SendMessageRequest<InitiateProcessVariables, CorrelationKeys>> captor;
@@ -55,7 +58,10 @@ class InitiationTaskHandlerTest {
     @InjectMocks
     private InitiationTaskHandler handlerService;
 
+    private final String eventInstanceId = UUID.randomUUID().toString();
+
     private final EventInformation eventInformation = EventInformation.builder()
+        .eventInstanceId(eventInstanceId)
         .eventId("submitAppeal")
         .newStateId("")
         .jurisdictionId("ia")
@@ -106,6 +112,12 @@ class InitiationTaskHandlerTest {
             .taskCategory(new DmnStringValue("Time extension"))
             .build();
 
+        when(idempotencyKeyGenerator.generateIdempotencyKey(eventInstanceId, "processApplication"))
+            .thenReturn("idempotencyKey1");
+
+        when(idempotencyKeyGenerator.generateIdempotencyKey(eventInstanceId, "decideOnTimeExtension"))
+            .thenReturn("idempotencyKey2");
+
         List<InitiateEvaluateResponse> results = List.of(initiateTaskResponse1, initiateTaskResponse2);
 
         when(dueDateService.calculateDueDate(ZonedDateTime.parse(EXPECTED_DATE), 0))
@@ -117,6 +129,7 @@ class InitiationTaskHandlerTest {
         SendMessageRequest<InitiateProcessVariables, CorrelationKeys> actualSendMessageRequest = captor.getValue();
 
         assertThat(captor.getAllValues().get(0)).isEqualTo(getExpectedSendMessageRequest(
+            "idempotencyKey1",
             "Process Application",
             "processApplication",
             "Case progression",
@@ -124,6 +137,7 @@ class InitiationTaskHandlerTest {
         ));
 
         assertThat(captor.getAllValues().get(1)).isEqualTo(getExpectedSendMessageRequest(
+            "idempotencyKey2",
             "Decide On Time Extension",
             "decideOnTimeExtension",
             "Time extension",
@@ -132,12 +146,14 @@ class InitiationTaskHandlerTest {
     }
 
     private SendMessageRequest<InitiateProcessVariables, CorrelationKeys> getExpectedSendMessageRequest(
+        String idempotencyKey,
         String name,
         String taskId,
         String taskCategory,
         String group
     ) {
         InitiateProcessVariables expectedInitiateTaskSendMessageRequest = InitiateProcessVariables.builder()
+            .idempotencyKey(new DmnStringValue(idempotencyKey))
             .caseType(new DmnStringValue("asylum"))
             .jurisdiction(new DmnStringValue("ia"))
             .group(new DmnStringValue(group))
