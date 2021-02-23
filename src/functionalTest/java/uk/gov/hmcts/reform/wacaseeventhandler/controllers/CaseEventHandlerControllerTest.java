@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import com.azure.messaging.servicebus.ServiceBusMessage;
+import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
@@ -11,8 +12,12 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInform
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -196,6 +201,33 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     private void assertTaskDoesNotExist(String caseId, String taskIdDmnColumn) {
+        //AtomicReference<String> response = new AtomicReference<>();
+        //await().ignoreException(AssertionError.class)
+        //    .pollInterval(500, MILLISECONDS)
+        //    .atMost(20, SECONDS)
+        //    .until(
+        //        () -> {
+        //            Response camundaGetTaskResult = camundaApiActions.get(
+        //                "/task" + filter,
+        //                authorizationHeadersProvider.getServiceAuthorizationHeader()
+        //            );
+        //
+        //            camundaGetTaskResult.then().assertThat()
+        //                .statusCode(HttpStatus.OK.value())
+        //                .contentType(APPLICATION_JSON_VALUE)
+        //                .body("size()", is(1))
+        //                .body("[0].name", is(taskName))
+        //                .extract()
+        //                .path("[0].id");
+        //
+        //            response.set(
+        //                camundaGetTaskResult.then()
+        //                    .body("[0].name", is(taskName))
+        //                    .extract()
+        //                    .path("[0].id")
+        //            );
+        //            return true;
+        //        });
         given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
             .contentType(APPLICATION_JSON_VALUE)
