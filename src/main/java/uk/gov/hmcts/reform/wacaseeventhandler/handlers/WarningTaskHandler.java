@@ -79,6 +79,7 @@ public class WarningTaskHandler implements CaseEventHandler {
             .correlationKeys(CancellationCorrelationKeys.builder()
                                  .caseId(new DmnStringValue(caseReference))
                                  .build())
+            .all(true)
             .build();
     }
 }

@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import com.azure.messaging.servicebus.ServiceBusMessage;
+import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
@@ -10,9 +11,15 @@ import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -143,22 +150,66 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             taskIdDmnColumn
         );
 
-        given()
-            .header(SERVICE_AUTHORIZATION, s2sToken)
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("{\"value\" : \"true\", \"type\" : \"boolean\"}")
-            .baseUri(camundaUrl)
-            .basePath("/task")
-            .when()
-            .put("/{id}/localVariables/hasWarnings", task1Id)
-            .then()
-            .statusCode(HttpStatus.NO_CONTENT.value());
-
         sendMessage(caseIdForTask1, "makeAnApplication",
                     "", "", false);
 
-        waitSeconds(17);
         assertTaskHasWarnings(caseIdForTask1,task1Id,true);
+
+        taskToTearDown = task1Id;
+    }
+
+    @Test
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+    public void given_caseId_with_multiple_tasks_and_same_category_when_warning_raised_then_mark_tasks_with_warnings() {
+        String caseIdForTask1 = UUID.randomUUID().toString();
+        String taskIdDmnColumn = "allocateFtpaToJudge";
+
+        // Initiate task1
+        sendMessage(caseIdForTask1, "applyForFTPAAppellant", null,
+                    null, false);
+
+        waitSeconds(5);
+
+        AtomicReference<Response> response = findTaskProcessVariables(
+            caseIdForTask1, taskIdDmnColumn, 1);
+
+        String task1Id = response.get()
+            .then()
+            .body("size()", is(1))
+            .body("[0].formKey", is(taskIdDmnColumn))
+            .assertThat().body("[0].id", notNullValue())
+            .extract()
+            .path("[0].id");
+
+        waitSeconds(2);
+
+        // initiate task2
+        sendMessage(caseIdForTask1, "applyForFTPARespondent", null,
+                    null, false);
+        waitSeconds(5);
+        response = findTaskProcessVariables(
+            caseIdForTask1, taskIdDmnColumn, 2);
+
+        String task2Id = response.get()
+            .then()
+            .body("size()", is(2))
+            .body("[1].formKey", is(taskIdDmnColumn))
+            .assertThat().body("[1].id", notNullValue())
+            .extract()
+            .path("[1].id");
+
+        waitSeconds(3);
+        // send warning message
+        sendMessage(caseIdForTask1, "makeAnApplication",
+                    "", "", false);
+
+        waitSeconds(10);
+        // check for warnings flag on both the tasks
+        assertTaskHasWarnings(caseIdForTask1,task1Id,true);
+        assertTaskHasWarnings(caseIdForTask1,task2Id,true);
+
+        // tear down all tasks
+        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id));
     }
 
     @Test
@@ -212,16 +263,25 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
-        given()
-            .header(SERVICE_AUTHORIZATION, s2sToken)
-            .contentType(APPLICATION_JSON_VALUE)
-            .baseUri(camundaUrl)
-            .basePath("/task")
-            .when()
-            .get("/{id}/variables", taskId)
-            .prettyPeek()
-            .then()
-            .body("hasWarnings.value", is(hasWarningValue));
+        await().ignoreException(AssertionError.class)
+            .pollInterval(500, MILLISECONDS)
+            .atMost(60, SECONDS)
+            .until(
+                () -> {
+                    given()
+                        .header(SERVICE_AUTHORIZATION, s2sToken)
+                        .contentType(APPLICATION_JSON_VALUE)
+                        .baseUri(camundaUrl)
+                        .basePath("/task")
+                        .when()
+                        .get("/{id}/variables", taskId)
+                        .prettyPeek()
+                        .then()
+                        .body("hasWarnings.value", is(hasWarningValue));
+
+                    return true;
+
+                });
     }
 
     private void sendMessage(String caseId, String event, String previousStateId,
@@ -288,36 +348,89 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         return findTaskForGivenCaseId(caseId, taskIdDmnColumn);
     }
 
+    private AtomicReference<Response> findTaskProcessVariables(
+        String caseId, String taskIdDmnColumn, int tasks
+    ) {
+
+        log.info(String.format("Finding task for caseId : %s", caseId));
+        AtomicReference<Response> response = new AtomicReference<>();
+        await().ignoreException(AssertionError.class)
+            .pollInterval(1000, MILLISECONDS)
+            .atMost(60, SECONDS)
+            .until(
+                () -> {
+                    final Response result = given()
+                        .header(SERVICE_AUTHORIZATION, s2sToken)
+                        .contentType(APPLICATION_JSON_VALUE)
+                        .baseUri(camundaUrl)
+                        .basePath("/task")
+                        .param("processVariables", "caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn)
+                        .when()
+                        .get();
+
+                    result
+                        .then()
+                        .body("size()", is(tasks));
+                    response.set(result);
+                    return true;
+                });
+
+        return response;
+    }
+
     private String findTaskForGivenCaseId(String caseId, String taskIdDmnColumn) {
 
         log.info(String.format("Finding task for caseId : %s", caseId));
-        return given()
+        AtomicReference<String> response = new AtomicReference<>();
+        await().ignoreException(AssertionError.class)
+            .pollInterval(1000, MILLISECONDS)
+            .atMost(30, SECONDS)
+            .until(
+                () -> {
+                    final Response result = given()
+                        .header(SERVICE_AUTHORIZATION, s2sToken)
+                        .contentType(APPLICATION_JSON_VALUE)
+                        .baseUri(camundaUrl)
+                        .basePath("/task")
+                        .param("processVariables", "caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn)
+                        .when()
+                        .get();
+
+                    response.set(
+                        result
+                            .then()
+                            .body("size()", is(1))
+                            .body("[0].formKey", is(taskIdDmnColumn))
+                            .assertThat().body("[0].id", notNullValue())
+                            .extract()
+                            .path("[0].id")
+                    );
+                    return true;
+                });
+
+        return response.get();
+    }
+
+    private void completeTask(String taskId) {
+        log.info(String.format("Completing task : %s", taskId));
+        given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
+            .accept(APPLICATION_JSON_VALUE)
             .contentType(APPLICATION_JSON_VALUE)
-            .baseUri(camundaUrl)
-            .basePath("/task")
-            .param("processVariables", "caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn)
             .when()
-            .get()
-            .then()
-            .body("size()", is(1))
-            .body("[0].formKey", is(taskIdDmnColumn))
-            .assertThat().body("[0].id", notNullValue())
-            .extract()
-            .path("[0].id");
+            .post(camundaUrl + "/task/{task-id}/complete", taskId);
+
+        assertTaskDeleteReason(taskId, "completed");
+    }
+
+    private void tearDownMultipleTasks(List<String> tasks) {
+        tasks.forEach(task -> completeTask(task));
     }
 
     @After
     public void cleanUpTask() {
         if (StringUtils.isNotEmpty(taskToTearDown)) {
-            given()
-                .header(SERVICE_AUTHORIZATION, s2sToken)
-                .accept(APPLICATION_JSON_VALUE)
-                .contentType(APPLICATION_JSON_VALUE)
-                .when()
-                .post(camundaUrl + "/task/{task-id}/complete", taskToTearDown);
-
-            assertTaskDeleteReason(taskToTearDown, "completed");
+            completeTask(taskToTearDown);
         }
     }
 

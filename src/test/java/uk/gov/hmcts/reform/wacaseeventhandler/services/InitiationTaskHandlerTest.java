@@ -154,7 +154,7 @@ class InitiationTaskHandlerTest {
         return new SendMessageRequest<>(
             "createTaskMessage",
             expectedInitiateTaskSendMessageRequest,
-            null
+            null, false
         );
     }
 }
