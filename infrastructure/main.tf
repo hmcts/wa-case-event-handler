@@ -16,7 +16,6 @@ data "azurerm_key_vault" "s2s_key_vault" {
 data "azurerm_key_vault" "ccd_key_vault" {
   name                = "ccd-${var.env}"
   resource_group_name = "ccd-shared-${var.env}"
-  vault_uri = "https://ccd-${var.env}.vault.azure.net/"
 }
 
 //Retrieve and copy secret from s2s vault into wa-vault
