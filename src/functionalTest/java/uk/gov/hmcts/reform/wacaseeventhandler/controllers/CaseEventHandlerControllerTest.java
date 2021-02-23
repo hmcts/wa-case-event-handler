@@ -200,49 +200,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("[0].deleteReason", is(expectedDeletedReason));
     }
 
-    private void assertTaskDoesNotExist(String caseId, String taskIdDmnColumn) {
-        //AtomicReference<String> response = new AtomicReference<>();
-        //await().ignoreException(AssertionError.class)
-        //    .pollInterval(500, MILLISECONDS)
-        //    .atMost(20, SECONDS)
-        //    .until(
-        //        () -> {
-        //            Response camundaGetTaskResult = camundaApiActions.get(
-        //                "/task" + filter,
-        //                authorizationHeadersProvider.getServiceAuthorizationHeader()
-        //            );
-        //
-        //            camundaGetTaskResult.then().assertThat()
-        //                .statusCode(HttpStatus.OK.value())
-        //                .contentType(APPLICATION_JSON_VALUE)
-        //                .body("size()", is(1))
-        //                .body("[0].name", is(taskName))
-        //                .extract()
-        //                .path("[0].id");
-        //
-        //            response.set(
-        //                camundaGetTaskResult.then()
-        //                    .body("[0].name", is(taskName))
-        //                    .extract()
-        //                    .path("[0].id")
-        //            );
-        //            return true;
-        //        });
-        given()
-            .header(SERVICE_AUTHORIZATION, s2sToken)
-            .contentType(APPLICATION_JSON_VALUE)
-            .baseUri(camundaUrl)
-            .basePath("/task")
-            .param(
-                "processVariables",
-                "caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn
-            )
-            .when()
-            .get()
-            .then()
-            .body("size()", is(0));
-    }
-
     private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
         given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
