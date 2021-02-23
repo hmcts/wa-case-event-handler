@@ -57,7 +57,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String eventToCancelTask = "submitReasonsForAppeal";
         String previousStateToCancelTask = "awaitingReasonsForAppeal";
         sendMessage(caseIdForTask1, eventToCancelTask, previousStateToCancelTask,
-                    "", false);
+            "", false);
 
         // Assert the task1 is deleted
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
@@ -106,8 +106,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String caseIdForTask1 = UUID.randomUUID().toString();
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
         final String task1Id = initiateTaskForGivenId(caseIdForTask1, "requestRespondentEvidence",
-                                                "", "awaitingRespondentEvidence",
-                                                false, taskIdDmnColumn);
+            "", "awaitingRespondentEvidence",
+            false, taskIdDmnColumn);
 
         // Then cancel the task1
         sendMessage(caseIdForTask1, "uploadHomeOfficeBundle", "awaitingRespondentEvidence", "", false);
@@ -123,8 +123,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String caseIdForTask1 = UUID.randomUUID().toString();
         String taskIdDmnColumn = "followUpOverdueCaseBuilding";
         final String task1Id = initiateTaskForGivenId(caseIdForTask1, "requestCaseBuilding",
-                                                "", "caseBuilding",
-                                                true, taskIdDmnColumn);
+            "", "caseBuilding",
+            true, taskIdDmnColumn);
         // Then cancel the task1
         sendMessage(caseIdForTask1, "submitCase", "caseBuilding", "", false);
 
@@ -170,8 +170,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_initiated_tasks_with_delayTimer_toFuture_and_without_followup_overdue_then_complete_task() {
         String caseIdForTask2 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
-                                                     "", "",
-                                                     true, "processApplication");
+            "", "",
+            true, "processApplication");
 
         // add tasks to tear down.
         taskToTearDown = taskId;
@@ -181,8 +181,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_initiated_tasks_with_delayTimer_toCurrentTime_and_without_followup_overdue_then_complete_task() {
         String caseIdForTask2 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
-                                                     "", "",
-                                                     false, "processApplication");
+            "", "",
+            false, "processApplication");
 
         // add tasks to tear down.
         taskToTearDown = taskId;
@@ -322,22 +322,40 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     private String findTaskForGivenCaseId(String caseId, String taskIdDmnColumn) {
 
-        log.info(String.format("Finding task for caseId : %s", caseId));
-        return given()
-            .header(SERVICE_AUTHORIZATION, s2sToken)
-            .contentType(APPLICATION_JSON_VALUE)
-            .baseUri(camundaUrl)
-            .basePath("/task")
-            .param("processVariables", "caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn)
-            .when()
-            .get()
-            .then()
-            .body("size()", is(1))
-            .body("[0].formKey", is(taskIdDmnColumn))
-            .assertThat().body("[0].id", notNullValue())
-            .extract()
-            .path("[0].id");
+        log.info("Attempting to retrieve task with caseId = {} and taskId = {}", caseId, taskIdDmnColumn);
+        String filter = "?processVariables=caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn;
+
+        AtomicReference<String> response = new AtomicReference<>();
+        await().ignoreException(AssertionError.class)
+            .pollInterval(500, MILLISECONDS)
+            .atMost(10, SECONDS)
+            .until(
+                () -> {
+
+                    Response result = given()
+                        .header(SERVICE_AUTHORIZATION, s2sToken)
+                        .contentType(APPLICATION_JSON_VALUE)
+                        .baseUri(camundaUrl)
+                        .when()
+                        .get("/task" + filter);
+
+                    result.then()
+                        .body("size()", is(1))
+                        .body("[0].formKey", is(taskIdDmnColumn))
+                        .assertThat().body("[0].id", notNullValue());
+
+                    response.set(
+                        result.then()
+                            .extract()
+                            .path("[0].id")
+                    );
+
+                    return true;
+                });
+
+        return response.get();
     }
+
 
     @After
     public void cleanUpTask() {

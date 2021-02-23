@@ -23,7 +23,7 @@ public class CcdEventProcessor {
     }
 
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-    public void processMesssage(String message) throws JsonProcessingException {
+    public void processMessage(String message) throws JsonProcessingException {
         EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
         log.info(String.format("Message received from topic: %s", eventInformation.toString()));
 
