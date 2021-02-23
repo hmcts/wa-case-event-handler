@@ -17,6 +17,7 @@ data "azurerm_key_vault" "ccd_key_vault" {
   name                = "ccd-${var.env}"
   resource_group_name = "ccd-shared-${var.env}"
 }
+
 //Retrieve and copy secret from s2s vault into wa-vault
 data "azurerm_key_vault_secret" "s2s_secret" {
   key_vault_id = data.azurerm_key_vault.s2s_key_vault.id
@@ -32,7 +33,7 @@ resource "azurerm_key_vault_secret" "s2s_secret_case_event_handler" {
 //Retrieve and copy secret from ccd vault into wa-vault
 data "azurerm_key_vault_secret" "ccd_shared_servicebus_secret" {
   key_vault_id = data.azurerm_key_vault.ccd_key_vault.id
-  name        = "ccd-servicebus-connection-string"
+  name         = "ccd-servicebus-connection-string"
 }
 
 resource "azurerm_key_vault_secret" "ccd_shared_servicebus_connection_string" {
