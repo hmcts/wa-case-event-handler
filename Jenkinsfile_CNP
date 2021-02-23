@@ -11,6 +11,9 @@ def secrets = [
     ],
     's2s-${env}': [
         secret('microservicekey-wa-case-event-handler', 'S2S_SECRET_CASE_EVENT_HANDLER')
+    ],
+    'ccd-${env}': [
+        secret('ccd-servicebus-connection-string', 'AZURE_SERVICE_BUS_CONNECTION_STRING')
     ]
 ]
 
