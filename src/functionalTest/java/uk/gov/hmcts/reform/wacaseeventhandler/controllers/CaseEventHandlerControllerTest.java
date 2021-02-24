@@ -214,7 +214,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
-    public void given_caseId_with_multiple_tasks_and_different_category_when_warning_raised_then_mark_tasks_with_warnings() {
+    public void given_caseId_and_multiple_tasks_and_different_ctg_when_warning_raised_then_mark_tasks_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
         String taskIdDmnColumn = "decideOnTimeExtension";
 
@@ -249,7 +249,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .extract()
             .path("[0].id");
 
-        System.out.println("Finished creating taskid2 :"+task2Id);
         // send warning message
         sendMessage(caseIdForTask1, "makeAnApplication",
                     "", "", false);
