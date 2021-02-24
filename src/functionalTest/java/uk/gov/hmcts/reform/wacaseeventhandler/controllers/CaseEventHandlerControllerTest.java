@@ -239,14 +239,15 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
                     null, false);
         waitSeconds(5);
         response = findTaskProcessVariables(
-            caseIdForTask1, taskIdDmnColumn, 1);
+            caseIdForTask1, taskIdDmnColumn, 2);
 
         String task2Id = response.get()
             .then()
-            .body("[0].formKey", is(taskIdDmnColumn))
-            .assertThat().body("[0].id", notNullValue())
+            .body("size()", is(2))
+            .body("[1].formKey", is(taskIdDmnColumn))
+            .assertThat().body("[1].id", notNullValue())
             .extract()
-            .path("[0].id");
+            .path("[1].id");
 
         // send warning message
         sendMessage(caseIdForTask1, "makeAnApplication",
