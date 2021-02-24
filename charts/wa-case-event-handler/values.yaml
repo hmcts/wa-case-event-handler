@@ -8,7 +8,9 @@ java:
       secrets:
         - AppInsightsInstrumentationKey
         - s2s-secret-case-event-handler
+        - ccd-shared-servicebus-connection-string
   environment:
     S2S_URL: "http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     WA_WORKFLOW_API_URL: "http://wa-workflow-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
-
+    AZURE_SERVICE_BUS_TOPIC_NAME: "ccd-case-events-{{ .Values.global.environment }}"
+    AZURE_SERVICE_BUS_SUBSCRIPTION_NAME: "wa-case-events-sub-{{ .Values.global.environment }}"

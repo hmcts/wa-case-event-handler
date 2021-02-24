@@ -13,8 +13,8 @@ import javax.annotation.PreDestroy;
 @ConditionalOnProperty("azure.servicebus.enableASB")
 public class CcdEventPublisherConfiguration {
 
-    @Value("${azure.servicebus.host-name}")
-    private String host;
+    @Value("${azure.servicebus.connection-string}")
+    private String connectionString;
     @Value("${azure.servicebus.topic-name}")
     private String topic;
 
@@ -23,7 +23,7 @@ public class CcdEventPublisherConfiguration {
     @Bean("serviceBusSenderClient")
     public ServiceBusSenderClient createConnection() {
         publisher = new ServiceBusClientBuilder()
-            .connectionString(host)
+            .connectionString(connectionString)
             .sender()
             .topicName(topic)
             .buildClient();

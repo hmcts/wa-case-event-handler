@@ -32,7 +32,7 @@ govUkHolidays:
 
 azure:
   servicebus:
-    host-name: ${AZURE_SERVICE_BUS_HOST_URL}
+    connection-string: ${AZURE_SERVICE_BUS_CONNECTION_STRING}
     topic-name: ${AZURE_SERVICE_BUS_TOPIC_NAME}
     subscription-Name: ${AZURE_SERVICE_BUS_SUBSCRIPTION_NAME}
     retry-duration: ${AZURE_SERVICE_BUS_RETRY_DURATION:60}
