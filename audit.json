@@ -1,0 +1,6 @@
+{
+  "100001_Unexpected Content-Type was returned_http://wa-case-event-handler-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore",
+  "10038_Content Security Policy (CSP) Header Not Set_http://wa-case-event-handler-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore",
+  "10036_Server Leaks Version Information via \"Server\" HTTP Response Header Field_http://wa-case-event-handler-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore",
+  "100000_A Client Error response code was returned by the server_http://wa-case-event-handler-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore"
+}

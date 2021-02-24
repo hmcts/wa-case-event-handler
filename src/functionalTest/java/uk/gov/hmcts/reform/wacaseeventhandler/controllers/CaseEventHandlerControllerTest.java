@@ -216,6 +216,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("size()", is(0));
     }
 
+
     private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
         given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
