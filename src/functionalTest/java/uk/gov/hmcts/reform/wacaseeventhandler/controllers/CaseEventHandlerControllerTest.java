@@ -153,6 +153,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         sendMessage(caseIdForTask1, "makeAnApplication",
                     "", "", false);
 
+        waitSeconds(5);
+
         assertTaskHasWarnings(caseIdForTask1,task1Id,true);
 
         taskToTearDown = task1Id;
@@ -181,8 +183,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .extract()
             .path("[0].id");
 
-        waitSeconds(2);
-
         // initiate task2, category (Case progression)
         sendMessage(caseIdForTask1, "applyForFTPARespondent", null,
                     null, false);
@@ -198,12 +198,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .extract()
             .path("[1].id");
 
-        waitSeconds(3);
         // send warning message
         sendMessage(caseIdForTask1, "makeAnApplication",
                     "", "", false);
 
-        waitSeconds(10);
+        waitSeconds(5);
         // check for warnings flag on both the tasks
         assertTaskHasWarnings(caseIdForTask1,task1Id,true);
         assertTaskHasWarnings(caseIdForTask1,task2Id,true);
@@ -253,7 +252,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         sendMessage(caseIdForTask1, "makeAnApplication",
                     "", "", false);
 
-        waitSeconds(10);
+        waitSeconds(5);
         // check for warnings flag on both the tasks
         assertTaskHasWarnings(caseIdForTask1,task1Id,true);
         assertTaskHasWarnings(caseIdForTask1,task2Id,true);
