@@ -164,7 +164,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String caseIdForTask1 = UUID.randomUUID().toString();
         String taskIdDmnColumn = "allocateFtpaToJudge";
 
-        // Initiate task1
+        // Initiate task1, category (Case progression)
         sendMessage(caseIdForTask1, "applyForFTPAAppellant", null,
                     null, false);
 
@@ -183,7 +183,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         waitSeconds(2);
 
-        // initiate task2
+        // initiate task2, category (Case progression)
         sendMessage(caseIdForTask1, "applyForFTPARespondent", null,
                     null, false);
         waitSeconds(5);
@@ -209,7 +209,58 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertTaskHasWarnings(caseIdForTask1,task2Id,true);
 
         // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id));
+        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
+    }
+
+    @Test
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+    public void given_caseId_with_multiple_tasks_and_different_category_when_warning_raised_then_mark_tasks_with_warnings() {
+        String caseIdForTask1 = UUID.randomUUID().toString();
+        String taskIdDmnColumn = "decideOnTimeExtension";
+
+        // Initiate task1 , category (Time extension)
+        sendMessage(caseIdForTask1, "submitTimeExtension", "",
+                    null, false);
+
+        waitSeconds(5);
+
+        AtomicReference<Response> response = findTaskProcessVariables(
+            caseIdForTask1, taskIdDmnColumn, 1);
+
+        String task1Id = response.get()
+            .then()
+            .body("[0].formKey", is(taskIdDmnColumn))
+            .assertThat().body("[0].id", notNullValue())
+            .extract()
+            .path("[0].id");
+
+        // initiate task2, category (Case progression)
+        taskIdDmnColumn = "allocateFtpaToJudge";
+        sendMessage(caseIdForTask1, "applyForFTPARespondent", null,
+                    null, false);
+        waitSeconds(5);
+        response = findTaskProcessVariables(
+            caseIdForTask1, taskIdDmnColumn, 1);
+
+        String task2Id = response.get()
+            .then()
+            .body("[0].formKey", is(taskIdDmnColumn))
+            .assertThat().body("[0].id", notNullValue())
+            .extract()
+            .path("[0].id");
+
+        System.out.println("Finished creating taskid2 :"+task2Id);
+        // send warning message
+        sendMessage(caseIdForTask1, "makeAnApplication",
+                    "", "", false);
+
+        waitSeconds(10);
+        // check for warnings flag on both the tasks
+        assertTaskHasWarnings(caseIdForTask1,task1Id,true);
+        assertTaskHasWarnings(caseIdForTask1,task2Id,true);
+
+        // tear down all tasks
+        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
     }
 
     @Test
@@ -348,7 +399,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         return findTaskForGivenCaseId(caseId, taskIdDmnColumn);
     }
 
-    private AtomicReference<Response> findTaskProcessVariables(
+    private AtomicReference<Response> findTaskProcessVariablesWithIdDmnColumn(
         String caseId, String taskIdDmnColumn, int tasks
     ) {
 
@@ -365,6 +416,36 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
                         .baseUri(camundaUrl)
                         .basePath("/task")
                         .param("processVariables", "caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn)
+                        .when()
+                        .get();
+
+                    result
+                        .then()
+                        .body("size()", is(tasks));
+                    response.set(result);
+                    return true;
+                });
+
+        return response;
+    }
+
+    private AtomicReference<Response> findTaskProcessVariables(
+        String caseId, String taskIdDmnColumn, int tasks
+    ) {
+
+        log.info(String.format("Finding task for caseId : %s", caseId));
+        AtomicReference<Response> response = new AtomicReference<>();
+        await().ignoreException(AssertionError.class)
+            .pollInterval(1000, MILLISECONDS)
+            .atMost(60, SECONDS)
+            .until(
+                () -> {
+                    final Response result = given()
+                        .header(SERVICE_AUTHORIZATION, s2sToken)
+                        .contentType(APPLICATION_JSON_VALUE)
+                        .baseUri(camundaUrl)
+                        .basePath("/task")
+                        .param("processVariables", "caseId_eq_" + caseId)
                         .when()
                         .get();
 
@@ -414,7 +495,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         return response.get();
     }
 
-    private void completeTask(String taskId) {
+    private void completeTask(String taskId, String status) {
         log.info(String.format("Completing task : %s", taskId));
         given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
@@ -423,18 +504,18 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .when()
             .post(camundaUrl + "/task/{task-id}/complete", taskId);
 
-        assertTaskDeleteReason(taskId, "completed");
+        assertTaskDeleteReason(taskId, status);
     }
 
-    private void tearDownMultipleTasks(List<String> tasks) {
-        tasks.forEach(task -> completeTask(task));
+    private void tearDownMultipleTasks(List<String> tasks, String status) {
+        tasks.forEach(task -> completeTask(task, status));
     }
 
 
     @After
     public void cleanUpTask() {
         if (StringUtils.isNotEmpty(taskToTearDown)) {
-            completeTask(taskToTearDown);
+            completeTask(taskToTearDown, "completed");
         }
     }
 

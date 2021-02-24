@@ -90,6 +90,7 @@ public class CancellationTaskHandler implements CaseEventHandler {
                                  .caseId(new DmnStringValue(caseReference))
                                  .taskCategory(new DmnStringValue(taskCategory))
                                  .build())
+            .all(true)
             .build();
     }
 

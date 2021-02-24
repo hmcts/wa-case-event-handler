@@ -62,7 +62,7 @@ public class WarningTaskHandler implements CaseEventHandler {
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
         results.stream()
-            .filter(result -> result instanceof WarningResponse)
+            .filter(WarningResponse.class::isInstance)
             .filter(result -> ((WarningResponse) result).getAction().getValue().equals("Warn"))
             .map(result -> (WarningResponse) result)
             .forEach(cancellationEvaluateResponse -> workflowApiClientToWarnTask.sendMessage(

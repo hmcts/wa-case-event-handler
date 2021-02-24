@@ -11,7 +11,8 @@ import javax.validation.constraints.NotNull;
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @Builder
-public final class CancellationEvaluateRequest extends EvaluateRequest {
+public final class
+CancellationEvaluateRequest extends EvaluateRequest {
     @NotNull
     private final DmnStringValue event;
     @NotNull
