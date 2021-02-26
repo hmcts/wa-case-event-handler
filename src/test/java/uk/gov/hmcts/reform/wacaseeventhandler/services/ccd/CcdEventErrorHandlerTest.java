@@ -79,7 +79,7 @@ class CcdEventErrorHandlerTest {
     }
 
     @Test
-    void should_handle_application_error_with_message_deadLettered() {
+    void should_handle_application_error_when_message_deadLettered() {
         //publishMessageToReceiver();
 
         when(messageStream.getRawAmqpMessage()).thenReturn(amqpAnnotatedMessage);
