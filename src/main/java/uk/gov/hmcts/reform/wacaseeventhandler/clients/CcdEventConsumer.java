@@ -51,7 +51,7 @@ public class CcdEventConsumer implements Runnable {
         }
     }
 
-    @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.AvoidCatchingThrowable"})
+    @SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
     protected void consumeMessage(ServiceBusSessionReceiverClient sessionReceiver) {
         try (ServiceBusReceiverClient receiver = sessionReceiver.acceptNextSession()) {
             receiver.receiveMessages(1)
@@ -61,13 +61,13 @@ public class CcdEventConsumer implements Runnable {
 
                         String incomingMessage = new String(message.getBody().toBytes());
                         try {
-                            log.info(String.format("Processing case details: %s", loggerMsg));
+                            log.info("Processing case details = {}", loggerMsg);
 
                             ccdEventProcessor.processMessage(incomingMessage);
                             receiver.complete(message);
 
-                            log.info(String.format("Processing completed successfully"
-                                                   + " on case details: %s", loggerMsg));
+                            log.info("Processing completed successfully"
+                                                   + " on case details = {}", loggerMsg);
                         } catch (JsonProcessingException exp) {
                             ccdEventErrorHandler.handleJsonError(
                                 receiver, message, loggerMsg, incomingMessage, exp
@@ -76,7 +76,7 @@ public class CcdEventConsumer implements Runnable {
                             ccdEventErrorHandler.handleApplicationError(
                                 receiver, message, loggerMsg, incomingMessage, exp
                             );
-                        } catch (Throwable exp) {
+                        } catch (Exception exp) {
                             ccdEventErrorHandler.handleGenericError(
                                 receiver, message, loggerMsg, incomingMessage, exp
                             );

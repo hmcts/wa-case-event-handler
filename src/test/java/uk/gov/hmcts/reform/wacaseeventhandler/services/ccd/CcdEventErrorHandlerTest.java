@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class CcdEventErrorHandlerTest {
+class CcdEventErrorHandlerTest {
 
     @Mock
     private DeadLetterService deadLetterService;
@@ -40,7 +40,7 @@ public class CcdEventErrorHandlerTest {
     @Mock
     private RestClientException restClientException;
     @Mock
-    private Throwable throwable;
+    private Exception exception;
 
     private CcdEventErrorHandler underTest;
 
@@ -107,7 +107,7 @@ public class CcdEventErrorHandlerTest {
 
 
         underTest.handleGenericError(receiverClient, messageStream,
-                                  "loggerMessage", "input", throwable);
+                                  "loggerMessage", "input", exception);
 
         verify(deadLetterService, Mockito.times(1))
             .handleApplicationError(any(), any());
@@ -115,13 +115,13 @@ public class CcdEventErrorHandlerTest {
 
     @Test
     void should_handle_generic_error_with_known_error() {
-        when(throwable.getMessage()).thenReturn("Null pointer exception");
+        when(exception.getMessage()).thenReturn("Null pointer exception");
         when(deadLetterService.handleApplicationError(any(), any())).thenReturn(new DeadLetterOptions());
         doNothing().when(receiverClient).deadLetter(any(), any());
 
 
         underTest.handleGenericError(receiverClient, messageStream,
-                                     "loggerMessage", "input", throwable);
+                                     "loggerMessage", "input", exception);
 
         verify(deadLetterService, Mockito.times(1))
             .handleApplicationError(any(), any());
