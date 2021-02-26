@@ -27,10 +27,10 @@ public class CcdEventProcessor {
         EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
 
         log.info(
-            "Case details:\n'"
-            + "Case id: '{}\n'"
-            + "Event id: '{}\n'"
-            + "Jurisdiction id: '{}\n'"
+            "Case details:\n"
+            + "Case id: '{}'\n"
+            + "Event id: '{}'\n"
+            + "Jurisdiction id: '{}'\n"
             + "Case type id: '{}'",
             eventInformation.getCaseId(),
             eventInformation.getEventId(),
