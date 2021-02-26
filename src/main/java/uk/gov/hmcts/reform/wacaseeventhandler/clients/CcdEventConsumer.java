@@ -5,16 +5,14 @@ import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.ServiceBusConfiguration;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventErrorHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventLogger;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.DeadLetterService;
 
 import java.util.Map;
 
@@ -30,20 +28,17 @@ public class CcdEventConsumer implements Runnable {
     private static final String JURISDICTION_ID = "jurisdiction_id";
     private static final String CASE_TYPE_ID = "case_type_id";
 
-    private final int retryAttempts;
     private final ServiceBusConfiguration serviceBusConfiguration;
     private final CcdEventProcessor ccdEventProcessor;
-    private final DeadLetterService deadLetterService;
+    private final CcdEventErrorHandler ccdEventErrorHandler;
 
     public CcdEventConsumer(ServiceBusConfiguration serviceBusConfiguration,
                             CcdEventProcessor ccdEventProcessor,
-                            DeadLetterService deadLetterService,
-                            @Value("${azure.servicebus.retry-attempts}") int retryAttempts
+                            CcdEventErrorHandler ccdEventErrorHandler
     ) {
         this.serviceBusConfiguration = serviceBusConfiguration;
         this.ccdEventProcessor = ccdEventProcessor;
-        this.deadLetterService = deadLetterService;
-        this.retryAttempts = retryAttempts;
+        this.ccdEventErrorHandler = ccdEventErrorHandler;
     }
 
     @Override
@@ -56,7 +51,7 @@ public class CcdEventConsumer implements Runnable {
         }
     }
 
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    @SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
     protected void consumeMessage(ServiceBusSessionReceiverClient sessionReceiver) {
         try (ServiceBusReceiverClient receiver = sessionReceiver.acceptNextSession()) {
             receiver.receiveMessages(1)
@@ -66,49 +61,29 @@ public class CcdEventConsumer implements Runnable {
 
                         String incomingMessage = new String(message.getBody().toBytes());
                         try {
-                            log.info(String.format("Processing case details: %s", loggerMsg));
+                            log.info("Processing case details = {}", loggerMsg);
 
                             ccdEventProcessor.processMessage(incomingMessage);
                             receiver.complete(message);
 
-                            log.info(String.format("Processing completed successfully"
-                                                   + " on case details: %s", loggerMsg));
+                            log.info("Processing completed successfully"
+                                                   + " on case details = {}", loggerMsg);
                         } catch (JsonProcessingException exp) {
-                            handleJsonError(receiver, message, loggerMsg, incomingMessage, exp);
-                        } catch (ResourceAccessException exp) {
-                            handleApplicationError(receiver, message, loggerMsg, incomingMessage, exp);
+                            ccdEventErrorHandler.handleJsonError(
+                                receiver, message, loggerMsg, incomingMessage, exp
+                            );
+                        } catch (RestClientException exp) {
+                            ccdEventErrorHandler.handleApplicationError(
+                                receiver, message, loggerMsg, incomingMessage, exp
+                            );
+                        } catch (Exception exp) {
+                            ccdEventErrorHandler.handleGenericError(
+                                receiver, message, loggerMsg, incomingMessage, exp
+                            );
                         }
                     });
         } catch (IllegalStateException exp) {
             log.error("Error occurred while closing the session", exp);
-        }
-    }
-
-    private void handleJsonError(ServiceBusReceiverClient receiver, ServiceBusReceivedMessage message,
-                                 String loggerMsg, String incomingMessage, JsonProcessingException exp) {
-        log.error(String.format("Unable to parse incoming message: %s on case details: %s",
-            incomingMessage, loggerMsg
-        ), exp);
-
-        receiver.deadLetter(message, deadLetterService
-            .handleParsingError(incomingMessage, exp.getMessage()));
-
-        log.warn(String.format("Dead lettering: %s", loggerMsg));
-    }
-
-    private void handleApplicationError(ServiceBusReceiverClient receiver, ServiceBusReceivedMessage message,
-                                        String loggerMsg, String incomingMessage, RestClientException exp) {
-        log.error(String.format("Unable to process case details: %s", loggerMsg), exp);
-
-        final Long deliveryCount = message.getRawAmqpMessage().getHeader().getDeliveryCount();
-        if (deliveryCount >= retryAttempts) {
-            receiver.deadLetter(message, deadLetterService
-                .handleApplicationError(incomingMessage, exp.getMessage()));
-
-            log.warn(String.format("Max delivery count reached. Dead Lettering: %s", loggerMsg));
-        } else {
-            receiver.abandon(message);
-            log.warn(String.format("Retrying to process case details: %s", loggerMsg));
         }
     }
 

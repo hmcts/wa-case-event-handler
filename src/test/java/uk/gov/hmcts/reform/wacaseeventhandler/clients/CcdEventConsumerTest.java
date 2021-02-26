@@ -7,7 +7,6 @@ import com.azure.core.util.IterableStream;
 import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
 import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
-import com.azure.messaging.servicebus.models.DeadLetterOptions;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,12 +14,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClientException;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.ServiceBusConfiguration;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventErrorHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.DeadLetterService;
 
 import java.io.IOException;
 
@@ -48,13 +47,15 @@ class CcdEventConsumerTest {
     @Mock
     private AmqpMessageHeader header;
     @Mock
-    private DeadLetterService deadLetterService;
+    private CcdEventErrorHandler ccdEventErrorHandler;
 
     private CcdEventConsumer underTest;
 
     @BeforeEach
     void setUp() {
-        underTest = new CcdEventConsumer(serviceBusConfiguration, processor, deadLetterService, 0);
+        underTest = new CcdEventConsumer(serviceBusConfiguration, processor,
+                                         ccdEventErrorHandler
+        );
     }
 
     @Test
@@ -71,7 +72,7 @@ class CcdEventConsumerTest {
 
     @Test
     void given_session_is_accepted_when_message_is_consumed() throws IOException {
-        attachMessageToReceiver();
+        publishMessageToReceiver();
 
         doNothing().when(processor).processMessage(any());
 
@@ -81,71 +82,61 @@ class CcdEventConsumerTest {
 
         verify(processor, Mockito.times(1)).processMessage("testMessage");
         verify(receiverClient, Mockito.times(1)).complete(messageStream);
-        verify(receiverClient, Mockito.times(0)).abandon(any());
-        verify(receiverClient, Mockito.times(0)).deadLetter(any(), any());
     }
 
     @Test
     void given_session_is_accepted_when_invalid_message_consumed() throws IOException {
-        attachMessageToReceiver();
+        publishMessageToReceiver();
 
         doThrow(JsonProcessingException.class).when(processor).processMessage(any());
 
-        when(deadLetterService.handleParsingError(any(), any())).thenReturn(new DeadLetterOptions());
-        doNothing().when(receiverClient).deadLetter(any(), any());
-
+        doNothing().when(ccdEventErrorHandler).handleJsonError(any(), any(), any(), any(), any());
         underTest.consumeMessage(sessionReceiverClient);
 
         verify(processor, Mockito.times(1)).processMessage("testMessage");
-        verify(receiverClient, Mockito.times(0)).complete(messageStream);
-        verify(receiverClient, Mockito.times(1)).deadLetter(any(), any());
+        verify(ccdEventErrorHandler, Mockito.times(1))
+            .handleJsonError(any(), any(), any(), any(), any());
+        verify(ccdEventErrorHandler, Mockito.times(0))
+            .handleApplicationError(any(), any(), any(), any(), any());
+        verify(ccdEventErrorHandler, Mockito.times(0))
+            .handleGenericError(any(), any(), any(), any(), any());
     }
 
     @Test
-    void given_session_is_accepted_when_exception_thrown_from_downstream_on_first_attempt() throws IOException {
-        underTest = new CcdEventConsumer(serviceBusConfiguration, processor, deadLetterService, 3);
+    void given_session_is_accepted_when_exception_thrown_from_downstream() throws IOException {
+        publishMessageToReceiver();
 
-        attachMessageToReceiver();
-
-        when(messageStream.getRawAmqpMessage()).thenReturn(amqpAnnotatedMessage);
-        when(amqpAnnotatedMessage.getHeader()).thenReturn(header);
-        when(header.getDeliveryCount()).thenReturn(1L);
-
-        doThrow(ResourceAccessException.class).when(processor).processMessage(any());
-
-        doNothing().when(receiverClient).abandon(any());
+        doThrow(RestClientException.class).when(processor).processMessage(any());
 
         underTest.consumeMessage(sessionReceiverClient);
 
         verify(processor, Mockito.times(1)).processMessage("testMessage");
-        verify(receiverClient, Mockito.times(0)).complete(messageStream);
-        verify(receiverClient, Mockito.times(1)).abandon(any());
+        verify(ccdEventErrorHandler, Mockito.times(0))
+            .handleJsonError(any(), any(), any(), any(), any());
+        verify(ccdEventErrorHandler, Mockito.times(1))
+            .handleApplicationError(any(), any(), any(), any(), any());
+        verify(ccdEventErrorHandler, Mockito.times(0))
+            .handleGenericError(any(), any(), any(), any(), any());
     }
 
     @Test
-    void given_session_is_accepted_when_exception_thrown_from_downstream_after_max_attempts() throws IOException {
-        attachMessageToReceiver();
-        header.setDeliveryCount(Long.valueOf(1));
+    void given_session_is_accepted_when_unknown_exception_thrown_from_application() throws IOException {
+        publishMessageToReceiver();
 
-        when(messageStream.getRawAmqpMessage()).thenReturn(amqpAnnotatedMessage);
-        when(amqpAnnotatedMessage.getHeader()).thenReturn(header);
-        when(header.getDeliveryCount()).thenReturn(3L);
-
-        when(deadLetterService.handleApplicationError(any(), any())).thenReturn(new DeadLetterOptions());
-
-        doThrow(ResourceAccessException.class).when(processor).processMessage(any());
-
-        doNothing().when(receiverClient).deadLetter(any(), any());
+        doThrow(NullPointerException.class).when(processor).processMessage(any());
 
         underTest.consumeMessage(sessionReceiverClient);
 
         verify(processor, Mockito.times(1)).processMessage("testMessage");
-        verify(receiverClient, Mockito.times(0)).complete(messageStream);
-        verify(receiverClient, Mockito.times(0)).abandon(any());
-        verify(receiverClient, Mockito.times(1)).deadLetter(any(), any());
+        verify(ccdEventErrorHandler, Mockito.times(0))
+            .handleJsonError(any(), any(), any(), any(), any());
+        verify(ccdEventErrorHandler, Mockito.times(0))
+            .handleApplicationError(any(), any(), any(), any(), any());
+        verify(ccdEventErrorHandler, Mockito.times(1))
+            .handleGenericError(any(), any(), any(), any(), any());
     }
 
-    private void attachMessageToReceiver() {
+    private void publishMessageToReceiver() {
         when(sessionReceiverClient.acceptNextSession()).thenReturn(receiverClient);
         when(messageStream.getBody()).thenReturn(BinaryData.fromBytes("testMessage".getBytes()));
 
