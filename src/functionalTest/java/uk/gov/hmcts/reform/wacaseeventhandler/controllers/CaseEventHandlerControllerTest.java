@@ -104,6 +104,83 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+    public void given_initiate_tasks_with_follow_up_overdue_category_then_cancel_all_tasks() {
+
+        // notice this creates two tasks with the follow up category because the initiate dmn table
+        // has multiple rules matching this event and state.
+        String caseIdForTask1 = UUID.randomUUID().toString();
+        String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
+
+        // task1
+        String task1Id = initiateTaskForGivenId(
+            caseIdForTask1,
+            "requestRespondentEvidence",
+            "", "awaitingRespondentEvidence", false,
+            taskIdDmnColumn
+        );
+
+        // task2
+        String task2Id = findTaskForGivenCaseId(
+            caseIdForTask1,
+            "provideRespondentEvidence"
+        );
+
+        // Then cancel all tasks
+        String eventToCancelTask = "removeAppealFromOnline";
+        sendMessage(caseIdForTask1, eventToCancelTask, "", "", false);
+
+        waitSeconds(5);
+        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
+        assertTaskDoesNotExist(task2Id, "provideRespondentEvidence");
+
+        assertTaskDeleteReason(task1Id, "deleted");
+        assertTaskDeleteReason(task2Id, "deleted");
+
+        // add tasks to tear down.
+        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "deleted");
+    }
+
+    @Test
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+    public void given_initiate_tasks_with_different_categories_then_cancel_all_tasks() {
+
+        String caseIdForTask1 = UUID.randomUUID().toString();
+        String task1IdDmnColumn = "reviewTheAppeal";
+
+        // task1 with category Case progression
+        String task1Id = initiateTaskForGivenId(
+            caseIdForTask1,
+            "submitAppeal",
+            "", "appealSubmitted", false,
+            task1IdDmnColumn
+        );
+
+        // task2 with category Time Extension
+        String task2IdDmnColumn = "decideOnTimeExtension";
+        String task2Id = initiateTaskForGivenId(
+            caseIdForTask1,
+            "submitTimeExtension",
+            "", "", false,
+            task2IdDmnColumn
+        );
+
+        // Then cancel all tasks
+        String eventToCancelTask = "removeAppealFromOnline";
+        sendMessage(caseIdForTask1, eventToCancelTask, "", "", false);
+
+        waitSeconds(5);
+        assertTaskDoesNotExist(caseIdForTask1, task1IdDmnColumn);
+        assertTaskDoesNotExist(caseIdForTask1, task2IdDmnColumn);
+
+        assertTaskDeleteReason(task1Id, "deleted");
+        assertTaskDeleteReason(task2Id, "deleted");
+
+        // add tasks to tear down.
+        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "deleted");
+    }
+
+    @Test
     public void given_initiated_tasks_with_delayTimer_toCurrentTime_with_followup_overdue_than_cancel_task() {
         String caseIdForTask1 = UUID.randomUUID().toString();
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
@@ -467,7 +544,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         AtomicReference<String> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
             .pollInterval(500, MILLISECONDS)
-            .atMost(10, SECONDS)
+            .atMost(60, SECONDS)
             .until(
                 () -> {
 
