@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services.ccd;
 
 import com.azure.core.amqp.models.AmqpAnnotatedMessage;
 import com.azure.core.amqp.models.AmqpMessageHeader;
+import com.azure.core.util.BinaryData;
 import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
 import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
@@ -15,6 +16,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.RestClientException;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
@@ -30,9 +32,11 @@ class CcdEventErrorHandlerTest {
     @Mock
     private ServiceBusReceiverClient receiverClient;
     @Mock
-    private ServiceBusReceivedMessage messageStream;
+    private ServiceBusReceivedMessage receivedMessage;
     @Mock
     private AmqpAnnotatedMessage amqpAnnotatedMessage;
+    @Mock
+    private BinaryData binaryData;
     @Mock
     private AmqpMessageHeader header;
     @Mock
@@ -53,10 +57,10 @@ class CcdEventErrorHandlerTest {
     void should_handle_json_error() {
         when(deadLetterService.handleParsingError(any(), any())).thenReturn(new DeadLetterOptions());
         doNothing().when(receiverClient).deadLetter(any(), any());
+        when(binaryData.toBytes()).thenReturn("Data".getBytes(UTF_8));
+        when(receivedMessage.getBody()).thenReturn(binaryData);
 
-
-        underTest.handleJsonError(receiverClient, messageStream,
-                                  "loggerMessage", "input", jsonParseException);
+        underTest.handleJsonError(receiverClient, receivedMessage, jsonParseException);
 
         verify(deadLetterService, Mockito.times(1))
             .handleParsingError(any(), any());
@@ -64,13 +68,12 @@ class CcdEventErrorHandlerTest {
 
     @Test
     void should_handle_application_error_with_message_abandon() {
-        when(messageStream.getRawAmqpMessage()).thenReturn(amqpAnnotatedMessage);
+        when(receivedMessage.getRawAmqpMessage()).thenReturn(amqpAnnotatedMessage);
         when(amqpAnnotatedMessage.getHeader()).thenReturn(header);
         when(header.getDeliveryCount()).thenReturn(1L);
         doNothing().when(receiverClient).abandon(any());
 
-        underTest.handleApplicationError(receiverClient, messageStream,
-                                     "loggerMessage", "input", restClientException);
+        underTest.handleApplicationError(receiverClient, receivedMessage, restClientException);
 
         verify(receiverClient, Mockito.times(1))
             .abandon(any());
@@ -80,17 +83,17 @@ class CcdEventErrorHandlerTest {
 
     @Test
     void should_handle_application_error_when_message_deadLettered() {
-        //publishMessageToReceiver();
 
-        when(messageStream.getRawAmqpMessage()).thenReturn(amqpAnnotatedMessage);
+        when(receivedMessage.getRawAmqpMessage()).thenReturn(amqpAnnotatedMessage);
         when(amqpAnnotatedMessage.getHeader()).thenReturn(header);
         when(header.getDeliveryCount()).thenReturn(2L);
+        when(binaryData.toBytes()).thenReturn("Data".getBytes(UTF_8));
+        when(receivedMessage.getBody()).thenReturn(binaryData);
 
         when(deadLetterService.handleApplicationError(any(), any())).thenReturn(new DeadLetterOptions());
         doNothing().when(receiverClient).deadLetter(any(), any());
 
-        underTest.handleApplicationError(receiverClient, messageStream,
-                                         "loggerMessage", "input", restClientException);
+        underTest.handleApplicationError(receiverClient, receivedMessage, restClientException);
 
         verify(receiverClient, Mockito.times(0))
             .abandon(any());
@@ -104,10 +107,10 @@ class CcdEventErrorHandlerTest {
     void should_handle_generic_error_with_unknown_error() {
         when(deadLetterService.handleApplicationError(any(), any())).thenReturn(new DeadLetterOptions());
         doNothing().when(receiverClient).deadLetter(any(), any());
+        when(binaryData.toBytes()).thenReturn("Data".getBytes(UTF_8));
+        when(receivedMessage.getBody()).thenReturn(binaryData);
 
-
-        underTest.handleGenericError(receiverClient, messageStream,
-                                  "loggerMessage", "input", exception);
+        underTest.handleGenericError(receiverClient, receivedMessage, exception);
 
         verify(deadLetterService, Mockito.times(1))
             .handleApplicationError(any(), any());
@@ -118,10 +121,10 @@ class CcdEventErrorHandlerTest {
         when(exception.getMessage()).thenReturn("Null pointer exception");
         when(deadLetterService.handleApplicationError(any(), any())).thenReturn(new DeadLetterOptions());
         doNothing().when(receiverClient).deadLetter(any(), any());
+        when(binaryData.toBytes()).thenReturn("Data".getBytes(UTF_8));
+        when(receivedMessage.getBody()).thenReturn(binaryData);
 
-
-        underTest.handleGenericError(receiverClient, messageStream,
-                                     "loggerMessage", "input", exception);
+        underTest.handleGenericError(receiverClient, receivedMessage, exception);
 
         verify(deadLetterService, Mockito.times(1))
             .handleApplicationError(any(), any());

@@ -25,7 +25,18 @@ public class CcdEventProcessor {
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public void processMessage(String message) throws JsonProcessingException {
         EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
-        log.info("Message received from topic = {}", eventInformation.toString());
+
+        log.info(
+            "Case details:\n'"
+            + "- Case id: '{}\n'"
+            + "- Event id: '{}\n'"
+            + "- Jurisdiction id: '{}\n'"
+            + "- Case type id: '{}'",
+            eventInformation.getCaseId(),
+            eventInformation.getEventId(),
+            eventInformation.getJurisdictionId(),
+            eventInformation.getCaseTypeId()
+        );
 
         for (CaseEventHandler handler : handlerServices) {
             List<? extends EvaluateResponse> results = handler.evaluateDmn(eventInformation);

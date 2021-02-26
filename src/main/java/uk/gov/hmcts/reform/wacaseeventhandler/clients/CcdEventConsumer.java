@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
-import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
 import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -11,10 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.ServiceBusConfiguration;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventErrorHandler;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventLogger;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
-
-import java.util.Map;
 
 @Slf4j
 @Component
@@ -22,11 +18,6 @@ import java.util.Map;
 @ConditionalOnProperty("azure.servicebus.enableASB")
 @SuppressWarnings("PMD.DoNotUseThreads")
 public class CcdEventConsumer implements Runnable {
-
-    private static final String CASE_ID = "case_id";
-    private static final String EVENT_ID = "event_id";
-    private static final String JURISDICTION_ID = "jurisdiction_id";
-    private static final String CASE_TYPE_ID = "case_type_id";
 
     private final ServiceBusConfiguration serviceBusConfiguration;
     private final CcdEventProcessor ccdEventProcessor;
@@ -57,45 +48,25 @@ public class CcdEventConsumer implements Runnable {
             receiver.receiveMessages(1)
                 .forEach(
                     message -> {
-                        final String loggerMsg = getLoggerMsg(message);
 
                         String incomingMessage = new String(message.getBody().toBytes());
                         try {
-                            log.info("Processing case details = {}", loggerMsg);
+                            log.info("Received message with id '{}'", message.getMessageId());
 
                             ccdEventProcessor.processMessage(incomingMessage);
                             receiver.complete(message);
 
-                            log.info("Processing completed successfully"
-                                                   + " on case details = {}", loggerMsg);
-                        } catch (JsonProcessingException exp) {
-                            ccdEventErrorHandler.handleJsonError(
-                                receiver, message, loggerMsg, incomingMessage, exp
-                            );
-                        } catch (RestClientException exp) {
-                            ccdEventErrorHandler.handleApplicationError(
-                                receiver, message, loggerMsg, incomingMessage, exp
-                            );
-                        } catch (Exception exp) {
-                            ccdEventErrorHandler.handleGenericError(
-                                receiver, message, loggerMsg, incomingMessage, exp
-                            );
+                            log.info("Message with id '{}' handled successfully", message.getMessageId());
+                        } catch (JsonProcessingException ex) {
+                            ccdEventErrorHandler.handleJsonError(receiver, message, ex);
+                        } catch (RestClientException ex) {
+                            ccdEventErrorHandler.handleApplicationError(receiver, message, ex);
+                        } catch (Exception ex) {
+                            ccdEventErrorHandler.handleGenericError(receiver, message, ex);
                         }
                     });
         } catch (IllegalStateException exp) {
             log.error("Error occurred while closing the session", exp);
         }
     }
-
-    private String getLoggerMsg(ServiceBusReceivedMessage message) {
-        final Map<String, Object> msgProperties = message.getApplicationProperties();
-
-        return CcdEventLogger.builder()
-            .caseId((String) msgProperties.get(CASE_ID))
-            .eventId((String) msgProperties.get(EVENT_ID))
-            .jurisdictionId((String) msgProperties.get(JURISDICTION_ID))
-            .caseTypeId((String) msgProperties.get(CASE_TYPE_ID))
-            .build().toString();
-    }
-
 }

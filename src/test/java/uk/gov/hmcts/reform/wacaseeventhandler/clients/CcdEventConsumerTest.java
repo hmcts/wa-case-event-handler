@@ -41,21 +41,24 @@ class CcdEventConsumerTest {
     @Mock
     private ServiceBusReceiverClient receiverClient;
     @Mock
-    private ServiceBusReceivedMessage messageStream;
+    private ServiceBusReceivedMessage receivedMessage;
     @Mock
     private AmqpAnnotatedMessage amqpAnnotatedMessage;
     @Mock
     private AmqpMessageHeader header;
     @Mock
     private CcdEventErrorHandler ccdEventErrorHandler;
+    @Mock
+    private BinaryData binaryData;
 
     private CcdEventConsumer underTest;
 
     @BeforeEach
     void setUp() {
         underTest = new CcdEventConsumer(serviceBusConfiguration, processor,
-                                         ccdEventErrorHandler
+            ccdEventErrorHandler
         );
+
     }
 
     @Test
@@ -65,7 +68,7 @@ class CcdEventConsumerTest {
         underTest.consumeMessage(sessionReceiverClient);
 
         verify(processor, Mockito.times(0)).processMessage("testMessage");
-        verify(receiverClient, Mockito.times(0)).complete(messageStream);
+        verify(receiverClient, Mockito.times(0)).complete(receivedMessage);
         verify(receiverClient, Mockito.times(0)).abandon(any());
         verify(receiverClient, Mockito.times(0)).deadLetter(any(), any());
     }
@@ -76,12 +79,12 @@ class CcdEventConsumerTest {
 
         doNothing().when(processor).processMessage(any());
 
-        doNothing().when(receiverClient).complete(messageStream);
+        doNothing().when(receiverClient).complete(receivedMessage);
 
         underTest.consumeMessage(sessionReceiverClient);
 
         verify(processor, Mockito.times(1)).processMessage("testMessage");
-        verify(receiverClient, Mockito.times(1)).complete(messageStream);
+        verify(receiverClient, Mockito.times(1)).complete(receivedMessage);
     }
 
     @Test
@@ -90,16 +93,16 @@ class CcdEventConsumerTest {
 
         doThrow(JsonProcessingException.class).when(processor).processMessage(any());
 
-        doNothing().when(ccdEventErrorHandler).handleJsonError(any(), any(), any(), any(), any());
+        doNothing().when(ccdEventErrorHandler).handleJsonError(any(), any(), any());
         underTest.consumeMessage(sessionReceiverClient);
 
         verify(processor, Mockito.times(1)).processMessage("testMessage");
         verify(ccdEventErrorHandler, Mockito.times(1))
-            .handleJsonError(any(), any(), any(), any(), any());
+            .handleJsonError(any(), any(), any());
         verify(ccdEventErrorHandler, Mockito.times(0))
-            .handleApplicationError(any(), any(), any(), any(), any());
+            .handleApplicationError(any(), any(), any());
         verify(ccdEventErrorHandler, Mockito.times(0))
-            .handleGenericError(any(), any(), any(), any(), any());
+            .handleGenericError(any(), any(), any());
     }
 
     @Test
@@ -112,11 +115,11 @@ class CcdEventConsumerTest {
 
         verify(processor, Mockito.times(1)).processMessage("testMessage");
         verify(ccdEventErrorHandler, Mockito.times(0))
-            .handleJsonError(any(), any(), any(), any(), any());
+            .handleJsonError(any(), any(), any());
         verify(ccdEventErrorHandler, Mockito.times(1))
-            .handleApplicationError(any(), any(), any(), any(), any());
+            .handleApplicationError(any(), any(), any());
         verify(ccdEventErrorHandler, Mockito.times(0))
-            .handleGenericError(any(), any(), any(), any(), any());
+            .handleGenericError(any(), any(), any());
     }
 
     @Test
@@ -129,20 +132,20 @@ class CcdEventConsumerTest {
 
         verify(processor, Mockito.times(1)).processMessage("testMessage");
         verify(ccdEventErrorHandler, Mockito.times(0))
-            .handleJsonError(any(), any(), any(), any(), any());
+            .handleJsonError(any(), any(), any());
         verify(ccdEventErrorHandler, Mockito.times(0))
-            .handleApplicationError(any(), any(), any(), any(), any());
+            .handleApplicationError(any(), any(), any());
         verify(ccdEventErrorHandler, Mockito.times(1))
-            .handleGenericError(any(), any(), any(), any(), any());
+            .handleGenericError(any(), any(), any());
     }
 
     private void publishMessageToReceiver() {
         when(sessionReceiverClient.acceptNextSession()).thenReturn(receiverClient);
-        when(messageStream.getBody()).thenReturn(BinaryData.fromBytes("testMessage".getBytes()));
+        when(receivedMessage.getBody()).thenReturn(BinaryData.fromBytes("testMessage".getBytes()));
 
         final Flux<ServiceBusReceivedMessage> iterableStreamFlux = Flux.<ServiceBusReceivedMessage>create(
             sink -> {
-                sink.next(messageStream);
+                sink.next(receivedMessage);
                 sink.complete();
             }).subscribeOn(Schedulers.single());
 
