@@ -382,6 +382,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String caseId1 = UUID.randomUUID().toString();
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
 
+        // caseId1 with category Followup overdue
         // task1
         final String caseId1Task1Id = initiateTaskForGivenId(
             caseId1,
@@ -396,6 +397,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             "provideRespondentEvidence"
         );
 
+        // caseId2 with category Case progression
         String taskId2DmnColumn = "allocateFtpaToJudge";
         String caseId2 = UUID.randomUUID().toString();
         final String caseId2Task1Id = initiateTaskForGivenId(caseId2, "applyForFTPAAppellant",
@@ -423,7 +425,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     @Test
     public void given_multiple_caseIDs_when_actions_is_warn_then_mark_all_tasks_with_warnings() {
-        //caseId1
+        //caseId1 with category Case progression
         String caseId1 = UUID.randomUUID().toString();
         String taskIdDmnColumn = "attendCma";
         final String caseId1Task1Id = initiateTaskForGivenId(
@@ -433,7 +435,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             taskIdDmnColumn
         );
 
-        //caseId1
+        //caseId1 with category Case progression
         String taskId2DmnColumn = "reviewRespondentResponse";
         String caseId2 = UUID.randomUUID().toString();
         final String caseId2Task1Id = initiateTaskForGivenId(caseId2, "uploadHomeOfficeAppealResponse",
