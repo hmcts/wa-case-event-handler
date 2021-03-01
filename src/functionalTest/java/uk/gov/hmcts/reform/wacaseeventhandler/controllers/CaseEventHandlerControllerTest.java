@@ -361,6 +361,100 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         taskToTearDown = taskId;
     }
 
+    @Test
+    public void given_multiple_caseIDs_when_action_is_initiate_then_complete_all_tasks() {
+        String caseIdForTask1 = UUID.randomUUID().toString();
+        final String taskId = initiateTaskForGivenId(caseIdForTask1, "submitAppeal",
+                                                     "", "",
+                                                     false, "processApplication");
+
+        String caseIdForTask2 = UUID.randomUUID().toString();
+        final String task2Id = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
+                                                      "", "",
+                                                      false, "processApplication");
+
+        // add tasks to tear down.
+        tearDownMultipleTasks(Arrays.asList(taskId, task2Id), "completed");
+    }
+
+    @Test
+    public void given_multiple_caseIDs_when_action_is_cancel_then_cancels_all_tasks() {
+        String caseId1 = UUID.randomUUID().toString();
+        String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
+
+        // task1
+        final String caseId1Task1Id = initiateTaskForGivenId(
+            caseId1,
+            "requestRespondentEvidence",
+            "", "awaitingRespondentEvidence", false,
+            taskIdDmnColumn
+        );
+
+        // task2
+        final String caseId1Task2Id = findTaskForGivenCaseId(
+            caseId1,
+            "provideRespondentEvidence"
+        );
+
+        String taskId2DmnColumn = "allocateFtpaToJudge";
+        String caseId2 = UUID.randomUUID().toString();
+        final String caseId2Task1Id = initiateTaskForGivenId(caseId2, "applyForFTPAAppellant",
+                                                             "", "",
+                                                             false, taskId2DmnColumn);
+        // Then cancel all tasks on both caseIDs
+        String eventToCancelTask = "removeAppealFromOnline";
+        sendMessage(caseId1, eventToCancelTask, "", "", false);
+        waitSeconds(5);
+        sendMessage(caseId2, eventToCancelTask, "", "", false);
+        waitSeconds(5);
+
+        assertTaskDoesNotExist(caseId1, taskIdDmnColumn);
+        assertTaskDoesNotExist(caseId1, "provideRespondentEvidence");
+        assertTaskDoesNotExist(caseId2, taskId2DmnColumn);
+
+        assertTaskDeleteReason(caseId1Task1Id, "deleted");
+        assertTaskDeleteReason(caseId1Task2Id, "deleted");
+        assertTaskDeleteReason(caseId2Task1Id, "deleted");
+
+        // add tasks to tear down.
+        tearDownMultipleTasks(Arrays.asList(caseId1Task1Id, caseId1Task1Id,
+                                            caseId2Task1Id), "deleted");
+    }
+
+    @Test
+    public void given_multiple_caseIDs_when_actions_is_warn_then_mark_all_tasks_with_warnings() {
+        //caseId1
+        String caseId1 = UUID.randomUUID().toString();
+        String taskIdDmnColumn = "attendCma";
+        final String caseId1Task1Id = initiateTaskForGivenId(
+            caseId1,
+            "listCma",
+            "", "cmaListed", false,
+            taskIdDmnColumn
+        );
+
+        //caseId1
+        String taskId2DmnColumn = "reviewRespondentResponse";
+        String caseId2 = UUID.randomUUID().toString();
+        final String caseId2Task1Id = initiateTaskForGivenId(caseId2, "uploadHomeOfficeAppealResponse",
+                                                             "", "respondentReview",
+                                                             false, taskId2DmnColumn);
+        // Then cancel all tasks on both caseIDs
+        sendMessage(caseId1, "makeAnApplication",
+                    "", "", false);
+        waitSeconds(5);
+        sendMessage(caseId2, "makeAnApplication",
+                    "", "", false);
+        waitSeconds(5);
+
+        // check for warnings flag on both the tasks
+        assertTaskHasWarnings(caseId1,caseId1Task1Id,true);
+        assertTaskHasWarnings(caseId2,caseId2Task1Id,true);
+
+        // tear down all tasks
+        tearDownMultipleTasks(Arrays.asList(caseId1Task1Id, caseId2Task1Id), "completed");
+    }
+
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
         given()
             .contentType(APPLICATION_JSON_VALUE)
