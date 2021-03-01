@@ -37,7 +37,7 @@ public class CcdEventErrorHandler {
     public void handleApplicationError(ServiceBusReceiverClient receiver,
                                        ServiceBusReceivedMessage message,
                                        RestClientException ex) {
-        log.error("Unable to parse incoming message with id '{}'", message.getMessageId(), ex);
+        log.error("Unable to process incoming message with id '{}'", message.getMessageId(), ex);
 
         final Long deliveryCount = message.getRawAmqpMessage().getHeader().getDeliveryCount();
         if (deliveryCount >= retryAttempts) {
