@@ -302,7 +302,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         AtomicReference<String> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
             .pollInterval(500, MILLISECONDS)
-            .atMost(10, SECONDS)
+            .atMost(30, SECONDS)
             .until(
                 () -> {
 
