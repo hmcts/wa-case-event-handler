@@ -8,6 +8,7 @@ def component = "case-event-handler"
 
 def secrets = [
     'wa-${env}' : [
+        secret('launch-darkly-sdk-key', 'LAUNCH_DARKLY_SDK_KEY'),
     ],
     's2s-${env}': [
         secret('microservicekey-wa-case-event-handler', 'S2S_SECRET_CASE_EVENT_HANDLER')

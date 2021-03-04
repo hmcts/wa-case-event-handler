@@ -17,6 +17,12 @@ def type = "java"
 def product = "wa"
 def component = "case-event-handler"
 
+def secrets = [
+  'wa-${env}' : [
+    secret('launch-darkly-sdk-key', 'LAUNCH_DARKLY_SDK_KEY'),
+  ],
+]
+
 withNightlyPipeline(type, product, component) {
   env.TEST_URL = params.URL_TO_TEST
   env.Rules = params.SecurityRules
