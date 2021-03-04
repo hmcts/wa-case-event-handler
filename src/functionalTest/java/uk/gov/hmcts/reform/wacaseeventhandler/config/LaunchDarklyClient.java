@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.clients;
+package uk.gov.hmcts.reform.wacaseeventhandler.config;
 
 
 import com.launchdarkly.sdk.LDUser;
@@ -7,10 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LaunchDarklyFunctionalTestClient {
+public class LaunchDarklyClient {
+
+    private final LDClientInterface ldClient;
 
     @Autowired
-    private LDClientInterface ldClient;
+    public LaunchDarklyClient(LDClientInterface ldClient) {
+        this.ldClient = ldClient;
+    }
 
     public boolean getKey(String key) {
 
