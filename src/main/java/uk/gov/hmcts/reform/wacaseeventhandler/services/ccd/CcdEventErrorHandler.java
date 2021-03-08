@@ -22,42 +22,52 @@ public class CcdEventErrorHandler {
         this.retryAttempts = retryAttempts;
     }
 
-    public void handleJsonError(ServiceBusReceiverClient receiver, ServiceBusReceivedMessage message,
-                                 String loggerMsg, String incomingMessage, JsonProcessingException exp) {
-        log.error("Unable to parse case details = {}", loggerMsg, exp);
 
-        receiver.deadLetter(message, deadLetterService
-            .handleParsingError(incomingMessage, exp.getMessage()));
+    public void handleJsonError(ServiceBusReceiverClient receiver,
+                                ServiceBusReceivedMessage message,
+                                JsonProcessingException ex) {
+        log.error("Unable to parse incoming message with id '{}'", message.getMessageId(), ex);
+        String messageData = new String(message.getBody().toBytes());
 
-        log.warn("Parsing Error: message = {} sent to dead letter Q", loggerMsg);
+        receiver.deadLetter(message, deadLetterService.handleParsingError(messageData, ex.getMessage()));
+
+        log.warn("Message with id '{}' was dead lettered", message.getMessageId(), ex);
     }
 
-    public void handleApplicationError(ServiceBusReceiverClient receiver, ServiceBusReceivedMessage message,
-                                        String loggerMsg, String incomingMessage, RestClientException exp) {
-        log.error("Unable to process case details = {}", loggerMsg, exp);
+    public void handleApplicationError(ServiceBusReceiverClient receiver,
+                                       ServiceBusReceivedMessage message,
+                                       RestClientException ex) {
+        log.error("Unable to process incoming message with id '{}'", message.getMessageId(), ex);
+
         final Long deliveryCount = message.getRawAmqpMessage().getHeader().getDeliveryCount();
         if (deliveryCount >= retryAttempts) {
+            String messageData = new String(message.getBody().toBytes());
+
             receiver.deadLetter(message, deadLetterService
-                .handleApplicationError(incomingMessage, exp.getMessage()));
-            log.warn("Application Error: Max delivery count reached. "
-                         + "Message = {} sent to dead letter Q", loggerMsg);
+                .handleApplicationError(messageData, ex.getMessage()));
+
+            log.warn("Max delivery count reached. Message with id '{}' was dead lettered", message.getMessageId());
+
         } else {
             receiver.abandon(message);
-            log.warn("Retrying to process case details = {}", loggerMsg);
+            log.warn("Retrying message with id '{}'", message.getMessageId());
         }
     }
 
-    public void handleGenericError(ServiceBusReceiverClient receiver, ServiceBusReceivedMessage message,
-                                       String loggerMsg, String incomingMessage, Exception exp) {
-        log.error("Unknown error occurred while processing case details = {}", incomingMessage, exp);
-        if (StringUtils.isEmpty(exp.getMessage())) {
+    public void handleGenericError(ServiceBusReceiverClient receiver,
+                                   ServiceBusReceivedMessage message,
+                                   Exception ex) {
+        log.error("Unable to parse incoming message with id '{}'", message.getMessageId(), ex);
+        String messageData = new String(message.getBody().toBytes());
+
+        if (StringUtils.isEmpty(ex.getMessage())) {
             receiver.deadLetter(message, deadLetterService
-                .handleApplicationError(incomingMessage, "Unknown Error"));
+                .handleApplicationError(messageData, "Unknown Error"));
         } else {
             receiver.deadLetter(message, deadLetterService
-                .handleApplicationError(incomingMessage, exp.getMessage()));
+                .handleApplicationError(messageData, ex.getMessage()));
         }
-        log.warn("Unknown Error: message = {} sent to dead letter Q", loggerMsg);
+        log.warn("Unknown Error. Message with id '{}' was dead lettered", message.getMessageId(), ex);
     }
 
 }

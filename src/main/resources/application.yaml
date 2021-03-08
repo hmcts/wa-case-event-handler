@@ -39,3 +39,9 @@ azure:
     threads: ${AZURE_SERVICE_BUS_CONCURRENT_SESSIONS:1}
     enableASB: ${AZURE_SERVICE_BUS_FEATURE_TOGGLE:false}
     retry-attempts: ${AZURE_SERVICE_BUS_RETRY_ATTEMPTS:3}
+
+logging:
+  level:
+    com.microsoft.azure.servicebus: OFF
+    com.azure.messaging.servicebus: OFF
+    com.azure.core.amqp: OFF

@@ -10,7 +10,7 @@
   </suppress>
   <suppress until="2021-04-01">
     <notes><![CDATA[
-    Inherited from com.azure:azure-messaging-servicebus waiting on an update review in 2 weeks to see if azure hve pushed an update
+    Inherited from com.azure:azure-messaging-servicebus waiting on an update review in 1 month to see if azure have pushed an update
     ]]></notes>
     <cve>CVE-2021-21290</cve>
    </suppress>
