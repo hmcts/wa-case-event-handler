@@ -65,8 +65,10 @@ public class CcdEventConsumer implements Runnable {
                             ccdEventErrorHandler.handleGenericError(receiver, message, ex);
                         }
                     });
-        } catch (IllegalStateException exp) {
-            log.error("Error occurred while closing the session", exp);
+        } catch (IllegalStateException ex) {
+            log.info("Timeout: No messages received waiting for next session.");
+        } catch (Exception ex) {
+            log.error("Error occurred while closing the session", ex);
         }
     }
 }

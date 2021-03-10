@@ -328,7 +328,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // send warning message
         sendMessage(caseIdForTask1, "makeAnApplication",
-                    "", "", false);
+            "", "", false);
 
         waitSeconds(5);
         // check for warnings flag on both the tasks
@@ -343,8 +343,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_initiated_tasks_with_delayTimer_toFuture_and_without_followup_overdue_then_complete_task() {
         String caseIdForTask2 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
-            "", "",
-            true, "processApplication");
+            "", "appealSubmitted",
+            true, "reviewTheAppeal");
 
         // add tasks to tear down.
         taskToTearDown = taskId;
@@ -354,8 +354,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_initiated_tasks_with_delayTimer_toCurrentTime_and_without_followup_overdue_then_complete_task() {
         String caseIdForTask2 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
-            "", "",
-            false, "processApplication");
+            "", "appealSubmitted",
+            false, "reviewTheAppeal");
 
         // add tasks to tear down.
         taskToTearDown = taskId;
@@ -489,22 +489,22 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
         await().ignoreException(AssertionError.class)
             .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
+            .atMost(30, SECONDS)
             .until(
                 () -> {
-                    given()
+
+                    Response result = given()
                         .header(SERVICE_AUTHORIZATION, s2sToken)
                         .contentType(APPLICATION_JSON_VALUE)
                         .baseUri(camundaUrl)
-                        .basePath("/task")
                         .when()
-                        .get("/{id}/variables", taskId)
-                        .prettyPeek()
-                        .then()
+                        .get("/task/{id}/variables", taskId);
+
+                    result.then()
+                        .body("caseId.value", is(caseId))
                         .body("hasWarnings.value", is(hasWarningValue));
 
                     return true;
-
                 });
     }
 
@@ -516,7 +516,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             delayTimer = LocalDateTime.now().plusSeconds(2);
         }
         EventInformation eventInformation = EventInformation.builder()
-            .eventInstanceId("eventInstanceId")
+            .eventInstanceId(UUID.randomUUID().toString())
             .eventTimeStamp(delayTimer)
             .caseId(caseId)
             .jurisdictionId("IA")
@@ -529,7 +529,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         if (publisher != null) {
             publishMessageToTopic(eventInformation);
-
             waitSeconds(2);
         } else {
             callRestEndpoint(eventInformation);
