@@ -170,7 +170,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String caseIdForTask2 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
             "", "appealSubmitted",
-            true, "processApplication");
+            true, "reviewTheAppeal");
 
         // add tasks to tear down.
         taskToTearDown = taskId;
