@@ -232,7 +232,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
                         .get("/task/{id}/variables", taskId);
 
                     result.then()
-                        .body("size()", is(1))
                         .body("caseId.value", is(caseId))
                         .body("hasWarnings.value", is(hasWarningValue));
 
@@ -261,7 +260,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         if (publisher != null) {
             publishMessageToTopic(eventInformation);
-
             waitSeconds(2);
         } else {
             callRestEndpoint(eventInformation);
