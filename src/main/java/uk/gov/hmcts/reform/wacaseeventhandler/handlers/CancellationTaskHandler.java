@@ -68,28 +68,28 @@ public class CancellationTaskHandler implements CaseEventHandler {
             .map(result -> (CancellationEvaluateResponse) result)
             .forEach(cancellationEvaluateResponse -> {
                 DmnStringValue taskCategories = cancellationEvaluateResponse.getTaskCategories();
-                String value = taskCategories.getValue();
                 sendMessageToCancelTasksForGivenCorrelations(
                     eventInformation.getCaseId(),
-                    value
+                    taskCategories
                 );
             });
     }
 
-    private void sendMessageToCancelTasksForGivenCorrelations(String caseReference, String category) {
+    private void sendMessageToCancelTasksForGivenCorrelations(String caseReference, DmnStringValue category) {
         workflowApiClientToCancelTask.sendMessage(buildSendMessageRequest(category, caseReference));
     }
 
     private SendMessageRequest<ProcessVariables, CancellationCorrelationKeys> buildSendMessageRequest(
-        String taskCategory,
+        DmnStringValue taskCategory,
         String caseReference
     ) {
         return SendMessageRequest.<ProcessVariables, CancellationCorrelationKeys>builder()
             .messageName(TASK_CANCELLATION.getMessageName())
             .correlationKeys(CancellationCorrelationKeys.builder()
                                  .caseId(new DmnStringValue(caseReference))
-                                 .taskCategory(new DmnStringValue(taskCategory))
+                                 .taskCategory(taskCategory)
                                  .build())
+            .all(true)
             .build();
     }
 

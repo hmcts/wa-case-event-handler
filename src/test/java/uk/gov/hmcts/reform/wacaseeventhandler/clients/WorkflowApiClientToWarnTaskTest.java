@@ -103,7 +103,8 @@ import static org.mockito.Mockito.when;
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("ServiceAuthorization", BEARER_S_2_S_TOKEN);
 
-        return new HttpEntity<>(new SendMessageRequest<>("warnTask",null, null), headers);
+        return new HttpEntity<>(new SendMessageRequest<>("warnTask",null,
+                                                         null, false), headers);
     }
 
     private String getExpectedSendMessageUrl() {
@@ -130,7 +131,7 @@ import static org.mockito.Mockito.when;
             new SendMessageRequest<>(
                 "warnTask",
                 null,
-                null
+                null, false
             )
         );
 
