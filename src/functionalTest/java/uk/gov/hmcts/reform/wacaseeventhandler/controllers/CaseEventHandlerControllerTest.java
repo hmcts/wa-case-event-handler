@@ -216,14 +216,12 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_initiate_tasks_with_follow_up_overdue_category_then_warn_task_with_no() {
         // Given multiple existing tasks
 
-        // create task1,
-        // notice this creates two tasks with the follow up category because the initiate dmn table
         String caseIdForTask1 = UUID.randomUUID().toString();
         String taskIdDmnColumn = "allocateFtpaToJudge";
         String task1Id = initiateTaskForGivenId(
             caseIdForTask1,
             "applyForFTPAAppellant",
-            "", "", true,
+            "", "", false,
             taskIdDmnColumn
         );
 
@@ -365,13 +363,15 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_multiple_caseIDs_when_action_is_initiate_then_complete_all_tasks() {
         String caseIdForTask1 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseIdForTask1, "submitAppeal",
-                                                     "", "",
-                                                     false, "processApplication");
+                                                     "", "appealSubmitted",
+                                                     false, "reviewTheAppeal"
+        );
 
         String caseIdForTask2 = UUID.randomUUID().toString();
         final String task2Id = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
-                                                      "", "",
-                                                      false, "processApplication");
+                                                      "", "appealSubmitted",
+                                                      false, "reviewTheAppeal"
+        );
 
         // add tasks to tear down.
         tearDownMultipleTasks(Arrays.asList(taskId, task2Id), "completed");
