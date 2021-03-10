@@ -169,7 +169,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_initiated_tasks_with_delayTimer_toFuture_and_without_followup_overdue_then_complete_task() {
         String caseIdForTask2 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
-            "", "",
+            "", "appealSubmitted",
             true, "processApplication");
 
         // add tasks to tear down.
@@ -180,8 +180,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_initiated_tasks_with_delayTimer_toCurrentTime_and_without_followup_overdue_then_complete_task() {
         String caseIdForTask2 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
-            "", "",
-            false, "processApplication");
+            "", "appealSubmitted",
+            false, "reviewTheAppeal");
 
         // add tasks to tear down.
         taskToTearDown = taskId;
