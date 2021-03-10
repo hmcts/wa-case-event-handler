@@ -238,7 +238,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             delayTimer = LocalDateTime.now().plusSeconds(2);
         }
         EventInformation eventInformation = EventInformation.builder()
-            .eventInstanceId("eventInstanceId")
+            .eventInstanceId(UUID.randomUUID().toString())
             .eventTimeStamp(delayTimer)
             .caseId(caseId)
             .jurisdictionId("IA")
