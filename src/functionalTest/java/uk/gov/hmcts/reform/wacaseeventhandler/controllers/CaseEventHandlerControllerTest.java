@@ -160,10 +160,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         sendMessage(caseIdForTask1, "makeAnApplication",
-                    "", "", false);
+            "", "", false);
 
-        waitSeconds(17);
-        assertTaskHasWarnings(caseIdForTask1,task1Id,true);
+        assertTaskHasWarnings(caseIdForTask1, task1Id, true);
     }
 
     @Test
@@ -218,16 +217,28 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
 
     private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
-        given()
-            .header(SERVICE_AUTHORIZATION, s2sToken)
-            .contentType(APPLICATION_JSON_VALUE)
-            .baseUri(camundaUrl)
-            .basePath("/task")
-            .when()
-            .get("/{id}/variables", taskId)
-            .prettyPeek()
-            .then()
-            .body("hasWarnings.value", is(hasWarningValue));
+
+        await().ignoreException(AssertionError.class)
+            .pollInterval(500, MILLISECONDS)
+            .atMost(30, SECONDS)
+            .until(
+                () -> {
+
+                    Response result = given()
+                        .header(SERVICE_AUTHORIZATION, s2sToken)
+                        .contentType(APPLICATION_JSON_VALUE)
+                        .baseUri(camundaUrl)
+                        .basePath("/task")
+                        .when()
+                        .get("/{id}/variables", taskId);
+
+                    result.then()
+                        .body("size()", is(1))
+                        .body("caseId.value", is(caseId))
+                        .body("hasWarnings.value", is(hasWarningValue));
+
+                    return true;
+                });
     }
 
     private void sendMessage(String caseId, String event, String previousStateId,
