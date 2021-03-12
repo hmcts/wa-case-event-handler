@@ -30,7 +30,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     private String taskToTearDown;
 
-    public void should_create_a_task_with_correct_variables() {
+    @Test
+    public void should_create_a_task_with_correct_variables_lowercase_values_in_message() {
 
         String caseId = UUID.randomUUID().toString();
 
@@ -41,6 +42,40 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .caseId(caseId)
             .jurisdictionId("ia")
             .caseTypeId("asylum")
+            .eventId("submitAppeal")
+            .newStateId("appealSubmitted")
+            .previousStateId("")
+            .userId("someUserId")
+            .build();
+
+        sendMessageWithEventInformation(eventInformation);
+
+
+        String taskId = retrieveTaskIdByCaseId(caseId);
+        Response variablesResponseForTask = retrieveTaskVariables(caseId, taskId);
+
+        variablesResponseForTask.prettyPrint();
+
+        variablesResponseForTask.then()
+            .body("fail.value", is(true))
+            .body("hasWarnings.value", is(true));
+
+        // tear down task2
+        taskToTearDown = taskId;
+    }
+
+    @Test
+    public void should_create_a_task_with_correct_variables_correct_values_in_message() {
+
+        String caseId = UUID.randomUUID().toString();
+
+
+        EventInformation eventInformation = EventInformation.builder()
+            .eventInstanceId(UUID.randomUUID().toString())
+            .eventTimeStamp(LocalDateTime.now())
+            .caseId(caseId)
+            .jurisdictionId("IA")
+            .caseTypeId("Asylum")
             .eventId("submitAppeal")
             .newStateId("appealSubmitted")
             .previousStateId("")
