@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wataskmanagementapi;
+package uk.gov.hmcts.reform.wacaseeventhandler;
 
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.specification.RequestSpecification;

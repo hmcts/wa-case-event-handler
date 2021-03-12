@@ -56,6 +56,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         variablesResponseForTask.prettyPrint();
 
         variablesResponseForTask.then()
+            .body("fail.value", is(true))
             .body("hasWarnings.value", is(true));
 
         // tear down task2
