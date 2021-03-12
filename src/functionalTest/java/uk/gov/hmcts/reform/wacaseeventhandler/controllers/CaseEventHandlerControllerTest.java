@@ -31,10 +31,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     private String taskToTearDown;
 
     @Test
-    public void should_create_a_task_with_correct_variables_lowercase_values_in_message() {
+    public void should_create_a_task_with_lowercase_jurisdiction_and_casetype_variables_from_message() {
 
         String caseId = UUID.randomUUID().toString();
-
 
         EventInformation eventInformation = EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
@@ -54,18 +53,28 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String taskId = retrieveTaskIdByCaseId(caseId);
         Response variablesResponseForTask = retrieveTaskVariables(caseId, taskId);
 
-        variablesResponseForTask.prettyPrint();
-
         variablesResponseForTask.then()
-            .body("fail.value", is(true))
-            .body("hasWarnings.value", is(true));
+            .body("caseTypeId.value", is("asylum"))
+            .body("idempotencyKey.value", is(notNullValue()))
+            .body("jurisdiction.value", is("ia"))
+            .body("dueDate.value", is(notNullValue()))
+            .body("taskState.value", is("unconfigured")) //Because CCD Case did not exists
+            .body("caseId.value", is(caseId))
+            .body("name.value", is("Review the appeal"))
+            .body("workingDaysAllowed.value", is(2))
+            .body("isDuplicate.value", is(false))
+            .body("delayUntil.value", is(notNullValue()))
+            .body("taskId.value", is(taskId))
+            .body("taskCategory.value", is("Case progression"))
+            .body("group.value", is("TCW")
+            );
 
         // tear down task2
         taskToTearDown = taskId;
     }
 
     @Test
-    public void should_create_a_task_with_correct_variables_correct_values_in_message() {
+    public void should_create_a_task_with_correct_jurisdiction_and_casetype_variables_from_message() {
 
         String caseId = UUID.randomUUID().toString();
 
@@ -88,11 +97,23 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String taskId = retrieveTaskIdByCaseId(caseId);
         Response variablesResponseForTask = retrieveTaskVariables(caseId, taskId);
 
-        variablesResponseForTask.prettyPrint();
 
         variablesResponseForTask.then()
-            .body("fail.value", is(true))
-            .body("hasWarnings.value", is(true));
+            .body("caseTypeId.value", is("Asylum"))
+            .body("idempotencyKey.value", is(notNullValue()))
+            .body("jurisdiction.value", is("IA"))
+            .body("dueDate.value", is(notNullValue()))
+            .body("taskState.value", is("unconfigured")) //Because CCD Case did not exists
+            .body("caseId.value", is(caseId))
+            .body("name.value", is("Review the appeal"))
+            .body("workingDaysAllowed.value", is(2))
+            .body("isDuplicate.value", is(false))
+            .body("delayUntil.value", is(notNullValue()))
+            .body("taskId.value", is(taskId))
+            .body("taskCategory.value", is("Case progression"))
+            .body("group.value", is("TCW")
+            );
+
 
         // tear down task2
         taskToTearDown = taskId;
