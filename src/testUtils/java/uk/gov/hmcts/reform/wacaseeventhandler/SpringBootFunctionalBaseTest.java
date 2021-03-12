@@ -20,6 +20,8 @@ import java.util.concurrent.TimeUnit;
 public abstract class SpringBootFunctionalBaseTest {
 
     public static final String SERVICE_AUTHORIZATION = "ServiceAuthorization";
+    public static final int DEFAULT_POLLING_INTERVAL_MS = 500;
+    public static final int DEFAULT_POLLING_TIMEOUT_SEC = 30;
 
 
     @Value("${targets.instance}")
