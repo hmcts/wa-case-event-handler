@@ -21,7 +21,7 @@ public final class InitiateProcessVariables extends ProcessVariables {
     private final DmnStringValue taskId;
     private final DmnStringValue group;
     private final DmnStringValue jurisdiction;
-    private final DmnStringValue caseType;
+    private final DmnStringValue caseTypeId;
     private final DmnStringValue caseId;
     private final DmnStringValue delayUntil;
     private final DmnStringValue taskCategory;
@@ -54,8 +54,8 @@ public final class InitiateProcessVariables extends ProcessVariables {
         return jurisdiction;
     }
 
-    public DmnStringValue getCaseType() {
-        return caseType;
+    public DmnStringValue getCaseTypeId() {
+        return caseTypeId;
     }
 
     public DmnStringValue getCaseId() {
