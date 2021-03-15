@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateRes
 public final class InitiateEvaluateResponse extends EvaluateResponse {
     private final DmnStringValue taskId;
     private final DmnStringValue group;
+    private final DmnIntegerValue delayDuration;
     private final DmnIntegerValue workingDaysAllowed;
     private final DmnStringValue name;
     private final DmnStringValue taskCategory;
@@ -22,12 +23,14 @@ public final class InitiateEvaluateResponse extends EvaluateResponse {
     @JsonCreator
     public InitiateEvaluateResponse(@JsonProperty("taskId") DmnStringValue taskId,
                                     @JsonProperty("group") DmnStringValue group,
+                                    @JsonProperty("delayDuration") DmnIntegerValue delayDuration,
                                     @JsonProperty("workingDaysAllowed") DmnIntegerValue workingDaysAllowed,
                                     @JsonProperty("name") DmnStringValue name,
                                     @JsonProperty("taskCategory") DmnStringValue taskCategory) {
         super();
         this.taskId = taskId;
         this.group = group;
+        this.delayDuration = delayDuration;
         this.workingDaysAllowed = workingDaysAllowed;
         this.name = name;
         this.taskCategory = taskCategory;
@@ -39,6 +42,10 @@ public final class InitiateEvaluateResponse extends EvaluateResponse {
 
     public DmnStringValue getGroup() {
         return group;
+    }
+
+    public DmnIntegerValue getDelayDuration() {
+        return delayDuration;
     }
 
     public DmnIntegerValue getWorkingDaysAllowed() {

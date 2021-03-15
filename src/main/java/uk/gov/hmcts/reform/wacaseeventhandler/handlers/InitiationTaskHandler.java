@@ -98,8 +98,13 @@ public class InitiationTaskHandler implements CaseEventHandler {
     ) {
         String eventInfoDt = isoDateFormatter.format(eventInformation.getEventTimeStamp());
 
-        ZonedDateTime delayUntil = dueDateService.calculateDueDate(
+        ZonedDateTime delayUntil = dueDateService.calculateDelayUntil(
             ZonedDateTime.parse(eventInfoDt),
+            cannotBeNull(initiateEvaluateResponse.getDelayDuration()).getValue()
+        );
+
+        ZonedDateTime dueDate = dueDateService.calculateDueDate(
+            delayUntil,
             cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()).getValue()
         );
 
@@ -111,7 +116,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
         return InitiateProcessVariables.builder()
             .idempotencyKey(new DmnStringValue(idempotencyKey))
             .caseTypeId(new DmnStringValue(eventInformation.getCaseTypeId()))
-            .dueDate(new DmnStringValue(isoDateFormatter.format(eventInformation.getEventTimeStamp())))
+            .dueDate(new DmnStringValue(isoDateFormatter.format(dueDate.toLocalDateTime())))
             .workingDaysAllowed(cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()))
             .group(initiateEvaluateResponse.getGroup())
             .jurisdiction(new DmnStringValue(eventInformation.getJurisdictionId()))

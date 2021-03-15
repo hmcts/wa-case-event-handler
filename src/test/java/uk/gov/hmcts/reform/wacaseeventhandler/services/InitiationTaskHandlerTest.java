@@ -39,6 +39,7 @@ class InitiationTaskHandlerTest {
 
     public static final String INPUT_DATE = "2020-12-08T15:53:36.530377";
     public static final String EXPECTED_DATE = "2020-12-08T15:53:36.530377Z";
+    public static final String EXPECTED_DATE_AT_4PM = "2020-12-08T16:00:00.000000Z";
     private static final String DMN_NAME = "wa-task-initiation-ia-asylum";
     public static final String TENANT_ID = "ia";
     @Mock
@@ -96,10 +97,15 @@ class InitiationTaskHandlerTest {
         Mockito.when(isoDateFormatter.format(eq(LocalDateTime.parse(INPUT_DATE))))
             .thenReturn(EXPECTED_DATE);
 
+        final ZonedDateTime zonedDateTime = ZonedDateTime.parse(EXPECTED_DATE_AT_4PM);
+        Mockito.when(isoDateFormatter.format(zonedDateTime.toLocalDateTime()))
+            .thenReturn(EXPECTED_DATE_AT_4PM);
+
         InitiateEvaluateResponse initiateTaskResponse1 = InitiateEvaluateResponse.builder()
             .group(new DmnStringValue("TCW"))
             .name(new DmnStringValue("Process Application"))
             .taskId(new DmnStringValue("processApplication"))
+            .delayDuration(new DmnIntegerValue(0))
             .workingDaysAllowed(new DmnIntegerValue(0))
             .taskCategory(new DmnStringValue("Case progression"))
             .build();
@@ -108,6 +114,7 @@ class InitiationTaskHandlerTest {
             .group(new DmnStringValue("external"))
             .name(new DmnStringValue("Decide On Time Extension"))
             .taskId(new DmnStringValue("decideOnTimeExtension"))
+            .delayDuration(new DmnIntegerValue(0))
             .workingDaysAllowed(new DmnIntegerValue(0))
             .taskCategory(new DmnStringValue("Time extension"))
             .build();
@@ -120,8 +127,11 @@ class InitiationTaskHandlerTest {
 
         List<InitiateEvaluateResponse> results = List.of(initiateTaskResponse1, initiateTaskResponse2);
 
-        when(dueDateService.calculateDueDate(ZonedDateTime.parse(EXPECTED_DATE), 0))
-            .thenReturn(ZonedDateTime.parse(EXPECTED_DATE));
+        when(dueDateService.calculateDelayUntil(ZonedDateTime.parse(EXPECTED_DATE), 0))
+            .thenReturn(ZonedDateTime.parse(EXPECTED_DATE_AT_4PM));
+
+        when(dueDateService.calculateDueDate(ZonedDateTime.parse(EXPECTED_DATE_AT_4PM), 0))
+            .thenReturn(ZonedDateTime.parse(EXPECTED_DATE_AT_4PM));
 
         handlerService.handle(results, eventInformation);
 
@@ -161,9 +171,9 @@ class InitiationTaskHandlerTest {
             .taskId(new DmnStringValue(taskId))
             .taskCategory(new DmnStringValue(taskCategory))
             .caseId(new DmnStringValue("some case reference"))
-            .dueDate(new DmnStringValue(EXPECTED_DATE))
+            .dueDate(new DmnStringValue(EXPECTED_DATE_AT_4PM))
             .workingDaysAllowed(new DmnIntegerValue(0))
-            .delayUntil(new DmnStringValue(ZonedDateTime.parse(EXPECTED_DATE)
+            .delayUntil(new DmnStringValue(ZonedDateTime.parse(EXPECTED_DATE_AT_4PM)
                                                .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
             .build();
 
