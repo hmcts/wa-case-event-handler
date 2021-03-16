@@ -94,7 +94,8 @@ class WorkflowApiClientToInitiateTaskTest {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("ServiceAuthorization", BEARER_S_2_S_TOKEN);
 
-        return new HttpEntity<>(new SendMessageRequest<>("warnTask",null, null), headers);
+        return new HttpEntity<>(new SendMessageRequest<>("warnTask",null,
+                                                         null, false), headers);
     }
 
     private String getExpectedUrl() {

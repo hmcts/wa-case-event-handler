@@ -154,7 +154,7 @@ class InitiationTaskHandlerTest {
     ) {
         InitiateProcessVariables expectedInitiateTaskSendMessageRequest = InitiateProcessVariables.builder()
             .idempotencyKey(new DmnStringValue(idempotencyKey))
-            .caseType(new DmnStringValue("asylum"))
+            .caseTypeId(new DmnStringValue("asylum"))
             .jurisdiction(new DmnStringValue("ia"))
             .group(new DmnStringValue(group))
             .name(new DmnStringValue(name))
@@ -170,7 +170,7 @@ class InitiationTaskHandlerTest {
         return new SendMessageRequest<>(
             "createTaskMessage",
             expectedInitiateTaskSendMessageRequest,
-            null
+            null, false
         );
     }
 }
