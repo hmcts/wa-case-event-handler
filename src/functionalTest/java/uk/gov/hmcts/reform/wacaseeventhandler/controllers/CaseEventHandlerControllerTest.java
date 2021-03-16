@@ -46,7 +46,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     @Before
     public void setup() {
-        eventTimeStamp = ZonedDateTime.now();
+        eventTimeStamp = ZonedDateTime.now().minusDays(1);
     }
 
     @Test
