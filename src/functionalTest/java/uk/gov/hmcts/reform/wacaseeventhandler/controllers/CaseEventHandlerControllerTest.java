@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -227,22 +226,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertTaskDeleteReason(task1Id, "deleted");
     }
 
-    @Ignore
-    @Test
-    public void given_initiated_tasks_with_delayTimer_toFuture_with_followup_overdue_than_cancel_task() {
-        // create task1
-        String caseIdForTask1 = UUID.randomUUID().toString();
-        String taskIdDmnColumn = "followUpOverdueCaseBuilding";
-        final String task1Id = initiateTaskForGivenId(caseIdForTask1, "requestCaseBuilding",
-            "", "caseBuilding",
-            true, taskIdDmnColumn);
-        // Then cancel the task1
-        sendMessage(caseIdForTask1, "submitCase", "caseBuilding", "", false);
-
-        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-        assertTaskDeleteReason(task1Id, "deleted");
-    }
-
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_initiate_tasks_with_follow_up_overdue_category_then_warn_task_with_no() {
@@ -371,18 +354,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // tear down all tasks
         tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
-    }
-
-    @Ignore
-    @Test
-    public void given_initiated_tasks_with_delayTimer_toFuture_and_without_followup_overdue_then_complete_task() {
-        String caseIdForTask1 = UUID.randomUUID().toString();
-        final String taskId = initiateTaskForGivenId(caseIdForTask1, "submitAppeal",
-            "", "appealSubmitted",
-            true, "reviewTheAppeal");
-
-        // add tasks to tear down.
-        taskToTearDown = taskId;
     }
 
     @Test

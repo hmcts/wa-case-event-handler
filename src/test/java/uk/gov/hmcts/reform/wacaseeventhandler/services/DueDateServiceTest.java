@@ -40,7 +40,7 @@ class DueDateServiceTest {
         );
 
         ZonedDateTime calculatedDueDate = underTest.calculateDueDate(
-            providedDueDate, 0
+            zonedDateTimeAt4Pm, 0
         );
 
         assertThat(calculatedDueDate, is(zonedDateTimeAt4Pm));
@@ -48,35 +48,35 @@ class DueDateServiceTest {
 
     @Test
     void calculateDueDateAllWorkingDays() {
-        checkWorkingDays(ZonedDateTime.of(2020, 9, 1, 1, 2, 3, 4, ZoneId.systemDefault()),
+        checkWorkingDays(ZonedDateTime.of(2020, 9, 1, 16, 0, 0, 0, ZoneId.systemDefault()),
                          2, ZonedDateTime.of(2020, 9, 1, 16, 0, 0, 0, ZoneId.systemDefault()).plusDays(2)
         );
     }
 
     @Test
     void calculateDueDateWhenFallInAWeekend() {
-        checkWorkingDays(ZonedDateTime.of(2020, 9, 3, 1, 2, 3, 4, ZoneId.systemDefault()), 2,
+        checkWorkingDays(ZonedDateTime.of(2020, 9, 3, 16, 0, 0, 0, ZoneId.systemDefault()), 2,
                          ZonedDateTime.of(2020, 9, 7, 16, 0, 0, 0, ZoneId.systemDefault())
         );
     }
 
     @Test
     void calculateDueDateWhenStraddlesAWeekend() {
-        checkWorkingDays(ZonedDateTime.of(2020, 9, 3, 1, 2, 3, 4, ZoneId.systemDefault()), 4,
+        checkWorkingDays(ZonedDateTime.of(2020, 9, 3, 16, 0, 0, 0, ZoneId.systemDefault()), 4,
                          ZonedDateTime.of(2020, 9, 9, 16, 0, 0, 0, ZoneId.systemDefault())
         );
     }
 
     @Test
     void calculateDueDateWhichStraddlesMultipleWeekends() {
-        checkWorkingDays(ZonedDateTime.of(2020, 9, 3, 1, 2, 3, 4, ZoneId.systemDefault()), 10,
+        checkWorkingDays(ZonedDateTime.of(2020, 9, 3, 16, 0, 0, 0, ZoneId.systemDefault()), 10,
                          ZonedDateTime.of(2020, 9, 17, 16, 0, 0, 0, ZoneId.systemDefault())
         );
     }
 
     @Test
     void calculateDueDateWhichFallsOnAWeekend() {
-        checkWorkingDays(ZonedDateTime.of(2020, 9, 3, 1, 2, 3, 4, ZoneId.systemDefault()), 10,
+        checkWorkingDays(ZonedDateTime.of(2020, 9, 3, 16, 0, 0, 0, ZoneId.systemDefault()), 10,
                          ZonedDateTime.of(2020, 9, 17, 16, 0, 0, 0, ZoneId.systemDefault())
         );
     }
@@ -85,7 +85,7 @@ class DueDateServiceTest {
     void calculateDueDateWhichFallsOnAHoliday() {
         when(holidayService.isHoliday(ZonedDateTime.of(2020, 9, 3, 16, 0, 0, 0, ZoneId.systemDefault())))
             .thenReturn(true);
-        checkWorkingDays(ZonedDateTime.of(2020, 9, 1, 1, 2, 3, 4, ZoneId.systemDefault()), 2,
+        checkWorkingDays(ZonedDateTime.of(2020, 9, 1, 16, 0, 0, 0, ZoneId.systemDefault()), 2,
                          ZonedDateTime.of(2020, 9, 4, 16, 0, 0, 0, ZoneId.systemDefault())
         );
     }
@@ -94,7 +94,7 @@ class DueDateServiceTest {
     void calculateDueDateWhichStraddlesAHoliday() {
         when(holidayService.isHoliday(ZonedDateTime.of(2020, 9, 1, 16, 0, 0, 0, ZoneId.systemDefault()).plusDays(1)))
             .thenReturn(true);
-        checkWorkingDays(ZonedDateTime.of(2020, 9, 1, 1, 2, 3, 4, ZoneId.systemDefault()), 2,
+        checkWorkingDays(ZonedDateTime.of(2020, 9, 1, 16, 0, 0, 0, ZoneId.systemDefault()), 2,
                          ZonedDateTime.of(2020, 9, 4, 16, 0, 0, 0, ZoneId.systemDefault())
         );
     }
@@ -112,7 +112,7 @@ class DueDateServiceTest {
 
     @Test
     void calculateDelayUntilWithOutDelayDuration() {
-        final ZonedDateTime actual = ZonedDateTime.of(2021, 3, 1, 11, 0, 0, 0, ZoneId.systemDefault());
+        final ZonedDateTime actual = ZonedDateTime.of(2021, 3, 1, 16, 0, 0, 0, ZoneId.systemDefault());
 
         final ZonedDateTime zonedDateTime = underTest.calculateDelayUntil(actual, 0);
 
