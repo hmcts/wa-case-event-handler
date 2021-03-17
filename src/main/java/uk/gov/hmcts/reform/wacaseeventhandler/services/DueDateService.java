@@ -17,16 +17,16 @@ public class DueDateService {
     }
 
     public ZonedDateTime calculateDelayUntil(ZonedDateTime eventDateTime, int delayDuration) {
-        final ZonedDateTime fourPmDateTime = resetTo4PmTime(eventDateTime);
         if (delayDuration == 0) {
-            return fourPmDateTime;
+            return eventDateTime;
         }
+        final ZonedDateTime fourPmDateTime = resetTo4PmTime(eventDateTime);
 
         return fourPmDateTime.plusDays(delayDuration);
     }
 
     public ZonedDateTime calculateDueDate(ZonedDateTime delayUntil, int workingDaysAllowed) {
-        return addWorkingDays(delayUntil, workingDaysAllowed);
+        return addWorkingDays(resetTo4PmTime(delayUntil), workingDaysAllowed);
     }
 
     private ZonedDateTime addWorkingDays(ZonedDateTime dueDate, int numberOfDays) {

@@ -110,9 +110,11 @@ class DueDateServiceTest {
         assertEquals(expected, zonedDateTime);
     }
 
-    @Test
-    void calculateDelayUntilWithOutDelayDuration() {
-        final ZonedDateTime actual = ZonedDateTime.of(2021, 3, 1, 16, 0, 0, 0, ZoneId.systemDefault());
+    @ParameterizedTest
+    @ValueSource(ints = {00, 11, 16, 17}) // hours
+    void calculateDelayUntilWithOutDelayDuration(int hour) {
+        final ZonedDateTime actual = ZonedDateTime.of(2021, 3, 1, hour, 0, 0, 0, ZoneId.systemDefault());
+        final ZonedDateTime expected = ZonedDateTime.of(2021, 3, 2, hour, 0, 0, 0, ZoneId.systemDefault());
 
         final ZonedDateTime zonedDateTime = underTest.calculateDelayUntil(actual, 0);
 

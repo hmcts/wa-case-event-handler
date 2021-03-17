@@ -227,6 +227,21 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
+    public void given_initiated_tasks_with_delayTimer_toFuture_with_followup_overdue_than_cancel_task() {
+        // create task1
+        String caseIdForTask1 = UUID.randomUUID().toString();
+        String taskIdDmnColumn = "followUpOverdueCaseBuilding";
+        final String task1Id = initiateTaskForGivenId(caseIdForTask1, "requestCaseBuilding",
+            "", "caseBuilding",
+            true, taskIdDmnColumn);
+        // Then cancel the task1
+        sendMessage(caseIdForTask1, "submitCase", "caseBuilding", "", false);
+
+        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
+        assertTaskDeleteReason(task1Id, "deleted");
+    }
+
+    @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_initiate_tasks_with_follow_up_overdue_category_then_warn_task_with_no() {
         // Given multiple existing tasks
@@ -354,6 +369,17 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // tear down all tasks
         tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
+    }
+
+    @Test
+    public void given_initiated_tasks_with_delayTimer_toFuture_and_without_followup_overdue_then_complete_task() {
+        String caseIdForTask2 = UUID.randomUUID().toString();
+        final String taskId = initiateTaskForGivenId(caseIdForTask2, "makeAnApplication",
+            "", "",
+            true, "processApplication");
+
+        // add tasks to tear down.
+        taskToTearDown = taskId;
     }
 
     @Test
@@ -518,9 +544,27 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     private void sendMessage(String caseId, String event, String previousStateId,
                              String newStateId, boolean taskDelay) {
+
+        if (taskDelay) {
+            eventTimeStamp = ZonedDateTime.now().plusSeconds(2);
+        }
+        EventInformation eventInformation = getEventInformation(
+            caseId, event, previousStateId, newStateId, eventTimeStamp
+        );
+
+        if (publisher != null) {
+            publishMessageToTopic(eventInformation);
+            waitSeconds(2);
+        } else {
+            callRestEndpoint(eventInformation);
+        }
+    }
+
+    private EventInformation getEventInformation(String caseId, String event, String previousStateId,
+                                                 String newStateId, ZonedDateTime zonedDateTime) {
         EventInformation eventInformation = EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
-            .eventTimeStamp(eventTimeStamp.toLocalDateTime())
+            .eventTimeStamp(zonedDateTime.toLocalDateTime())
             .caseId(caseId)
             .jurisdictionId("IA")
             .caseTypeId("Asylum")
@@ -529,13 +573,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .previousStateId(previousStateId)
             .userId("some user Id")
             .build();
-
-        if (publisher != null) {
-            publishMessageToTopic(eventInformation);
-            waitSeconds(2);
-        } else {
-            callRestEndpoint(eventInformation);
-        }
+        return eventInformation;
     }
 
     private void callRestEndpoint(EventInformation eventInformation) {
@@ -683,8 +721,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         mapJson = result.jsonPath().get("workingDaysAllowed");
         int workingDaysLocal = (Integer) mapJson.get("value");
 
-        final ZonedDateTime expectedDelayUntil = dueDateService.calculateDelayUntil(eventTimeStamp, 0);
-        final ZonedDateTime expectedDueDate = dueDateService.calculateDueDate(expectedDelayUntil, workingDaysLocal);
+        final ZonedDateTime expectedDueDate = dueDateService.calculateDueDate(eventTimeStamp, workingDaysLocal);
 
         assertAll(
             () -> assertEquals(expectedDueDate.getYear(), dueDateTime.getYear()),
@@ -694,13 +731,13 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             () -> assertEquals(0, dueDateTime.getMinute()),
             () -> assertEquals(0, dueDateTime.getSecond()),
             () -> assertEquals(0, dueDateTime.getNano()),
-            () -> assertEquals(expectedDelayUntil.getYear(), delayUntilDateTime.getYear()),
-            () -> assertEquals(expectedDelayUntil.getMonthValue(), delayUntilDateTime.getMonthValue()),
-            () -> assertEquals(expectedDelayUntil.getDayOfMonth(), delayUntilDateTime.getDayOfMonth()),
-            () -> assertEquals(16, delayUntilDateTime.getHour()),
-            () -> assertEquals(0, delayUntilDateTime.getMinute()),
-            () -> assertEquals(0, delayUntilDateTime.getSecond()),
-            () -> assertEquals(0, delayUntilDateTime.getNano())
+            () -> assertEquals(eventTimeStamp.getYear(), delayUntilDateTime.getYear()),
+            () -> assertEquals(eventTimeStamp.getMonthValue(), delayUntilDateTime.getMonthValue()),
+            () -> assertEquals(eventTimeStamp.getDayOfMonth(), delayUntilDateTime.getDayOfMonth()),
+            () -> assertEquals(eventTimeStamp.getHour(), delayUntilDateTime.getHour()),
+            () -> assertEquals(eventTimeStamp.getMinute(), delayUntilDateTime.getMinute()),
+            () -> assertEquals(eventTimeStamp.getSecond(), delayUntilDateTime.getSecond()),
+            () -> assertEquals(eventTimeStamp.getNano(), delayUntilDateTime.getNano())
         );
     }
 
