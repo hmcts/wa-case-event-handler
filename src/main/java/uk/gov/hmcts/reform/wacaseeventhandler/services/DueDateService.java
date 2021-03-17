@@ -49,6 +49,6 @@ public class DueDateService {
     private ZonedDateTime resetTo4PmTime(ZonedDateTime eventDateTime) {
         final LocalTime fourPmTime = LocalTime.of(16, 0, 0, 0);
 
-        return eventDateTime.of(eventDateTime.toLocalDate(), fourPmTime, eventDateTime.getZone());
+        return ZonedDateTime.of(eventDateTime.toLocalDate(), fourPmTime, eventDateTime.getZone());
     }
 }
