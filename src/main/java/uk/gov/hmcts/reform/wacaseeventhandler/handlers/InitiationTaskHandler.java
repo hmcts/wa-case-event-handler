@@ -110,7 +110,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
 
         return InitiateProcessVariables.builder()
             .idempotencyKey(new DmnStringValue(idempotencyKey))
-            .caseType(new DmnStringValue(eventInformation.getCaseTypeId()))
+            .caseTypeId(new DmnStringValue(eventInformation.getCaseTypeId()))
             .dueDate(new DmnStringValue(isoDateFormatter.format(eventInformation.getEventTimeStamp())))
             .workingDaysAllowed(cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()))
             .group(initiateEvaluateResponse.getGroup())
