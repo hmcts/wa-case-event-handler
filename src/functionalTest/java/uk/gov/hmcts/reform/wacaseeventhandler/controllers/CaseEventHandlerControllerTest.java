@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInform
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -38,20 +39,23 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonS
 public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest {
 
     private String taskToTearDown;
-    private ZonedDateTime eventTimeStamp;
+    private LocalDateTime eventTimeStamp;
 
     @Autowired
     private DueDateService dueDateService;
 
     @Before
     public void setup() {
-        eventTimeStamp = ZonedDateTime.now().minusDays(1);
+        eventTimeStamp = LocalDateTime.now().minusDays(1);
     }
 
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_initiate_tasks_with_time_extension_category_then_cancel_task() {
         // Given multiple existing tasks
+
+        // DST (Day saving time) started on March 29th 2020 at 1:00am
+        eventTimeStamp = LocalDateTime.parse("2020-03-27T12:56:10.403975");
 
         // create task1
         String caseIdForTask1 = UUID.randomUUID().toString();
@@ -134,6 +138,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_initiate_tasks_with_follow_up_overdue_category_then_cancel_all_tasks() {
 
+        eventTimeStamp = LocalDateTime.parse("2020-02-27T12:56:19.403975");
+
         // notice this creates two tasks with the follow up category because the initiate dmn table
         // has multiple rules matching this event and state.
         String caseIdForTask1 = UUID.randomUUID().toString();
@@ -161,7 +167,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String eventToCancelTask = "removeAppealFromOnline";
         sendMessage(caseIdForTask1, eventToCancelTask, "", "", false);
 
-        waitSeconds(5);
+        waitSeconds(10);
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
         assertTaskDoesNotExist(task2Id, "provideRespondentEvidence");
 
@@ -395,11 +401,18 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     @Test
     public void given_multiple_caseIDs_when_action_is_initiate_then_complete_all_tasks() {
+        // DST (Day saving time) ended on October 25th 2020 at 2:00am.
+        eventTimeStamp = LocalDateTime.parse("2020-10-23T12:56:19.403975");
+
         String caseIdForTask1 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseIdForTask1, "submitAppeal",
                                                      "", "appealSubmitted",
                                                      false, "reviewTheAppeal"
         );
+
+        // test for workingDaysAllowed  = 2
+        Response responseTaskDetails = findTaskDetailsForGivenTaskId(taskId);
+        assertDelayDuration(responseTaskDetails);
 
         String caseIdForTask2 = UUID.randomUUID().toString();
         final String task2Id = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
@@ -523,7 +536,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
         await().ignoreException(AssertionError.class)
             .pollInterval(500, MILLISECONDS)
-            .atMost(30, SECONDS)
+            .atMost(60, SECONDS)
             .until(
                 () -> {
 
@@ -546,7 +559,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
                              String newStateId, boolean taskDelay) {
 
         if (taskDelay) {
-            eventTimeStamp = ZonedDateTime.now().plusSeconds(2);
+            eventTimeStamp = LocalDateTime.now().plusSeconds(2);
         }
         EventInformation eventInformation = getEventInformation(
             caseId, event, previousStateId, newStateId, eventTimeStamp
@@ -561,10 +574,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     private EventInformation getEventInformation(String caseId, String event, String previousStateId,
-                                                 String newStateId, ZonedDateTime zonedDateTime) {
+                                                 String newStateId, LocalDateTime localDateTime) {
         EventInformation eventInformation = EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
-            .eventTimeStamp(zonedDateTime.toLocalDateTime())
+            .eventTimeStamp(localDateTime)
             .caseId(caseId)
             .jurisdictionId("IA")
             .caseTypeId("Asylum")
@@ -709,7 +722,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     private void assertDelayDuration(Response result) {
         Map<String, Object> mapJson = result.jsonPath().get("dueDate");
         final String dueDateVal = (String) mapJson.get("value");
-        final ZonedDateTime dueDateTime = ZonedDateTime.parse(dueDateVal);
+        final LocalDateTime dueDateTime = LocalDateTime.parse(dueDateVal);
 
         mapJson = result.jsonPath().get("delayUntil");
         final String delayUntil = (String) mapJson.get("value");
@@ -721,7 +734,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         mapJson = result.jsonPath().get("workingDaysAllowed");
         int workingDaysLocal = (Integer) mapJson.get("value");
 
-        final ZonedDateTime expectedDueDate = dueDateService.calculateDueDate(eventTimeStamp, workingDaysLocal);
+        ZoneId zoneId = ZoneId.of("Europe/London");
+        ZonedDateTime zonedDateTimeStamp = eventTimeStamp.atZone(zoneId);
+        final ZonedDateTime expectedDueDate = dueDateService.calculateDueDate(zonedDateTimeStamp, workingDaysLocal);
 
         assertAll(
             () -> assertEquals(expectedDueDate.getYear(), dueDateTime.getYear()),

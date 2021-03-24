@@ -1,7 +1,10 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
+import lombok.Builder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -24,11 +27,13 @@ import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -38,8 +43,6 @@ import static org.mockito.Mockito.when;
 class InitiationTaskHandlerTest {
 
     public static final String INPUT_DATE = "2020-12-08T15:53:36.530377";
-    public static final String EXPECTED_DATE = "2020-12-08T15:53:36.530377Z";
-    public static final String EXPECTED_DATE_AT_4PM = "2020-12-08T16:00:00.000000Z";
     private static final String DMN_NAME = "wa-task-initiation-ia-asylum";
     public static final String TENANT_ID = "ia";
     @Mock
@@ -61,16 +64,6 @@ class InitiationTaskHandlerTest {
 
     private final String eventInstanceId = UUID.randomUUID().toString();
 
-    private final EventInformation eventInformation = EventInformation.builder()
-        .eventInstanceId(eventInstanceId)
-        .eventId("submitAppeal")
-        .newStateId("")
-        .jurisdictionId("ia")
-        .caseTypeId("asylum")
-        .caseId("some case reference")
-        .eventTimeStamp(LocalDateTime.parse(INPUT_DATE))
-        .build();
-
     @Test
     void evaluateDmn() {
 
@@ -83,7 +76,7 @@ class InitiationTaskHandlerTest {
             TENANT_ID
         )).thenReturn(new EvaluateDmnResponse<>(Collections.emptyList()));
 
-        handlerService.evaluateDmn(eventInformation);
+        handlerService.evaluateDmn(getEventInformation(INPUT_DATE));
 
         Mockito.verify(apiClientToInitiateTask).evaluateDmn(
             eq(DMN_NAME),
@@ -92,14 +85,19 @@ class InitiationTaskHandlerTest {
         );
     }
 
-    @Test
-    void handle() {
-        Mockito.when(isoDateFormatter.format(eq(LocalDateTime.parse(INPUT_DATE))))
-            .thenReturn(EXPECTED_DATE);
+    @ParameterizedTest
+    @MethodSource("dateTimeScenario")
+    void handle(DateTimeScenario dateTimeScenario) {
+        final ZonedDateTime zonedDateTime = ZonedDateTime.of(
+            LocalDateTime.parse(dateTimeScenario.inputDate), ZoneId.of("Europe/London")
+        );
 
-        final ZonedDateTime zonedDateTime = ZonedDateTime.parse(EXPECTED_DATE_AT_4PM);
-        Mockito.when(isoDateFormatter.format(zonedDateTime.toLocalDateTime()))
-            .thenReturn(EXPECTED_DATE_AT_4PM);
+        Mockito.when(isoDateFormatter.formatToZone(LocalDateTime.parse(dateTimeScenario.inputDate)))
+            .thenReturn(zonedDateTime);
+        final LocalTime fourPmTime = LocalTime.of(16, 0, 0, 0);
+        final ZonedDateTime zonedDateTimeAt4Pm = ZonedDateTime.of(
+            zonedDateTime.toLocalDate(), fourPmTime, ZoneId.of("Europe/London")
+        );
 
         InitiateEvaluateResponse initiateTaskResponse1 = InitiateEvaluateResponse.builder()
             .group(new DmnStringValue("TCW"))
@@ -127,13 +125,13 @@ class InitiationTaskHandlerTest {
 
         List<InitiateEvaluateResponse> results = List.of(initiateTaskResponse1, initiateTaskResponse2);
 
-        when(dueDateService.calculateDelayUntil(ZonedDateTime.parse(EXPECTED_DATE), 0))
-            .thenReturn(ZonedDateTime.parse(EXPECTED_DATE_AT_4PM));
+        when(dueDateService.calculateDelayUntil(zonedDateTime, 0))
+            .thenReturn(zonedDateTime);
 
-        when(dueDateService.calculateDueDate(ZonedDateTime.parse(EXPECTED_DATE_AT_4PM), 0))
-            .thenReturn(ZonedDateTime.parse(EXPECTED_DATE_AT_4PM));
+        when(dueDateService.calculateDueDate(zonedDateTime, 0))
+            .thenReturn(zonedDateTimeAt4Pm);
 
-        handlerService.handle(results, eventInformation);
+        handlerService.handle(results, getEventInformation(dateTimeScenario.inputDate));
 
         Mockito.verify(apiClientToInitiateTask, Mockito.times(2)).sendMessage(captor.capture());
         SendMessageRequest<InitiateProcessVariables, CorrelationKeys> actualSendMessageRequest = captor.getValue();
@@ -143,7 +141,9 @@ class InitiationTaskHandlerTest {
             "Process Application",
             "processApplication",
             "Case progression",
-            "TCW"
+            "TCW",
+            dateTimeScenario.dateAt4pm,
+            dateTimeScenario.expectedDate
         ));
 
         assertThat(captor.getAllValues().get(1)).isEqualTo(getExpectedSendMessageRequest(
@@ -151,7 +151,9 @@ class InitiationTaskHandlerTest {
             "Decide On Time Extension",
             "decideOnTimeExtension",
             "Time extension",
-            "external"
+            "external",
+            dateTimeScenario.dateAt4pm,
+            dateTimeScenario.expectedDate
         ));
     }
 
@@ -160,7 +162,9 @@ class InitiationTaskHandlerTest {
         String name,
         String taskId,
         String taskCategory,
-        String group
+        String group,
+        String dateAt4Pm,
+        String expectedDate
     ) {
         InitiateProcessVariables expectedInitiateTaskSendMessageRequest = InitiateProcessVariables.builder()
             .idempotencyKey(new DmnStringValue(idempotencyKey))
@@ -171,10 +175,9 @@ class InitiationTaskHandlerTest {
             .taskId(new DmnStringValue(taskId))
             .taskCategory(new DmnStringValue(taskCategory))
             .caseId(new DmnStringValue("some case reference"))
-            .dueDate(new DmnStringValue(EXPECTED_DATE_AT_4PM))
+            .dueDate(new DmnStringValue(dateAt4Pm))
             .workingDaysAllowed(new DmnIntegerValue(0))
-            .delayUntil(new DmnStringValue(ZonedDateTime.parse(EXPECTED_DATE_AT_4PM)
-                                               .format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
+            .delayUntil(new DmnStringValue(expectedDate))
             .build();
 
         return new SendMessageRequest<>(
@@ -182,5 +185,46 @@ class InitiationTaskHandlerTest {
             expectedInitiateTaskSendMessageRequest,
             null, false
         );
+    }
+
+    private EventInformation getEventInformation(String eventTimeStamp) {
+        return EventInformation.builder()
+            .eventInstanceId(eventInstanceId)
+            .eventId("submitAppeal")
+            .newStateId("")
+            .jurisdictionId("ia")
+            .caseTypeId("asylum")
+            .caseId("some case reference")
+            .eventTimeStamp(LocalDateTime.parse(eventTimeStamp))
+            .build();
+    }
+
+    static Stream<DateTimeScenario> dateTimeScenario() {
+        final DateTimeScenario dateTime = DateTimeScenario.builder()
+            .inputDate("2020-12-08T15:53:36.530377")
+            .expectedDate("2020-12-08T15:53:36.530377")
+            .dateAt4pm("2020-12-08T16:00:00")
+            .build();
+
+        final DateTimeScenario dstStarter = DateTimeScenario.builder()
+            .inputDate("2020-03-29T10:53:36.530377")
+            .expectedDate("2020-03-29T10:53:36.530377")
+            .dateAt4pm("2020-03-29T16:00:00")
+            .build();
+
+        final DateTimeScenario dstEnd = DateTimeScenario.builder()
+            .inputDate("2020-10-29T10:53:36.530377")
+            .expectedDate("2020-10-29T10:53:36.530377")
+            .dateAt4pm("2020-10-29T16:00:00")
+            .build();
+
+        return Stream.of(dateTime, dstStarter, dstEnd);
+    }
+
+    @Builder
+    static class DateTimeScenario {
+        String inputDate;
+        String expectedDate;
+        String dateAt4pm;
     }
 }

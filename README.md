@@ -55,7 +55,7 @@ To build the project execute the following command:
     ```
         OPEN_ID_IDAM_URL=http://'minikubeIP:port'
     ```
-  Note: Make sure the BPMN and DMN are deployed onto Camunda locally.
+  Note: Make sure the BPMN and DMN are deployed onto Camunda locally. Workflow and Task Configuration services should be running
 
 - To run all tests including junit, integration and functional.
   NOTE: This service is dependant on wa-workflow-api service , so make sure it is running locally.

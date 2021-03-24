@@ -20,13 +20,13 @@ public class DueDateService {
         if (delayDuration == 0) {
             return eventDateTime;
         }
-        final ZonedDateTime fourPmDateTime = resetTo4PmTime(eventDateTime);
-
-        return fourPmDateTime.plusDays(delayDuration);
+        return resetTo4PmTime(eventDateTime.plusDays(delayDuration));
     }
 
     public ZonedDateTime calculateDueDate(ZonedDateTime delayUntil, int workingDaysAllowed) {
-        return addWorkingDays(resetTo4PmTime(delayUntil), workingDaysAllowed);
+        final ZonedDateTime zonedDateTime = addWorkingDays(delayUntil, workingDaysAllowed);
+
+        return resetTo4PmTime(zonedDateTime);
     }
 
     private ZonedDateTime addWorkingDays(ZonedDateTime dueDate, int numberOfDays) {
