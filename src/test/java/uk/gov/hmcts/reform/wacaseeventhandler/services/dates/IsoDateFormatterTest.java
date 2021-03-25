@@ -19,6 +19,6 @@ class IsoDateFormatterTest {
 
         ZonedDateTime zonedDateTime = isoDateFormatter.formatToZone(LocalDateTime.parse(fixedDate));
 
-        assertThat(zonedDateTime.toString()).isEqualTo(expectedDate);
+        assertThat(expectedDate).isEqualTo(zonedDateTime.toString());
     }
 }
