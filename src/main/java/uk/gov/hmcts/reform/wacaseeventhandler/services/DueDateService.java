@@ -4,41 +4,37 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates.HolidayService;
 
 import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.time.ZonedDateTime;
 
 @Component
 public class DueDateService {
 
-    private final DateService dateService;
     private final HolidayService holidayService;
 
-    public DueDateService(DateService dateService, HolidayService holidayService) {
-        this.dateService = dateService;
+    public DueDateService(HolidayService holidayService) {
         this.holidayService = holidayService;
     }
 
-    public ZonedDateTime calculateDueDate(ZonedDateTime dueDate, int workingDaysAllowed) {
-        if (dueDate != null) {
+    public ZonedDateTime calculateDelayUntil(ZonedDateTime eventDateTime, int delayDuration) {
+        if (delayDuration == 0) {
+            return eventDateTime;
+        }
+        return resetTo4PmTime(eventDateTime.plusDays(delayDuration));
+    }
+
+    public ZonedDateTime calculateDueDate(ZonedDateTime delayUntil, int workingDaysAllowed) {
+        final ZonedDateTime zonedDateTime = addWorkingDays(delayUntil, workingDaysAllowed);
+
+        return resetTo4PmTime(zonedDateTime);
+    }
+
+    private ZonedDateTime addWorkingDays(ZonedDateTime dueDate, int numberOfDays) {
+        if (numberOfDays == 0) {
             return dueDate;
         }
-        if (workingDaysAllowed == 0) {
-            throw new IllegalStateException(
-                "Should either have a due date or have got the working days allowed for task"
-            );
-        }
-        return addWorkingDays(workingDaysAllowed);
-    }
 
-    public ZonedDateTime addWorkingDays(int numberOfDays) {
-        return addWorkingDays(dateService.now(), numberOfDays);
-    }
-
-    private ZonedDateTime addWorkingDays(ZonedDateTime startDate, int numberOfDays) {
-        if (numberOfDays == 0) {
-            return startDate;
-        }
-
-        ZonedDateTime newDate = startDate.plusDays(1);
+        ZonedDateTime newDate = dueDate.plusDays(1);
         if (isWeekend(newDate) || holidayService.isHoliday(newDate)) {
             return addWorkingDays(newDate, numberOfDays);
         } else {
@@ -48,5 +44,11 @@ public class DueDateService {
 
     private boolean isWeekend(ZonedDateTime date) {
         return date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY;
+    }
+
+    private ZonedDateTime resetTo4PmTime(ZonedDateTime eventDateTime) {
+        final LocalTime fourPmTime = LocalTime.of(16, 0, 0, 0);
+
+        return ZonedDateTime.of(eventDateTime.toLocalDate(), fourPmTime, eventDateTime.getZone());
     }
 }
