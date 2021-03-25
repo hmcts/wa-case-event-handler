@@ -167,7 +167,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String eventToCancelTask = "removeAppealFromOnline";
         sendMessage(caseIdForTask1, eventToCancelTask, "", "", false);
 
-        waitSeconds(10);
+        waitSeconds(5);
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
         assertTaskDoesNotExist(task2Id, "provideRespondentEvidence");
 
