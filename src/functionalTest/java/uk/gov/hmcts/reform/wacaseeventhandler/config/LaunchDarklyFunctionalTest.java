@@ -27,8 +27,20 @@ public class LaunchDarklyFunctionalTest extends SpringBootFunctionalBaseTest {
     }
 
     @Test
-    public void should_hit_launch_darkly_with_non_existent_key_and_return_OFF_string() {
+    public void should_hit_launch_darkly_with_azure_servicebus_and_return_OFF_string() {
         String launchDarklyFeature = launchDarklyClient.getStringValueFromKey("azure-servicebus");
+        assertThat(launchDarklyFeature, is("OFF"));
+    }
+
+    @Test
+    public void should_hit_launch_darkly_with_message_servicebus_and_return_OFF_string() {
+        String launchDarklyFeature = launchDarklyClient.getStringValueFromKey("message-servicebus");
+        assertThat(launchDarklyFeature, is("OFF"));
+    }
+
+    @Test
+    public void should_hit_launch_darkly_with_amqp_and_return_OFF_string() {
+        String launchDarklyFeature = launchDarklyClient.getStringValueFromKey("amqp");
         assertThat(launchDarklyFeature, is("OFF"));
     }
 }
