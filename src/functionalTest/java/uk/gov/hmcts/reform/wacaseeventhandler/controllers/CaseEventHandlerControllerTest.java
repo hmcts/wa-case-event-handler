@@ -105,8 +105,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         // Given multiple existing tasks
 
         // create task1,
-        // notice this creates two tasks with the follow up category because the initiate dmn table
-        // has multiple rules matching this event and state.
+        // notice this creates only one task with the follow up category
         String caseIdForTask1 = UUID.randomUUID().toString();
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
         String task1Id = initiateTaskForGivenId(
@@ -124,14 +123,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         // Assert the task1 is deleted
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
         assertTaskDeleteReason(task1Id, "deleted");
-
-        // add tasks to tear down.
-        String taskCreatedAsResultOfTheMultipleDmnRule = findTaskForGivenCaseId(
-            caseIdForTask1,
-            "provideRespondentEvidence"
-        );
-
-        taskToTearDown = taskCreatedAsResultOfTheMultipleDmnRule;
     }
 
     @Test
@@ -140,8 +131,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         eventTimeStamp = LocalDateTime.parse("2020-02-27T12:56:19.403975");
 
-        // notice this creates two tasks with the follow up category because the initiate dmn table
-        // has multiple rules matching this event and state.
+        // notice this creates one task with the follow up category
         String caseIdForTask1 = UUID.randomUUID().toString();
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
 
@@ -153,29 +143,17 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             taskIdDmnColumn
         );
 
-        // task2
-        String task2Id = findTaskForGivenCaseId(
-            caseIdForTask1,
-            "provideRespondentEvidence"
-        );
-
-        // test for workingDaysAllowed  = 0
-        Response responseTaskDetails = findTaskDetailsForGivenTaskId(task2Id);
-        assertDelayDuration(responseTaskDetails);
-
         // Then cancel all tasks
         String eventToCancelTask = "removeAppealFromOnline";
         sendMessage(caseIdForTask1, eventToCancelTask, "", "", false);
 
         waitSeconds(5);
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-        assertTaskDoesNotExist(task2Id, "provideRespondentEvidence");
 
         assertTaskDeleteReason(task1Id, "deleted");
-        assertTaskDeleteReason(task2Id, "deleted");
 
         // add tasks to tear down.
-        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "deleted");
+        tearDownMultipleTasks(Arrays.asList(task1Id), "deleted");
     }
 
     @Test
@@ -438,12 +416,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             taskIdDmnColumn
         );
 
-        // task2
-        final String caseId1Task2Id = findTaskForGivenCaseId(
-            caseId1,
-            "provideRespondentEvidence"
-        );
-
         // caseId2 with category Case progression
         String taskId2DmnColumn = "allocateFtpaToJudge";
         String caseId2 = UUID.randomUUID().toString();
@@ -458,11 +430,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         waitSeconds(5);
 
         assertTaskDoesNotExist(caseId1, taskIdDmnColumn);
-        assertTaskDoesNotExist(caseId1, "provideRespondentEvidence");
         assertTaskDoesNotExist(caseId2, taskId2DmnColumn);
 
         assertTaskDeleteReason(caseId1Task1Id, "deleted");
-        assertTaskDeleteReason(caseId1Task2Id, "deleted");
         assertTaskDeleteReason(caseId2Task1Id, "deleted");
 
         // add tasks to tear down.
