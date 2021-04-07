@@ -13,5 +13,6 @@
     Inherited from com.azure:azure-messaging-servicebus waiting on an update review in 1 month to see if azure have pushed an update
     ]]></notes>
     <cve>CVE-2021-21290</cve>
+    <cve>CVE-2021-21295</cve>
    </suppress>
 </suppressions>
