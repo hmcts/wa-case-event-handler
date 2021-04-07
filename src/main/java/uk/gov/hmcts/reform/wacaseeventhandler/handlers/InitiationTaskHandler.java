@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.IdempotencyKeyGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -53,7 +54,9 @@ public class InitiationTaskHandler implements CaseEventHandler {
 
         EvaluateDmnRequest<InitiateEvaluateRequest> requestParameters = getParameterRequest(
             eventInformation.getEventId(),
-            eventInformation.getNewStateId()
+            eventInformation.getNewStateId(),
+            LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+            "2021-04-06T12:00:00"
         );
 
         return apiClientToInitiateTask.evaluateDmn(tableKey, requestParameters, tenantId).getResults();
@@ -61,11 +64,15 @@ public class InitiationTaskHandler implements CaseEventHandler {
 
     private EvaluateDmnRequest<InitiateEvaluateRequest> getParameterRequest(
         String eventId,
-        String newStateId
+        String newStateId,
+        String now,
+        String changedDurationDate
     ) {
         InitiateEvaluateRequest variables = new InitiateEvaluateRequest(
             new DmnStringValue(eventId),
-            new DmnStringValue(newStateId)
+            new DmnStringValue(newStateId),
+            new DmnStringValue(now),
+            new DmnStringValue(changedDurationDate)
         );
 
         return new EvaluateDmnRequest<>(variables);

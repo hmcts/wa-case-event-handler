@@ -10,6 +10,8 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmn
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public final class InitiateTaskHelper {
@@ -22,6 +24,7 @@ public final class InitiateTaskHelper {
         InitiateEvaluateResponse result = InitiateEvaluateResponse.builder()
             .taskId(new DmnStringValue("processApplication"))
             .group(new DmnStringValue("TCW"))
+            .delayDuration(new DmnIntegerValue(0))
             .workingDaysAllowed(new DmnIntegerValue(2))
             .name(new DmnStringValue("Process Application"))
             .build();
@@ -33,7 +36,9 @@ public final class InitiateTaskHelper {
         DmnStringValue eventId = new DmnStringValue("submitAppeal");
         DmnStringValue postEventState = new DmnStringValue("");
         InitiateEvaluateRequest initiateEvaluateRequestVariables =
-            new InitiateEvaluateRequest(eventId, postEventState);
+            new InitiateEvaluateRequest(eventId, postEventState,
+                                        new DmnStringValue(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)),
+                                        new DmnStringValue("2021-04-06T12:00:00"));
 
         return new EvaluateDmnRequest<>(initiateEvaluateRequestVariables);
     }
