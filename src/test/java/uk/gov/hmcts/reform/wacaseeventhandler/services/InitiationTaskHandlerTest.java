@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
 import lombok.Builder;
+import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -37,6 +38,9 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -108,12 +112,11 @@ class InitiationTaskHandlerTest {
             .taskCategory(new DmnStringValue("Case progression"))
             .build();
 
+        // response without delayDuration and WorkingDaysAllowed
         InitiateEvaluateResponse initiateTaskResponse2 = InitiateEvaluateResponse.builder()
             .group(new DmnStringValue("external"))
             .name(new DmnStringValue("Decide On Time Extension"))
             .taskId(new DmnStringValue("decideOnTimeExtension"))
-            .delayDuration(new DmnIntegerValue(0))
-            .workingDaysAllowed(new DmnIntegerValue(0))
             .taskCategory(new DmnStringValue("Time extension"))
             .build();
 
@@ -155,6 +158,15 @@ class InitiationTaskHandlerTest {
             dateTimeScenario.dateAt4pm,
             dateTimeScenario.expectedDate
         ));
+    }
+
+    @Test
+    void handleWhenInitiationResponseIsEmpty() {
+        List<InitiateEvaluateResponse> results = Lists.emptyList();
+
+        handlerService.handle(results, getEventInformation("2020-03-29T10:53:36.530377"));
+
+        verify(apiClientToInitiateTask, times(0)).sendMessage(any());
     }
 
     private SendMessageRequest<InitiateProcessVariables, CorrelationKeys> getExpectedSendMessageRequest(

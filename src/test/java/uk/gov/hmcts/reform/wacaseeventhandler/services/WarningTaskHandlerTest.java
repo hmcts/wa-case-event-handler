@@ -84,9 +84,8 @@ class WarningTaskHandlerTest {
             eq(requestParameters),
             eq(TENANT_ID)
         );
+
         assertEquals(response.size(),0);
-
-
     }
 
     @Test
@@ -105,10 +104,11 @@ class WarningTaskHandlerTest {
             DMN_NAME,
             requestParameters,
             TENANT_ID
-        )).thenReturn(new EvaluateDmnResponse<WarningResponse>(List.of(new WarningResponse(
-            new DmnStringValue("testValue"),
-            new DmnStringValue("testCategory"))
-                              ))
+        )).thenReturn(new EvaluateDmnResponse<>(List.of(new WarningResponse(
+                                                            new DmnStringValue("testValue"),
+                                                            new DmnStringValue("testCategory")
+                                                        )
+                      ))
         );
 
         List<? extends EvaluateResponse> response = handlerService.evaluateDmn(eventInformation);
@@ -120,10 +120,7 @@ class WarningTaskHandlerTest {
         );
 
         assertEquals(1, response.size());
-
-
     }
-
 
     @Test
     void handle_send_message_with_results() {
@@ -139,7 +136,11 @@ class WarningTaskHandlerTest {
             .action(new DmnStringValue("Cancel"))
             .build();
 
-        List<EvaluateResponse> results = List.of(result1, result2,result3);
+        WarningResponse result4 = WarningResponse.builder()
+            .action(new DmnStringValue("Cancel"))
+            .build();
+
+        List<EvaluateResponse> results = List.of(result1, result2, result3, result4);
 
         handlerService.handle(results, eventInformation);
 
@@ -157,7 +158,7 @@ class WarningTaskHandlerTest {
 
     @Test
     void handle_send_message_with_empty_results() {
-        List<EvaluateResponse> results = Collections.emptyList();
+        List<WarningResponse> results = Collections.emptyList();
 
         handlerService.handle(results, eventInformation);
 
