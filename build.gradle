@@ -257,7 +257,7 @@ dependencies {
 
   implementation group: 'uk.gov.hmcts.reform', name: 'service-auth-provider-client', version: '3.1.2'
 
-  compile 'org.camunda.bpm:camunda-external-task-client:1.4.0'
+  compile 'org.camunda.bpm:camunda-external-task-client:1.4.1'
   compile group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.2.2'
 
 
