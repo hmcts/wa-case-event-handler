@@ -11,16 +11,19 @@ public class LaunchDarklyClient {
 
     private final LDClientInterface ldClient;
 
+    LDUser ldUser =  new LDUser.Builder("wa-case-event-handler")
+        .build();
+
     @Autowired
     public LaunchDarklyClient(LDClientInterface ldClient) {
         this.ldClient = ldClient;
     }
 
-    public boolean getKey(String key) {
-
-        LDUser ldUser =  new LDUser.Builder("wa-case-event-handler")
-            .build();
-
+    public boolean getBooleanValueFromKey(String key) {
         return ldClient.boolVariation(key, ldUser, false);
+    }
+
+    public String getStringValueFromKey(String key) {
+        return ldClient.stringVariation(key, ldUser, "");
     }
 }
