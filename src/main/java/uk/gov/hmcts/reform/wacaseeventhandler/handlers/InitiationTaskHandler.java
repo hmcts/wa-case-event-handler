@@ -74,7 +74,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
         results.stream()
-            .filter(result -> result instanceof InitiateEvaluateResponse)
+            .filter(InitiateEvaluateResponse.class::isInstance)
             .map(result -> (InitiateEvaluateResponse) result)
             .forEach(initiateEvaluateResponse -> apiClientToInitiateTask.sendMessage(
                 buildSendMessageRequest(initiateEvaluateResponse, eventInformation)

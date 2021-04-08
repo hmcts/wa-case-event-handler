@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmn
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CancellationTaskHandler;
 
 import java.time.LocalDateTime;
@@ -55,9 +56,45 @@ class CancellationTaskHandlerTest {
         .eventTimeStamp(LocalDateTime.now())
         .build();
 
-
     @Test
     void evaluateDmn() {
+
+        CancellationEvaluateRequest cancellationTaskEvaluateDmnRequestVariables =
+            CancellationEvaluateRequest.builder()
+                .state(new DmnStringValue("some post state"))
+                .event(new DmnStringValue("some event id"))
+                .fromState(new DmnStringValue("some previous state"))
+                .build();
+
+        EvaluateDmnRequest<CancellationEvaluateRequest> requestParameters =
+            new EvaluateDmnRequest<>(cancellationTaskEvaluateDmnRequestVariables);
+
+        List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
+            new DmnStringValue("Cancel"),
+            new DmnStringValue("Time Extension")
+        ));
+
+        when(workflowApiClientToCancelTask.evaluateDmn(
+            DMN_NAME,
+            requestParameters,
+            TENANT_ID
+        )).thenReturn(new EvaluateDmnResponse<>(results));
+
+        final List<CancellationEvaluateResponse> actualResponse = handlerService.evaluateDmn(
+            eventInformation);
+
+        assertThat(actualResponse).isSameAs(results);
+
+        verify(workflowApiClientToCancelTask).evaluateDmn(
+            eq(DMN_NAME),
+            eq(requestParameters),
+            eq(TENANT_ID)
+        );
+
+    }
+
+    @Test
+    void evaluateDmnWithEmptyResultsReturnedFromDownstreamService() {
 
         CancellationEvaluateRequest cancellationTaskEvaluateDmnRequestVariables =
             CancellationEvaluateRequest.builder()
@@ -116,11 +153,40 @@ class CancellationTaskHandlerTest {
 
     }
 
+    @Test
+    void handleForInvalidInstance() {
+        WarningResponse result1 = WarningResponse.builder()
+            .action(new DmnStringValue("Cancel"))
+            .taskCategories(new DmnStringValue("some category"))
+            .build();
+
+        List<WarningResponse> results = List.of(result1);
+
+        handlerService.handle(results, eventInformation);
+
+        verify(workflowApiClientToCancelTask, times(0))
+            .sendMessage(sendMessageRequestCaptor.capture());
+    }
+
+    @Test
+    void handleForInvalidActionType() {
+        CancellationEvaluateResponse result1 = CancellationEvaluateResponse.builder()
+            .action(new DmnStringValue("Warn"))
+            .taskCategories(new DmnStringValue("some category"))
+            .build();
+
+        List<CancellationEvaluateResponse> results = List.of(result1);
+
+        handlerService.handle(results, eventInformation);
+
+        verify(workflowApiClientToCancelTask, times(0))
+            .sendMessage(sendMessageRequestCaptor.capture());
+    }
+
     private void assertSendMessageRequest(
         SendMessageRequest<ProcessVariables, CancellationCorrelationKeys> sendMessageRequest,
         String category
     ) {
-
         assertThat(sendMessageRequest.getMessageName()).isEqualTo(CANCEL_TASKS_MESSAGE_NAME);
 
         assertThat(sendMessageRequest.getCorrelationKeys())

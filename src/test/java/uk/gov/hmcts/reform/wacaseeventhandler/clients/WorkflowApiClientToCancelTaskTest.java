@@ -12,13 +12,17 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.CorrelationKeys;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -73,6 +77,50 @@ class WorkflowApiClientToCancelTaskTest {
 
     }
 
+    @Test
+    void sendMessage() {
+        when(authTokenGenerator.generate()).thenReturn(BEARER_S_2_S_TOKEN);
+
+        when(restTemplate.exchange(
+            getExpectedSendMessageUrl(),
+            HttpMethod.POST,
+            getExpectedSendEntity(),
+            Void.class
+        )).thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
+
+        ResponseEntity<Void> actualResponse = client.sendMessage(
+            new SendMessageRequest<>(
+                "cancelTasks",
+                null,
+                null, false
+            )
+        );
+
+        assertThat(actualResponse.getStatusCode().is2xxSuccessful());
+    }
+
+    @Test
+    void sendMessageAndReturnEmptyResponseExceptionOccurred() {
+        when(authTokenGenerator.generate()).thenReturn(BEARER_S_2_S_TOKEN);
+
+        when(restTemplate.exchange(
+            getExpectedSendMessageUrl(),
+            HttpMethod.POST,
+            getExpectedSendEntity(),
+            Void.class
+        )).thenThrow(RestClientException.class);
+
+        ResponseEntity<Void> actualResponse = client.sendMessage(
+            new SendMessageRequest<>(
+                "cancelTasks",
+                null,
+                null, false
+            )
+        );
+
+        assertThat(actualResponse.getStatusCode().is2xxSuccessful());
+    }
+
     private HttpEntity<EvaluateDmnRequest<? extends EvaluateRequest>> getExpectedEntity() {
         EvaluateDmnRequest<? extends EvaluateRequest> requestParameters =
             new EvaluateDmnRequest<>(CancellationEvaluateRequest.builder().build());
@@ -84,6 +132,17 @@ class WorkflowApiClientToCancelTaskTest {
         return new HttpEntity<>(requestParameters, headers);
     }
 
+    private HttpEntity<SendMessageRequest<? extends ProcessVariables,
+        ? extends CorrelationKeys>> getExpectedSendEntity() {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("ServiceAuthorization", BEARER_S_2_S_TOKEN);
+
+        return new HttpEntity<>(new SendMessageRequest<>("cancelTasks",null,
+                                                         null, false), headers);
+    }
+
     private String getExpectedUrl() {
         return String.format(
             "%s/workflow/decision-definition/key/%s/tenant-id/%s/evaluate",
@@ -93,7 +152,10 @@ class WorkflowApiClientToCancelTaskTest {
         );
     }
 
-    @Test
-    void sendMessage() {
+    private String getExpectedSendMessageUrl() {
+        return String.format(
+            "%s/workflow/message",
+            HTTP_WORKFLOW_API_URL
+        );
     }
 }

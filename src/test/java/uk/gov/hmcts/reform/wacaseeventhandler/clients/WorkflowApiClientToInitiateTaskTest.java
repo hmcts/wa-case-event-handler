@@ -77,6 +77,28 @@ class WorkflowApiClientToInitiateTaskTest {
 
     }
 
+    @Test
+    void sendMessage() {
+        when(authTokenGenerator.generate()).thenReturn(BEARER_S_2_S_TOKEN);
+
+        when(restTemplate.exchange(
+            getExpectedSendMessageUrl(),
+            HttpMethod.POST,
+            getExpectedSendEntity(),
+            Void.class
+        )).thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
+
+        ResponseEntity<Void> actualResponse = client.sendMessage(
+            new SendMessageRequest<>(
+                "createTaskMessage",
+                null,
+                null, false
+            )
+        );
+
+        assertThat(actualResponse.getStatusCode().is2xxSuccessful());
+    }
+
     private HttpEntity<EvaluateDmnRequest<? extends EvaluateRequest>> getExpectedEntity() {
         EvaluateDmnRequest<? extends EvaluateRequest> requestParameters =
             new EvaluateDmnRequest<>(InitiateEvaluateRequest.builder().build());
@@ -94,7 +116,7 @@ class WorkflowApiClientToInitiateTaskTest {
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("ServiceAuthorization", BEARER_S_2_S_TOKEN);
 
-        return new HttpEntity<>(new SendMessageRequest<>("warnTask",null,
+        return new HttpEntity<>(new SendMessageRequest<>("createTaskMessage",null,
                                                          null, false), headers);
     }
 
@@ -104,6 +126,13 @@ class WorkflowApiClientToInitiateTaskTest {
             HTTP_WORKFLOW_API_URL,
             TABLE_KEY,
             TENANT_ID
+        );
+    }
+
+    private String getExpectedSendMessageUrl() {
+        return String.format(
+            "%s/workflow/message",
+            HTTP_WORKFLOW_API_URL
         );
     }
 
