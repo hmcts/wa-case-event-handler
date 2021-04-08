@@ -12,6 +12,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateRequest;
@@ -126,6 +127,28 @@ import static org.mockito.Mockito.when;
             Void.class
         ))
             .thenReturn(new ResponseEntity<>(HttpStatus.NO_CONTENT));
+
+        ResponseEntity<Void> actualResponse = client.sendMessage(
+            new SendMessageRequest<>(
+                "warnTask",
+                null,
+                null, false
+            )
+        );
+
+        assertThat(actualResponse.getStatusCode().is2xxSuccessful());
+    }
+
+    @Test
+    void sendMessageAndReturnEmptyResponseExceptionOccurred() {
+        when(authTokenGenerator.generate()).thenReturn(BEARER_S_2_S_TOKEN);
+
+        when(restTemplate.exchange(
+            getExpectedSendMessageUrl(),
+            HttpMethod.POST,
+            getExpectedSendEntity(),
+            Void.class
+        )).thenThrow(RestClientException.class);
 
         ResponseEntity<Void> actualResponse = client.sendMessage(
             new SendMessageRequest<>(
