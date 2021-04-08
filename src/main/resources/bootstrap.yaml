@@ -8,3 +8,4 @@ spring:
         AppInsightsInstrumentationKey: azure.application-insights.instrumentation-key
         s2s-secret-case-event-handler: S2S_SECRET_CASE_EVENT_HANDLER
         ccd-shared-servicebus-connection-string: AZURE_SERVICE_BUS_CONNECTION_STRING
+        ld-secret: LAUNCH_DARKLY_SDK_KEY
