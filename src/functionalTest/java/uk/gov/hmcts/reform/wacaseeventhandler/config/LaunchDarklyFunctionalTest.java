@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.config;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
@@ -13,7 +12,6 @@ public class LaunchDarklyFunctionalTest extends SpringBootFunctionalBaseTest {
     @Autowired
     private LaunchDarklyClient launchDarklyClient;
 
-    @Ignore
     @Test
     public void should_hit_launch_darkly_and_return_true() {
         boolean launchDarklyFeature = launchDarklyClient.getKey("tester");
