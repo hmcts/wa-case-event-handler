@@ -63,7 +63,7 @@ public class CancellationTaskHandler implements CaseEventHandler {
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
         results.stream()
-            .filter(result -> result instanceof CancellationEvaluateResponse)
+            .filter(CancellationEvaluateResponse.class::isInstance)
             .filter(result -> ((CancellationEvaluateResponse) result).getAction().getValue().equals("Cancel"))
             .map(result -> (CancellationEvaluateResponse) result)
             .forEach(cancellationEvaluateResponse -> {
