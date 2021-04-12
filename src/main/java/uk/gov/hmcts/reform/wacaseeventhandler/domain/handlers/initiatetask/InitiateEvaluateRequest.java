@@ -13,17 +13,17 @@ public final class InitiateEvaluateRequest extends EvaluateRequest {
     private final DmnStringValue eventId;
     private final DmnStringValue postEventState;
     private final DmnStringValue now;
-    private final DmnStringValue changedDurationDate;
+    private final DmnStringValue directionDueDate;
 
     public InitiateEvaluateRequest(DmnStringValue eventId,
                                    DmnStringValue postEventState,
                                    DmnStringValue now,
-                                   DmnStringValue changedDurationDate) {
+                                   DmnStringValue directionDueDate) {
         super();
         this.eventId = eventId;
         this.postEventState = postEventState;
         this.now = now;
-        this.changedDurationDate = changedDurationDate;
+        this.directionDueDate = directionDueDate;
     }
 
     public DmnStringValue getEventId() {
@@ -38,7 +38,7 @@ public final class InitiateEvaluateRequest extends EvaluateRequest {
         return now;
     }
 
-    public DmnStringValue getChangedDurationDate() {
-        return changedDurationDate;
+    public DmnStringValue getDirectionDueDate() {
+        return directionDueDate;
     }
 }

@@ -17,7 +17,7 @@ public class DueDateService {
     }
 
     public ZonedDateTime calculateDelayUntil(ZonedDateTime eventDateTime, int delayDuration) {
-        if (delayDuration == 0) {
+        if (delayDuration <= 0) {
             return eventDateTime;
         }
         final ZonedDateTime zonedDateTime = addWorkingDays(eventDateTime, delayDuration);

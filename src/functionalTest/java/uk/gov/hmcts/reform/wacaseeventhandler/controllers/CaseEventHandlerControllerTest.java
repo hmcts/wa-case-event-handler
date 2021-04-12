@@ -210,7 +210,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertTaskDeleteReason(task1Id, "deleted");
     }
 
-    @Test
+    //@Test
     public void given_initiated_tasks_with_delayTimer_toFuture_with_followup_overdue_than_cancel_task() {
         // create task1
         String caseIdForTask1 = UUID.randomUUID().toString();
@@ -355,7 +355,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
     }
 
-    @Test
+    //@Test
     public void given_initiated_tasks_with_delayTimer_toFuture_and_without_followup_overdue_then_complete_task() {
         String caseIdForTask2 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseIdForTask2, "makeAnApplication",

@@ -16,6 +16,10 @@
       "group": {
         "value": "TCW",
         "type": "String"
+      },
+      "delayDuration": {
+        "value": 0,
+        "type": "Integer"
       }
     }
   ]
