@@ -8,9 +8,7 @@ import org.assertj.core.util.Maps;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Captor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,14 +26,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationCorrelationKeys;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
@@ -62,12 +57,6 @@ class CaseEventHandlerControllerEndPointTest {
     public static final String INITIATE_DMN_TABLE = "wa-task-initiation-ia-asylum";
     public static final String CANCELLATION_DMN_TABLE = "wa-task-cancellation-ia-asylum";
 
-    @Captor
-    private ArgumentCaptor<HttpEntity> httpEntityCaptor;
-
-    @Captor
-    private ArgumentCaptor<SendMessageRequest<ProcessVariables, CancellationCorrelationKeys>> sendMessageRequestCaptor;
-
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
 
@@ -83,6 +72,8 @@ class CaseEventHandlerControllerEndPointTest {
     @BeforeEach
     void setUp() {
         Mockito.when(authTokenGenerator.generate()).thenReturn(S2S_TOKEN);
+
+        mockRestTemplate();
     }
 
     private void mockRestTemplate() {
@@ -200,7 +191,6 @@ class CaseEventHandlerControllerEndPointTest {
     @ParameterizedTest
     @MethodSource(value = "scenarioProvider")
     void given_message_then_return_expected_status_code(Scenario scenario) throws Exception {
-        mockRestTemplate();
         mockMvc.perform(post("/messages")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(asJsonString(scenario.eventInformation)))
