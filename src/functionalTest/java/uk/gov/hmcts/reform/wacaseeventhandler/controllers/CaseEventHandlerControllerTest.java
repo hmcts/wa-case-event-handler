@@ -1,15 +1,20 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import com.azure.messaging.servicebus.ServiceBusMessage;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.assertj.core.util.Maps;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 
@@ -210,7 +215,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertTaskDeleteReason(task1Id, "deleted");
     }
 
-    //@Test
+    @Test
     public void given_initiated_tasks_with_delayTimer_toFuture_with_followup_overdue_than_cancel_task() {
         // create task1
         String caseIdForTask1 = UUID.randomUUID().toString();
@@ -355,7 +360,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
     }
 
-    //@Test
+    @Test
     public void given_initiated_tasks_with_delayTimer_toFuture_and_without_followup_overdue_then_complete_task() {
         String caseIdForTask2 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseIdForTask2, "makeAnApplication",
@@ -472,6 +477,78 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // tear down all tasks
         tearDownMultipleTasks(Arrays.asList(caseId1Task1Id, caseId2Task1Id), "completed");
+    }
+
+    @Test
+    public void given_an_event_when_directionDueDate_is_empty_then_task_should_start_without_delay()
+        throws JsonProcessingException {
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String lastModifiedDirection = "{\"directionDueDate\": \"\"}";
+        JsonNode jsonNode = objectMapper.readTree(lastModifiedDirection);
+        Map<String, JsonNode> dataMap = Maps.newHashMap("lastModifiedDirection", jsonNode);
+
+        final AdditionalData additionalData = AdditionalData.builder()
+            .data(dataMap)
+            .build();
+
+        String caseIdForTask = UUID.randomUUID().toString();
+        EventInformation eventInformation = EventInformation.builder()
+            .eventInstanceId(UUID.randomUUID().toString())
+            .eventTimeStamp(LocalDateTime.now().minusDays(1))
+            .caseId(caseIdForTask)
+            .jurisdictionId("IA")
+            .caseTypeId("Asylum")
+            .eventId("requestCaseBuilding")
+            .newStateId("caseBuilding")
+            .previousStateId(null)
+            .userId("some user Id")
+            .additionalData(additionalData)
+            .build();
+
+        callRestEndpoint(eventInformation);
+
+        final String taskId = findTaskForGivenCaseId(
+            caseIdForTask,
+            "followUpOverdueCaseBuilding"
+        );
+
+        // add tasks to tear down.
+        taskToTearDown = taskId;
+    }
+
+    @Test
+    public void given_an_event_when_directionDueDate_is_not_set_then_task_should_start_without_delay() {
+
+        Map<String, JsonNode> dataMap = Maps.newHashMap("lastModifiedDirection", null);
+
+        final AdditionalData additionalData = AdditionalData.builder()
+            .data(dataMap)
+            .build();
+
+        String caseIdForTask = UUID.randomUUID().toString();
+        EventInformation eventInformation = EventInformation.builder()
+            .eventInstanceId(UUID.randomUUID().toString())
+            .eventTimeStamp(LocalDateTime.now().minusDays(1))
+            .caseId(caseIdForTask)
+            .jurisdictionId("IA")
+            .caseTypeId("Asylum")
+            .eventId("sendDirection")
+            .newStateId(null)
+            .previousStateId(null)
+            .userId("some user Id")
+            .additionalData(additionalData)
+            .build();
+
+        callRestEndpoint(eventInformation);
+
+        final String taskId = findTaskForGivenCaseId(
+            caseIdForTask,
+            "followUpNonStandardDirection"
+        );
+
+        // add tasks to tear down.
+        taskToTearDown = taskId;
     }
 
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {

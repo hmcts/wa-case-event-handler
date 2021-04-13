@@ -151,7 +151,8 @@ class InitiationTaskHandlerTest {
             "Case progression",
             "TCW",
             handleDateTimeScenario.dateAt4pm,
-            handleDateTimeScenario.expectedDate
+            handleDateTimeScenario.expectedDate,
+            0
         ));
 
         assertThat(captor.getAllValues().get(1)).isEqualTo(getExpectedSendMessageRequest(
@@ -161,7 +162,61 @@ class InitiationTaskHandlerTest {
             "Time extension",
             "external",
             handleDateTimeScenario.dateAt4pm,
-            handleDateTimeScenario.expectedDate
+            handleDateTimeScenario.expectedDate,
+            0
+        ));
+    }
+
+    @Test
+    void handle_when_delay_duration_is_not_zero() {
+        final ZonedDateTime zonedDateTime = ZonedDateTime.of(
+            LocalDateTime.parse("2020-12-08T15:53:36.530377"), ZoneId.of("Europe/London")
+        );
+
+        Mockito.when(isoDateFormatter.formatToZone(LocalDateTime.parse("2020-12-08T15:53:36.530377")))
+            .thenReturn(zonedDateTime);
+
+        final ZonedDateTime expectedDelayUntil = ZonedDateTime.of(
+            LocalDateTime.parse("2020-12-10T16:00:00"), ZoneId.of("Europe/London")
+        );
+
+        final ZonedDateTime expectedDueDate = ZonedDateTime.of(
+            LocalDateTime.parse("2020-12-12T16:00:00"), ZoneId.of("Europe/London")
+        );
+
+        InitiateEvaluateResponse initiateTaskResponse1 = InitiateEvaluateResponse.builder()
+            .group(new DmnStringValue("TCW"))
+            .name(new DmnStringValue("Process Application"))
+            .taskId(new DmnStringValue("processApplication"))
+            .delayDuration(new DmnIntegerValue(2))
+            .workingDaysAllowed(new DmnIntegerValue(2))
+            .taskCategory(new DmnStringValue("Case progression"))
+            .build();
+
+        when(idempotencyKeyGenerator.generateIdempotencyKey(eventInstanceId, "processApplication"))
+            .thenReturn("idempotencyKey1");
+
+        List<InitiateEvaluateResponse> results = List.of(initiateTaskResponse1);
+
+        when(dueDateService.calculateDelayUntil(zonedDateTime, 2))
+            .thenReturn(expectedDelayUntil);
+
+        when(dueDateService.calculateDueDate(expectedDelayUntil, 2))
+            .thenReturn(expectedDueDate);
+
+        handlerService.handle(results, getEventInformation(eventInstanceId, "2020-12-08T15:53:36.530377"));
+
+        Mockito.verify(apiClientToInitiateTask, Mockito.times(1)).sendMessage(captor.capture());
+
+        assertThat(captor.getAllValues().get(0)).isEqualTo(getExpectedSendMessageRequest(
+            "idempotencyKey1",
+            "Process Application",
+            "processApplication",
+            "Case progression",
+            "TCW",
+            "2020-12-12T16:00:00",
+            "2020-12-10T16:00:00",
+            2
         ));
     }
 
@@ -204,8 +259,9 @@ class InitiationTaskHandlerTest {
         String taskId,
         String taskCategory,
         String group,
-        String dateAt4Pm,
-        String expectedDate
+        String dueDate,
+        String delayUntil,
+        int workingDays
     ) {
         InitiateProcessVariables expectedInitiateTaskSendMessageRequest = InitiateProcessVariables.builder()
             .idempotencyKey(new DmnStringValue(idempotencyKey))
@@ -216,9 +272,9 @@ class InitiationTaskHandlerTest {
             .taskId(new DmnStringValue(taskId))
             .taskCategory(new DmnStringValue(taskCategory))
             .caseId(new DmnStringValue("some case reference"))
-            .dueDate(new DmnStringValue(dateAt4Pm))
-            .workingDaysAllowed(new DmnIntegerValue(0))
-            .delayUntil(new DmnStringValue(expectedDate))
+            .dueDate(new DmnStringValue(dueDate))
+            .workingDaysAllowed(new DmnIntegerValue(workingDays))
+            .delayUntil(new DmnStringValue(delayUntil))
             .build();
 
         return new SendMessageRequest<>(

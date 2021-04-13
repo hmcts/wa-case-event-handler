@@ -30,7 +30,7 @@ public final class InitiateTaskHelper {
         InitiateEvaluateResponse result = InitiateEvaluateResponse.builder()
             .taskId(new DmnStringValue("processApplication"))
             .group(new DmnStringValue("TCW"))
-            .delayDuration(new DmnIntegerValue(0))
+            .delayDuration(new DmnIntegerValue(2))
             .workingDaysAllowed(new DmnIntegerValue(2))
             .name(new DmnStringValue("Process Application"))
             .build();

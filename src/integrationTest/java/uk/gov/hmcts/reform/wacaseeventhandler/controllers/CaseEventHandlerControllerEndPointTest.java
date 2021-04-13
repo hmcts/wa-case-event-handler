@@ -1,10 +1,16 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
+import org.assertj.core.util.Maps;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
+import org.mockito.Captor;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,16 +28,21 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationCorrelationKeys;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,6 +62,12 @@ class CaseEventHandlerControllerEndPointTest {
     public static final String INITIATE_DMN_TABLE = "wa-task-initiation-ia-asylum";
     public static final String CANCELLATION_DMN_TABLE = "wa-task-cancellation-ia-asylum";
 
+    @Captor
+    private ArgumentCaptor<HttpEntity> httpEntityCaptor;
+
+    @Captor
+    private ArgumentCaptor<SendMessageRequest<ProcessVariables, CancellationCorrelationKeys>> sendMessageRequestCaptor;
+
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
 
@@ -66,8 +83,6 @@ class CaseEventHandlerControllerEndPointTest {
     @BeforeEach
     void setUp() {
         Mockito.when(authTokenGenerator.generate()).thenReturn(S2S_TOKEN);
-
-        mockRestTemplate();
     }
 
     private void mockRestTemplate() {
@@ -102,7 +117,6 @@ class CaseEventHandlerControllerEndPointTest {
                 .<ParameterizedTypeReference<EvaluateDmnResponse<CancellationEvaluateResponse>>>any())
         ).thenReturn(responseEntity);
     }
-
 
     private void mockWarningHandler() {
         List<WarningResponse> results = List.of(new WarningResponse(
@@ -186,7 +200,7 @@ class CaseEventHandlerControllerEndPointTest {
     @ParameterizedTest
     @MethodSource(value = "scenarioProvider")
     void given_message_then_return_expected_status_code(Scenario scenario) throws Exception {
-
+        mockRestTemplate();
         mockMvc.perform(post("/messages")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(asJsonString(scenario.eventInformation)))
@@ -195,19 +209,15 @@ class CaseEventHandlerControllerEndPointTest {
     }
 
     private static Stream<Scenario> scenarioProvider() {
-        EventInformation validEventInformation = EventInformation.builder()
-            .eventInstanceId("some event instance Id")
-            .eventTimeStamp(LocalDateTime.now())
-            .caseId("some case reference")
-            .jurisdictionId("ia")
-            .caseTypeId("asylum")
-            .eventId("some event Id")
-            .newStateId("some new state Id")
-            .userId("some user Id")
-            .build();
+        EventInformation validEventInformation = getEventInformation(null);
 
         Scenario validEventInformationScenario200 = Scenario.builder()
             .eventInformation(validEventInformation)
+            .expectedStatus(HttpStatus.NO_CONTENT.value())
+            .build();
+
+        Scenario validEventWithAdditionalDataScenario200 = Scenario.builder()
+            .eventInformation(validAdditionalData())
             .expectedStatus(HttpStatus.NO_CONTENT.value())
             .build();
 
@@ -244,9 +254,42 @@ class CaseEventHandlerControllerEndPointTest {
 
         return Stream.of(
             validEventInformationScenario200,
+            validEventWithAdditionalDataScenario200,
             mandatoryFieldCannotBeNullScenario400,
             mandatoryFieldCannotBeEmptyScenario400
         );
+    }
+
+    private static EventInformation getEventInformation(AdditionalData additionalData) {
+        EventInformation validEventInformation = EventInformation.builder()
+            .eventInstanceId("some event instance Id")
+            .eventTimeStamp(LocalDateTime.now())
+            .caseId("some case reference")
+            .jurisdictionId("ia")
+            .caseTypeId("asylum")
+            .eventId("some event Id")
+            .newStateId("some new state Id")
+            .userId("some user Id")
+            .additionalData(additionalData)
+            .build();
+        return validEventInformation;
+    }
+
+    private static EventInformation validAdditionalData() {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            String lastModifiedDirection = "{\"directionDueDate\": \"2021-04-06\"}";
+            JsonNode jsonNode = objectMapper.readTree(lastModifiedDirection);
+            Map<String, JsonNode> dataMap = Maps.newHashMap("lastModifiedDirection", jsonNode);
+
+            final AdditionalData additionalData = AdditionalData.builder()
+                .data(dataMap)
+                .build();
+
+            return getEventInformation(additionalData);
+        } catch (JsonProcessingException exp) {
+            return null;
+        }
     }
 
     @Builder

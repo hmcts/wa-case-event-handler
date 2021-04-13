@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
@@ -28,6 +29,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.T
 
 @Service
 @Order(3)
+@Slf4j
 public class InitiationTaskHandler implements CaseEventHandler {
 
     private final WorkflowApiClientToInitiateTask apiClientToInitiateTask;
@@ -55,6 +57,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
         String tenantId = TASK_INITIATION.getTenantId(eventInformation.getJurisdictionId());
 
         String directionDueDate = extractDirectionDueDate(eventInformation);
+        log.info("Direction Due Date : {}", directionDueDate);
 
         EvaluateDmnRequest<InitiateEvaluateRequest> requestParameters = getParameterRequest(
             eventInformation.getEventId(),
@@ -125,7 +128,6 @@ public class InitiationTaskHandler implements CaseEventHandler {
             zonedDateTime,
             cannotBeNull(initiateEvaluateResponse.getDelayDuration()).getValue()
         );
-
         ZonedDateTime dueDate = dueDateService.calculateDueDate(
             delayUntil,
             cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()).getValue()
