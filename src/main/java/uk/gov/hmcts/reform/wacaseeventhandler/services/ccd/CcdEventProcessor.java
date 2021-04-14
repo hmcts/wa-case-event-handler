@@ -48,13 +48,13 @@ public class CcdEventProcessor {
 
         boolean isTaskInitiationEnabled = featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE);
 
-        if (isTaskInitiationEnabled)
+        if (isTaskInitiationEnabled) {
             handlerServices.forEach(handler -> {
                 List<? extends EvaluateResponse> results = handler.evaluateDmn(eventInformation);
                 if (!results.isEmpty()) {
                     handler.handle(results, eventInformation);
                 }
             });
+        }
     }
-
 }
