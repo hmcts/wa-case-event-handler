@@ -55,6 +55,12 @@ public class CcdEventProcessor {
                     handler.handle(results, eventInformation);
                 }
             });
+        } else {
+            log.info(
+                "Feature flag {} evaluated to false. Message consumed but not being processed",
+                TASK_INITIATION_FEATURE
+            );
+
         }
     }
 }
