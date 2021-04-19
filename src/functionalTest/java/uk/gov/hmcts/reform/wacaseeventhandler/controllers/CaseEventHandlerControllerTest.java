@@ -551,6 +551,29 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         taskToTearDown = taskId;
     }
 
+    @Test
+    public void given_initiation_task_with_followup_overdue_ctg_when_cancelled_with_noc_event_then_cancel_the_task() {
+        String caseId1 = UUID.randomUUID().toString();
+        String taskIdDmnColumn = "followUpOverdueCaseBuilding";
+
+        // caseId1 with category Followup overdue
+        // task1
+        final String caseId1Task1Id = initiateTaskForGivenId(
+            caseId1,
+            "requestCaseBuilding",
+            "", "caseBuilding", false,
+            taskIdDmnColumn
+        );
+
+        // Then cancel all tasks on both caseIDs
+        sendMessage(caseId1, "applyNocDecision", "", "", false);
+        waitSeconds(5);
+
+        assertTaskDoesNotExist(caseId1, taskIdDmnColumn);
+
+        assertTaskDeleteReason(caseId1Task1Id, "deleted");
+    }
+
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
         given()
             .contentType(APPLICATION_JSON_VALUE)
