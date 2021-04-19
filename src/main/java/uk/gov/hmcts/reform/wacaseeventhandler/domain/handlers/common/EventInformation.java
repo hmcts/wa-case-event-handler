@@ -17,6 +17,7 @@ import javax.validation.constraints.NotEmpty;
 @ToString
 @EqualsAndHashCode
 @Builder
+@SuppressWarnings("PMD.ExcessiveParameterList")
 public final class EventInformation {
 
     @NotEmpty
@@ -36,6 +37,7 @@ public final class EventInformation {
     private final String newStateId;
     @NotEmpty
     private final String userId;
+    private final AdditionalData additionalData;
 
     @JsonCreator
     public EventInformation(@JsonProperty("EventInstanceId") String eventInstanceId,
@@ -46,7 +48,8 @@ public final class EventInformation {
                             @JsonProperty("EventId") String eventId,
                             @JsonProperty("PreviousStateId") String previousStateId,
                             @JsonProperty("NewStateId") String newStateId,
-                            @JsonProperty("UserId") String userId) {
+                            @JsonProperty("UserId") String userId,
+                            @JsonProperty("AdditionalData") AdditionalData additionalData) {
         this.eventInstanceId = eventInstanceId;
         this.eventTimeStamp = eventTimeStamp;
         this.caseId = caseId;
@@ -56,6 +59,7 @@ public final class EventInformation {
         this.previousStateId = previousStateId;
         this.newStateId = newStateId;
         this.userId = userId;
+        this.additionalData = additionalData;
     }
 
     public String getJurisdictionId() {
@@ -92,5 +96,9 @@ public final class EventInformation {
 
     public String getUserId() {
         return userId;
+    }
+
+    public AdditionalData getAdditionalData() {
+        return additionalData;
     }
 }

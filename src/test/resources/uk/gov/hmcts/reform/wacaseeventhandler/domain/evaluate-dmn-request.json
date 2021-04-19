@@ -7,6 +7,14 @@
     "postEventState": {
       "value": "",
       "type": "String"
+    },
+    "now": {
+      "value": "2020-04-12",
+      "type": "String"
+    },
+    "directionDueDate": {
+      "value": "2020-03-29",
+      "type": "String"
     }
   }
 }
