@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.TASK_INITIATION;
 
@@ -54,7 +55,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
             eventInformation.getCaseTypeId()
         );
 
-        String tenantId = TASK_INITIATION.getTenantId(eventInformation.getJurisdictionId());
+        String tenantId = eventInformation.getJurisdictionId().toLowerCase(Locale.ENGLISH);
 
         String directionDueDate = extractDirectionDueDate(eventInformation);
         log.info("Direction Due Date : {}", directionDueDate);
