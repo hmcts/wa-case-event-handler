@@ -30,7 +30,6 @@ public final class InitiateTaskHelper {
         InitiateEvaluateResponse result = InitiateEvaluateResponse.builder()
             .taskId(new DmnStringValue("processApplication"))
             .group(new DmnStringValue("TCW"))
-            .delayDuration(new DmnIntegerValue(2))
             .workingDaysAllowed(new DmnIntegerValue(2))
             .name(new DmnStringValue("Process Application"))
             .build();
@@ -38,13 +37,20 @@ public final class InitiateTaskHelper {
         return new EvaluateDmnResponse<>(List.of(result));
     }
 
-    public static EvaluateDmnRequest<InitiateEvaluateRequest> buildInitiateTaskDmnRequest(String directionDueDate) {
+    public static EvaluateDmnRequest<InitiateEvaluateRequest> buildInitiateTaskDmnRequest(String dueDate) {
         DmnStringValue eventId = new DmnStringValue("submitAppeal");
         DmnStringValue postEventState = new DmnStringValue("");
+        DmnStringValue appealType = new DmnStringValue("protection");
+        DmnStringValue now = new DmnStringValue(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
+        DmnStringValue directionDueDate = new DmnStringValue(dueDate);
         InitiateEvaluateRequest initiateEvaluateRequestVariables =
-            new InitiateEvaluateRequest(eventId, postEventState,
-                                        new DmnStringValue(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)),
-                                        new DmnStringValue(directionDueDate));
+            new InitiateEvaluateRequest(
+                eventId,
+                postEventState,
+                appealType,
+                now,
+                directionDueDate
+            );
 
         return new EvaluateDmnRequest<>(initiateEvaluateRequestVariables);
     }
@@ -55,27 +61,18 @@ public final class InitiateTaskHelper {
     }
 
     public static EventInformation validAdditionalData() {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            String lastModifiedDirection = "{\"directionDueDate\": \"2021-04-06\"}";
-            JsonNode jsonNode = objectMapper.readTree(lastModifiedDirection);
-            Map<String, JsonNode> dataMap = Maps.newHashMap("lastModifiedDirection", jsonNode);
 
             final AdditionalData additionalData = AdditionalData.builder()
-                .data(dataMap)
+                .data(Map.of("directionDueDate", "2021-04-06"))
                 .build();
 
             return getEventInformation(additionalData);
-        } catch (JsonProcessingException exp) {
-            return null;
-        }
     }
 
     public static EventInformation withoutDirectionDueDate() {
-        Map<String, JsonNode> dataMap = Maps.newHashMap("lastModifiedDirection", null);
 
         final AdditionalData additionalData = AdditionalData.builder()
-            .data(dataMap).build();
+            .data(Maps.newHashMap("lastModifiedDirection", null)).build();
 
         return getEventInformation(additionalData);
     }

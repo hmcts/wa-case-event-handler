@@ -26,6 +26,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
+import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.APPEAL_TYPE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.TASK_INITIATION;
 
 @Service
@@ -63,6 +64,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
         EvaluateDmnRequest<InitiateEvaluateRequest> requestParameters = getParameterRequest(
             eventInformation.getEventId(),
             eventInformation.getNewStateId(),
+            eventInformation.getAdditionalData().getData().get(APPEAL_TYPE.value()),
             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
             directionDueDate
         );
@@ -85,14 +87,17 @@ public class InitiationTaskHandler implements CaseEventHandler {
     private EvaluateDmnRequest<InitiateEvaluateRequest> getParameterRequest(
         String eventId,
         String newStateId,
+        String appealType,
         String now,
         String directionDueDate
+
     ) {
         InitiateEvaluateRequest variables = new InitiateEvaluateRequest(
             new DmnStringValue(eventId),
             new DmnStringValue(newStateId),
             new DmnStringValue(now),
-            new DmnStringValue(directionDueDate)
+            new DmnStringValue(appealType),
+        new DmnStringValue(directionDueDate)
         );
 
         return new EvaluateDmnRequest<>(variables);
@@ -129,6 +134,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
             zonedDateTime,
             cannotBeNull(initiateEvaluateResponse.getDelayDuration()).getValue()
         );
+
         ZonedDateTime dueDate = dueDateService.calculateDueDate(
             delayUntil,
             cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()).getValue()
