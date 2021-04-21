@@ -1,8 +1,11 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.CorrelationKeys;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnIntegerValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
@@ -17,14 +20,17 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.IdempotencyKeyGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.TASK_INITIATION;
 
 @Service
 @Order(3)
+@Slf4j
 public class InitiationTaskHandler implements CaseEventHandler {
 
     private final WorkflowApiClientToInitiateTask apiClientToInitiateTask;
@@ -49,23 +55,44 @@ public class InitiationTaskHandler implements CaseEventHandler {
             eventInformation.getCaseTypeId()
         );
 
-        String tenantId = TASK_INITIATION.getTenantId(eventInformation.getJurisdictionId());
+        String tenantId = eventInformation.getJurisdictionId().toLowerCase(Locale.ENGLISH);
+
+        String directionDueDate = extractDirectionDueDate(eventInformation);
+        log.info("Direction Due Date : {}", directionDueDate);
 
         EvaluateDmnRequest<InitiateEvaluateRequest> requestParameters = getParameterRequest(
             eventInformation.getEventId(),
-            eventInformation.getNewStateId()
+            eventInformation.getNewStateId(),
+            LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
+            directionDueDate
         );
 
         return apiClientToInitiateTask.evaluateDmn(tableKey, requestParameters, tenantId).getResults();
     }
 
+    private String extractDirectionDueDate(EventInformation eventInformation) {
+        final AdditionalData additionalData = eventInformation.getAdditionalData();
+        if (additionalData != null && additionalData.getData() != null) {
+            final JsonNode jsonNode = additionalData.getData().get("lastModifiedDirection");
+            if (jsonNode != null && jsonNode.at("/directionDueDate") != null) {
+                JsonNode directionNode = jsonNode.at("/directionDueDate");
+                return directionNode.asText();
+            }
+        }
+        return null;
+    }
+
     private EvaluateDmnRequest<InitiateEvaluateRequest> getParameterRequest(
         String eventId,
-        String newStateId
+        String newStateId,
+        String now,
+        String directionDueDate
     ) {
         InitiateEvaluateRequest variables = new InitiateEvaluateRequest(
             new DmnStringValue(eventId),
-            new DmnStringValue(newStateId)
+            new DmnStringValue(newStateId),
+            new DmnStringValue(now),
+            new DmnStringValue(directionDueDate)
         );
 
         return new EvaluateDmnRequest<>(variables);
@@ -102,7 +129,6 @@ public class InitiationTaskHandler implements CaseEventHandler {
             zonedDateTime,
             cannotBeNull(initiateEvaluateResponse.getDelayDuration()).getValue()
         );
-
         ZonedDateTime dueDate = dueDateService.calculateDueDate(
             delayUntil,
             cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()).getValue()

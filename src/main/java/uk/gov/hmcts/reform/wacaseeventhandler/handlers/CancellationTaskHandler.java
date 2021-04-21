@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVari
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
 
 import java.util.List;
+import java.util.Locale;
 
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.TASK_CANCELLATION;
 
@@ -35,7 +36,7 @@ public class CancellationTaskHandler implements CaseEventHandler {
             eventInformation.getCaseTypeId()
         );
 
-        String tenantId = eventInformation.getJurisdictionId();
+        String tenantId = eventInformation.getJurisdictionId().toLowerCase(Locale.ENGLISH);
 
         EvaluateDmnRequest<CancellationEvaluateRequest> requestParameters = getParameterRequest(
             eventInformation.getPreviousStateId(),
@@ -86,9 +87,9 @@ public class CancellationTaskHandler implements CaseEventHandler {
         return SendMessageRequest.<ProcessVariables, CancellationCorrelationKeys>builder()
             .messageName(TASK_CANCELLATION.getMessageName())
             .correlationKeys(CancellationCorrelationKeys.builder()
-                                 .caseId(new DmnStringValue(caseReference))
-                                 .taskCategory(taskCategory)
-                                 .build())
+                .caseId(new DmnStringValue(caseReference))
+                .taskCategory(taskCategory)
+                .build())
             .all(true)
             .build();
     }
