@@ -1,10 +1,8 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.helpers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import org.assertj.core.util.Maps;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnIntegerValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
@@ -17,6 +15,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.Initi
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +29,7 @@ public final class InitiateTaskHelper {
         InitiateEvaluateResponse result = InitiateEvaluateResponse.builder()
             .taskId(new DmnStringValue("processApplication"))
             .group(new DmnStringValue("TCW"))
+            .delayDuration(new DmnIntegerValue(2))
             .workingDaysAllowed(new DmnIntegerValue(2))
             .name(new DmnStringValue("Process Application"))
             .build();
@@ -37,10 +37,11 @@ public final class InitiateTaskHelper {
         return new EvaluateDmnResponse<>(List.of(result));
     }
 
-    public static EvaluateDmnRequest<InitiateEvaluateRequest> buildInitiateTaskDmnRequest(String dueDate) {
+    public static EvaluateDmnRequest<InitiateEvaluateRequest> buildInitiateTaskDmnRequest(String dueDate,
+                                                                                          String appealTypeValue) {
         DmnStringValue eventId = new DmnStringValue("submitAppeal");
         DmnStringValue postEventState = new DmnStringValue("");
-        DmnStringValue appealType = new DmnStringValue("protection");
+        DmnStringValue appealType = new DmnStringValue(appealTypeValue);
         DmnStringValue now = new DmnStringValue(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
         DmnStringValue directionDueDate = new DmnStringValue(dueDate);
         InitiateEvaluateRequest initiateEvaluateRequestVariables =
@@ -60,26 +61,48 @@ public final class InitiateTaskHelper {
             PropertyNamingStrategy.UPPER_CAMEL_CASE).writeValueAsString(obj);
     }
 
-    public static EventInformation validAdditionalData() {
+    public static String asJsonString(final Map<String, String> obj) throws JsonProcessingException {
+        return new ObjectMapper().writeValueAsString(obj);
+    }
 
-            final AdditionalData additionalData = AdditionalData.builder()
-                .data(Map.of("directionDueDate", "2021-04-06"))
+    public static EventInformation validAdditionalData() {
+        try {
+
+            Map<String, String> dataMap = Map.of(
+                "lastModifiedDirection", asJsonString(Map.of("directionDueDate", "2021-04-06")),
+                "appealType", "protection"
+            );
+
+            AdditionalData additionalData = AdditionalData.builder()
+                .data(dataMap)
                 .build();
 
             return getEventInformation(additionalData);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public static EventInformation withoutDirectionDueDate() {
+        Map<String, String> dataMap = new HashMap<>();
+        dataMap.put("lastModifiedDirection", null);
+        dataMap.put("appealType", "protection");
 
-        final AdditionalData additionalData = AdditionalData.builder()
-            .data(Maps.newHashMap("lastModifiedDirection", null)).build();
+        AdditionalData additionalData = AdditionalData.builder()
+            .data(dataMap)
+            .build();
 
         return getEventInformation(additionalData);
     }
 
     public static EventInformation withoutLastModifiedDirection() {
-        final AdditionalData additionalData = AdditionalData.builder()
-            .data(null).build();
+        Map<String, String> dataMap = new HashMap<>();
+        dataMap.put("appealType", "protection");
+
+        AdditionalData additionalData = AdditionalData.builder()
+            .data(dataMap)
+            .build();
 
         return getEventInformation(additionalData);
 
@@ -87,18 +110,18 @@ public final class InitiateTaskHelper {
 
     public static EventInformation withEmptyDirectionDueDate() {
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            String lastModifiedDirection = "{\"directionDueDate\": \"\"}";
-            JsonNode jsonNode = objectMapper.readTree(lastModifiedDirection);
-            Map<String, JsonNode> dataMap = Maps.newHashMap("lastModifiedDirection", jsonNode);
+            Map<String, String> dataMap = Map.of(
+                "lastModifiedDirection", asJsonString(Map.of("directionDueDate", "")),
+                "appealType", ""
+            );
 
-            final AdditionalData additionalData = AdditionalData.builder()
+            AdditionalData additionalData = AdditionalData.builder()
                 .data(dataMap)
                 .build();
 
             return getEventInformation(additionalData);
-
-        } catch (JsonProcessingException exp) {
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
             return null;
         }
     }

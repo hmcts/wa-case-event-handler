@@ -9,9 +9,8 @@
   "UserId" : "some user Id",
   "AdditionalData" : {
     "Data" : {
-      "lastModifiedDirection":  {
-        "directionDueDate": "2021-04-08"
-      }
+      "appealType" : "protection",
+      "lastModifiedDirection" : "{\"directionDueDate\":\"2021-04-08\"}"
     },
     "Definition" : {
       "lastModifiedDirection": {

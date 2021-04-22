@@ -2,7 +2,9 @@ package uk.gov.hmcts.reform.wacaseeventhandler.domain.ia;
 
 public enum CaseEventFieldsDefinition {
 
-    APPEAL_TYPE("appealType");
+    APPEAL_TYPE("appealType"),
+    LAST_MODIFIED_DIRECTION("lastModifiedDirection"),
+    DIRECTION_DUE_DATE("directionDueDate");
 
     private final String value;
 

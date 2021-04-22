@@ -261,7 +261,7 @@ dependencies {
   compile 'org.camunda.bpm:camunda-external-task-client:1.4.0'
   compile group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.2.2'
 
-
+  implementation group: 'com.jayway.jsonpath', name: 'json-path', version: '2.5.0'
 
   testImplementation libraries.junit5
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {

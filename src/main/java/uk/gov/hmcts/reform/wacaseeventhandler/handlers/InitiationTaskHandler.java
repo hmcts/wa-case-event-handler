@@ -1,7 +1,10 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
@@ -16,6 +19,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessage
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateProcessVariables;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.IdempotencyKeyGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
@@ -25,24 +29,34 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
+import static java.util.Collections.emptyMap;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.APPEAL_TYPE;
+import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.DIRECTION_DUE_DATE;
+import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.LAST_MODIFIED_DIRECTION;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.TASK_INITIATION;
 
 @Service
 @Order(3)
 @Slf4j
+@SuppressWarnings("PMD.ExcessiveImports")
 public class InitiationTaskHandler implements CaseEventHandler {
 
     private final WorkflowApiClientToInitiateTask apiClientToInitiateTask;
     private final IdempotencyKeyGenerator idempotencyKeyGenerator;
     private final IsoDateFormatter isoDateFormatter;
     private final DueDateService dueDateService;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
+    @Autowired
     public InitiationTaskHandler(WorkflowApiClientToInitiateTask apiClientToInitiateTask,
                                  IdempotencyKeyGenerator idempotencyKeyGenerator,
                                  IsoDateFormatter isoDateFormatter,
-                                 DueDateService dueDateService) {
+                                 DueDateService dueDateService
+    ) {
         this.apiClientToInitiateTask = apiClientToInitiateTask;
         this.idempotencyKeyGenerator = idempotencyKeyGenerator;
         this.isoDateFormatter = isoDateFormatter;
@@ -57,14 +71,13 @@ public class InitiationTaskHandler implements CaseEventHandler {
         );
 
         String tenantId = eventInformation.getJurisdictionId().toLowerCase(Locale.ENGLISH);
-
-        String directionDueDate = extractDirectionDueDate(eventInformation);
-        log.info("Direction Due Date : {}", directionDueDate);
+        String directionDueDate = extractDirectionDueDate(eventInformation.getAdditionalData());
+        log.debug("Direction Due Date : {}", directionDueDate);
 
         EvaluateDmnRequest<InitiateEvaluateRequest> requestParameters = getParameterRequest(
             eventInformation.getEventId(),
             eventInformation.getNewStateId(),
-            eventInformation.getAdditionalData().getData().get(APPEAL_TYPE.value()),
+            readValue(eventInformation.getAdditionalData(), APPEAL_TYPE),
             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
             directionDueDate
         );
@@ -72,13 +85,29 @@ public class InitiationTaskHandler implements CaseEventHandler {
         return apiClientToInitiateTask.evaluateDmn(tableKey, requestParameters, tenantId).getResults();
     }
 
-    private String extractDirectionDueDate(EventInformation eventInformation) {
-        final AdditionalData additionalData = eventInformation.getAdditionalData();
+    private String readValue(AdditionalData additionalData, CaseEventFieldsDefinition caseField) {
         if (additionalData != null && additionalData.getData() != null) {
-            final JsonNode jsonNode = additionalData.getData().get("lastModifiedDirection");
-            if (jsonNode != null && jsonNode.at("/directionDueDate") != null) {
-                JsonNode directionNode = jsonNode.at("/directionDueDate");
-                return directionNode.asText();
+            return Optional.ofNullable(additionalData.getData()).orElse(emptyMap())
+                .get(caseField.value());
+        }
+        return null;
+    }
+
+    private String extractDirectionDueDate(AdditionalData additionalData) {
+        if (additionalData != null) {
+            Map<String, String> data = additionalData.getData();
+            if (data != null) {
+                try {
+                    ConcurrentHashMap<String, String> lastModifiedDirection =
+                        objectMapper.readValue(
+                            data.get(LAST_MODIFIED_DIRECTION.value()),
+                            new TypeReference<>() {
+                            }
+                        );
+                    return lastModifiedDirection.get(DIRECTION_DUE_DATE.value());
+                } catch (JsonProcessingException | IllegalArgumentException e) {
+                    log.debug("last modified direction date not found");
+                }
             }
         }
         return null;
@@ -95,9 +124,9 @@ public class InitiationTaskHandler implements CaseEventHandler {
         InitiateEvaluateRequest variables = new InitiateEvaluateRequest(
             new DmnStringValue(eventId),
             new DmnStringValue(newStateId),
-            new DmnStringValue(now),
             new DmnStringValue(appealType),
-        new DmnStringValue(directionDueDate)
+            new DmnStringValue(now),
+            new DmnStringValue(directionDueDate)
         );
 
         return new EvaluateDmnRequest<>(variables);
