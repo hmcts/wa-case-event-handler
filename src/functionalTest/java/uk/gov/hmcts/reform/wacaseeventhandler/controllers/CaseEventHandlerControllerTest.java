@@ -567,7 +567,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // Then cancel all tasks on both caseIDs
         sendMessage(caseId1, "applyNocDecision", "", "", false);
-        waitSeconds(5);
 
         assertTaskDoesNotExist(caseId1, taskIdDmnColumn);
 
@@ -587,19 +586,26 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     private void assertTaskDoesNotExist(String caseId, String taskIdDmnColumn) {
-        given()
-            .header(SERVICE_AUTHORIZATION, s2sToken)
-            .contentType(APPLICATION_JSON_VALUE)
-            .baseUri(camundaUrl)
-            .basePath("/task")
-            .param(
-                "processVariables",
-                "caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn
-            )
-            .when()
-            .get()
-            .then()
-            .body("size()", is(0));
+        await().ignoreException(AssertionError.class)
+            .pollInterval(500, MILLISECONDS)
+            .atMost(30, SECONDS)
+            .until(
+                () -> {
+                    given()
+                        .header(SERVICE_AUTHORIZATION, s2sToken)
+                        .contentType(APPLICATION_JSON_VALUE)
+                        .baseUri(camundaUrl)
+                        .basePath("/task")
+                        .param(
+                            "processVariables",
+                            "caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn
+                        )
+                        .when()
+                        .get()
+                        .then()
+                        .body("size()", is(0));
+                    return true;
+                });
     }
 
 
