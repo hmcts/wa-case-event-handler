@@ -1,8 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
@@ -30,10 +27,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static java.util.Collections.emptyMap;
+import static java.util.Optional.ofNullable;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.APPEAL_TYPE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.DIRECTION_DUE_DATE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.LAST_MODIFIED_DIRECTION;
@@ -49,7 +45,6 @@ public class InitiationTaskHandler implements CaseEventHandler {
     private final IdempotencyKeyGenerator idempotencyKeyGenerator;
     private final IsoDateFormatter isoDateFormatter;
     private final DueDateService dueDateService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     public InitiationTaskHandler(WorkflowApiClientToInitiateTask apiClientToInitiateTask,
@@ -87,27 +82,19 @@ public class InitiationTaskHandler implements CaseEventHandler {
 
     private String readValue(AdditionalData additionalData, CaseEventFieldsDefinition caseField) {
         if (additionalData != null && additionalData.getData() != null) {
-            return Optional.ofNullable(additionalData.getData()).orElse(emptyMap())
+            return (String) ofNullable(additionalData.getData()).orElse(emptyMap())
                 .get(caseField.value());
         }
         return null;
     }
 
+    @SuppressWarnings("unchecked")
     private String extractDirectionDueDate(AdditionalData additionalData) {
         if (additionalData != null) {
-            Map<String, String> data = additionalData.getData();
+            Map<String, Object> data = additionalData.getData();
             if (data != null) {
-                try {
-                    ConcurrentHashMap<String, String> lastModifiedDirection =
-                        objectMapper.readValue(
-                            data.get(LAST_MODIFIED_DIRECTION.value()),
-                            new TypeReference<>() {
-                            }
-                        );
-                    return lastModifiedDirection.get(DIRECTION_DUE_DATE.value());
-                } catch (JsonProcessingException | IllegalArgumentException e) {
-                    log.debug("last modified direction date not found");
-                }
+                return ofNullable((Map<String, String>) data.get(LAST_MODIFIED_DIRECTION.value())).orElse(emptyMap())
+                    .get(DIRECTION_DUE_DATE.value());
             }
         }
         return null;

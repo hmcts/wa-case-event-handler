@@ -66,26 +66,21 @@ public final class InitiateTaskHelper {
     }
 
     public static EventInformation validAdditionalData() {
-        try {
 
-            Map<String, String> dataMap = Map.of(
-                "lastModifiedDirection", asJsonString(Map.of("directionDueDate", "2021-04-06")),
-                "appealType", "protection"
-            );
+        Map<String, Object> dataMap = Map.of(
+            "lastModifiedDirection", Map.of("directionDueDate", "2021-04-06"),
+            "appealType", "protection"
+        );
 
-            AdditionalData additionalData = AdditionalData.builder()
-                .data(dataMap)
-                .build();
+        AdditionalData additionalData = AdditionalData.builder()
+            .data(dataMap)
+            .build();
 
-            return getEventInformation(additionalData);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return getEventInformation(additionalData);
     }
 
     public static EventInformation withoutDirectionDueDate() {
-        Map<String, String> dataMap = new HashMap<>();
+        Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("lastModifiedDirection", null);
         dataMap.put("appealType", "protection");
 
@@ -97,7 +92,7 @@ public final class InitiateTaskHelper {
     }
 
     public static EventInformation withoutLastModifiedDirection() {
-        Map<String, String> dataMap = new HashMap<>();
+        Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("appealType", "protection");
 
         AdditionalData additionalData = AdditionalData.builder()
@@ -109,21 +104,16 @@ public final class InitiateTaskHelper {
     }
 
     public static EventInformation withEmptyDirectionDueDate() {
-        try {
-            Map<String, String> dataMap = Map.of(
-                "lastModifiedDirection", asJsonString(Map.of("directionDueDate", "")),
-                "appealType", ""
-            );
+        Map<String, Object> dataMap = Map.of(
+            "lastModifiedDirection", Map.of("directionDueDate", ""),
+            "appealType", ""
+        );
 
-            AdditionalData additionalData = AdditionalData.builder()
-                .data(dataMap)
-                .build();
+        AdditionalData additionalData = AdditionalData.builder()
+            .data(dataMap)
+            .build();
 
-            return getEventInformation(additionalData);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return getEventInformation(additionalData);
     }
 
     private static EventInformation getEventInformation(AdditionalData additionalData) {

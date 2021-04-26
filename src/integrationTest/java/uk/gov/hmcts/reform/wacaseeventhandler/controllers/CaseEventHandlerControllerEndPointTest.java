@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.Builder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -131,21 +130,16 @@ class CaseEventHandlerControllerEndPointTest {
     }
 
     private static EventInformation validAdditionalData() {
-        try {
-            Map<String, String> dataMap = Map.of(
-                "lastModifiedDirection", asJsonString(Map.of("directionDueDate", "2021-04-06")),
-                "appealType", "protection"
-            );
+        Map<String, Object> dataMap = Map.of(
+            "lastModifiedDirection", Map.of("directionDueDate", "2021-04-06"),
+            "appealType", "protection"
+        );
 
-            AdditionalData additionalData = AdditionalData.builder()
-                .data(dataMap)
-                .build();
+        AdditionalData additionalData = AdditionalData.builder()
+            .data(dataMap)
+            .build();
 
-            return getEventInformation(additionalData);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return getEventInformation(additionalData);
     }
 
     @BeforeEach

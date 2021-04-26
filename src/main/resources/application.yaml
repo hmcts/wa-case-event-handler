@@ -33,11 +33,11 @@ govUkHolidays:
 azure:
   servicebus:
     connection-string: ${AZURE_SERVICE_BUS_CONNECTION_STRING}
-    topic-name: ${AZURE_SERVICE_BUS_TOPIC_NAME:ccd-case-events-aat}
-    subscription-Name: ${AZURE_SERVICE_BUS_SUBSCRIPTION_NAME:wa-case-events-sub-aat}
+    topic-name: ${AZURE_SERVICE_BUS_TOPIC_NAME:ccd-case-events-demo}
+    subscription-Name: ${AZURE_SERVICE_BUS_SUBSCRIPTION_NAME:wa-case-events-sub-demo}
     retry-duration: ${AZURE_SERVICE_BUS_RETRY_DURATION:60}
     threads: ${AZURE_SERVICE_BUS_CONCURRENT_SESSIONS:1}
-    enableASB: ${AZURE_SERVICE_BUS_FEATURE_TOGGLE:false}
+    enableASB: ${AZURE_SERVICE_BUS_FEATURE_TOGGLE:true}
     retry-attempts: ${AZURE_SERVICE_BUS_RETRY_ATTEMPTS:3}
 
 logging:

@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import com.azure.messaging.servicebus.ServiceBusMessage;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -468,10 +467,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
-    public void given_an_event_when_directionDueDate_is_empty_then_task_should_start_without_delay()
-        throws JsonProcessingException {
+    public void given_an_event_when_directionDueDate_is_empty_then_task_should_start_without_delay() {
 
-        Map<String, String> dataMap = Map.of(
+        Map<String, Object> dataMap = Map.of(
             "lastModifiedDirection", asJsonString(Map.of("directionDueDate", "")),
             "appealType", "protection"
         );
@@ -508,7 +506,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     @Test
     public void given_an_event_when_directionDueDate_is_not_set_then_task_should_start_without_delay() {
 
-        Map<String, String> dataMap = Map.of(
+        Map<String, Object> dataMap = Map.of(
             "lastModifiedDirection", null,
             "appealType", "protection"
         );

@@ -24,7 +24,6 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
-import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.asJsonString;
 
 @RunWith(SpringRunner.class)
 @JsonTest
@@ -53,8 +52,8 @@ public class EventInformationTest {
     private AdditionalData additionalData() throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
 
-        Map<String, String> dataMap = Map.of(
-            "lastModifiedDirection", asJsonString(Map.of("directionDueDate", "2021-04-08")),
+        Map<String, Object> dataMap = Map.of(
+            "lastModifiedDirection", Map.of("directionDueDate", "2021-04-08"),
             "appealType", "protection"
         );
 
