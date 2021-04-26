@@ -263,7 +263,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         sendMessage(caseIdForTask1, "applyForFTPAAppellant", null,
                     null, false);
 
-        waitSeconds(5);
 
         AtomicReference<Response> response = findTaskProcessVariables(
             caseIdForTask1, taskIdDmnColumn, 1);
@@ -271,7 +270,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String task1Id = response.get()
             .then()
             .body("size()", is(1))
-            .body("[0].formKey", is(taskIdDmnColumn))
             .assertThat().body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
@@ -283,7 +281,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         // initiate task2, category (Case progression)
         sendMessage(caseIdForTask1, "applyForFTPARespondent", null,
                     null, false);
-        waitSeconds(5);
 
         response = findTaskProcessVariables(
             caseIdForTask1, taskIdDmnColumn, 2);
@@ -291,7 +288,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String task2Id = response.get()
             .then()
             .body("size()", is(2))
-            .body("[1].formKey", is(taskIdDmnColumn))
             .assertThat().body("[1].id", notNullValue())
             .extract()
             .path("[1].id");
@@ -300,7 +296,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         sendMessage(caseIdForTask1, "makeAnApplication",
                     "", "", false);
 
-        waitSeconds(5);
         // check for warnings flag on both the tasks
         assertTaskHasWarnings(caseIdForTask1,task1Id,true);
         assertTaskHasWarnings(caseIdForTask1,task2Id,true);
@@ -319,14 +314,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         sendMessage(caseIdForTask1, "submitTimeExtension", "",
                     null, false);
 
-        waitSeconds(5);
-
         AtomicReference<Response> response = findTaskProcessVariables(
             caseIdForTask1, taskIdDmnColumn, 1);
 
         String task1Id = response.get()
             .then()
-            .body("[0].formKey", is(taskIdDmnColumn))
             .assertThat().body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
@@ -335,14 +327,13 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         taskIdDmnColumn = "allocateFtpaToJudge";
         sendMessage(caseIdForTask1, "applyForFTPARespondent", null,
                     null, false);
-        waitSeconds(5);
+
         response = findTaskProcessVariables(
             caseIdForTask1, taskIdDmnColumn, 2);
 
         String task2Id = response.get()
             .then()
             .body("size()", is(2))
-            .body("[1].formKey", is(taskIdDmnColumn))
             .assertThat().body("[1].id", notNullValue())
             .extract()
             .path("[1].id");
@@ -764,7 +755,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
                     result.then()
                         .body("size()", is(1))
-                        .body("[0].formKey", is(taskIdDmnColumn))
                         .assertThat().body("[0].id", notNullValue());
 
                     response.set(

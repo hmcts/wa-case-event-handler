@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVari
 public final class InitiateProcessVariables extends ProcessVariables {
 
     private final DmnStringValue idempotencyKey;
+    private final DmnStringValue taskState;
     private final DmnStringValue dueDate;
     private final DmnIntegerValue workingDaysAllowed;
     private final DmnStringValue name;
@@ -28,6 +29,10 @@ public final class InitiateProcessVariables extends ProcessVariables {
 
     public DmnStringValue getIdempotencyKey() {
         return idempotencyKey;
+    }
+
+    public DmnStringValue getTaskState() {
+        return taskState;
     }
 
     public DmnStringValue getDueDate() {
