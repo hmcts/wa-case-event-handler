@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain;
 
-import com.google.gson.Gson;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +36,6 @@ public class EvaluateDmnResponseToInitiateTaskTest {
         JsonContent<EvaluateDmnResponse<InitiateEvaluateResponse>> evaluateDmnRequestAsJson =
             jacksonTester.write(InitiateTaskHelper.buildInitiateTaskDmnResponse());
 
-        System.out.println(new Gson().toJson(evaluateDmnRequestAsJson.getJson()));
         assertThat(evaluateDmnRequestAsJson).isEqualToJson("evaluate-dmn-response.json");
     }
 
