@@ -141,6 +141,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
 
         return InitiateProcessVariables.builder()
             .idempotencyKey(new DmnStringValue(idempotencyKey))
+            .taskState(new DmnStringValue("unconfigured"))
             .caseTypeId(new DmnStringValue(eventInformation.getCaseTypeId()))
             .dueDate(new DmnStringValue(dueDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
             .workingDaysAllowed(cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()))

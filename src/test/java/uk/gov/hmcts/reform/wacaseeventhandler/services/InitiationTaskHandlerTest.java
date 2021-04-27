@@ -265,6 +265,7 @@ class InitiationTaskHandlerTest {
     ) {
         InitiateProcessVariables expectedInitiateTaskSendMessageRequest = InitiateProcessVariables.builder()
             .idempotencyKey(new DmnStringValue(idempotencyKey))
+            .taskState(new DmnStringValue("unconfigured"))
             .caseTypeId(new DmnStringValue("asylum"))
             .jurisdiction(new DmnStringValue("ia"))
             .group(new DmnStringValue(group))
