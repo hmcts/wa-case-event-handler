@@ -9,9 +9,9 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringVa
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
 
 @Builder
-@ToString
 @EqualsAndHashCode(callSuper = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@ToString
 public final class InitiateProcessVariables extends ProcessVariables {
 
     private final DmnStringValue idempotencyKey;
@@ -23,6 +23,7 @@ public final class InitiateProcessVariables extends ProcessVariables {
     private final DmnStringValue group;
     private final DmnStringValue jurisdiction;
     private final DmnStringValue caseTypeId;
+    @ToString.Exclude
     private final DmnStringValue caseId;
     private final DmnStringValue delayUntil;
     private final DmnStringValue taskCategory;
@@ -74,4 +75,5 @@ public final class InitiateProcessVariables extends ProcessVariables {
     public DmnStringValue getTaskCategory() {
         return taskCategory;
     }
+
 }

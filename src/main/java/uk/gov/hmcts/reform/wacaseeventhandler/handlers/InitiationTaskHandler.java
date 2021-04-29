@@ -112,10 +112,15 @@ public class InitiationTaskHandler implements CaseEventHandler {
         InitiateEvaluateResponse initiateEvaluateResponse,
         EventInformation eventInformation
     ) {
+        final InitiateProcessVariables initiateProcessVariables = buildProcessVariables(
+            initiateEvaluateResponse,
+            eventInformation
+        );
+        log.info("SendMessage process variables {}", initiateProcessVariables);
 
         return SendMessageRequest.<InitiateProcessVariables, CorrelationKeys>builder()
             .messageName(TASK_INITIATION.getMessageName())
-            .processVariables(buildProcessVariables(initiateEvaluateResponse, eventInformation))
+            .processVariables(initiateProcessVariables)
             .build();
     }
 

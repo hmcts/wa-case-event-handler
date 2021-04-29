@@ -222,7 +222,8 @@ def versions = [
   springBoot      : '2.4.2',
   springfoxSwagger: '2.9.2',
   serenity        : '2.2.12',
-  pitest          : '1.5.2'
+  pitest          : '1.5.2',
+  logbook         : '2.6.2'
 ]
 
 ext.libraries = [
@@ -242,11 +243,12 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
   implementation('org.springframework.boot:spring-boot-starter-validation')
   implementation group: 'io.springfox', name: 'springfox-swagger2', version: versions.springfoxSwagger
+  implementation group: 'org.zalando', name:'logbook-spring-boot-starter', version: versions.logbook
 
   implementation group: 'com.github.hmcts.java-logging', name: 'java-logging', version: versions.reformLogging
   implementation group: 'com.github.hmcts.java-logging', name: 'java-logging-appinsights', version: versions.reformLogging
-  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.2.7.RELEASE'
   implementation group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.0'
+  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.2.7.RELEASE'
 
   implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.0.2'
 
