@@ -20,14 +20,6 @@ public class CustomLogBookConfiguration {
     }
 
     @Bean
-    public JacksonJsonFieldBodyFilter bodyFilter() {
-        return new JacksonJsonFieldBodyFilter(
-            Arrays.asList("caseId"),
-            "***"
-        );
-    }
-
-    @Bean
     public HeaderFilter removeHeaders() {
         return HeaderFilters.removeHeaders(
             "Cache-Control",

@@ -36,9 +36,11 @@ public class CcdEventProcessor {
 
         log.info(
             "Case details:\n"
+            + "Case id: '{}'\n"
             + "Event id: '{}'\n"
             + "Jurisdiction id: '{}'\n"
             + "Case type id: '{}'",
+            eventInformation.getCaseId(),
             eventInformation.getEventId(),
             eventInformation.getJurisdictionId(),
             eventInformation.getCaseTypeId()

@@ -667,7 +667,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String caseId, String taskIdDmnColumn, int tasks
     ) {
 
-        log.info(String.format("Finding task for caseId : %s", caseId));
+        log.info("Finding task for caseId = {}", caseId);
         AtomicReference<Response> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
             .pollInterval(1000, MILLISECONDS)
