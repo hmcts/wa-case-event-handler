@@ -6,10 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.zalando.logbook.HeaderFilter;
 import org.zalando.logbook.HeaderFilters;
-import org.zalando.logbook.json.JacksonJsonFieldBodyFilter;
 import org.zalando.logbook.json.JsonHttpLogFormatter;
-
-import java.util.Arrays;
 
 @Configuration
 public class CustomLogBookConfiguration {
