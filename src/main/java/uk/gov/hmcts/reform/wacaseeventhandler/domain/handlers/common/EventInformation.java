@@ -37,7 +37,6 @@ public final class EventInformation {
     private final String newStateId;
     @NotEmpty
     private final String userId;
-    @NotEmpty
     private final AdditionalData additionalData;
 
     @JsonCreator

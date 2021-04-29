@@ -19,11 +19,14 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.util.Collections.emptyMap;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
@@ -470,7 +473,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_an_event_when_directionDueDate_is_empty_then_task_should_start_without_delay() {
 
         Map<String, Object> dataMap = Map.of(
-            "lastModifiedDirection", asJsonString(Map.of("directionDueDate", "")),
+            "lastModifiedDirection", Map.of("directionDueDate", ""),
             "appealType", "protection"
         );
 
@@ -506,10 +509,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     @Test
     public void given_an_event_when_directionDueDate_is_not_set_then_task_should_start_without_delay() {
 
-        Map<String, Object> dataMap = Map.of(
-            "lastModifiedDirection", null,
-            "appealType", "protection"
-        );
+        Map<String, Object> dataMap = new HashMap<>();
+        dataMap.put("lastModifiedDirection", null);
+        dataMap.put("appealType", "protection");
+
 
         final AdditionalData additionalData = AdditionalData.builder()
             .data(dataMap)
@@ -620,6 +623,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .eventId(event)
             .newStateId(newStateId)
             .previousStateId(previousStateId)
+            .additionalData(new AdditionalData(emptyMap(), emptyMap()))
             .userId("some user Id")
             .build();
         return eventInformation;
