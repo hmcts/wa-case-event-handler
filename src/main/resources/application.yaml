@@ -42,6 +42,7 @@ azure:
 
 logging:
   level:
+    root: INFO
     com.microsoft.azure.servicebus: OFF
     com.azure.messaging.servicebus: OFF
     com.azure.core.amqp: OFF
