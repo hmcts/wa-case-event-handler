@@ -19,7 +19,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -222,6 +221,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         final String task1Id = initiateTaskForGivenId(caseIdForTask1, "requestCaseBuilding",
             "", "caseBuilding",
             true, taskIdDmnColumn);
+
         // Then cancel the task1
         sendMessage(caseIdForTask1, "submitCase", "caseBuilding", "", false);
 
@@ -262,9 +262,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         sendMessage(caseIdForTask1, "applyForFTPAAppellant", null,
             null, false);
 
-
         AtomicReference<Response> response = findTaskProcessVariables(
-            caseIdForTask1, taskIdDmnColumn, 1);
+            caseIdForTask1, 1);
 
         String task1Id = response.get()
             .then()
@@ -282,7 +281,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             null, false);
 
         response = findTaskProcessVariables(
-            caseIdForTask1, taskIdDmnColumn, 2);
+            caseIdForTask1, 2);
 
         String task2Id = response.get()
             .then()
@@ -314,7 +313,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             null, false);
 
         AtomicReference<Response> response = findTaskProcessVariables(
-            caseIdForTask1, taskIdDmnColumn, 1);
+            caseIdForTask1, 1);
 
         String task1Id = response.get()
             .then()
@@ -328,7 +327,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             null, false);
 
         response = findTaskProcessVariables(
-            caseIdForTask1, taskIdDmnColumn, 2);
+            caseIdForTask1, 2);
 
         String task2Id = response.get()
             .then()
@@ -666,7 +665,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     private AtomicReference<Response> findTaskProcessVariables(
-        String caseId, String taskIdDmnColumn, int tasks
+        String caseId, int tasks
     ) {
 
         log.info(String.format("Finding task for caseId : %s", caseId));
@@ -676,7 +675,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .atMost(60, SECONDS)
             .until(
                 () -> {
-                    final Response result = given()
+                    Response result = given()
+                        .relaxedHTTPSValidation()
                         .header(SERVICE_AUTHORIZATION, s2sToken)
                         .contentType(APPLICATION_JSON_VALUE)
                         .baseUri(camundaUrl)
@@ -686,8 +686,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
                         .get();
 
                     result
-                        .then()
+                        .then().assertThat()
+                        .statusCode(200)
                         .body("size()", is(tasks));
+
                     response.set(result);
                     return true;
                 });
