@@ -39,11 +39,13 @@ public class CcdEventProcessor {
             + "Case id: '{}'\n"
             + "Event id: '{}'\n"
             + "Jurisdiction id: '{}'\n"
-            + "Case type id: '{}'",
+            + "Case type id: '{}'\n"
+            + "Additional Data: '{}'",
             eventInformation.getCaseId(),
             eventInformation.getEventId(),
             eventInformation.getJurisdictionId(),
-            eventInformation.getCaseTypeId()
+            eventInformation.getCaseTypeId(),
+            eventInformation.getAdditionalData()
         );
 
         boolean isTaskInitiationEnabled = featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE);
