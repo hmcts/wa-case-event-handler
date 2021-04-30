@@ -1,6 +1,6 @@
 buildscript {
   repositories {
-    jcenter()
+    mavenCentral()
   }
   dependencies {
     classpath("net.serenity-bdd:serenity-gradle-plugin:2.3.8")
@@ -211,7 +211,7 @@ dependencyManagement {
 
 repositories {
   mavenLocal()
-  jcenter()
+  maven { url 'https://jitpack.io' }
   mavenCentral()
 }
 
@@ -243,10 +243,10 @@ dependencies {
   implementation('org.springframework.boot:spring-boot-starter-validation')
   implementation group: 'io.springfox', name: 'springfox-swagger2', version: versions.springfoxSwagger
 
-  implementation group: 'uk.gov.hmcts.reform', name: 'logging', version: versions.reformLogging
-  implementation group: 'uk.gov.hmcts.reform', name: 'logging-appinsights', version: versions.reformLogging
+  implementation group: 'com.github.hmcts.java-logging', name: 'java-logging', version: versions.reformLogging
+  implementation group: 'com.github.hmcts.java-logging', name: 'java-logging-appinsights', version: versions.reformLogging
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.2.7.RELEASE'
-  implementation group: 'uk.gov.hmcts.reform', name: 'properties-volume-spring-boot-starter', version: '0.1.0'
+  implementation group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.0'
 
   implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.0.2'
 
@@ -256,12 +256,10 @@ dependencies {
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: '9.0.43'
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: '9.0.43'
 
-  implementation group: 'uk.gov.hmcts.reform', name: 'service-auth-provider-client', version: '3.1.2'
+  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '3.1.2'
 
   compile 'org.camunda.bpm:camunda-external-task-client:1.4.0'
   compile group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.2.2'
-
-
 
   testImplementation libraries.junit5
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {

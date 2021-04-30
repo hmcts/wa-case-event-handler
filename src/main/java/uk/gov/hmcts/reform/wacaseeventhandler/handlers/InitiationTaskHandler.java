@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessage
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateProcessVariables;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.IdempotencyKeyGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
@@ -25,12 +26,19 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
+import static java.util.Collections.emptyMap;
+import static java.util.Optional.ofNullable;
+import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.APPEAL_TYPE;
+import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.DIRECTION_DUE_DATE;
+import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.LAST_MODIFIED_DIRECTION;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.TASK_INITIATION;
 
 @Service
 @Order(3)
 @Slf4j
+@SuppressWarnings("PMD.ExcessiveImports")
 public class InitiationTaskHandler implements CaseEventHandler {
 
     private final WorkflowApiClientToInitiateTask apiClientToInitiateTask;
@@ -38,10 +46,12 @@ public class InitiationTaskHandler implements CaseEventHandler {
     private final IsoDateFormatter isoDateFormatter;
     private final DueDateService dueDateService;
 
+    @Autowired
     public InitiationTaskHandler(WorkflowApiClientToInitiateTask apiClientToInitiateTask,
                                  IdempotencyKeyGenerator idempotencyKeyGenerator,
                                  IsoDateFormatter isoDateFormatter,
-                                 DueDateService dueDateService) {
+                                 DueDateService dueDateService
+    ) {
         this.apiClientToInitiateTask = apiClientToInitiateTask;
         this.idempotencyKeyGenerator = idempotencyKeyGenerator;
         this.isoDateFormatter = isoDateFormatter;
@@ -56,13 +66,13 @@ public class InitiationTaskHandler implements CaseEventHandler {
         );
 
         String tenantId = eventInformation.getJurisdictionId().toLowerCase(Locale.ENGLISH);
-
-        String directionDueDate = extractDirectionDueDate(eventInformation);
-        log.info("Direction Due Date : {}", directionDueDate);
+        String directionDueDate = extractDirectionDueDate(eventInformation.getAdditionalData());
+        log.debug("Direction Due Date : {}", directionDueDate);
 
         EvaluateDmnRequest<InitiateEvaluateRequest> requestParameters = getParameterRequest(
             eventInformation.getEventId(),
             eventInformation.getNewStateId(),
+            readValue(eventInformation.getAdditionalData(), APPEAL_TYPE),
             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
             directionDueDate
         );
@@ -70,13 +80,21 @@ public class InitiationTaskHandler implements CaseEventHandler {
         return apiClientToInitiateTask.evaluateDmn(tableKey, requestParameters, tenantId).getResults();
     }
 
-    private String extractDirectionDueDate(EventInformation eventInformation) {
-        final AdditionalData additionalData = eventInformation.getAdditionalData();
+    private String readValue(AdditionalData additionalData, CaseEventFieldsDefinition caseField) {
         if (additionalData != null && additionalData.getData() != null) {
-            final JsonNode jsonNode = additionalData.getData().get("lastModifiedDirection");
-            if (jsonNode != null && jsonNode.at("/directionDueDate") != null) {
-                JsonNode directionNode = jsonNode.at("/directionDueDate");
-                return directionNode.asText();
+            return (String) ofNullable(additionalData.getData()).orElse(emptyMap())
+                .get(caseField.value());
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private String extractDirectionDueDate(AdditionalData additionalData) {
+        if (additionalData != null) {
+            Map<String, Object> data = additionalData.getData();
+            if (data != null) {
+                return ofNullable((Map<String, String>) data.get(LAST_MODIFIED_DIRECTION.value())).orElse(emptyMap())
+                    .get(DIRECTION_DUE_DATE.value());
             }
         }
         return null;
@@ -85,12 +103,15 @@ public class InitiationTaskHandler implements CaseEventHandler {
     private EvaluateDmnRequest<InitiateEvaluateRequest> getParameterRequest(
         String eventId,
         String newStateId,
+        String appealType,
         String now,
         String directionDueDate
+
     ) {
         InitiateEvaluateRequest variables = new InitiateEvaluateRequest(
             new DmnStringValue(eventId),
             new DmnStringValue(newStateId),
+            new DmnStringValue(appealType),
             new DmnStringValue(now),
             new DmnStringValue(directionDueDate)
         );
@@ -129,6 +150,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
             zonedDateTime,
             cannotBeNull(initiateEvaluateResponse.getDelayDuration()).getValue()
         );
+
         ZonedDateTime dueDate = dueDateService.calculateDueDate(
             delayUntil,
             cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()).getValue()
