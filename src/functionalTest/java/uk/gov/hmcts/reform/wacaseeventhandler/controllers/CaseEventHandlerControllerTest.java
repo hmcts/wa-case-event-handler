@@ -613,7 +613,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     private EventInformation getEventInformation(String caseId, String event, String previousStateId,
                                                  String newStateId, LocalDateTime localDateTime) {
-        EventInformation eventInformation = EventInformation.builder()
+        return EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
             .eventTimeStamp(localDateTime)
             .caseId(caseId)
@@ -625,7 +625,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .additionalData(new AdditionalData(emptyMap(), emptyMap()))
             .userId("some user Id")
             .build();
-        return eventInformation;
     }
 
     private void callRestEndpoint(EventInformation eventInformation) {
