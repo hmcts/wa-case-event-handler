@@ -48,6 +48,7 @@ public class CcdEventProcessor {
             eventInformation.getAdditionalData()
         );
 
+
         boolean isTaskInitiationEnabled = featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE);
 
         if (isTaskInitiationEnabled) {
@@ -59,10 +60,11 @@ public class CcdEventProcessor {
             });
         } else {
             log.info(
-                "Feature flag {} evaluated to false. Message consumed but not being processed",
+                "Feature flag '{}' evaluated to false. Message consumed but not being processed",
                 TASK_INITIATION_FEATURE
             );
 
         }
     }
+
 }

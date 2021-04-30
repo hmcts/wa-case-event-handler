@@ -31,14 +31,17 @@ public class EvaluateDmnRequestToInitiateTaskTest {
         assertThat(evaluateDmnRequestAsJson).isEqualToJson("evaluate-dmn-request.json");
     }
 
-    private EvaluateDmnRequest<InitiateEvaluateRequest> buildInitiateTaskDmnRequest(
-        String now, String directionDueDate) {
+    private EvaluateDmnRequest<InitiateEvaluateRequest> buildInitiateTaskDmnRequest(String now,
+                                                                                    String directionDueDate) {
         DmnStringValue eventId = new DmnStringValue("submitAppeal");
         DmnStringValue postEventState = new DmnStringValue("");
         InitiateEvaluateRequest initiateEvaluateRequestVariables =
-            new InitiateEvaluateRequest(eventId, postEventState,
-                                        new DmnStringValue(now),
-                                        new DmnStringValue(directionDueDate));
+            new InitiateEvaluateRequest(
+                eventId,
+                postEventState,
+                new DmnStringValue("protection"),
+                new DmnStringValue(now),
+                new DmnStringValue(directionDueDate));
 
         return new EvaluateDmnRequest<>(initiateEvaluateRequestVariables);
     }

@@ -1,13 +1,9 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import com.azure.messaging.servicebus.ServiceBusMessage;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.assertj.core.util.Maps;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,11 +19,13 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.util.Collections.emptyMap;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
@@ -223,6 +221,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         final String task1Id = initiateTaskForGivenId(caseIdForTask1, "requestCaseBuilding",
             "", "caseBuilding",
             true, taskIdDmnColumn);
+
         // Then cancel the task1
         sendMessage(caseIdForTask1, "submitCase", "caseBuilding", "", false);
 
@@ -244,11 +243,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         );
 
         sendMessage(caseIdForTask1, "makeAnApplication",
-                    "", "", false);
+            "", "", false);
 
         waitSeconds(5);
 
-        assertTaskHasWarnings(caseIdForTask1,task1Id,true);
+        assertTaskHasWarnings(caseIdForTask1, task1Id, true);
 
         taskToTearDown = task1Id;
     }
@@ -261,11 +260,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // Initiate task1, category (Case progression)
         sendMessage(caseIdForTask1, "applyForFTPAAppellant", null,
-                    null, false);
-
+            null, false);
 
         AtomicReference<Response> response = findTaskProcessVariables(
-            caseIdForTask1, taskIdDmnColumn, 1);
+            caseIdForTask1, 1);
 
         String task1Id = response.get()
             .then()
@@ -280,10 +278,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // initiate task2, category (Case progression)
         sendMessage(caseIdForTask1, "applyForFTPARespondent", null,
-                    null, false);
+            null, false);
 
         response = findTaskProcessVariables(
-            caseIdForTask1, taskIdDmnColumn, 2);
+            caseIdForTask1, 2);
 
         String task2Id = response.get()
             .then()
@@ -294,11 +292,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // send warning message
         sendMessage(caseIdForTask1, "makeAnApplication",
-                    "", "", false);
+            "", "", false);
 
         // check for warnings flag on both the tasks
-        assertTaskHasWarnings(caseIdForTask1,task1Id,true);
-        assertTaskHasWarnings(caseIdForTask1,task2Id,true);
+        assertTaskHasWarnings(caseIdForTask1, task1Id, true);
+        assertTaskHasWarnings(caseIdForTask1, task2Id, true);
 
         // tear down all tasks
         tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
@@ -312,10 +310,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // Initiate task1 , category (Time extension)
         sendMessage(caseIdForTask1, "submitTimeExtension", "",
-                    null, false);
+            null, false);
 
         AtomicReference<Response> response = findTaskProcessVariables(
-            caseIdForTask1, taskIdDmnColumn, 1);
+            caseIdForTask1, 1);
 
         String task1Id = response.get()
             .then()
@@ -326,10 +324,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         // initiate task2, category (Case progression)
         taskIdDmnColumn = "allocateFtpaToJudge";
         sendMessage(caseIdForTask1, "applyForFTPARespondent", null,
-                    null, false);
+            null, false);
 
         response = findTaskProcessVariables(
-            caseIdForTask1, taskIdDmnColumn, 2);
+            caseIdForTask1, 2);
 
         String task2Id = response.get()
             .then()
@@ -344,8 +342,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         waitSeconds(5);
         // check for warnings flag on both the tasks
-        assertTaskHasWarnings(caseIdForTask1,task1Id,true);
-        assertTaskHasWarnings(caseIdForTask1,task2Id,true);
+        assertTaskHasWarnings(caseIdForTask1, task1Id, true);
+        assertTaskHasWarnings(caseIdForTask1, task2Id, true);
 
         // tear down all tasks
         tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
@@ -380,8 +378,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         String caseIdForTask1 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseIdForTask1, "submitAppeal",
-                                                     "", "appealSubmitted",
-                                                     false, "reviewTheAppeal"
+            "", "appealSubmitted",
+            false, "reviewTheAppeal"
         );
 
         // test for workingDaysAllowed  = 2
@@ -390,8 +388,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         String caseIdForTask2 = UUID.randomUUID().toString();
         final String task2Id = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
-                                                      "", "appealSubmitted",
-                                                      false, "reviewTheAppeal"
+            "", "appealSubmitted",
+            false, "reviewTheAppeal"
         );
 
         // add tasks to tear down.
@@ -416,8 +414,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String taskId2DmnColumn = "allocateFtpaToJudge";
         String caseId2 = UUID.randomUUID().toString();
         final String caseId2Task1Id = initiateTaskForGivenId(caseId2, "applyForFTPAAppellant",
-                                                             "", "",
-                                                             false, taskId2DmnColumn);
+            "", "",
+            false, taskId2DmnColumn);
         // Then cancel all tasks on both caseIDs
         String eventToCancelTask = "removeAppealFromOnline";
         sendMessage(caseId1, eventToCancelTask, "", "", false);
@@ -433,7 +431,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // add tasks to tear down.
         tearDownMultipleTasks(Arrays.asList(caseId1Task1Id, caseId1Task1Id,
-                                            caseId2Task1Id), "deleted");
+            caseId2Task1Id), "deleted");
     }
 
     @Test
@@ -452,34 +450,33 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String taskId2DmnColumn = "reviewRespondentResponse";
         String caseId2 = UUID.randomUUID().toString();
         final String caseId2Task1Id = initiateTaskForGivenId(caseId2, "uploadHomeOfficeAppealResponse",
-                                                             "", "respondentReview",
-                                                             false, taskId2DmnColumn);
+            "", "respondentReview",
+            false, taskId2DmnColumn);
         // Then cancel all tasks on both caseIDs
         sendMessage(caseId1, "makeAnApplication",
-                    "", "", false);
+            "", "", false);
         waitSeconds(5);
         sendMessage(caseId2, "makeAnApplication",
-                    "", "", false);
+            "", "", false);
         waitSeconds(5);
 
         // check for warnings flag on both the tasks
-        assertTaskHasWarnings(caseId1,caseId1Task1Id,true);
-        assertTaskHasWarnings(caseId2,caseId2Task1Id,true);
+        assertTaskHasWarnings(caseId1, caseId1Task1Id, true);
+        assertTaskHasWarnings(caseId2, caseId2Task1Id, true);
 
         // tear down all tasks
         tearDownMultipleTasks(Arrays.asList(caseId1Task1Id, caseId2Task1Id), "completed");
     }
 
     @Test
-    public void given_an_event_when_directionDueDate_is_empty_then_task_should_start_without_delay()
-        throws JsonProcessingException {
+    public void given_an_event_when_directionDueDate_is_empty_then_task_should_start_without_delay() {
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        String lastModifiedDirection = "{\"directionDueDate\": \"\"}";
-        JsonNode jsonNode = objectMapper.readTree(lastModifiedDirection);
-        Map<String, JsonNode> dataMap = Maps.newHashMap("lastModifiedDirection", jsonNode);
+        Map<String, Object> dataMap = Map.of(
+            "lastModifiedDirection", Map.of("directionDueDate", ""),
+            "appealType", "protection"
+        );
 
-        final AdditionalData additionalData = AdditionalData.builder()
+        AdditionalData additionalData = AdditionalData.builder()
             .data(dataMap)
             .build();
 
@@ -511,7 +508,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     @Test
     public void given_an_event_when_directionDueDate_is_not_set_then_task_should_start_without_delay() {
 
-        Map<String, JsonNode> dataMap = Maps.newHashMap("lastModifiedDirection", null);
+        Map<String, Object> dataMap = new HashMap<>();
+        dataMap.put("lastModifiedDirection", null);
+        dataMap.put("appealType", "protection");
+
 
         final AdditionalData additionalData = AdditionalData.builder()
             .data(dataMap)
@@ -622,6 +622,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .eventId(event)
             .newStateId(newStateId)
             .previousStateId(previousStateId)
+            .additionalData(new AdditionalData(emptyMap(), emptyMap()))
             .userId("some user Id")
             .build();
         return eventInformation;
@@ -664,7 +665,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     private AtomicReference<Response> findTaskProcessVariables(
-        String caseId, String taskIdDmnColumn, int tasks
+        String caseId, int tasks
     ) {
 
         log.info(String.format("Finding task for caseId : %s", caseId));
@@ -674,7 +675,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .atMost(60, SECONDS)
             .until(
                 () -> {
-                    final Response result = given()
+                    Response result = given()
+                        .relaxedHTTPSValidation()
                         .header(SERVICE_AUTHORIZATION, s2sToken)
                         .contentType(APPLICATION_JSON_VALUE)
                         .baseUri(camundaUrl)
@@ -684,8 +686,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
                         .get();
 
                     result
-                        .then()
+                        .then().assertThat()
+                        .statusCode(200)
                         .body("size()", is(tasks));
+
                     response.set(result);
                     return true;
                 });

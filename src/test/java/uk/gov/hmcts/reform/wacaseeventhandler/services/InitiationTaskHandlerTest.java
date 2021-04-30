@@ -55,6 +55,7 @@ class InitiationTaskHandlerTest {
     public static final String TENANT_ID = "ia";
     @Mock
     private WorkflowApiClientToInitiateTask apiClientToInitiateTask;
+
     @Mock
     private IdempotencyKeyGenerator idempotencyKeyGenerator;
 
@@ -74,9 +75,9 @@ class InitiationTaskHandlerTest {
 
     @ParameterizedTest
     @MethodSource("provideEventInformation")
-    void evaluateDmn(EventInformation eventInformation, String directionDueDate) {
+    void evaluateDmn(EventInformation eventInformation, String directionDueDate, String appealType) {
         EvaluateDmnRequest<InitiateEvaluateRequest> requestParameters =
-            buildInitiateTaskDmnRequest(directionDueDate);
+            buildInitiateTaskDmnRequest(directionDueDate, appealType);
 
         Mockito.when(apiClientToInitiateTask.evaluateDmn(
             DMN_NAME,
@@ -139,7 +140,7 @@ class InitiationTaskHandlerTest {
             .thenReturn(zonedDateTimeAt4Pm);
 
         handlerService.handle(results, getEventInformation(eventInstanceId,
-                                                           handleDateTimeScenario.inputDate));
+            handleDateTimeScenario.inputDate));
 
         Mockito.verify(apiClientToInitiateTask, Mockito.times(2)).sendMessage(captor.capture());
         SendMessageRequest<InitiateProcessVariables, CorrelationKeys> actualSendMessageRequest = captor.getValue();
@@ -245,11 +246,11 @@ class InitiationTaskHandlerTest {
     private static Stream<Arguments> provideEventInformation() {
         return Stream.of(
             Arguments.of(getEventInformation("eventInstanceId",
-                                             "2020-03-29T10:53:36.530377"), null),
-            Arguments.of(validAdditionalData(), "2021-04-06"),
-            Arguments.of(withEmptyDirectionDueDate(), ""),
-            Arguments.of(withoutDirectionDueDate(), null),
-            Arguments.of(withoutLastModifiedDirection(), null)
+                "2020-03-29T10:53:36.530377"), null, null),
+            Arguments.of(validAdditionalData(), "2021-04-06", "protection"),
+            Arguments.of(withEmptyDirectionDueDate(), "", ""),
+            Arguments.of(withoutDirectionDueDate(), null, "protection"),
+            Arguments.of(withoutLastModifiedDirection(), null, "protection")
         );
     }
 
