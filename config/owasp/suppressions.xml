@@ -8,7 +8,7 @@
     <cpe>cpe:/a:pivotal_software:spring_security</cpe>
     <cve>CVE-2018-1258</cve>
   </suppress>
-  <suppress until="2021-05-01">
+  <suppress until="2021-06-01">
     <notes><![CDATA[
     Inherited from com.azure:azure-messaging-servicebus waiting on an update review in 1 month to see if azure have pushed an update
     ]]></notes>
@@ -16,7 +16,7 @@
     <cve>CVE-2021-21295</cve>
     <cve>CVE-2021-21409</cve>
    </suppress>
-  <suppress until="2021-05-01">
+  <suppress until="2021-06-01">
     <notes><![CDATA[
  before version 4.1.61.Final there is a vulnerability that enables request smuggling.    ]]></notes>
     <cve>CVE-2021-21409</cve>
