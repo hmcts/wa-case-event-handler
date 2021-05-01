@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnBooleanValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnIntegerValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
@@ -26,6 +27,8 @@ public final class InitiateProcessVariables extends ProcessVariables {
     private final DmnStringValue caseId;
     private final DmnStringValue delayUntil;
     private final DmnStringValue taskCategory;
+    @SuppressWarnings("PMD.LinguisticNaming")
+    private final DmnBooleanValue hasWarnings;
 
     public DmnStringValue getIdempotencyKey() {
         return idempotencyKey;
@@ -73,5 +76,9 @@ public final class InitiateProcessVariables extends ProcessVariables {
 
     public DmnStringValue getTaskCategory() {
         return taskCategory;
+    }
+
+    public DmnBooleanValue getHasWarnings() {
+        return hasWarnings;
     }
 }
