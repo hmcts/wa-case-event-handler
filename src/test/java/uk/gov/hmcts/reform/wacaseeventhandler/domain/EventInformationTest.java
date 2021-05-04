@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.domain;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.assertj.core.util.Maps;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,8 +32,6 @@ public class EventInformationTest {
 
     private final Class classToTest = EvaluateDmnResponse.class;
 
-    private static final JsonNodeFactory JSON_NODE_FACTORY = new JsonNodeFactory(false);
-
     @Autowired
     private JacksonTester<EventInformation> jacksonTester;
 
@@ -54,9 +51,11 @@ public class EventInformationTest {
 
     private AdditionalData additionalData() throws JsonProcessingException {
         ObjectMapper objectMapper = new ObjectMapper();
-        String lastModifiedDirection = "{\"directionDueDate\": \"2021-04-08\"}";
-        JsonNode jsonNode = objectMapper.readTree(lastModifiedDirection);
-        Map<String, JsonNode> dataMap = Maps.newHashMap("lastModifiedDirection", jsonNode);
+
+        Map<String, Object> dataMap = Map.of(
+            "lastModifiedDirection", Map.of("directionDueDate", "2021-04-08"),
+            "appealType", "protection"
+        );
 
         String definition = "{\n"
             + "        \"type\": \"Complex\",\n"
@@ -71,7 +70,7 @@ public class EventInformationTest {
             + "        },\n"
             + "        \"originalId\": \"lastModifiedDirection\"\n"
             + "      }";
-        jsonNode = objectMapper.readTree(definition);
+        JsonNode jsonNode = objectMapper.readTree(definition);
         Map<String, JsonNode> definitionMap = Maps.newHashMap("lastModifiedDirection", jsonNode);
 
         return AdditionalData.builder()
