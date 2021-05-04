@@ -1,14 +1,13 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.common;
+package uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common;
 
 import org.junit.jupiter.api.Test;
 import pl.pojo.tester.api.assertion.Method;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnIntegerValue;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-public class DmnIntegerValueTest {
+class AdditionalDataTest {
 
-    private final Class<DmnIntegerValue> classToTest = DmnIntegerValue.class;
+    private final Class classToTest = AdditionalData.class;
 
     @Test
     void isWellImplemented() {
