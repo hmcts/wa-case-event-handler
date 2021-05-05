@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.config;
 import com.azure.core.amqp.AmqpRetryOptions;
 import com.azure.messaging.servicebus.ServiceBusClientBuilder;
 import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Scope;
@@ -10,13 +11,14 @@ import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 
+@Slf4j
 @Component
 @Scope("prototype")
 @ConditionalOnProperty("azure.servicebus.enableASB")
 public class ServiceBusConfiguration {
 
-    @Value("${azure.servicebus.host-name}")
-    private String hostName;
+    @Value("${azure.servicebus.connection-string}")
+    private String connectionString;
     @Value("${azure.servicebus.topic-name}")
     private String topicName;
     @Value("${azure.servicebus.subscription-name}")
@@ -25,13 +27,17 @@ public class ServiceBusConfiguration {
     private int retryTime;
 
     public ServiceBusSessionReceiverClient createSessionReceiver() {
-        return new ServiceBusClientBuilder()
-            .connectionString(hostName)
+        log.info("Creating Session receiver");
+        ServiceBusSessionReceiverClient client = new ServiceBusClientBuilder()
+            .connectionString(connectionString)
             .retryOptions(retryOptions())
             .sessionReceiver()
             .topicName(topicName)
             .subscriptionName(subscriptionName)
             .buildClient();
+
+        log.info("Session receiver created, successfully");
+        return client;
     }
 
     private AmqpRetryOptions retryOptions() {

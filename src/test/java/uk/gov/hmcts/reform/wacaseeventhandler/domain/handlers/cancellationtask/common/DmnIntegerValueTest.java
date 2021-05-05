@@ -8,7 +8,7 @@ import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
 public class DmnIntegerValueTest {
 
-    private final Class classToTest = DmnIntegerValue.class;
+    private final Class<DmnIntegerValue> classToTest = DmnIntegerValue.class;
 
     @Test
     void isWellImplemented() {

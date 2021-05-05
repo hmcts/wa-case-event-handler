@@ -17,6 +17,7 @@ import javax.validation.constraints.NotEmpty;
 @ToString
 @EqualsAndHashCode
 @Builder
+@SuppressWarnings("PMD.ExcessiveParameterList")
 public final class EventInformation {
 
     @NotEmpty
@@ -36,17 +37,19 @@ public final class EventInformation {
     private final String newStateId;
     @NotEmpty
     private final String userId;
+    private final AdditionalData additionalData;
 
     @JsonCreator
     public EventInformation(@JsonProperty("EventInstanceId") String eventInstanceId,
-                            @JsonProperty("EventTimeStamp")LocalDateTime eventTimeStamp,
+                            @JsonProperty("EventTimeStamp") LocalDateTime eventTimeStamp,
                             @JsonProperty("CaseId") String caseId,
                             @JsonProperty("JurisdictionId") String jurisdictionId,
                             @JsonProperty("CaseTypeId") String caseTypeId,
                             @JsonProperty("EventId") String eventId,
                             @JsonProperty("PreviousStateId") String previousStateId,
                             @JsonProperty("NewStateId") String newStateId,
-                            @JsonProperty("UserId") String userId) {
+                            @JsonProperty("UserId") String userId,
+                            @JsonProperty("AdditionalData") AdditionalData additionalData) {
         this.eventInstanceId = eventInstanceId;
         this.eventTimeStamp = eventTimeStamp;
         this.caseId = caseId;
@@ -56,14 +59,7 @@ public final class EventInformation {
         this.previousStateId = previousStateId;
         this.newStateId = newStateId;
         this.userId = userId;
-    }
-
-    public String getJurisdictionId() {
-        return jurisdictionId;
-    }
-
-    public String getCaseTypeId() {
-        return caseTypeId;
+        this.additionalData = additionalData;
     }
 
     public String getEventInstanceId() {
@@ -76,6 +72,14 @@ public final class EventInformation {
 
     public String getCaseId() {
         return caseId;
+    }
+
+    public String getJurisdictionId() {
+        return jurisdictionId;
+    }
+
+    public String getCaseTypeId() {
+        return caseTypeId;
     }
 
     public String getEventId() {
@@ -92,5 +96,9 @@ public final class EventInformation {
 
     public String getUserId() {
         return userId;
+    }
+
+    public AdditionalData getAdditionalData() {
+        return additionalData;
     }
 }

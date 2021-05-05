@@ -1,9 +1,13 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClientToInitiateTask;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.CorrelationKeys;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnBooleanValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnIntegerValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
@@ -13,18 +17,29 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessage
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateProcessVariables;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.IdempotencyKeyGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
+import static java.util.Collections.emptyMap;
+import static java.util.Optional.ofNullable;
+import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.APPEAL_TYPE;
+import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.DIRECTION_DUE_DATE;
+import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.LAST_MODIFIED_DIRECTION;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.TASK_INITIATION;
 
 @Service
 @Order(3)
+@Slf4j
+@SuppressWarnings("PMD.ExcessiveImports")
 public class InitiationTaskHandler implements CaseEventHandler {
 
     private final WorkflowApiClientToInitiateTask apiClientToInitiateTask;
@@ -32,10 +47,12 @@ public class InitiationTaskHandler implements CaseEventHandler {
     private final IsoDateFormatter isoDateFormatter;
     private final DueDateService dueDateService;
 
+    @Autowired
     public InitiationTaskHandler(WorkflowApiClientToInitiateTask apiClientToInitiateTask,
                                  IdempotencyKeyGenerator idempotencyKeyGenerator,
                                  IsoDateFormatter isoDateFormatter,
-                                 DueDateService dueDateService) {
+                                 DueDateService dueDateService
+    ) {
         this.apiClientToInitiateTask = apiClientToInitiateTask;
         this.idempotencyKeyGenerator = idempotencyKeyGenerator;
         this.isoDateFormatter = isoDateFormatter;
@@ -49,23 +66,55 @@ public class InitiationTaskHandler implements CaseEventHandler {
             eventInformation.getCaseTypeId()
         );
 
-        String tenantId = TASK_INITIATION.getTenantId(eventInformation.getJurisdictionId());
+        String tenantId = eventInformation.getJurisdictionId().toLowerCase(Locale.ENGLISH);
+        String directionDueDate = extractDirectionDueDate(eventInformation.getAdditionalData());
+        log.debug("Direction Due Date : {}", directionDueDate);
 
         EvaluateDmnRequest<InitiateEvaluateRequest> requestParameters = getParameterRequest(
             eventInformation.getEventId(),
-            eventInformation.getNewStateId()
+            eventInformation.getNewStateId(),
+            readValue(eventInformation.getAdditionalData(), APPEAL_TYPE),
+            LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
+            directionDueDate
         );
 
         return apiClientToInitiateTask.evaluateDmn(tableKey, requestParameters, tenantId).getResults();
     }
 
+    private String readValue(AdditionalData additionalData, CaseEventFieldsDefinition caseField) {
+        if (additionalData != null && additionalData.getData() != null) {
+            return (String) ofNullable(additionalData.getData()).orElse(emptyMap())
+                .get(caseField.value());
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private String extractDirectionDueDate(AdditionalData additionalData) {
+        if (additionalData != null) {
+            Map<String, Object> data = additionalData.getData();
+            if (data != null) {
+                return ofNullable((Map<String, String>) data.get(LAST_MODIFIED_DIRECTION.value())).orElse(emptyMap())
+                    .get(DIRECTION_DUE_DATE.value());
+            }
+        }
+        return null;
+    }
+
     private EvaluateDmnRequest<InitiateEvaluateRequest> getParameterRequest(
         String eventId,
-        String newStateId
+        String newStateId,
+        String appealType,
+        String now,
+        String directionDueDate
+
     ) {
         InitiateEvaluateRequest variables = new InitiateEvaluateRequest(
             new DmnStringValue(eventId),
-            new DmnStringValue(newStateId)
+            new DmnStringValue(newStateId),
+            new DmnStringValue(appealType),
+            new DmnStringValue(now),
+            new DmnStringValue(directionDueDate)
         );
 
         return new EvaluateDmnRequest<>(variables);
@@ -74,7 +123,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
         results.stream()
-            .filter(result -> result instanceof InitiateEvaluateResponse)
+            .filter(InitiateEvaluateResponse.class::isInstance)
             .map(result -> (InitiateEvaluateResponse) result)
             .forEach(initiateEvaluateResponse -> apiClientToInitiateTask.sendMessage(
                 buildSendMessageRequest(initiateEvaluateResponse, eventInformation)
@@ -96,10 +145,15 @@ public class InitiationTaskHandler implements CaseEventHandler {
         InitiateEvaluateResponse initiateEvaluateResponse,
         EventInformation eventInformation
     ) {
-        String eventInfoDt = isoDateFormatter.format(eventInformation.getEventTimeStamp());
+        final ZonedDateTime zonedDateTime = isoDateFormatter.formatToZone(eventInformation.getEventTimeStamp());
 
-        ZonedDateTime delayUntil = dueDateService.calculateDueDate(
-            ZonedDateTime.parse(eventInfoDt),
+        ZonedDateTime delayUntil = dueDateService.calculateDelayUntil(
+            zonedDateTime,
+            cannotBeNull(initiateEvaluateResponse.getDelayDuration()).getValue()
+        );
+
+        ZonedDateTime dueDate = dueDateService.calculateDueDate(
+            delayUntil,
             cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()).getValue()
         );
 
@@ -110,8 +164,9 @@ public class InitiationTaskHandler implements CaseEventHandler {
 
         return InitiateProcessVariables.builder()
             .idempotencyKey(new DmnStringValue(idempotencyKey))
-            .caseType(new DmnStringValue(eventInformation.getCaseTypeId()))
-            .dueDate(new DmnStringValue(isoDateFormatter.format(eventInformation.getEventTimeStamp())))
+            .taskState(new DmnStringValue("unconfigured"))
+            .caseTypeId(new DmnStringValue(eventInformation.getCaseTypeId()))
+            .dueDate(new DmnStringValue(dueDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
             .workingDaysAllowed(cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()))
             .group(initiateEvaluateResponse.getGroup())
             .jurisdiction(new DmnStringValue(eventInformation.getJurisdictionId()))
@@ -120,6 +175,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
             .caseId(new DmnStringValue(eventInformation.getCaseId()))
             .taskCategory(initiateEvaluateResponse.getTaskCategory())
             .delayUntil(new DmnStringValue(delayUntil.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)))
+            .hasWarnings(new DmnBooleanValue(false))
             .build();
     }
 
