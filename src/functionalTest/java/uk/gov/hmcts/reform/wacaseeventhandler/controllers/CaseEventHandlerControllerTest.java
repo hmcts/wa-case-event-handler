@@ -542,6 +542,28 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         taskToTearDown = taskId;
     }
 
+    @Test
+    public void given_initiation_task_with_followup_overdue_ctg_when_cancelled_with_noc_event_then_cancel_the_task() {
+        String caseId1 = UUID.randomUUID().toString();
+        String taskIdDmnColumn = "followUpOverdueCaseBuilding";
+
+        // caseId1 with category Followup overdue
+        // task1
+        final String caseId1Task1Id = initiateTaskForGivenId(
+            caseId1,
+            "requestCaseBuilding",
+            "", "caseBuilding", false,
+            taskIdDmnColumn
+        );
+
+        // Then cancel all tasks on both caseIDs
+        sendMessage(caseId1, "applyNocDecision", "", "", false);
+
+        assertTaskDoesNotExist(caseId1, taskIdDmnColumn);
+
+        assertTaskDeleteReason(caseId1Task1Id, "deleted");
+    }
+
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
         given()
             .contentType(APPLICATION_JSON_VALUE)
@@ -555,19 +577,26 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     private void assertTaskDoesNotExist(String caseId, String taskIdDmnColumn) {
-        given()
-            .header(SERVICE_AUTHORIZATION, s2sToken)
-            .contentType(APPLICATION_JSON_VALUE)
-            .baseUri(camundaUrl)
-            .basePath("/task")
-            .param(
-                "processVariables",
-                "caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn
-            )
-            .when()
-            .get()
-            .then()
-            .body("size()", is(0));
+        await().ignoreException(AssertionError.class)
+            .pollInterval(500, MILLISECONDS)
+            .atMost(30, SECONDS)
+            .until(
+                () -> {
+                    given()
+                        .header(SERVICE_AUTHORIZATION, s2sToken)
+                        .contentType(APPLICATION_JSON_VALUE)
+                        .baseUri(camundaUrl)
+                        .basePath("/task")
+                        .param(
+                            "processVariables",
+                            "caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn
+                        )
+                        .when()
+                        .get()
+                        .then()
+                        .body("size()", is(0));
+                    return true;
+                });
     }
 
 
