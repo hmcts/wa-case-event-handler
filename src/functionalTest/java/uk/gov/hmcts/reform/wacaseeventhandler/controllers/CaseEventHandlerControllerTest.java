@@ -372,7 +372,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
-    public void given_multiple_caseIDs_when_action_is_initiate_then_complete_all_tasks() {
+    public void
+
+
+        () {
         // DST (Day saving time) ended on October 25th 2020 at 2:00am.
         eventTimeStamp = LocalDateTime.parse("2020-10-23T12:56:19.403975");
 
@@ -562,6 +565,17 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertTaskDoesNotExist(caseId1, taskIdDmnColumn);
 
         assertTaskDeleteReason(caseId1Task1Id, "deleted");
+    }
+
+    @Test
+    public void given_event_requestHearingRequirementsFeature_when_initiated_verfiy_task_creation() {
+        String caseId1 = UUID.randomUUID().toString();
+        final String taskId = initiateTaskForGivenId(caseId1, "requestHearingRequirementsFeature",
+                                                     "", "submitHearingRequirements",
+                                                     false, "followUpOverdueHearingRequirements");
+
+        // add tasks to tear down.
+        taskToTearDown = taskId;
     }
 
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
