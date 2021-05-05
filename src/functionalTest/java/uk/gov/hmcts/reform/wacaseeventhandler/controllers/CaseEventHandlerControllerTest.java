@@ -372,10 +372,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
-    public void
-
-
-        () {
+    public void given_multiple_caseIDs_when_action_is_initiate_then_complete_all_tasks() {
         // DST (Day saving time) ended on October 25th 2020 at 2:00am.
         eventTimeStamp = LocalDateTime.parse("2020-10-23T12:56:19.403975");
 
