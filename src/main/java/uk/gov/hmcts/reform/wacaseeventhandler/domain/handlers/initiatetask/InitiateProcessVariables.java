@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnBooleanValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnIntegerValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVariables;
@@ -15,19 +16,26 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVari
 public final class InitiateProcessVariables extends ProcessVariables {
 
     private final DmnStringValue idempotencyKey;
+    private final DmnStringValue taskState;
     private final DmnStringValue dueDate;
     private final DmnIntegerValue workingDaysAllowed;
     private final DmnStringValue name;
     private final DmnStringValue taskId;
     private final DmnStringValue group;
     private final DmnStringValue jurisdiction;
-    private final DmnStringValue caseType;
+    private final DmnStringValue caseTypeId;
     private final DmnStringValue caseId;
     private final DmnStringValue delayUntil;
     private final DmnStringValue taskCategory;
+    @SuppressWarnings("PMD.LinguisticNaming")
+    private final DmnBooleanValue hasWarnings;
 
     public DmnStringValue getIdempotencyKey() {
         return idempotencyKey;
+    }
+
+    public DmnStringValue getTaskState() {
+        return taskState;
     }
 
     public DmnStringValue getDueDate() {
@@ -54,8 +62,8 @@ public final class InitiateProcessVariables extends ProcessVariables {
         return jurisdiction;
     }
 
-    public DmnStringValue getCaseType() {
-        return caseType;
+    public DmnStringValue getCaseTypeId() {
+        return caseTypeId;
     }
 
     public DmnStringValue getCaseId() {
@@ -68,5 +76,9 @@ public final class InitiateProcessVariables extends ProcessVariables {
 
     public DmnStringValue getTaskCategory() {
         return taskCategory;
+    }
+
+    public DmnBooleanValue getHasWarnings() {
+        return hasWarnings;
     }
 }

@@ -4,14 +4,14 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
+import java.time.ZonedDateTime;
 
 @Service
 public class IsoDateFormatter implements DateFormatter {
 
     @Override
-    public String format(LocalDateTime dateTime) {
+    public ZonedDateTime formatToZone(LocalDateTime dateTime) {
         ZoneId ukTime = ZoneId.of("Europe/London");
-        return dateTime.atZone(ukTime).format(DateTimeFormatter.ISO_INSTANT);
+        return ZonedDateTime.of(dateTime, ukTime);
     }
 }

@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.ProcessVari
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessageRequest;
 
 import java.util.List;
+import java.util.Locale;
 
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.TASK_CANCELLATION;
 
@@ -35,7 +36,7 @@ public class CancellationTaskHandler implements CaseEventHandler {
             eventInformation.getCaseTypeId()
         );
 
-        String tenantId = eventInformation.getJurisdictionId();
+        String tenantId = eventInformation.getJurisdictionId().toLowerCase(Locale.ENGLISH);
 
         EvaluateDmnRequest<CancellationEvaluateRequest> requestParameters = getParameterRequest(
             eventInformation.getPreviousStateId(),
@@ -63,33 +64,33 @@ public class CancellationTaskHandler implements CaseEventHandler {
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
         results.stream()
-            .filter(result -> result instanceof CancellationEvaluateResponse)
+            .filter(CancellationEvaluateResponse.class::isInstance)
             .filter(result -> ((CancellationEvaluateResponse) result).getAction().getValue().equals("Cancel"))
             .map(result -> (CancellationEvaluateResponse) result)
             .forEach(cancellationEvaluateResponse -> {
                 DmnStringValue taskCategories = cancellationEvaluateResponse.getTaskCategories();
-                String value = taskCategories.getValue();
                 sendMessageToCancelTasksForGivenCorrelations(
                     eventInformation.getCaseId(),
-                    value
+                    taskCategories
                 );
             });
     }
 
-    private void sendMessageToCancelTasksForGivenCorrelations(String caseReference, String category) {
+    private void sendMessageToCancelTasksForGivenCorrelations(String caseReference, DmnStringValue category) {
         workflowApiClientToCancelTask.sendMessage(buildSendMessageRequest(category, caseReference));
     }
 
     private SendMessageRequest<ProcessVariables, CancellationCorrelationKeys> buildSendMessageRequest(
-        String taskCategory,
+        DmnStringValue taskCategory,
         String caseReference
     ) {
         return SendMessageRequest.<ProcessVariables, CancellationCorrelationKeys>builder()
             .messageName(TASK_CANCELLATION.getMessageName())
             .correlationKeys(CancellationCorrelationKeys.builder()
-                                 .caseId(new DmnStringValue(caseReference))
-                                 .taskCategory(new DmnStringValue(taskCategory))
-                                 .build())
+                .caseId(new DmnStringValue(caseReference))
+                .taskCategory(taskCategory)
+                .build())
+            .all(true)
             .build();
     }
 

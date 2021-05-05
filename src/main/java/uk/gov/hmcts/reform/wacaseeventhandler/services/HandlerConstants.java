@@ -1,5 +1,9 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
+import java.util.Locale;
+
+import static java.lang.String.format;
+
 public enum HandlerConstants {
 
     TASK_CANCELLATION("wa-task-cancellation", "cancelTasks"),
@@ -23,11 +27,12 @@ public enum HandlerConstants {
     }
 
     public String getTableKey(String jurisdictionId, String caseTypeId) {
-        return tableName + "-" + jurisdictionId + "-" + caseTypeId;
-    }
-
-    public String getTenantId(String tenantId) {
-        return tenantId;
+        return format(
+            "%s-%s-%s",
+            tableName,
+            jurisdictionId.toLowerCase(Locale.ENGLISH),
+            caseTypeId.toLowerCase(Locale.ENGLISH)
+        );
     }
 
 }
