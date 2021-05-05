@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.SendMessage
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningResponse;
 
 import java.util.List;
+import java.util.Locale;
 
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.TASK_WARN;
 
@@ -34,14 +35,15 @@ public class WarningTaskHandler implements CaseEventHandler {
             eventInformation.getCaseTypeId()
         );
 
+        String tenantId = eventInformation.getJurisdictionId().toLowerCase(Locale.ENGLISH);
+
         EvaluateDmnRequest<CancellationEvaluateRequest> requestParameters = getParameterRequest(
             eventInformation.getPreviousStateId(),
             eventInformation.getEventId(),
             eventInformation.getNewStateId()
         );
 
-        return workflowApiClientToWarnTask.evaluateDmn(tableKey,
-                                                       requestParameters, "ia").getResults();
+        return workflowApiClientToWarnTask.evaluateDmn(tableKey, requestParameters, tenantId).getResults();
 
     }
 
@@ -62,7 +64,7 @@ public class WarningTaskHandler implements CaseEventHandler {
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
         results.stream()
-            .filter(result -> result instanceof WarningResponse)
+            .filter(WarningResponse.class::isInstance)
             .filter(result -> ((WarningResponse) result).getAction().getValue().equals("Warn"))
             .map(result -> (WarningResponse) result)
             .forEach(cancellationEvaluateResponse -> workflowApiClientToWarnTask.sendMessage(
@@ -79,6 +81,7 @@ public class WarningTaskHandler implements CaseEventHandler {
             .correlationKeys(CancellationCorrelationKeys.builder()
                                  .caseId(new DmnStringValue(caseReference))
                                  .build())
+            .all(true)
             .build();
     }
 }

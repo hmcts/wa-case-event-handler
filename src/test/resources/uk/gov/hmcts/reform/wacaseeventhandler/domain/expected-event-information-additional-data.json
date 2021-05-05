@@ -1,0 +1,33 @@
+{
+  "EventInstanceId": "some event instance Id",
+  "EventTimeStamp": "2020-12-07T17:39:22.232622",
+  "CaseId": "some case reference",
+  "JurisdictionId": "IA",
+  "CaseTypeId": "Asylum",
+  "EventId": "some event Id",
+  "NewStateId": "some new state Id",
+  "UserId": "some user Id",
+  "AdditionalData": {
+    "Data": {
+      "appealType": "protection",
+      "lastModifiedDirection": {
+        "directionDueDate": "2021-04-08"
+      }
+    },
+    "Definition": {
+      "lastModifiedDirection": {
+        "type": "Complex",
+        "subtype": "lastModifiedDirection",
+        "typeDef": {
+          "directionDueDate": {
+            "type": "SimpleDate",
+            "subtype": "Date",
+            "typeDef": null,
+            "originalId": "directionDueDate"
+          }
+        },
+        "originalId": "lastModifiedDirection"
+      }
+    }
+  }
+}

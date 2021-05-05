@@ -23,6 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
@@ -32,6 +33,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,6 +42,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.asJsonString;
+
 
 @ActiveProfiles({"local"})
 @SpringBootTest
@@ -50,18 +53,94 @@ class CaseEventHandlerControllerEndPointTest {
     public static final String TENANT_ID = "ia";
     public static final String INITIATE_DMN_TABLE = "wa-task-initiation-ia-asylum";
     public static final String CANCELLATION_DMN_TABLE = "wa-task-cancellation-ia-asylum";
-
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
-
     @MockBean
     private RestTemplate restTemplate;
-
     @Value("${wa-workflow-api.url}")
     private String workflowApiUrl;
-
     @Autowired
     private MockMvc mockMvc;
+
+    private static Stream<Scenario> scenarioProvider() {
+        EventInformation validEventInformation = getEventInformation(null);
+
+        Scenario validEventInformationScenario200 = Scenario.builder()
+            .eventInformation(validEventInformation)
+            .expectedStatus(HttpStatus.NO_CONTENT.value())
+            .build();
+
+        Scenario validEventWithAdditionalDataScenario200 = Scenario.builder()
+            .eventInformation(validAdditionalData())
+            .expectedStatus(HttpStatus.NO_CONTENT.value())
+            .build();
+
+        EventInformation invalidEventInformationBecauseMandatoryFieldCannotBeNull = EventInformation.builder()
+            .eventInstanceId(null)
+            .caseId("some case reference")
+            .jurisdictionId("somme jurisdiction Id")
+            .caseTypeId("some case type Id")
+            .eventId("some event Id")
+            .newStateId("some new state Id")
+            .userId("some user Id")
+            .build();
+
+        Scenario mandatoryFieldCannotBeNullScenario400 = Scenario.builder()
+            .eventInformation(invalidEventInformationBecauseMandatoryFieldCannotBeNull)
+            .expectedStatus(HttpStatus.BAD_REQUEST.value())
+            .build();
+
+        EventInformation invalidEventInformationBecauseMandatoryFieldCannotBeEmpty = EventInformation.builder()
+            .eventInstanceId("")
+            .caseId("some case reference")
+            .jurisdictionId("somme jurisdiction Id")
+            .caseTypeId("some case type Id")
+            .eventId("some event Id")
+            .newStateId("some new state Id")
+            .userId("some user Id")
+            .build();
+
+        Scenario mandatoryFieldCannotBeEmptyScenario400 = Scenario.builder()
+            .eventInformation(invalidEventInformationBecauseMandatoryFieldCannotBeEmpty)
+            .expectedStatus(HttpStatus.BAD_REQUEST.value())
+            .build();
+
+
+        return Stream.of(
+            validEventInformationScenario200,
+            validEventWithAdditionalDataScenario200,
+            mandatoryFieldCannotBeNullScenario400,
+            mandatoryFieldCannotBeEmptyScenario400
+        );
+    }
+
+    private static EventInformation getEventInformation(AdditionalData additionalData) {
+        EventInformation validEventInformation = EventInformation.builder()
+            .eventInstanceId("some event instance Id")
+            .eventTimeStamp(LocalDateTime.now())
+            .caseId("some case reference")
+            .jurisdictionId("ia")
+            .caseTypeId("asylum")
+            .eventId("some event Id")
+            .newStateId("some new state Id")
+            .userId("some user Id")
+            .additionalData(additionalData)
+            .build();
+        return validEventInformation;
+    }
+
+    private static EventInformation validAdditionalData() {
+        Map<String, Object> dataMap = Map.of(
+            "lastModifiedDirection", Map.of("directionDueDate", "2021-04-06"),
+            "appealType", "protection"
+        );
+
+        AdditionalData additionalData = AdditionalData.builder()
+            .data(dataMap)
+            .build();
+
+        return getEventInformation(additionalData);
+    }
 
     @BeforeEach
     void setUp() {
@@ -102,7 +181,6 @@ class CaseEventHandlerControllerEndPointTest {
                 .<ParameterizedTypeReference<EvaluateDmnResponse<CancellationEvaluateResponse>>>any())
         ).thenReturn(responseEntity);
     }
-
 
     private void mockWarningHandler() {
         List<WarningResponse> results = List.of(new WarningResponse(
@@ -186,67 +264,11 @@ class CaseEventHandlerControllerEndPointTest {
     @ParameterizedTest
     @MethodSource(value = "scenarioProvider")
     void given_message_then_return_expected_status_code(Scenario scenario) throws Exception {
-
         mockMvc.perform(post("/messages")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(asJsonString(scenario.eventInformation)))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(asJsonString(scenario.eventInformation)))
             .andDo(print())
             .andExpect(status().is(scenario.expectedStatus));
-    }
-
-    private static Stream<Scenario> scenarioProvider() {
-        EventInformation validEventInformation = EventInformation.builder()
-            .eventInstanceId("some event instance Id")
-            .eventTimeStamp(LocalDateTime.now())
-            .caseId("some case reference")
-            .jurisdictionId("ia")
-            .caseTypeId("asylum")
-            .eventId("some event Id")
-            .newStateId("some new state Id")
-            .userId("some user Id")
-            .build();
-
-        Scenario validEventInformationScenario200 = Scenario.builder()
-            .eventInformation(validEventInformation)
-            .expectedStatus(HttpStatus.NO_CONTENT.value())
-            .build();
-
-        EventInformation invalidEventInformationBecauseMandatoryFieldCannotBeNull = EventInformation.builder()
-            .eventInstanceId(null)
-            .caseId("some case reference")
-            .jurisdictionId("somme jurisdiction Id")
-            .caseTypeId("some case type Id")
-            .eventId("some event Id")
-            .newStateId("some new state Id")
-            .userId("some user Id")
-            .build();
-
-        Scenario mandatoryFieldCannotBeNullScenario400 = Scenario.builder()
-            .eventInformation(invalidEventInformationBecauseMandatoryFieldCannotBeNull)
-            .expectedStatus(HttpStatus.BAD_REQUEST.value())
-            .build();
-
-        EventInformation invalidEventInformationBecauseMandatoryFieldCannotBeEmpty = EventInformation.builder()
-            .eventInstanceId("")
-            .caseId("some case reference")
-            .jurisdictionId("somme jurisdiction Id")
-            .caseTypeId("some case type Id")
-            .eventId("some event Id")
-            .newStateId("some new state Id")
-            .userId("some user Id")
-            .build();
-
-        Scenario mandatoryFieldCannotBeEmptyScenario400 = Scenario.builder()
-            .eventInformation(invalidEventInformationBecauseMandatoryFieldCannotBeEmpty)
-            .expectedStatus(HttpStatus.BAD_REQUEST.value())
-            .build();
-
-
-        return Stream.of(
-            validEventInformationScenario200,
-            mandatoryFieldCannotBeNullScenario400,
-            mandatoryFieldCannotBeEmptyScenario400
-        );
     }
 
     @Builder
@@ -254,6 +276,5 @@ class CaseEventHandlerControllerEndPointTest {
         EventInformation eventInformation;
         int expectedStatus;
     }
-
 }
 
