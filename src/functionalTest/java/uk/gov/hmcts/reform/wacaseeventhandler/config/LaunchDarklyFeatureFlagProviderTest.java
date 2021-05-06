@@ -23,13 +23,15 @@ public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBas
 
     @Test
     public void should_hit_launch_darkly_and_return_true() {
-        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(TEST_KEY);
+        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(TEST_KEY, eventInformation.getUserId());
         assertThat(launchDarklyFeature, is(true));
     }
 
     @Test
     public void should_hit_launch_darkly_with_non_existent_key_and_return_default_value_for_boolean() {
-        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(NON_EXISTENT_KEY);
+        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(NON_EXISTENT_KEY,
+                                                                          eventInformation.getUserId()
+        );
         assertThat(launchDarklyFeature, is(false));
     }
 
@@ -59,7 +61,9 @@ public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBas
 
     @Test
     public void should_hit_launch_darkly_for_task_initiation_feature_and_return_either_true_or_false() {
-        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE);
+        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE,
+                                                                          eventInformation.getUserId()
+        );
         assertThat(launchDarklyFeature, either(equalTo(true)).or(equalTo(false)));
     }
 }

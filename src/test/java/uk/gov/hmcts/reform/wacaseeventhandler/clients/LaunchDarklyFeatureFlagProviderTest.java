@@ -3,19 +3,20 @@ package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 import com.launchdarkly.sdk.LDUser;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,63 +29,80 @@ class LaunchDarklyFeatureFlagProviderTest {
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     private FeatureFlag featureFlag;
-    private String launchDarklyVariableKey;
+    private String launchDarklySomeFlag;
+    private LDUser expectedLDUser;
 
     @BeforeEach
     void setup() {
-        launchDarklyVariableKey = "a-launch-darkly-key";
+        launchDarklySomeFlag = "a-launch-darkly-flag";
 
         featureFlag = mock(FeatureFlag.class);
-        when(featureFlag.getKey()).thenReturn(launchDarklyVariableKey);
+
+        expectedLDUser = new LDUser.Builder("wa-case-event-handler")
+            .name("some user id")
+            .firstName("Work Allocation")
+            .lastName("Case Event Handler")
+            .build();
     }
 
-    @Test
-    void getBooleanValue_should_return_default_value_when_key_does_not_exist() {
+    @ParameterizedTest
+    @CsvSource({
+        "false, true, true",
+        "false, false, false"
+    })
+    void getBooleanValue_return_expectedFlagValue(
+        boolean defaultValue,
+        boolean boolVariationReturn,
+        boolean expectedFlagValue
+    ) {
+        when(featureFlag.getKey()).thenReturn(launchDarklySomeFlag);
+        when(ldClient.boolVariation(eq(launchDarklySomeFlag), eq(expectedLDUser), eq(defaultValue)))
+            .thenReturn(boolVariationReturn);
 
-        when(ldClient.boolVariation(
-            eq(launchDarklyVariableKey),
-            any(LDUser.class),
-            eq(false))
-        ).thenReturn(true);
-
-        assertTrue(launchDarklyFeatureFlagProvider.getBooleanValue(featureFlag));
+        assertThat(launchDarklyFeatureFlagProvider.getBooleanValue(featureFlag, "some user id"))
+            .isEqualTo(expectedFlagValue);
+        verify(featureFlag, times(2)).getKey();
     }
 
-    @Test
-    void getBooleanValue_should_return_value_when_key_exists() {
-        when(ldClient.boolVariation(
-            eq(launchDarklyVariableKey),
-            any(LDUser.class),
-            eq(false))
-        ).thenReturn(false);
-
-        assertFalse(launchDarklyFeatureFlagProvider.getBooleanValue(featureFlag));
+    @ParameterizedTest
+    @CsvSource(value = {
+        "NULL, some user id, featureFlag is null",
+        "TASK_INITIATION_FEATURE, NULL, userId is null",
+    }, nullValues = "NULL")
+    void getBooleanValue_edge_case_scenarios(FeatureFlag featureFlag, String userId, String expectedMessage) {
+        assertThatThrownBy(() -> launchDarklyFeatureFlagProvider.getBooleanValue(featureFlag, userId))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage(expectedMessage);
     }
 
-    @Test
-    void getStringValue_should_return_default_value_when_key_does_not_exist() {
+    @ParameterizedTest
+    @CsvSource({
+        "'', '', ''",
+        "'', some string variation value, some string variation value"
+    })
+    void getStringValue_return_expectedFlagValue(
+        String defaultValue,
+        String stringVariationReturn,
+        String expectedFlagValue
+    ) {
+        when(featureFlag.getKey()).thenReturn(launchDarklySomeFlag);
+        when(ldClient.stringVariation(eq(launchDarklySomeFlag), eq(expectedLDUser), eq(defaultValue)))
+            .thenReturn(stringVariationReturn);
 
-        when(ldClient.stringVariation(
-            eq(launchDarklyVariableKey),
-            any(LDUser.class),
-            eq(""))
-        ).thenReturn("");
-
-        String response = launchDarklyFeatureFlagProvider.getStringValue(featureFlag);
-        assertEquals("", response);
-
+        assertThat(launchDarklyFeatureFlagProvider.getStringValue(featureFlag, "some user id"))
+            .isEqualTo(expectedFlagValue);
+        verify(featureFlag, times(2)).getKey();
     }
 
-    @Test
-    void getStringValue_should_return_value_when_key_exists() {
-
-        when(ldClient.stringVariation(
-            eq(launchDarklyVariableKey),
-            any(LDUser.class),
-            eq(""))
-        ).thenReturn("aValue");
-
-        String response = launchDarklyFeatureFlagProvider.getStringValue(featureFlag);
-        assertEquals("aValue", response);
+    @ParameterizedTest
+    @CsvSource(value = {
+        "NULL, some user id, featureFlag is null",
+        "TASK_INITIATION_FEATURE, NULL, userId is null",
+    }, nullValues = "NULL")
+    void getStringValue_edge_case_scenarios(FeatureFlag featureFlag, String userId, String expectedMessage) {
+        assertThatThrownBy(() -> launchDarklyFeatureFlagProvider.getStringValue(featureFlag, userId))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessage(expectedMessage);
     }
+
 }
