@@ -12,18 +12,23 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateReq
 public final class InitiateEvaluateRequest extends EvaluateRequest {
     private final DmnStringValue eventId;
     private final DmnStringValue postEventState;
+    private final DmnStringValue appealType;
     private final DmnStringValue now;
     private final DmnStringValue directionDueDate;
 
     public InitiateEvaluateRequest(DmnStringValue eventId,
                                    DmnStringValue postEventState,
+                                   DmnStringValue appealType,
                                    DmnStringValue now,
-                                   DmnStringValue directionDueDate) {
+                                   DmnStringValue directionDueDate
+    ) {
         super();
         this.eventId = eventId;
         this.postEventState = postEventState;
+        this.appealType = appealType;
         this.now = now;
         this.directionDueDate = directionDueDate;
+
     }
 
     public DmnStringValue getEventId() {
@@ -32,6 +37,10 @@ public final class InitiateEvaluateRequest extends EvaluateRequest {
 
     public DmnStringValue getPostEventState() {
         return postEventState;
+    }
+
+    public DmnStringValue getAppealType() {
+        return appealType;
     }
 
     public DmnStringValue getNow() {

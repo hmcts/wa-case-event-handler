@@ -41,7 +41,7 @@ public final class EventInformation {
 
     @JsonCreator
     public EventInformation(@JsonProperty("EventInstanceId") String eventInstanceId,
-                            @JsonProperty("EventTimeStamp")LocalDateTime eventTimeStamp,
+                            @JsonProperty("EventTimeStamp") LocalDateTime eventTimeStamp,
                             @JsonProperty("CaseId") String caseId,
                             @JsonProperty("JurisdictionId") String jurisdictionId,
                             @JsonProperty("CaseTypeId") String caseTypeId,
@@ -62,14 +62,6 @@ public final class EventInformation {
         this.additionalData = additionalData;
     }
 
-    public String getJurisdictionId() {
-        return jurisdictionId;
-    }
-
-    public String getCaseTypeId() {
-        return caseTypeId;
-    }
-
     public String getEventInstanceId() {
         return eventInstanceId;
     }
@@ -80,6 +72,14 @@ public final class EventInformation {
 
     public String getCaseId() {
         return caseId;
+    }
+
+    public String getJurisdictionId() {
+        return jurisdictionId;
+    }
+
+    public String getCaseTypeId() {
+        return caseTypeId;
     }
 
     public String getEventId() {

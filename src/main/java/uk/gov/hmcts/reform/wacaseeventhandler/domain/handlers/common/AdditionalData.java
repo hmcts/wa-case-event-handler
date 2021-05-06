@@ -14,17 +14,17 @@ import java.util.Map;
 @Builder
 public class AdditionalData {
 
-    private Map<String, JsonNode> data;
+    private Map<String, Object> data;
     private Map<String, JsonNode> definition;
 
     @JsonCreator
-    public AdditionalData(@JsonProperty("Data") Map<String, JsonNode> data,
+    public AdditionalData(@JsonProperty("Data") Map<String, Object> data,
                           @JsonProperty("Definition") Map<String, JsonNode> definition) {
         this.data = data;
         this.definition = definition;
     }
 
-    public Map<String, JsonNode> getData() {
+    public Map<String, Object> getData() {
         return data;
     }
 
