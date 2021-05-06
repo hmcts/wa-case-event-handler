@@ -15,3 +15,33 @@ java:
     WA_WORKFLOW_API_URL: "http://wa-workflow-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     AZURE_SERVICE_BUS_TOPIC_NAME: "ccd-case-events-{{ .Values.global.environment }}"
     AZURE_SERVICE_BUS_SUBSCRIPTION_NAME: "wa-case-events-sub-{{ .Values.global.environment }}"
+
+  testsConfig:
+    keyVaults:
+      wa:
+        secrets:
+          idam-redirect-uri: IA_IDAM_REDIRECT_URI
+
+          wa-idam-client-secret: WA_IDAM_CLIENT_SECRET
+
+          ccd-shared-servicebus-connection-string: AZURE_SERVICE_BUS_CONNECTION_STRING
+
+          wa-test-law-firm-a-username: TEST_WA_LAW_FIRM_USERNAME
+          wa-test-law-firm-a-password: TEST_WA_LAW_FIRM_PASSWORD
+          wa-test-caseofficer-a-username: TEST_WA_CASEOFFICER_PUBLIC_A_USERNAME
+          wa-test-caseofficer-a-password: TEST_WA_CASEOFFICER_PUBLIC_A_PASSWORD
+          smoke-test-citizen-username: SMOKE_TEST_CITIZEN_USER
+          smoke-test-user-password: SMOKE_TEST_CITIZEN_PASS
+          s2s-secret-task-management-api: S2S_SECRET_TASK_MANAGEMENT_API
+
+  functionaltests:
+    image: hmctspublic.azurecr.io/wa/post-deployment-ft-tests
+    enabled: true
+    environment:
+      AZURE_SERVICE_BUS_TOPIC_NAME: "ccd-case-events-aat"
+      CCD_URL: "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
+      IDAM_URL: "https://idam-api.aat.platform.hmcts.net"
+      S2S_URL: "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
+      OPEN_ID_IDAM_URL: "https://idam-web-public.aat.platform.hmcts.net"
+      DOCUMENT_STORE_URL: "http://dm-store-aat.service.core-compute-aat.internal"
+      WA_TASK_MANAGEMENT_URL: "http://wa-task-management-api-pr-227.service.core-compute-preview.internal"
