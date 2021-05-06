@@ -564,6 +564,17 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertTaskDeleteReason(caseId1Task1Id, "deleted");
     }
 
+    @Test
+    public void given_event_requestHearingRequirementsFeature_when_initiated_verfiy_task_creation() {
+        String caseId1 = UUID.randomUUID().toString();
+        final String taskId = initiateTaskForGivenId(caseId1, "requestHearingRequirementsFeature",
+                                                     "", "submitHearingRequirements",
+                                                     false, "followUpOverdueHearingRequirements");
+
+        // add tasks to tear down.
+        taskToTearDown = taskId;
+    }
+
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
         given()
             .contentType(APPLICATION_JSON_VALUE)
