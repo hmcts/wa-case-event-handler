@@ -19,6 +19,7 @@ java:
   testsConfig:
     keyVaults:
       wa:
+        usePodIdentity: true
         secrets:
           idam-redirect-uri: IA_IDAM_REDIRECT_URI
 
