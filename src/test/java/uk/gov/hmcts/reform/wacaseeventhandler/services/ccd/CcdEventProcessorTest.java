@@ -116,7 +116,7 @@ class CcdEventProcessorTest {
             .eventId("requestRespondentEvidence")
             .newStateId("awaitingRespondentEvidence")
             .previousStateId("")
-            .userId("some user Id")
+            .userId("some user id")
             .build();
     }
 

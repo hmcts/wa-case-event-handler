@@ -30,7 +30,7 @@ class LaunchDarklyFeatureFlagProviderTest {
 
     private FeatureFlag featureFlag;
     private String launchDarklySomeFlag;
-    private LDUser expectedLDUser;
+    private LDUser expectedLdUser;
 
     @BeforeEach
     void setup() {
@@ -38,7 +38,7 @@ class LaunchDarklyFeatureFlagProviderTest {
 
         featureFlag = mock(FeatureFlag.class);
 
-        expectedLDUser = new LDUser.Builder("wa-case-event-handler")
+        expectedLdUser = new LDUser.Builder("wa-case-event-handler")
             .name("some user id")
             .firstName("Work Allocation")
             .lastName("Case Event Handler")
@@ -56,7 +56,7 @@ class LaunchDarklyFeatureFlagProviderTest {
         boolean expectedFlagValue
     ) {
         when(featureFlag.getKey()).thenReturn(launchDarklySomeFlag);
-        when(ldClient.boolVariation(eq(launchDarklySomeFlag), eq(expectedLDUser), eq(defaultValue)))
+        when(ldClient.boolVariation(eq(launchDarklySomeFlag), eq(expectedLdUser), eq(defaultValue)))
             .thenReturn(boolVariationReturn);
 
         assertThat(launchDarklyFeatureFlagProvider.getBooleanValue(featureFlag, "some user id"))
@@ -64,6 +64,7 @@ class LaunchDarklyFeatureFlagProviderTest {
         verify(featureFlag, times(2)).getKey();
     }
 
+    @SuppressWarnings("checkstyle:Indentation")
     @ParameterizedTest
     @CsvSource(value = {
         "NULL, some user id, featureFlag is null",
@@ -86,7 +87,7 @@ class LaunchDarklyFeatureFlagProviderTest {
         String expectedFlagValue
     ) {
         when(featureFlag.getKey()).thenReturn(launchDarklySomeFlag);
-        when(ldClient.stringVariation(eq(launchDarklySomeFlag), eq(expectedLDUser), eq(defaultValue)))
+        when(ldClient.stringVariation(eq(launchDarklySomeFlag), eq(expectedLdUser), eq(defaultValue)))
             .thenReturn(stringVariationReturn);
 
         assertThat(launchDarklyFeatureFlagProvider.getStringValue(featureFlag, "some user id"))
@@ -94,6 +95,7 @@ class LaunchDarklyFeatureFlagProviderTest {
         verify(featureFlag, times(2)).getKey();
     }
 
+    @SuppressWarnings("checkstyle:Indentation")
     @ParameterizedTest
     @CsvSource(value = {
         "NULL, some user id, featureFlag is null",

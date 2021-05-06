@@ -36,7 +36,8 @@ public class CcdEventProcessor {
 
         log.info("Message details: {}", eventInformation);
 
-        boolean isTaskInitiationEnabled = featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE, eventInformation.getUserId());
+        boolean isTaskInitiationEnabled = featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE,
+                                                                              eventInformation.getUserId());
 
         if (isTaskInitiationEnabled) {
             handlerServices.forEach(handler -> {
