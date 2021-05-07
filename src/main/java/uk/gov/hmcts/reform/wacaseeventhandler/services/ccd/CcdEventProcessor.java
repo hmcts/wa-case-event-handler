@@ -34,10 +34,24 @@ public class CcdEventProcessor {
     public void processMessage(String message) throws JsonProcessingException {
         EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
 
-        log.info("Message details: {}", eventInformation);
+        log.info(
+            "Case details:\n"
+                + "Case id: '{}'\n"
+                + "Event id: '{}'\n"
+                + "Jurisdiction id: '{}'\n"
+                + "Case type id: '{}'\n"
+                + "Additional Data: '{}'",
+            eventInformation.getCaseId(),
+            eventInformation.getEventId(),
+            eventInformation.getJurisdictionId(),
+            eventInformation.getCaseTypeId(),
+            eventInformation.getAdditionalData()
+        );
 
-        boolean isTaskInitiationEnabled = featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE,
-                                                                              eventInformation.getUserId());
+        boolean isTaskInitiationEnabled = featureFlagProvider.getBooleanValue(
+            TASK_INITIATION_FEATURE,
+            eventInformation.getUserId()
+        );
 
         if (isTaskInitiationEnabled) {
             handlerServices.forEach(handler -> {
