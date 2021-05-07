@@ -41,7 +41,8 @@ class CcdEventProcessorTest {
     @Test
     void should_not_trigger_handlers_when_feature_flag_is_false() throws JsonProcessingException {
 
-        when(featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE)).thenReturn(false);
+        when(featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE, "some user id"))
+            .thenReturn(false);
 
         List<CaseEventHandler> handlerServices = List.of(initiationTaskHandler);
         processor = new CcdEventProcessor(handlerServices, mapper, featureFlagProvider);
@@ -64,7 +65,7 @@ class CcdEventProcessorTest {
         List<InitiateEvaluateResponse> results = List.of(InitiateEvaluateResponse.builder().build());
         when(initiationTaskHandler.evaluateDmn(any(EventInformation.class))).thenReturn(results);
 
-        when(featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE)).thenReturn(true);
+        when(featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE, "some user id")).thenReturn(true);
 
         List<CaseEventHandler> handlerServices = List.of(initiationTaskHandler);
         processor = new CcdEventProcessor(handlerServices, mapper, featureFlagProvider);
@@ -86,7 +87,7 @@ class CcdEventProcessorTest {
     void given_evaluateDmn_returns_nothing_then_caseEventHandler_does_not_handle() throws JsonProcessingException {
         List<CaseEventHandler> handlerServices = List.of(initiationTaskHandler);
 
-        when(featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE)).thenReturn(true);
+        when(featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE, "some user id")).thenReturn(true);
         processor = new CcdEventProcessor(handlerServices, mapper, featureFlagProvider);
 
         String incomingMessage = asJsonString(buildMessage());
@@ -105,7 +106,8 @@ class CcdEventProcessorTest {
     }
 
     private EventInformation buildMessage() {
-        EventInformation eventInformation = EventInformation.builder()
+
+        return EventInformation.builder()
             .eventInstanceId("some event instance Id")
             .eventTimeStamp(ZonedDateTime.now().plusDays(2).toLocalDateTime())
             .caseId(UUID.randomUUID().toString())
@@ -114,10 +116,8 @@ class CcdEventProcessorTest {
             .eventId("requestRespondentEvidence")
             .newStateId("awaitingRespondentEvidence")
             .previousStateId("")
-            .userId("some user Id")
+            .userId("some user id")
             .build();
-
-        return eventInformation;
     }
 
 }
