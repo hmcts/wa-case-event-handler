@@ -44,4 +44,4 @@ java:
       S2S_URL: "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
       OPEN_ID_IDAM_URL: "https://idam-web-public.aat.platform.hmcts.net"
       DOCUMENT_STORE_URL: "http://dm-store-aat.service.core-compute-aat.internal"
-      WA_TASK_MANAGEMENT_URL: "http://wa-task-management-api-pr-227.service.core-compute-preview.internal"
+      WA_TASK_MANAGEMENT_URL: "http://wa-task-management-api-aat.service.core-compute-aat.internal"
