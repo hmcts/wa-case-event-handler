@@ -36,11 +36,11 @@ public class CcdEventProcessor {
 
         log.info(
             "Case details:\n"
-            + "Case id: '{}'\n"
-            + "Event id: '{}'\n"
-            + "Jurisdiction id: '{}'\n"
-            + "Case type id: '{}'\n"
-            + "Additional Data: '{}'",
+                + "Case id: '{}'\n"
+                + "Event id: '{}'\n"
+                + "Jurisdiction id: '{}'\n"
+                + "Case type id: '{}'\n"
+                + "Additional Data: '{}'",
             eventInformation.getCaseId(),
             eventInformation.getEventId(),
             eventInformation.getJurisdictionId(),
@@ -48,8 +48,10 @@ public class CcdEventProcessor {
             eventInformation.getAdditionalData()
         );
 
-
-        boolean isTaskInitiationEnabled = featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE);
+        boolean isTaskInitiationEnabled = featureFlagProvider.getBooleanValue(
+            TASK_INITIATION_FEATURE,
+            eventInformation.getUserId()
+        );
 
         if (isTaskInitiationEnabled) {
             handlerServices.forEach(handler -> {

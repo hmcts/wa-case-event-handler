@@ -18,48 +18,49 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag
 
 public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBaseTest {
 
+    public static final String SOME_USER_ID = "some user id";
     @Autowired
     private LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
     @Test
     public void should_hit_launch_darkly_and_return_true() {
-        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(TEST_KEY);
+        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(TEST_KEY, SOME_USER_ID);
         assertThat(launchDarklyFeature, is(true));
     }
 
     @Test
     public void should_hit_launch_darkly_with_non_existent_key_and_return_default_value_for_boolean() {
-        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(NON_EXISTENT_KEY);
+        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(NON_EXISTENT_KEY, SOME_USER_ID);
         assertThat(launchDarklyFeature, is(false));
     }
 
     @Test
     public void should_hit_launch_darkly_with_non_existent_key_and_return_default_value_for_string() {
-        String launchDarklyFeature = featureFlagProvider.getStringValue(NON_EXISTENT_KEY);
+        String launchDarklyFeature = featureFlagProvider.getStringValue(NON_EXISTENT_KEY, SOME_USER_ID);
         assertThat(launchDarklyFeature, is(""));
     }
 
     @Test
     public void should_hit_launch_darkly_for_azure_amqp_logs_value_and_return_either_on_or_off() {
-        String launchDarklyFeature = featureFlagProvider.getStringValue(AZURE_AMQP_LOGS);
+        String launchDarklyFeature = featureFlagProvider.getStringValue(AZURE_AMQP_LOGS, SOME_USER_ID);
         assertThat(launchDarklyFeature, either(equalTo("OFF")).or(equalTo("ON")));
     }
 
     @Test
     public void should_hit_launch_darkly_for_azure_messaging_sb_logs_value_and_return_either_on_or_off() {
-        String launchDarklyFeature = featureFlagProvider.getStringValue(AZURE_MESSAGING_SERVICE_BUS_LOGS);
+        String launchDarklyFeature = featureFlagProvider.getStringValue(AZURE_MESSAGING_SERVICE_BUS_LOGS, SOME_USER_ID);
         assertThat(launchDarklyFeature, either(equalTo("OFF")).or(equalTo("ON")));
     }
 
     @Test
     public void should_hit_launch_darkly_for_azure_sb_logs_value_and_return_either_on_or_off() {
-        String launchDarklyFeature = featureFlagProvider.getStringValue(AZURE_SERVICE_BUS_LOGS);
+        String launchDarklyFeature = featureFlagProvider.getStringValue(AZURE_SERVICE_BUS_LOGS, SOME_USER_ID);
         assertThat(launchDarklyFeature, either(equalTo("OFF")).or(equalTo("ON")));
     }
 
     @Test
     public void should_hit_launch_darkly_for_task_initiation_feature_and_return_either_true_or_false() {
-        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE);
+        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE, SOME_USER_ID);
         assertThat(launchDarklyFeature, either(equalTo(true)).or(equalTo(false)));
     }
 }
