@@ -4,7 +4,7 @@ public enum CaseEventFieldsDefinition {
 
     APPEAL_TYPE("appealType"),
     LAST_MODIFIED_DIRECTION("lastModifiedDirection"),
-    DIRECTION_DUE_DATE("directionDueDate");
+    DATE_DUE("dateDue");
 
     private final String value;
 
