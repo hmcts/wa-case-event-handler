@@ -68,7 +68,7 @@ public final class InitiateTaskHelper {
     public static EventInformation validAdditionalData() {
 
         Map<String, Object> dataMap = Map.of(
-            "lastModifiedDirection", Map.of("directionDueDate", "2021-04-06"),
+            "lastModifiedDirection", Map.of("dateDue", "2021-04-06"),
             "appealType", "protection"
         );
 
@@ -105,7 +105,7 @@ public final class InitiateTaskHelper {
 
     public static EventInformation withEmptyDirectionDueDate() {
         Map<String, Object> dataMap = Map.of(
-            "lastModifiedDirection", Map.of("directionDueDate", ""),
+            "lastModifiedDirection", Map.of("dateDue", ""),
             "appealType", ""
         );
 
