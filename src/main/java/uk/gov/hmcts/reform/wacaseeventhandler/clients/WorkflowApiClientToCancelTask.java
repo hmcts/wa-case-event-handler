@@ -9,7 +9,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateResponse;
@@ -61,17 +60,12 @@ public class WorkflowApiClientToCancelTask implements WorkflowApiClient {
     @Override
     public ResponseEntity<Void> sendMessage(
         SendMessageRequest<? extends ProcessVariables, ? extends CorrelationKeys> sendMessageRequest) {
-        try {
-            return restTemplate.exchange(
-                String.format("%s/workflow/message", workflowApiUrl),
-                HttpMethod.POST,
-                new HttpEntity<>(sendMessageRequest, buildHttpHeaders()),
-                Void.class
-            );
-        } catch (RestClientException e) {
-            log.info("Might be due to not being able to correlate message. Carry on with other handlers..." + e);
-            return ResponseEntity.noContent().build();
-        }
+        return restTemplate.exchange(
+            String.format("%s/workflow/message", workflowApiUrl),
+            HttpMethod.POST,
+            new HttpEntity<>(sendMessageRequest, buildHttpHeaders()),
+            Void.class
+        );
     }
 
 }
