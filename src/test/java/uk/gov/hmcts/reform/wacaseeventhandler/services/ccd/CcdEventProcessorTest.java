@@ -8,10 +8,11 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.InitiateEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CaseEventHandler;
-import uk.gov.hmcts.reform.wacaseeventhandler.handlers.InitiationTaskHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.handlers.InitiationCaseEventHandler;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,7 +30,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag
 class CcdEventProcessorTest {
 
     @Mock
-    private InitiationTaskHandler initiationTaskHandler;
+    private InitiationCaseEventHandler initiationTaskHandler;
 
     @Mock
     private ObjectMapper mapper;
@@ -62,8 +64,11 @@ class CcdEventProcessorTest {
 
     @Test
     void given_evaluateDmn_returns_something_then_caseEventHandler_does_handle() throws JsonProcessingException {
-        List<InitiateEvaluateResponse> results = List.of(InitiateEvaluateResponse.builder().build());
-        when(initiationTaskHandler.evaluateDmn(any(EventInformation.class))).thenReturn(results);
+
+        EvaluateDmnResponse<InitiateEvaluateResponse> dmnResponse =
+            new EvaluateDmnResponse<>(List.of(InitiateEvaluateResponse.builder().build()));
+
+        doReturn(dmnResponse.getResults()).when(initiationTaskHandler).evaluateDmn(any(EventInformation.class));
 
         when(featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE, "some user id")).thenReturn(true);
 

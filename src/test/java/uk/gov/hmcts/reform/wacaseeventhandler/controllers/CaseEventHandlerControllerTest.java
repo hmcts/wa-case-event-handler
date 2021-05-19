@@ -6,24 +6,25 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.InitiateEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CaseEventHandler;
-import uk.gov.hmcts.reform.wacaseeventhandler.handlers.InitiationTaskHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.handlers.InitiationCaseEventHandler;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CaseEventHandlerControllerTest {
 
     @Mock
-    private InitiationTaskHandler initiationTaskHandler;
+    private InitiationCaseEventHandler initiationTaskHandler;
 
     @Test
     void given_evaluateDmn_returns_nothing_then_caseEventHandler_does_not_handle() {
@@ -44,8 +45,10 @@ class CaseEventHandlerControllerTest {
 
     @Test
     void given_evaluateDmn_returns_something_then_caseEventHandler_does_handle() {
-        List<InitiateEvaluateResponse> results = List.of(InitiateEvaluateResponse.builder().build());
-        when(initiationTaskHandler.evaluateDmn(any(EventInformation.class))).thenReturn(results);
+        EvaluateDmnResponse<InitiateEvaluateResponse> dmnResponse =
+            new EvaluateDmnResponse<>(List.of(InitiateEvaluateResponse.builder().build()));
+
+        doReturn(dmnResponse.getResults()).when(initiationTaskHandler).evaluateDmn(any(EventInformation.class));
 
         List<CaseEventHandler> handlerServices = List.of(initiationTaskHandler);
         CaseEventHandlerController controller = new CaseEventHandlerController(handlerServices);
