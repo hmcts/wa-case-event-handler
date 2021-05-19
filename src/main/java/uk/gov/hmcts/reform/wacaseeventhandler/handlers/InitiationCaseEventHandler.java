@@ -40,7 +40,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDe
 @Service
 @Order(3)
 @Slf4j
-@SuppressWarnings("PMD.ExcessiveImports")
+@SuppressWarnings({"PMD.ExcessiveImports", "PMD.UseConcurrentHashMap"})
 public class InitiationCaseEventHandler implements CaseEventHandler {
 
     private final AuthTokenGenerator serviceAuthGenerator;
