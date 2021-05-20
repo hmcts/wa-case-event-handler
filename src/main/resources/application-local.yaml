@@ -1,5 +1,5 @@
-logging.level.org.springframework.web: debug
-logging.level.uk.gov.hmcts.reform: debug
+logging.level.uk.gov.hmcts.reform.wacaseeventhandler.clients.*: DEBUG
+logging.level.uk.gov.hmcts.reform: DEBUG
 
 feign:
   client:

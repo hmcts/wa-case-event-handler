@@ -40,7 +40,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDe
 @Service
 @Order(3)
 @Slf4j
-@SuppressWarnings({"PMD.ExcessiveImports", "PMD.UseConcurrentHashMap"})
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.UseConcurrentHashMap", "unchecked"})
 public class InitiationCaseEventHandler implements CaseEventHandler {
 
     private final AuthTokenGenerator serviceAuthGenerator;
@@ -82,7 +82,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
             directionDueDate
         );
 
-        EvaluateDmnResponse<? extends EvaluateResponse> response = workflowApiClient.evaluateDmn(
+        EvaluateDmnResponse<InitiateEvaluateResponse> response = workflowApiClient.evaluateInitiationDmn(
             serviceAuthGenerator.generate(),
             tableKey,
             tenantId,
@@ -96,11 +96,14 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         results.stream()
             .filter(InitiateEvaluateResponse.class::isInstance)
             .map(InitiateEvaluateResponse.class::cast)
-            .forEach(initiateEvaluateResponse ->
+            .forEach(initiateEvaluateResponse -> {
+                SendMessageRequest request =
+                    buildInitiateTaskMessageRequest(initiateEvaluateResponse, eventInformation);
                 workflowApiClient.sendMessage(
                     serviceAuthGenerator.generate(),
-                    buildInitiateTaskMessageRequest(initiateEvaluateResponse, eventInformation)
-                ));
+                    request
+                );
+            });
     }
 
     private String readValue(AdditionalData additionalData, CaseEventFieldsDefinition caseField) {
