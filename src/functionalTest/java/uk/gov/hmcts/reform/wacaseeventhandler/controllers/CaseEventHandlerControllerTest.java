@@ -256,7 +256,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_caseId_with_multiple_tasks_and_same_category_when_warning_raised_then_mark_tasks_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
-        String taskIdDmnColumn = "allocateFtpaToJudge";
 
         // Initiate task1, category (Case progression)
         sendMessage(caseIdForTask1, "applyForFTPAAppellant", null,

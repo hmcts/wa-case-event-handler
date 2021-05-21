@@ -99,6 +99,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
             .forEach(initiateEvaluateResponse -> {
                 SendMessageRequest request =
                     buildInitiateTaskMessageRequest(initiateEvaluateResponse, eventInformation);
+
                 workflowApiClient.sendMessage(
                     serviceAuthGenerator.generate(),
                     request
@@ -187,6 +188,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
 
         Map<String, DmnValue<?>> processVariables = new HashMap<>();
 
+        //Required process variables
         processVariables.put("idempotencyKey", dmnStringValue(idempotencyKey));
         processVariables.put("taskState", dmnStringValue("unconfigured"));
         processVariables.put("caseTypeId", dmnStringValue(eventInformation.getCaseTypeId()));
@@ -197,9 +199,13 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         processVariables.put("name", initiateEvaluateResponse.getName());
         processVariables.put("taskId", initiateEvaluateResponse.getTaskId());
         processVariables.put("caseId", dmnStringValue(eventInformation.getCaseId()));
-        processVariables.put("taskCategory", initiateEvaluateResponse.getTaskCategory());
         processVariables.put("delayUntil", dmnStringValue(delayUntil.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)));
         processVariables.put("hasWarnings", dmnBooleanValue(false));
+
+        //Optional process variables
+        if (initiateEvaluateResponse.getTaskCategory() != null) {
+            processVariables.put("taskCategory", initiateEvaluateResponse.getTaskCategory());
+        }
 
         return processVariables;
     }
