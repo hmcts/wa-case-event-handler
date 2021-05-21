@@ -53,13 +53,13 @@ class CaseEventHandlerControllerTest {
         DmnValue<String> taskCategory = dmnStringValue("Time extension");
 
         EvaluateDmnResponse<CancellationEvaluateResponse> cancellationDmnResponse =
-            new EvaluateDmnResponse<>(List.of(new CancellationEvaluateResponse(cancelAction, taskCategory)));
+            new EvaluateDmnResponse<>(List.of(new CancellationEvaluateResponse(cancelAction, taskCategory, null)));
 
         doReturn(cancellationDmnResponse.getResults())
             .when(cancellationTaskHandlerService).evaluateDmn(any(EventInformation.class));
 
         EvaluateDmnResponse<CancellationEvaluateResponse> warningDmnResponse =
-            new EvaluateDmnResponse<>(List.of(new CancellationEvaluateResponse(warnAction, taskCategory)));
+            new EvaluateDmnResponse<>(List.of(new CancellationEvaluateResponse(warnAction, taskCategory, null)));
 
         doReturn(warningDmnResponse.getResults())
             .when(warningTaskHandlerService).evaluateDmn(any(EventInformation.class));

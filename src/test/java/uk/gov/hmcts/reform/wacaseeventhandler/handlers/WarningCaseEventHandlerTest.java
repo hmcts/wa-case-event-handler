@@ -79,6 +79,7 @@ class WarningCaseEventHandlerTest {
 
         List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
             dmnStringValue("Warn"),
+            null,
             null
         ));
 

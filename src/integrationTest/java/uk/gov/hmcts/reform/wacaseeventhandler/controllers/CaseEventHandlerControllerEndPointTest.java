@@ -82,7 +82,8 @@ class CaseEventHandlerControllerEndPointTest {
     private void mockCancellationHandler() {
         List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
             dmnStringValue("some action"),
-            dmnStringValue("some category")
+            dmnStringValue("some category"),
+            null
         ));
 
         EvaluateDmnResponse<CancellationEvaluateResponse> cancellationResponse = new EvaluateDmnResponse<>(results);
@@ -98,7 +99,8 @@ class CaseEventHandlerControllerEndPointTest {
     private void mockWarningHandler() {
         List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
             dmnStringValue("some action"),
-            dmnStringValue("some category")
+            dmnStringValue("some category"),
+            null
         ));
 
         EvaluateDmnResponse<CancellationEvaluateResponse> cancellationResponse = new EvaluateDmnResponse<>(results);
@@ -113,7 +115,8 @@ class CaseEventHandlerControllerEndPointTest {
     private void mockWarningHandlerWithFalse() {
         List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
             dmnStringValue("Warn"),
-            dmnStringValue("some task cat")
+            dmnStringValue("some task cat"),
+            null
         ));
         EvaluateDmnResponse<CancellationEvaluateResponse> cancellationResponse = new EvaluateDmnResponse<>(results);
 
