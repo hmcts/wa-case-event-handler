@@ -59,7 +59,7 @@ class CaseEventHandlerControllerEndPointTest {
     @BeforeEach
     void setUp() {
         when(authTokenGenerator.generate()).thenReturn(S2S_TOKEN);
-        mockRestTemplate();
+        mockApiCallsTemplate();
     }
 
     @ParameterizedTest
@@ -72,7 +72,7 @@ class CaseEventHandlerControllerEndPointTest {
             .andExpect(status().is(scenario.expectedStatus));
     }
 
-    private void mockRestTemplate() {
+    private void mockApiCallsTemplate() {
         mockInitiateHandler();
         mockCancellationHandler();
         mockWarningHandler();
@@ -85,14 +85,14 @@ class CaseEventHandlerControllerEndPointTest {
             dmnStringValue("some category")
         ));
 
-        EvaluateDmnResponse cancellationResponse = new EvaluateDmnResponse<>(results);
+        EvaluateDmnResponse<CancellationEvaluateResponse> cancellationResponse = new EvaluateDmnResponse<>(results);
 
-        when(workflowApiClient.evaluateDmn(
+        doReturn(cancellationResponse).when(workflowApiClient).evaluateCancellationDmn(
             eq(S2S_TOKEN),
             eq(CANCELLATION_DMN_TABLE),
             eq(TENANT_ID),
-            any(EvaluateDmnRequest.class))
-        ).thenReturn(cancellationResponse);
+            any(EvaluateDmnRequest.class));
+
     }
 
     private void mockWarningHandler() {
@@ -101,13 +101,13 @@ class CaseEventHandlerControllerEndPointTest {
             dmnStringValue("some category")
         ));
 
-        EvaluateDmnResponse cancellationResponse = new EvaluateDmnResponse<>(results);
-        when(workflowApiClient.evaluateDmn(
+        EvaluateDmnResponse<CancellationEvaluateResponse> cancellationResponse = new EvaluateDmnResponse<>(results);
+
+        doReturn(cancellationResponse).when(workflowApiClient).evaluateCancellationDmn(
             eq(S2S_TOKEN),
             eq(CANCELLATION_DMN_TABLE),
             eq(TENANT_ID),
-            any(EvaluateDmnRequest.class))
-        ).thenReturn(cancellationResponse);
+            any(EvaluateDmnRequest.class));
     }
 
     private void mockWarningHandlerWithFalse() {
@@ -115,22 +115,20 @@ class CaseEventHandlerControllerEndPointTest {
             dmnStringValue("Warn"),
             dmnStringValue("some task cat")
         ));
-        EvaluateDmnResponse cancellationResponse = new EvaluateDmnResponse<>(results);
+        EvaluateDmnResponse<CancellationEvaluateResponse> cancellationResponse = new EvaluateDmnResponse<>(results);
 
-        when(workflowApiClient.evaluateDmn(
+        doReturn(cancellationResponse).when(workflowApiClient).evaluateCancellationDmn(
             eq(S2S_TOKEN),
             eq(CANCELLATION_DMN_TABLE),
             eq(TENANT_ID),
-            any(EvaluateDmnRequest.class))
-        ).thenReturn(cancellationResponse);
-
+            any(EvaluateDmnRequest.class));
     }
 
     private EvaluateDmnResponse<InitiateEvaluateResponse> mockInitiateHandler() {
 
         EvaluateDmnResponse<InitiateEvaluateResponse> response = InitiateTaskHelper.buildInitiateTaskDmnResponse();
 
-        doReturn(response).when(workflowApiClient).evaluateDmn(
+        doReturn(response).when(workflowApiClient).evaluateInitiationDmn(
             eq(S2S_TOKEN),
             eq(INITIATE_DMN_TABLE),
             eq(TENANT_ID),

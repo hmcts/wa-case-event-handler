@@ -63,7 +63,6 @@ public class CcdEventProcessor {
                 } else {
                     handler.handle(results, eventInformation);
                 }
-
             });
         } else {
             log.info(

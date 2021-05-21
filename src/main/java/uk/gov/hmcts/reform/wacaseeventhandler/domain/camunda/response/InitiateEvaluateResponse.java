@@ -1,13 +1,18 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response;
 
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @ToString
 @Builder
+@SuppressWarnings("PMD.UseConcurrentHashMap")
 public final class InitiateEvaluateResponse implements EvaluateResponse {
     private final DmnValue<String> taskId;
     private final DmnValue<String> group;
@@ -15,6 +20,7 @@ public final class InitiateEvaluateResponse implements EvaluateResponse {
     private final DmnValue<Integer> workingDaysAllowed;
     private final DmnValue<String> name;
     private final DmnValue<String> taskCategory;
+    private final Map<String, DmnValue<?>> processCategories = new HashMap<>();
 
     @JsonCreator
     public InitiateEvaluateResponse(@JsonProperty("taskId") DmnValue<String> taskId,
@@ -23,13 +29,21 @@ public final class InitiateEvaluateResponse implements EvaluateResponse {
                                     @JsonProperty("workingDaysAllowed") DmnValue<Integer> workingDaysAllowed,
                                     @JsonProperty("name") DmnValue<String> name,
                                     @JsonProperty("taskCategory") DmnValue<String> taskCategory) {
-        super();
         this.taskId = taskId;
         this.group = group;
         this.delayDuration = delayDuration;
         this.workingDaysAllowed = workingDaysAllowed;
         this.name = name;
         this.taskCategory = taskCategory;
+    }
+
+    @JsonAnySetter
+    public void setProcessCategories(String name, DmnValue<?> value) {
+        this.processCategories.put(name, value);
+    }
+
+    public Map<String, DmnValue<?>> getProcessCategories() {
+        return processCategories;
     }
 
     public DmnValue<String> getTaskId() {

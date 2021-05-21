@@ -111,7 +111,7 @@ class InitiationCaseEventHandlerTest {
         EvaluateDmnRequest requestParameters =
             buildInitiateTaskDmnRequest(directionDueDate, appealType);
 
-        Mockito.when(workflowApiClient.evaluateDmn(
+        Mockito.when(workflowApiClient.evaluateInitiationDmn(
             SERVICE_AUTH_TOKEN,
             TASK_INITIATION_DMN_TABLE,
             TENANT_ID,
@@ -120,7 +120,7 @@ class InitiationCaseEventHandlerTest {
 
         handlerService.evaluateDmn(eventInformation);
 
-        verify(workflowApiClient, times(1)).evaluateDmn(
+        verify(workflowApiClient, times(1)).evaluateInitiationDmn(
             SERVICE_AUTH_TOKEN,
             TASK_INITIATION_DMN_TABLE,
             TENANT_ID,
@@ -291,6 +291,7 @@ class InitiationCaseEventHandlerTest {
                 entry("delayUntil", dmnStringValue(delayUntil)),
                 entry("hasWarnings", dmnBooleanValue(false))
             );
+
         return new SendMessageRequest(
             INITIATE_TASK_MESSAGE_NAME,
             expectedProcessVariables,

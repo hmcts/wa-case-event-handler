@@ -29,7 +29,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmn
 
 @Service
 @Order(2)
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.UseConcurrentHashMap"})
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.UseConcurrentHashMap", "unchecked"})
 public class WarningCaseEventHandler implements CaseEventHandler {
 
     private final AuthTokenGenerator serviceAuthGenerator;
@@ -55,7 +55,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
             eventInformation.getNewStateId()
         );
 
-        EvaluateDmnResponse<? extends EvaluateResponse> response = workflowApiClient.evaluateDmn(
+        EvaluateDmnResponse<CancellationEvaluateResponse> response = workflowApiClient.evaluateCancellationDmn(
             serviceAuthGenerator.generate(),
             tableKey,
             tenantId,
@@ -71,7 +71,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
             .map(CancellationEvaluateResponse.class::cast)
             .filter(result -> CancellationActions.WARN == CancellationActions.from(result.getAction().getValue()))
             .forEach(cancellationEvaluateResponse -> {
-                DmnValue<String> taskCategories = cancellationEvaluateResponse.getProcessCategories();
+                DmnValue<String> taskCategories = cancellationEvaluateResponse.getTaskCategories();
                 sendWarningMessage(
                     eventInformation.getCaseId(),
                     taskCategories
@@ -82,10 +82,10 @@ public class WarningCaseEventHandler implements CaseEventHandler {
 
     private void sendWarningMessage(String caseReference, DmnValue<String> categories) {
         Set<SendMessageRequest> warningMessageRequest = buildWarningMessageRequest(caseReference, categories);
+
         warningMessageRequest.forEach(message ->
             workflowApiClient.sendMessage(serviceAuthGenerator.generate(), message)
         );
-
     }
 
     private Set<SendMessageRequest> buildWarningMessageRequest(

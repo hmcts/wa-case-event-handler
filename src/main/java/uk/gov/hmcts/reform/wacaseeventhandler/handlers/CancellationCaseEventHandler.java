@@ -29,7 +29,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmn
 
 @Service
 @Order(1)
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.UseConcurrentHashMap"})
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.UseConcurrentHashMap", "unchecked"})
 public class CancellationCaseEventHandler implements CaseEventHandler {
 
     private final AuthTokenGenerator serviceAuthGenerator;
@@ -55,7 +55,7 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
             eventInformation.getNewStateId()
         );
 
-        EvaluateDmnResponse<? extends EvaluateResponse> response = workflowApiClient.evaluateDmn(
+        EvaluateDmnResponse<CancellationEvaluateResponse> response = workflowApiClient.evaluateCancellationDmn(
             serviceAuthGenerator.generate(),
             tableKey,
             tenantId,
@@ -71,7 +71,7 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
             .map(CancellationEvaluateResponse.class::cast)
             .filter(result -> CancellationActions.CANCEL == CancellationActions.from(result.getAction().getValue()))
             .forEach(cancellationEvaluateResponse -> {
-                DmnValue<String> taskCategories = cancellationEvaluateResponse.getProcessCategories();
+                DmnValue<String> taskCategories = cancellationEvaluateResponse.getTaskCategories();
                 sendCancellationMessage(
                     eventInformation.getCaseId(),
                     taskCategories

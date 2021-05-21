@@ -256,7 +256,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_caseId_with_multiple_tasks_and_same_category_when_warning_raised_then_mark_tasks_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
-        String taskIdDmnColumn = "allocateFtpaToJudge";
 
         // Initiate task1, category (Case progression)
         sendMessage(caseIdForTask1, "applyForFTPAAppellant", null,
@@ -306,7 +305,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_caseId_and_multiple_tasks_and_different_ctg_when_warning_raised_then_mark_tasks_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
-        String taskIdDmnColumn = "decideOnTimeExtension";
 
         // Initiate task1 , category (Time extension)
         sendMessage(caseIdForTask1, "submitTimeExtension", "",
@@ -322,7 +320,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .path("[0].id");
 
         // initiate task2, category (Case progression)
-        taskIdDmnColumn = "allocateFtpaToJudge";
         sendMessage(caseIdForTask1, "applyForFTPARespondent", null,
             null, false);
 
@@ -568,11 +565,18 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_event_requestHearingRequirementsFeature_when_initiated_verfiy_task_creation() {
         String caseId1 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseId1, "requestHearingRequirementsFeature",
-                                                     "", "submitHearingRequirements",
-                                                     false, "followUpOverdueHearingRequirements");
+            "", "submitHearingRequirements",
+            false, "followUpOverdueHearingRequirements");
 
         // add tasks to tear down.
         taskToTearDown = taskId;
+    }
+
+    @After
+    public void cleanUpTask() {
+        if (StringUtils.isNotEmpty(taskToTearDown)) {
+            completeTask(taskToTearDown, "completed");
+        }
     }
 
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
@@ -609,7 +613,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
                     return true;
                 });
     }
-
 
     private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
         await().ignoreException(AssertionError.class)
@@ -834,13 +837,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             () -> assertEquals(eventTimeStamp.getSecond(), delayUntilDateTime.getSecond()),
             () -> assertEquals(eventTimeStamp.getNano(), delayUntilDateTime.getNano())
         );
-    }
-
-    @After
-    public void cleanUpTask() {
-        if (StringUtils.isNotEmpty(taskToTearDown)) {
-            completeTask(taskToTearDown, "completed");
-        }
     }
 
 }

@@ -40,7 +40,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDe
 @Service
 @Order(3)
 @Slf4j
-@SuppressWarnings({"PMD.ExcessiveImports", "PMD.UseConcurrentHashMap"})
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.UseConcurrentHashMap", "unchecked"})
 public class InitiationCaseEventHandler implements CaseEventHandler {
 
     private final AuthTokenGenerator serviceAuthGenerator;
@@ -82,7 +82,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
             directionDueDate
         );
 
-        EvaluateDmnResponse<? extends EvaluateResponse> response = workflowApiClient.evaluateDmn(
+        EvaluateDmnResponse<InitiateEvaluateResponse> response = workflowApiClient.evaluateInitiationDmn(
             serviceAuthGenerator.generate(),
             tableKey,
             tenantId,
@@ -96,11 +96,15 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         results.stream()
             .filter(InitiateEvaluateResponse.class::isInstance)
             .map(InitiateEvaluateResponse.class::cast)
-            .forEach(initiateEvaluateResponse ->
+            .forEach(initiateEvaluateResponse -> {
+                SendMessageRequest request =
+                    buildInitiateTaskMessageRequest(initiateEvaluateResponse, eventInformation);
+
                 workflowApiClient.sendMessage(
                     serviceAuthGenerator.generate(),
-                    buildInitiateTaskMessageRequest(initiateEvaluateResponse, eventInformation)
-                ));
+                    request
+                );
+            });
     }
 
     private String readValue(AdditionalData additionalData, CaseEventFieldsDefinition caseField) {
@@ -184,6 +188,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
 
         Map<String, DmnValue<?>> processVariables = new HashMap<>();
 
+        //Required process variables
         processVariables.put("idempotencyKey", dmnStringValue(idempotencyKey));
         processVariables.put("taskState", dmnStringValue("unconfigured"));
         processVariables.put("caseTypeId", dmnStringValue(eventInformation.getCaseTypeId()));
@@ -194,9 +199,13 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         processVariables.put("name", initiateEvaluateResponse.getName());
         processVariables.put("taskId", initiateEvaluateResponse.getTaskId());
         processVariables.put("caseId", dmnStringValue(eventInformation.getCaseId()));
-        processVariables.put("taskCategory", initiateEvaluateResponse.getTaskCategory());
         processVariables.put("delayUntil", dmnStringValue(delayUntil.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)));
         processVariables.put("hasWarnings", dmnBooleanValue(false));
+
+        //Optional process variables
+        if (initiateEvaluateResponse.getTaskCategory() != null) {
+            processVariables.put("taskCategory", initiateEvaluateResponse.getTaskCategory());
+        }
 
         return processVariables;
     }

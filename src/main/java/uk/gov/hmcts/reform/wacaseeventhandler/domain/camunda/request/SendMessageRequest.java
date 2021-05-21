@@ -31,7 +31,6 @@ public class SendMessageRequest {
         return messageName;
     }
 
-
     public Map<String, DmnValue<?>> getProcessVariables() {
         return processVariables;
     }

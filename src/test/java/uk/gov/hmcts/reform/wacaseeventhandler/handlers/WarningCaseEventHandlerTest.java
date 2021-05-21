@@ -82,7 +82,7 @@ class WarningCaseEventHandlerTest {
             null
         ));
 
-        when(workflowApiClient.evaluateDmn(
+        when(workflowApiClient.evaluateCancellationDmn(
             SERVICE_AUTH_TOKEN,
             TASK_CANCELLATION_DMN_TABLE,
             TENANT_ID,
@@ -93,7 +93,7 @@ class WarningCaseEventHandlerTest {
 
         assertThat(actualResponse).isSameAs(results);
 
-        verify(workflowApiClient, times(1)).evaluateDmn(
+        verify(workflowApiClient, times(1)).evaluateCancellationDmn(
             SERVICE_AUTH_TOKEN,
             TASK_CANCELLATION_DMN_TABLE,
             TENANT_ID,
@@ -107,7 +107,7 @@ class WarningCaseEventHandlerTest {
 
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateDmnRequest();
 
-        when(workflowApiClient.evaluateDmn(
+        when(workflowApiClient.evaluateCancellationDmn(
             SERVICE_AUTH_TOKEN,
             TASK_CANCELLATION_DMN_TABLE,
             TENANT_ID,
@@ -118,7 +118,7 @@ class WarningCaseEventHandlerTest {
 
         assertThat(actualResponse).isEmpty();
 
-        verify(workflowApiClient, times(1)).evaluateDmn(
+        verify(workflowApiClient, times(1)).evaluateCancellationDmn(
             SERVICE_AUTH_TOKEN,
             TASK_CANCELLATION_DMN_TABLE,
             TENANT_ID,
@@ -131,12 +131,12 @@ class WarningCaseEventHandlerTest {
     void should_be_able_to_handle() {
         CancellationEvaluateResponse result1 = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Warn"))
-            .processCategories(dmnStringValue("some category"))
+            .taskCategories(dmnStringValue("some category"))
             .build();
 
         CancellationEvaluateResponse result2 = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Warn"))
-            .processCategories(dmnStringValue("some other category"))
+            .taskCategories(dmnStringValue("some other category"))
             .build();
 
         List<CancellationEvaluateResponse> results = List.of(result1, result2);
@@ -177,7 +177,7 @@ class WarningCaseEventHandlerTest {
     void should_be_able_to_handle_with_multiple_categories() {
         CancellationEvaluateResponse result = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Warn"))
-            .processCategories(dmnStringValue("category1, category2"))
+            .taskCategories(dmnStringValue("category1, category2"))
             .build();
 
         List<CancellationEvaluateResponse> results = List.of(result);
@@ -238,7 +238,7 @@ class WarningCaseEventHandlerTest {
     void should_filter_out_non_warnings() {
         CancellationEvaluateResponse warningResult = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Cancel"))
-            .processCategories(dmnStringValue("category"))
+            .taskCategories(dmnStringValue("category"))
             .build();
 
         List<CancellationEvaluateResponse> results = List.of(warningResult);
