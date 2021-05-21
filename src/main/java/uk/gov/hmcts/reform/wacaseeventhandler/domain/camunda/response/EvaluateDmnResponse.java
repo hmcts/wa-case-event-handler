@@ -9,7 +9,7 @@ import java.util.List;
 
 @ToString
 @EqualsAndHashCode
-public final class EvaluateDmnResponse<T> {
+public final class EvaluateDmnResponse<T extends EvaluateResponse> {
 
     private final List<T> results;
 
