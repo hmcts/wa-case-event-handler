@@ -20,7 +20,7 @@ public final class InitiateEvaluateResponse implements EvaluateResponse {
     private final DmnValue<Integer> workingDaysAllowed;
     private final DmnValue<String> name;
     private final DmnValue<String> taskCategory;
-    private final Map<String, DmnValue<?>> processCategories = new HashMap<>();
+    private final Map<String, DmnValue<Boolean>> processCategories = new HashMap<>();
 
     @JsonCreator
     public InitiateEvaluateResponse(@JsonProperty("taskId") DmnValue<String> taskId,
@@ -38,11 +38,11 @@ public final class InitiateEvaluateResponse implements EvaluateResponse {
     }
 
     @JsonAnySetter
-    public void setProcessCategories(String name, DmnValue<?> value) {
+    public void setProcessCategories(String name, DmnValue<Boolean> value) {
         this.processCategories.put(name, value);
     }
 
-    public Map<String, DmnValue<?>> getProcessCategories() {
+    public Map<String, DmnValue<Boolean>> getProcessCategories() {
         return processCategories;
     }
 

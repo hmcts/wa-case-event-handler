@@ -188,7 +188,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
 
         Map<String, DmnValue<?>> processVariables = new HashMap<>();
 
-        //Required process variables
+        // Required process variables
         processVariables.put("idempotencyKey", dmnStringValue(idempotencyKey));
         processVariables.put("taskState", dmnStringValue("unconfigured"));
         processVariables.put("caseTypeId", dmnStringValue(eventInformation.getCaseTypeId()));
@@ -202,10 +202,20 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         processVariables.put("delayUntil", dmnStringValue(delayUntil.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)));
         processVariables.put("hasWarnings", dmnBooleanValue(false));
 
-        //Optional process variables
+        // Optional process variables this would be deprecated
         if (initiateEvaluateResponse.getTaskCategory() != null) {
             processVariables.put("taskCategory", initiateEvaluateResponse.getTaskCategory());
         }
+
+        // If it contains process categories and set to true (new format) add to processVariables map.
+        if (!initiateEvaluateResponse.getProcessCategories().isEmpty()) {
+            initiateEvaluateResponse.getProcessCategories().forEach((key, value) -> {
+                if (value.getValue()) {
+                    processVariables.put(key, value);
+                }
+            });
+        }
+
 
         return processVariables;
     }

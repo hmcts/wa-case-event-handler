@@ -1,37 +1,38 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response;
 
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @ToString
 @Builder
 @SuppressWarnings("PMD.UseConcurrentHashMap")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public final class CancellationEvaluateResponse implements EvaluateResponse {
 
-    private final DmnValue<String> action;
-    private final DmnValue<String> taskCategories;
-    private final Map<String, DmnValue<?>> processCategories = new HashMap<>();
+    @JsonProperty("action")
+    private DmnValue<String> action;
+    @JsonProperty("TaskCategories")
+    private DmnValue<String> taskCategories;
+    @JsonProperty("processCategories")
+    private DmnValue<String> processCategories;
 
-    @JsonCreator
-    public CancellationEvaluateResponse(@JsonProperty("action") DmnValue<String> action,
-                                        @JsonProperty("TaskCategories") DmnValue<String> taskCategories) {
+    public CancellationEvaluateResponse() {
+        //No-op constructor for deserialization
+    }
+
+    public CancellationEvaluateResponse(DmnValue<String> action,
+                                        DmnValue<String> taskCategories,
+                                        DmnValue<String> processCategories) {
         this.action = action;
         this.taskCategories = taskCategories;
+        this.processCategories = processCategories;
+
     }
 
-    @JsonAnySetter
-    public void setProcessCategories(String name, DmnValue<?> value) {
-        this.processCategories.put(name, value);
-    }
-
-    public Map<String, DmnValue<?>> getProcessCategories() {
+    public DmnValue<String> getProcessCategories() {
         return processCategories;
     }
 
