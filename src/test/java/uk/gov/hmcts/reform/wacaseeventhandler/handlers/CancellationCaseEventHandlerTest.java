@@ -130,12 +130,12 @@ class CancellationCaseEventHandlerTest {
     void should_be_able_to_handle() {
         CancellationEvaluateResponse result1 = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Cancel"))
-            .taskCategories(dmnStringValue("some category"))
+            .processCategories(dmnStringValue("some category"))
             .build();
 
         CancellationEvaluateResponse result2 = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Cancel"))
-            .taskCategories(dmnStringValue("some other category"))
+            .processCategories(dmnStringValue("some other category"))
             .build();
 
         List<CancellationEvaluateResponse> results = List.of(result1, result2);
@@ -163,7 +163,7 @@ class CancellationCaseEventHandlerTest {
     void should_be_able_to_handle_with_multiple_categories() {
         CancellationEvaluateResponse result = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Cancel"))
-            .taskCategories(dmnStringValue("category1, category2"))
+            .processCategories(dmnStringValue("category1, category2"))
             .build();
 
         List<CancellationEvaluateResponse> results = List.of(result);
@@ -218,7 +218,7 @@ class CancellationCaseEventHandlerTest {
     void should_filter_out_non_cancellations() {
         CancellationEvaluateResponse warningResult = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Warn"))
-            .taskCategories(dmnStringValue("category"))
+            .processCategories(dmnStringValue("category"))
             .build();
 
         List<CancellationEvaluateResponse> results = List.of(warningResult);
