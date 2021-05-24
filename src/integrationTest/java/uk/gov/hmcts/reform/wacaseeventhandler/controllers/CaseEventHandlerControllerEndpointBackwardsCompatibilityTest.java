@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateDm
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.InitiateEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,9 +29,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnBooleanValue;
-import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnIntegerValue;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnStringValue;
 import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.asJsonString;
 
@@ -39,7 +39,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.
 @ActiveProfiles({"local"})
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class CaseEventHandlerControllerEndpointTest {
+class CaseEventHandlerControllerBackwardsCompatibilityTest {
 
     public static final String S2S_TOKEN = "Bearer s2s token";
     public static final String TENANT_ID = "ia";
@@ -60,82 +60,36 @@ class CaseEventHandlerControllerEndpointTest {
     }
 
     @Test
-    void event_information_should_succeed_and_return_204_no_categories() throws Exception {
-        mockInitiateHandlerResponseWithNoCategories();
-
+    void event_information_should_succeed_and_return_204() throws Exception {
         EventInformation validEventInformation = getBaseEventInformation(null);
 
 
         mockMvc.perform(post("/messages")
             .contentType(MediaType.APPLICATION_JSON)
             .content(asJsonString(validEventInformation)))
+            .andDo(print())
             .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
     }
 
     @Test
-    void event_information_should_succeed_and_return_204_with_single_category() throws Exception {
-        mockInitiateHandlerResponseWithSingleCategory();
+    void event_information_with_additional_data_should_succeed_and_return_204() throws Exception {
+        Map<String, Object> dataMap = Map.of(
+            "lastModifiedDirection", Map.of("directionDueDate", "2021-04-06"),
+            "appealType", "protection"
+        );
 
-        EventInformation validEventInformation = getBaseEventInformation(null);
+        AdditionalData additionalData = AdditionalData.builder()
+            .data(dataMap)
+            .build();
+
+
+        EventInformation validEventInformation = getBaseEventInformation(additionalData);
 
 
         mockMvc.perform(post("/messages")
             .contentType(MediaType.APPLICATION_JSON)
             .content(asJsonString(validEventInformation)))
-            .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
-    }
-
-
-    @Test
-    void event_information_should_succeed_and_return_204_with_multiple_category() throws Exception {
-        mockInitiateHandlerResponseWithMultipleCategories();
-
-        EventInformation validEventInformation = getBaseEventInformation(null);
-
-        mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(validEventInformation)))
-
-            .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
-    }
-
-    @Test
-    void event_information_with_additional_data_should_succeed_and_return_204_no_categories() throws Exception {
-        mockInitiateHandlerResponseWithNoCategories();
-
-        EventInformation validEventInformation = getBaseEventInformationWithAdditionalData();
-
-
-        mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(validEventInformation)))
-            .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
-    }
-
-    @Test
-    void event_information_with_additional_data_should_succeed_and_return_204_with_single_category() throws Exception {
-        mockInitiateHandlerResponseWithSingleCategory();
-
-        EventInformation validEventInformation = getBaseEventInformationWithAdditionalData();
-
-
-        mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(validEventInformation)))
-            .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
-    }
-
-
-    @Test
-    void event_information_with_additional_data_should_succeed_and_return_204_with_multiple_category()
-        throws Exception {
-        mockInitiateHandlerResponseWithMultipleCategories();
-
-        EventInformation validEventInformation = getBaseEventInformationWithAdditionalData();
-
-        mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(validEventInformation)))
+            .andDo(print())
             .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
     }
 
@@ -156,7 +110,7 @@ class CaseEventHandlerControllerEndpointTest {
         mockMvc.perform(post("/messages")
             .contentType(MediaType.APPLICATION_JSON)
             .content(asJsonString(partialEventInformation)))
-
+            .andDo(print())
             .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
     }
 
@@ -178,21 +132,22 @@ class CaseEventHandlerControllerEndpointTest {
         mockMvc.perform(post("/messages")
             .contentType(MediaType.APPLICATION_JSON)
             .content(asJsonString(emptyStringEventInformation)))
-
+            .andDo(print())
             .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
     }
 
     private void setUpMocks() {
+        mockInitiateHandler();
         mockCancellationHandler();
         mockWarningHandler();
-        mockWarningHandlerWithMultipleCategories();
+        mockWarningHandlerWithFalse();
     }
 
     private void mockCancellationHandler() {
         List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
-            dmnStringValue("Cancel"),
-            null,
-            dmnStringValue("some category")
+            dmnStringValue("some action"),
+            dmnStringValue("some category"),
+            null
         ));
 
         EvaluateDmnResponse<CancellationEvaluateResponse> cancellationResponse = new EvaluateDmnResponse<>(results);
@@ -207,9 +162,9 @@ class CaseEventHandlerControllerEndpointTest {
 
     private void mockWarningHandler() {
         List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
-            dmnStringValue("Warn"),
-            null,
-            dmnStringValue("some category")
+            dmnStringValue("some action"),
+            dmnStringValue("some category"),
+            null
         ));
 
         EvaluateDmnResponse<CancellationEvaluateResponse> cancellationResponse = new EvaluateDmnResponse<>(results);
@@ -221,11 +176,11 @@ class CaseEventHandlerControllerEndpointTest {
             any(EvaluateDmnRequest.class));
     }
 
-    private void mockWarningHandlerWithMultipleCategories() {
+    private void mockWarningHandlerWithFalse() {
         List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
             dmnStringValue("Warn"),
-            null,
-            dmnStringValue("some category, some other category")
+            dmnStringValue("some task cat"),
+            null
         ));
         EvaluateDmnResponse<CancellationEvaluateResponse> cancellationResponse = new EvaluateDmnResponse<>(results);
 
@@ -236,65 +191,9 @@ class CaseEventHandlerControllerEndpointTest {
             any(EvaluateDmnRequest.class));
     }
 
-    private EvaluateDmnResponse<InitiateEvaluateResponse> mockInitiateHandlerResponseWithNoCategories() {
+    private EvaluateDmnResponse<InitiateEvaluateResponse> mockInitiateHandler() {
 
-        InitiateEvaluateResponse result = InitiateEvaluateResponse.builder()
-            .taskId(dmnStringValue("processApplication"))
-            .group(dmnStringValue("TCW"))
-            .delayDuration(dmnIntegerValue(2))
-            .workingDaysAllowed(dmnIntegerValue(2))
-            .name(dmnStringValue("Process Application"))
-            .build();
-
-        EvaluateDmnResponse<InitiateEvaluateResponse> response = new EvaluateDmnResponse<>(List.of(result));
-
-        doReturn(response).when(workflowApiClient).evaluateInitiationDmn(
-            eq(S2S_TOKEN),
-            eq(INITIATE_DMN_TABLE),
-            eq(TENANT_ID),
-            any(EvaluateDmnRequest.class));
-
-        return response;
-    }
-
-    private EvaluateDmnResponse<InitiateEvaluateResponse> mockInitiateHandlerResponseWithSingleCategory() {
-
-        InitiateEvaluateResponse result = InitiateEvaluateResponse.builder()
-            .taskId(dmnStringValue("reviewTheAppeal"))
-            .group(dmnStringValue("TCW"))
-            .delayDuration(dmnIntegerValue(2))
-            .workingDaysAllowed(dmnIntegerValue(2))
-            .name(dmnStringValue("Review the appeal"))
-            .build();
-
-        result.setProcessCategories("__processCategory__caseProgression", dmnBooleanValue(true));
-
-        EvaluateDmnResponse<InitiateEvaluateResponse> response = new EvaluateDmnResponse<>(List.of(result));
-
-        doReturn(response).when(workflowApiClient).evaluateInitiationDmn(
-            eq(S2S_TOKEN),
-            eq(INITIATE_DMN_TABLE),
-            eq(TENANT_ID),
-            any(EvaluateDmnRequest.class));
-
-        return response;
-    }
-
-
-    private EvaluateDmnResponse<InitiateEvaluateResponse> mockInitiateHandlerResponseWithMultipleCategories() {
-
-        InitiateEvaluateResponse result = InitiateEvaluateResponse.builder()
-            .taskId(dmnStringValue("testTaskIdForMultipleCategories"))
-            .group(dmnStringValue("TCW"))
-            .delayDuration(dmnIntegerValue(2))
-            .workingDaysAllowed(dmnIntegerValue(2))
-            .name(dmnStringValue("Test task to test multiple categories"))
-            .build();
-
-        result.setProcessCategories("__processCategory__caseProgression", dmnBooleanValue(true));
-        result.setProcessCategories("__processCategory__followUpOverdue", dmnBooleanValue(true));
-
-        EvaluateDmnResponse<InitiateEvaluateResponse> response = new EvaluateDmnResponse<>(List.of(result));
+        EvaluateDmnResponse<InitiateEvaluateResponse> response = InitiateTaskHelper.buildInitiateTaskDmnResponse();
 
         doReturn(response).when(workflowApiClient).evaluateInitiationDmn(
             eq(S2S_TOKEN),
@@ -318,19 +217,6 @@ class CaseEventHandlerControllerEndpointTest {
             .additionalData(additionalData)
             .build();
         return validEventInformation;
-    }
-
-    private static EventInformation getBaseEventInformationWithAdditionalData() {
-        Map<String, Object> dataMap = Map.of(
-            "lastModifiedDirection", Map.of("directionDueDate", "2021-04-06"),
-            "appealType", "protection"
-        );
-
-        AdditionalData additionalData = AdditionalData.builder()
-            .data(dataMap)
-            .build();
-
-        return getBaseEventInformation(additionalData);
     }
 
 }
