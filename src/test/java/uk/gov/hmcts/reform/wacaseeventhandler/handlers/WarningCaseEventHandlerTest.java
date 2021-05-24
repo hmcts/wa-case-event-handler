@@ -132,23 +132,22 @@ class WarningCaseEventHandlerTest {
     void should_be_able_to_handle() {
         CancellationEvaluateResponse result1 = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Warn"))
-            .taskCategories(dmnStringValue("some category"))
+            .processCategories(dmnStringValue("some category"))
             .build();
 
         CancellationEvaluateResponse result2 = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Warn"))
-            .taskCategories(dmnStringValue("some other category"))
+            .processCategories(dmnStringValue("some other category"))
             .build();
 
         List<CancellationEvaluateResponse> results = List.of(result1, result2);
 
         handlerService.handle(results, eventInformation);
 
-        // Because of backwards compatibility 2 messages for each result should be sent
-        verify(workflowApiClient, times(4))
+        verify(workflowApiClient, times(2))
             .sendMessage(eq(SERVICE_AUTH_TOKEN), sendMessageRequestCaptor.capture());
 
-        assertSendMessageRequestOldFormat(
+        assertSendMessageRequest(
             sendMessageRequestCaptor.getAllValues().get(0),
             "some case reference",
             dmnStringValue("some category")
@@ -157,46 +156,26 @@ class WarningCaseEventHandlerTest {
         assertSendMessageRequest(
             sendMessageRequestCaptor.getAllValues().get(1),
             "some case reference",
-            dmnStringValue("some category")
-        );
-
-        assertSendMessageRequest(
-            sendMessageRequestCaptor.getAllValues().get(2),
-            "some case reference",
             dmnStringValue("some other category")
         );
-
-        assertSendMessageRequestOldFormat(
-            sendMessageRequestCaptor.getAllValues().get(3),
-            "some case reference",
-            dmnStringValue("some other category")
-        );
-
     }
 
     @Test
     void should_be_able_to_handle_with_multiple_categories() {
         CancellationEvaluateResponse result = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Warn"))
-            .taskCategories(dmnStringValue("category1, category2"))
+            .processCategories(dmnStringValue("category1, category2"))
             .build();
 
         List<CancellationEvaluateResponse> results = List.of(result);
 
         handlerService.handle(results, eventInformation);
 
-        // Because of backwards compatibility 2 messages for each result should be sent
-        verify(workflowApiClient, times(2))
+        verify(workflowApiClient, times(1))
             .sendMessage(eq(SERVICE_AUTH_TOKEN), sendMessageRequestCaptor.capture());
 
-        assertSendMessageRequestOldFormat(
-            sendMessageRequestCaptor.getAllValues().get(0),
-            "some case reference",
-            dmnStringValue("category1, category2")
-        );
-
         assertSendMessageRequest(
-            sendMessageRequestCaptor.getAllValues().get(1),
+            sendMessageRequestCaptor.getAllValues().get(0),
             "some case reference",
             dmnStringValue("category1, category2")
         );
@@ -239,7 +218,7 @@ class WarningCaseEventHandlerTest {
     void should_filter_out_non_warnings() {
         CancellationEvaluateResponse warningResult = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Cancel"))
-            .taskCategories(dmnStringValue("category"))
+            .processCategories(dmnStringValue("category"))
             .build();
 
         List<CancellationEvaluateResponse> results = List.of(warningResult);

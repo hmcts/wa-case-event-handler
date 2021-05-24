@@ -40,6 +40,12 @@ public final class CancellationEvaluateResponse implements EvaluateResponse {
         return action;
     }
 
+    /**
+     * This method is deprecated and should not be used in new implementations.
+     * @deprecated part of the old implementation with no support for multiple categories
+     * @return task categories
+     */
+    @Deprecated(since = "1.1")
     public DmnValue<String> getTaskCategories() {
         return taskCategories;
     }

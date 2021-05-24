@@ -54,7 +54,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.
 import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.withoutLastModifiedDirection;
 
 @ExtendWith(MockitoExtension.class)
-class InitiationCaseEventHandlerTest {
+class InitiationCaseEventHandlerBackwardsCompatibilityTest {
 
     public static final String TENANT_ID = "ia";
     public static final String INITIATE_TASK_MESSAGE_NAME = "createTaskMessage";
@@ -148,18 +148,16 @@ class InitiationCaseEventHandlerTest {
             .taskId(dmnStringValue("processApplication"))
             .delayDuration(dmnIntegerValue(0))
             .workingDaysAllowed(dmnIntegerValue(0))
+            .taskCategory(dmnStringValue("Case progression"))
             .build();
-
-        initiateTaskResponse1.setProcessCategories("__processCategory__caseProgression", dmnBooleanValue(true));
 
         // response without delayDuration and WorkingDaysAllowed
         InitiateEvaluateResponse initiateTaskResponse2 = InitiateEvaluateResponse.builder()
             .group(dmnStringValue("external"))
             .name(dmnStringValue("Decide On Time Extension"))
             .taskId(dmnStringValue("decideOnTimeExtension"))
+            .taskCategory(dmnStringValue("Time extension"))
             .build();
-
-        initiateTaskResponse2.setProcessCategories("__processCategory__timeExtension", dmnBooleanValue(true));
 
         when(idempotencyKeyGenerator.generateIdempotencyKey(eventInstanceId, "processApplication"))
             .thenReturn("idempotencyKey1");
@@ -185,7 +183,7 @@ class InitiationCaseEventHandlerTest {
             "idempotencyKey1",
             "Process Application",
             "processApplication",
-            "__processCategory__caseProgression",
+            "Case progression",
             "TCW",
             handleDateTimeScenario.dateAt4pm,
             handleDateTimeScenario.expectedDate,
@@ -196,7 +194,7 @@ class InitiationCaseEventHandlerTest {
             "idempotencyKey2",
             "Decide On Time Extension",
             "decideOnTimeExtension",
-            "__processCategory__timeExtension",
+            "Time extension",
             "external",
             handleDateTimeScenario.dateAt4pm,
             handleDateTimeScenario.expectedDate,
@@ -227,9 +225,8 @@ class InitiationCaseEventHandlerTest {
             .taskId(dmnStringValue("processApplication"))
             .delayDuration(dmnIntegerValue(2))
             .workingDaysAllowed(dmnIntegerValue(2))
+            .taskCategory(dmnStringValue("Case progression"))
             .build();
-
-        initiateTaskResponse1.setProcessCategories("__processCategory__caseProgression", dmnBooleanValue(true));
 
         when(idempotencyKeyGenerator.generateIdempotencyKey(eventInstanceId, "processApplication"))
             .thenReturn("idempotencyKey1");
@@ -251,84 +248,12 @@ class InitiationCaseEventHandlerTest {
             "idempotencyKey1",
             "Process Application",
             "processApplication",
-            "__processCategory__caseProgression",
+            "Case progression",
             "TCW",
             "2020-12-12T16:00:00",
             "2020-12-10T16:00:00",
             2
         ));
-    }
-
-    @Test
-    void handle_when_multiple_categories() {
-        final ZonedDateTime zonedDateTime = ZonedDateTime.of(
-            LocalDateTime.parse("2020-12-08T15:53:36.530377"), ZoneId.of("Europe/London")
-        );
-
-        Mockito.when(isoDateFormatter.formatToZone(LocalDateTime.parse("2020-12-08T15:53:36.530377")))
-            .thenReturn(zonedDateTime);
-
-        final ZonedDateTime expectedDelayUntil = ZonedDateTime.of(
-            LocalDateTime.parse("2020-12-10T16:00:00"), ZoneId.of("Europe/London")
-        );
-
-        final ZonedDateTime expectedDueDate = ZonedDateTime.of(
-            LocalDateTime.parse("2020-12-12T16:00:00"), ZoneId.of("Europe/London")
-        );
-
-        InitiateEvaluateResponse initiateTaskResponse1 = InitiateEvaluateResponse.builder()
-            .group(dmnStringValue("TCW"))
-            .name(dmnStringValue("Process Application"))
-            .taskId(dmnStringValue("processApplication"))
-            .delayDuration(dmnIntegerValue(2))
-            .workingDaysAllowed(dmnIntegerValue(2))
-            .build();
-
-        initiateTaskResponse1.setProcessCategories("__processCategory__caseProgression", dmnBooleanValue(true));
-        initiateTaskResponse1.setProcessCategories("__processCategory__timeExtension", dmnBooleanValue(true));
-
-        when(idempotencyKeyGenerator.generateIdempotencyKey(eventInstanceId, "processApplication"))
-            .thenReturn("idempotencyKey1");
-
-        List<InitiateEvaluateResponse> results = List.of(initiateTaskResponse1);
-
-        when(dueDateService.calculateDelayUntil(zonedDateTime, 2))
-            .thenReturn(expectedDelayUntil);
-
-        when(dueDateService.calculateDueDate(expectedDelayUntil, 2))
-            .thenReturn(expectedDueDate);
-
-        handlerService.handle(results, getEventInformation(eventInstanceId, "2020-12-08T15:53:36.530377"));
-
-        verify(workflowApiClient, Mockito.times(1))
-            .sendMessage(eq(SERVICE_AUTH_TOKEN), sendMessageRequestCaptor.capture());
-
-        Map<String, DmnValue<?>> expectedProcessVariables =
-            Map.ofEntries(
-                entry("idempotencyKey", dmnStringValue("idempotencyKey1")),
-                entry("taskState", dmnStringValue("unconfigured")),
-                entry("caseTypeId", dmnStringValue("asylum")),
-                entry("dueDate", dmnStringValue("2020-12-12T16:00:00")),
-                entry("workingDaysAllowed", dmnIntegerValue(2)),
-                entry("group", dmnStringValue("TCW")),
-                entry("jurisdiction", dmnStringValue("ia")),
-                entry("name", dmnStringValue("Process Application")),
-                entry("taskId", dmnStringValue("processApplication")),
-                entry("caseId", dmnStringValue("some case reference")),
-                entry("__processCategory__caseProgression", dmnBooleanValue(true)),
-                entry("__processCategory__timeExtension", dmnBooleanValue(true)),
-                entry("delayUntil", dmnStringValue("2020-12-10T16:00:00")),
-                entry("hasWarnings", dmnBooleanValue(false))
-            );
-
-        SendMessageRequest expectation = new SendMessageRequest(
-            INITIATE_TASK_MESSAGE_NAME,
-            expectedProcessVariables,
-            null,
-            false
-        );
-
-        assertThat(sendMessageRequestCaptor.getAllValues().get(0)).isEqualTo(expectation);
     }
 
     @Test
@@ -344,7 +269,7 @@ class InitiationCaseEventHandlerTest {
         String idempotencyKey,
         String name,
         String taskId,
-        String processCategory,
+        String taskCategory,
         String group,
         String dueDate,
         String delayUntil,
@@ -362,7 +287,7 @@ class InitiationCaseEventHandlerTest {
                 entry("name", dmnStringValue(name)),
                 entry("taskId", dmnStringValue(taskId)),
                 entry("caseId", dmnStringValue("some case reference")),
-                entry(processCategory, dmnBooleanValue(true)),
+                entry("taskCategory", dmnStringValue(taskCategory)),
                 entry("delayUntil", dmnStringValue(delayUntil)),
                 entry("hasWarnings", dmnBooleanValue(false))
             );

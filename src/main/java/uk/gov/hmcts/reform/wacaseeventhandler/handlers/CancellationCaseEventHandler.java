@@ -72,9 +72,11 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
             .filter(result -> CancellationActions.CANCEL == CancellationActions.from(result.getAction().getValue()))
             .forEach(cancellationEvaluateResponse -> {
                 DmnValue<String> taskCategories = cancellationEvaluateResponse.getTaskCategories();
+                DmnValue<String> processCategories = cancellationEvaluateResponse.getProcessCategories();
                 sendCancellationMessage(
                     eventInformation.getCaseId(),
-                    taskCategories
+                    taskCategories,
+                    processCategories
                 );
             });
     }
@@ -93,23 +95,31 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
         return new EvaluateDmnRequest(variables);
     }
 
-    private void sendCancellationMessage(String caseReference, DmnValue<String> categories) {
+    private void sendCancellationMessage(String caseReference,
+                                         DmnValue<String> categories,
+                                         DmnValue<String> processCategories) {
         Set<SendMessageRequest> cancellationMessageRequests =
-            buildCancellationMessageRequest(caseReference, categories);
+            buildCancellationMessageRequest(caseReference, categories, processCategories);
 
-        cancellationMessageRequests.forEach(message ->
-            workflowApiClient.sendMessage(serviceAuthGenerator.generate(), message)
+        cancellationMessageRequests.forEach(message -> {
+                if (message != null) {
+                    workflowApiClient.sendMessage(serviceAuthGenerator.generate(), message);
+                }
+            }
         );
 
     }
 
     private Set<SendMessageRequest> buildCancellationMessageRequest(
         String caseReference,
-        DmnValue<String> categories
+        DmnValue<String> categories,
+        DmnValue<String> processCategories
     ) {
 
-        SendMessageRequest oldFormatCancellationMessage = createOldFormatCancellationMessage(caseReference, categories);
-        SendMessageRequest cancellationMessage = createCancellationMessage(caseReference, categories);
+        SendMessageRequest oldFormatCancellationMessage =
+            createOldFormatCancellationMessage(caseReference, categories, processCategories);
+        SendMessageRequest cancellationMessage =
+            createCancellationMessage(caseReference, categories, processCategories);
 
         return new HashSet<>(asList(oldFormatCancellationMessage, cancellationMessage));
     }
@@ -122,7 +132,9 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
      * @param categories    the categories to be used as correlation keys
      * @return The message request object.
      */
-    private SendMessageRequest createCancellationMessage(String caseReference, DmnValue<String> categories) {
+    private SendMessageRequest createCancellationMessage(String caseReference,
+                                                         DmnValue<String> categories,
+                                                         DmnValue<String> processCategories) {
 
         Map<String, DmnValue<?>> correlationKeys = new HashMap<>();
         correlationKeys.put("caseId", dmnStringValue(caseReference));
@@ -132,8 +144,18 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
                 .map(String::trim)
                 .collect(Collectors.toList());
 
-            categoriesToCancel.forEach(category ->
-                correlationKeys.put("__processCategory__" + category, dmnBooleanValue(true))
+            categoriesToCancel.forEach(cat ->
+                correlationKeys.put("__processCategory__" + cat, dmnBooleanValue(true))
+            );
+        }
+
+        if (processCategories != null && processCategories.getValue() != null) {
+            List<String> categoriesToCancel = Stream.of(processCategories.getValue().split(","))
+                .map(String::trim)
+                .collect(Collectors.toList());
+
+            categoriesToCancel.forEach(cat ->
+                correlationKeys.put("__processCategory__" + cat, dmnBooleanValue(true))
             );
         }
 
@@ -154,21 +176,26 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
      * @return The message request object.
      */
     @Deprecated
-    private SendMessageRequest createOldFormatCancellationMessage(String caseReference, DmnValue<String> categories) {
+    private SendMessageRequest createOldFormatCancellationMessage(String caseReference,
+                                                                  DmnValue<String> categories,
+                                                                  DmnValue<String> processCategories) {
 
-        Map<String, DmnValue<?>> correlationKeys = new HashMap<>();
-        correlationKeys.put("caseId", dmnStringValue(caseReference));
+        if (processCategories == null) {
+            Map<String, DmnValue<?>> correlationKeys = new HashMap<>();
+            correlationKeys.put("caseId", dmnStringValue(caseReference));
 
-        if (categories != null && categories.getValue() != null) {
-            correlationKeys.put("taskCategory", categories);
+            if (categories != null && categories.getValue() != null) {
+                correlationKeys.put("taskCategory", categories);
+            }
+
+            return SendMessageRequest.builder()
+                .messageName(TASK_CANCELLATION.getMessageName())
+                .correlationKeys(correlationKeys)
+                .all(true)
+                .build();
+
         }
-
-        return SendMessageRequest.builder()
-            .messageName(TASK_CANCELLATION.getMessageName())
-            .correlationKeys(correlationKeys)
-            .all(true)
-            .build();
-
+        return null;
     }
 
 }

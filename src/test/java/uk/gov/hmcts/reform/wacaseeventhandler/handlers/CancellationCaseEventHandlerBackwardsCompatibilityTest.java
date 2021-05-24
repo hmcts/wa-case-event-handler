@@ -40,7 +40,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmn
 
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
-class CancellationCaseEventHandlerTest {
+class CancellationCaseEventHandlerBackwardsCompatibilityTest {
 
     public static final String TENANT_ID = "ia";
     public static final String CANCEL_TASKS_MESSAGE_NAME = "cancelTasks";
@@ -130,19 +130,20 @@ class CancellationCaseEventHandlerTest {
     void should_be_able_to_handle() {
         CancellationEvaluateResponse result1 = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Cancel"))
-            .processCategories(dmnStringValue("some category"))
+            .taskCategories(dmnStringValue("some category"))
             .build();
 
         CancellationEvaluateResponse result2 = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Cancel"))
-            .processCategories(dmnStringValue("some other category"))
+            .taskCategories(dmnStringValue("some other category"))
             .build();
 
         List<CancellationEvaluateResponse> results = List.of(result1, result2);
 
         handlerService.handle(results, eventInformation);
 
-        verify(workflowApiClient, times(2))
+        // Because of backwards compatibility 2 messages for each result should be sent
+        verify(workflowApiClient, times(4))
             .sendMessage(eq(SERVICE_AUTH_TOKEN), sendMessageRequestCaptor.capture());
 
         assertSendMessageRequest(
@@ -151,8 +152,20 @@ class CancellationCaseEventHandlerTest {
             dmnStringValue("some category")
         );
 
-        assertSendMessageRequest(
+        assertSendMessageRequestOldFormat(
             sendMessageRequestCaptor.getAllValues().get(1),
+            "some case reference",
+            dmnStringValue("some category")
+        );
+
+        assertSendMessageRequestOldFormat(
+            sendMessageRequestCaptor.getAllValues().get(2),
+            "some case reference",
+            dmnStringValue("some other category")
+        );
+
+        assertSendMessageRequest(
+            sendMessageRequestCaptor.getAllValues().get(3),
             "some case reference",
             dmnStringValue("some other category")
         );
@@ -163,14 +176,15 @@ class CancellationCaseEventHandlerTest {
     void should_be_able_to_handle_with_multiple_categories() {
         CancellationEvaluateResponse result = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Cancel"))
-            .processCategories(dmnStringValue("category1, category2"))
+            .taskCategories(dmnStringValue("category1, category2"))
             .build();
 
         List<CancellationEvaluateResponse> results = List.of(result);
 
         handlerService.handle(results, eventInformation);
 
-        verify(workflowApiClient, times(1))
+        // Because of backwards compatibility 2 messages for each result should be sent
+        verify(workflowApiClient, times(2))
             .sendMessage(eq(SERVICE_AUTH_TOKEN), sendMessageRequestCaptor.capture());
 
         assertSendMessageRequest(
@@ -179,6 +193,11 @@ class CancellationCaseEventHandlerTest {
             dmnStringValue("category1, category2")
         );
 
+        assertSendMessageRequestOldFormat(
+            sendMessageRequestCaptor.getAllValues().get(1),
+            "some case reference",
+            dmnStringValue("category1, category2")
+        );
     }
 
     @Test
@@ -218,7 +237,7 @@ class CancellationCaseEventHandlerTest {
     void should_filter_out_non_cancellations() {
         CancellationEvaluateResponse warningResult = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Warn"))
-            .processCategories(dmnStringValue("category"))
+            .taskCategories(dmnStringValue("category"))
             .build();
 
         List<CancellationEvaluateResponse> results = List.of(warningResult);

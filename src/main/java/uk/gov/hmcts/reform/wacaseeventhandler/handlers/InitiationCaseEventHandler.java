@@ -210,7 +210,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         // If it contains process categories and set to true (new format) add to processVariables map.
         if (!initiateEvaluateResponse.getProcessCategories().isEmpty()) {
             initiateEvaluateResponse.getProcessCategories().forEach((key, value) -> {
-                if (value.getValue()) {
+                if (Boolean.TRUE.equals(value.getValue())) {
                     processVariables.put(key, value);
                 }
             });
