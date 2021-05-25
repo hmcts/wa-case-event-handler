@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
@@ -208,12 +210,18 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         }
 
         // If it contains process categories and set to true (new format) add to processVariables map.
-        if (!initiateEvaluateResponse.getProcessCategories().isEmpty()) {
-            initiateEvaluateResponse.getProcessCategories().forEach((key, value) -> {
-                if (Boolean.TRUE.equals(value.getValue())) {
-                    processVariables.put(key, value);
-                }
-            });
+        if (initiateEvaluateResponse.getProcessCategories() != null
+            && initiateEvaluateResponse.getProcessCategories().getValue() != null) {
+
+            String categories = initiateEvaluateResponse.getProcessCategories().getValue();
+
+            List<String> categoriesToAdd = Stream.of(categories.split(","))
+                .map(String::trim)
+                .collect(Collectors.toList());
+
+            categoriesToAdd.forEach(cat ->
+                processVariables.put("__processCategory__" + cat, dmnBooleanValue(true))
+            );
         }
 
 

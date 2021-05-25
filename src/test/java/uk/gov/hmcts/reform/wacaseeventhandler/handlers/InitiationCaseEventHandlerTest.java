@@ -148,18 +148,17 @@ class InitiationCaseEventHandlerTest {
             .taskId(dmnStringValue("processApplication"))
             .delayDuration(dmnIntegerValue(0))
             .workingDaysAllowed(dmnIntegerValue(0))
+            .processCategories(dmnStringValue("caseProgression"))
             .build();
-
-        initiateTaskResponse1.setProcessCategories("__processCategory__caseProgression", dmnBooleanValue(true));
 
         // response without delayDuration and WorkingDaysAllowed
         InitiateEvaluateResponse initiateTaskResponse2 = InitiateEvaluateResponse.builder()
             .group(dmnStringValue("external"))
             .name(dmnStringValue("Decide On Time Extension"))
             .taskId(dmnStringValue("decideOnTimeExtension"))
+            .processCategories(dmnStringValue("timeExtension"))
             .build();
 
-        initiateTaskResponse2.setProcessCategories("__processCategory__timeExtension", dmnBooleanValue(true));
 
         when(idempotencyKeyGenerator.generateIdempotencyKey(eventInstanceId, "processApplication"))
             .thenReturn("idempotencyKey1");
@@ -227,9 +226,8 @@ class InitiationCaseEventHandlerTest {
             .taskId(dmnStringValue("processApplication"))
             .delayDuration(dmnIntegerValue(2))
             .workingDaysAllowed(dmnIntegerValue(2))
+            .processCategories(dmnStringValue("caseProgression"))
             .build();
-
-        initiateTaskResponse1.setProcessCategories("__processCategory__caseProgression", dmnBooleanValue(true));
 
         when(idempotencyKeyGenerator.generateIdempotencyKey(eventInstanceId, "processApplication"))
             .thenReturn("idempotencyKey1");
@@ -282,10 +280,8 @@ class InitiationCaseEventHandlerTest {
             .taskId(dmnStringValue("processApplication"))
             .delayDuration(dmnIntegerValue(2))
             .workingDaysAllowed(dmnIntegerValue(2))
+            .processCategories(dmnStringValue("caseProgression, timeExtension"))
             .build();
-
-        initiateTaskResponse1.setProcessCategories("__processCategory__caseProgression", dmnBooleanValue(true));
-        initiateTaskResponse1.setProcessCategories("__processCategory__timeExtension", dmnBooleanValue(true));
 
         when(idempotencyKeyGenerator.generateIdempotencyKey(eventInstanceId, "processApplication"))
             .thenReturn("idempotencyKey1");

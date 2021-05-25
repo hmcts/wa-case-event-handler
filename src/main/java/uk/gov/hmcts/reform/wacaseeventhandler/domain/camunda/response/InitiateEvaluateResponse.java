@@ -1,18 +1,16 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response;
 
-import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @ToString
 @Builder
 @SuppressWarnings("PMD.UseConcurrentHashMap")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public final class InitiateEvaluateResponse implements EvaluateResponse {
     private final DmnValue<String> taskId;
     private final DmnValue<String> group;
@@ -20,7 +18,7 @@ public final class InitiateEvaluateResponse implements EvaluateResponse {
     private final DmnValue<Integer> workingDaysAllowed;
     private final DmnValue<String> name;
     private final DmnValue<String> taskCategory;
-    private final Map<String, DmnValue<Boolean>> processCategories = new HashMap<>();
+    private final DmnValue<String> processCategories;
 
     @JsonCreator
     public InitiateEvaluateResponse(@JsonProperty("taskId") DmnValue<String> taskId,
@@ -28,22 +26,15 @@ public final class InitiateEvaluateResponse implements EvaluateResponse {
                                     @JsonProperty("delayDuration") DmnValue<Integer> delayDuration,
                                     @JsonProperty("workingDaysAllowed") DmnValue<Integer> workingDaysAllowed,
                                     @JsonProperty("name") DmnValue<String> name,
-                                    @JsonProperty("taskCategory") DmnValue<String> taskCategory) {
+                                    @JsonProperty("taskCategory") DmnValue<String> taskCategory,
+                                    @JsonProperty("processCategories") DmnValue<String> processCategories) {
         this.taskId = taskId;
         this.group = group;
         this.delayDuration = delayDuration;
         this.workingDaysAllowed = workingDaysAllowed;
         this.name = name;
         this.taskCategory = taskCategory;
-    }
-
-    @JsonAnySetter
-    public void setProcessCategories(String name, DmnValue<Boolean> value) {
-        this.processCategories.put(name, value);
-    }
-
-    public Map<String, DmnValue<Boolean>> getProcessCategories() {
-        return processCategories;
+        this.processCategories = processCategories;
     }
 
     public DmnValue<String> getTaskId() {
@@ -66,6 +57,17 @@ public final class InitiateEvaluateResponse implements EvaluateResponse {
         return name;
     }
 
+    public DmnValue<String> getProcessCategories() {
+        return processCategories;
+    }
+
+    /**
+     * This method is deprecated and should not be used in new implementations.
+     *
+     * @return task categories
+     * @deprecated part of the old implementation with no support for multiple categories
+     */
+    @Deprecated(since = "1.1")
     public DmnValue<String> getTaskCategory() {
         return taskCategory;
     }
