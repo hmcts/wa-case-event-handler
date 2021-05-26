@@ -29,7 +29,6 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnBooleanValue;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnIntegerValue;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnStringValue;
 import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.asJsonString;
@@ -265,9 +264,8 @@ class CaseEventHandlerControllerEndpointTest {
             .delayDuration(dmnIntegerValue(2))
             .workingDaysAllowed(dmnIntegerValue(2))
             .name(dmnStringValue("Review the appeal"))
+            .processCategories(dmnStringValue("caseProgression"))
             .build();
-
-        result.setProcessCategories("__processCategory__caseProgression", dmnBooleanValue(true));
 
         EvaluateDmnResponse<InitiateEvaluateResponse> response = new EvaluateDmnResponse<>(List.of(result));
 
@@ -289,10 +287,8 @@ class CaseEventHandlerControllerEndpointTest {
             .delayDuration(dmnIntegerValue(2))
             .workingDaysAllowed(dmnIntegerValue(2))
             .name(dmnStringValue("Test task to test multiple categories"))
+            .processCategories(dmnStringValue("caseProgression, followUpOverdue"))
             .build();
-
-        result.setProcessCategories("__processCategory__caseProgression", dmnBooleanValue(true));
-        result.setProcessCategories("__processCategory__followUpOverdue", dmnBooleanValue(true));
 
         EvaluateDmnResponse<InitiateEvaluateResponse> response = new EvaluateDmnResponse<>(List.of(result));
 
