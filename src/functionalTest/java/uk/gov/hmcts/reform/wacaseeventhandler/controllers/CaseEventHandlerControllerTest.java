@@ -304,7 +304,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_caseId_and_multiple_tasks_and_different_ctg_when_warning_raised_then_mark_tasks_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
-        String taskIdDmnColumn = "decideOnTimeExtension";
 
         // Initiate task1 , category (Time extension)
         sendMessage(caseIdForTask1, "submitTimeExtension", "",
@@ -320,9 +319,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .path("[0].id");
 
         // initiate task2, category (Case progression)
-        taskIdDmnColumn = "allocateFtpaToJudge";
-        sendMessage(caseIdForTask1, "applyForFTPARespondent", null,
-            null, false);
+        sendMessage(caseIdForTask1, "requestCaseBuilding", null,
+            "caseBuilding", false);
 
         response = findTaskProcessVariables(
             caseIdForTask1, 2);
