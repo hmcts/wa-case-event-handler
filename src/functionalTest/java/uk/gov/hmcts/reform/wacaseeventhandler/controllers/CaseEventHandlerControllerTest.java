@@ -255,11 +255,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_caseId_with_multiple_tasks_and_same_category_when_warning_raised_then_mark_tasks_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
-        String taskIdDmnColumn = "allocateFtpaToJudge";
 
         // Initiate task1, category (Case progression)
-        sendMessage(caseIdForTask1, "applyForFTPAAppellant", null,
-            null, false);
+        sendMessage(caseIdForTask1, "submitCase", null,
+            "caseUnderReview", false);
 
         AtomicReference<Response> response = findTaskProcessVariables(
             caseIdForTask1, 1);
@@ -276,8 +275,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertDelayDuration(responseTaskDetails);
 
         // initiate task2, category (Case progression)
-        sendMessage(caseIdForTask1, "applyForFTPARespondent", null,
-            null, false);
+        sendMessage(caseIdForTask1, "submitCase", null,
+            "caseUnderReview", false);
 
         response = findTaskProcessVariables(
             caseIdForTask1, 2);
