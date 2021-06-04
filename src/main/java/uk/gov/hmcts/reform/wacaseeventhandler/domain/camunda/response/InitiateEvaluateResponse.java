@@ -9,7 +9,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
 
 @ToString
 @Builder
-@SuppressWarnings("PMD.UseConcurrentHashMap")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class InitiateEvaluateResponse implements EvaluateResponse {
     private final DmnValue<String> taskId;

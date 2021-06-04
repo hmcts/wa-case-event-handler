@@ -8,7 +8,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
 
 @ToString
 @Builder
-@SuppressWarnings("PMD.UseConcurrentHashMap")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class CancellationEvaluateResponse implements EvaluateResponse {
 
@@ -42,8 +41,9 @@ public final class CancellationEvaluateResponse implements EvaluateResponse {
 
     /**
      * This method is deprecated and should not be used in new implementations.
-     * @deprecated part of the old implementation with no support for multiple categories
+     *
      * @return task categories
+     * @deprecated part of the old implementation with no support for multiple categories
      */
     @Deprecated(since = "1.1")
     public DmnValue<String> getTaskCategories() {

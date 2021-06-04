@@ -22,10 +22,9 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -42,7 +41,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDe
 @Service
 @Order(3)
 @Slf4j
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.UseConcurrentHashMap",  "PMD.ExcessiveImports", "unchecked"})
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports", "unchecked"})
 public class InitiationCaseEventHandler implements CaseEventHandler {
 
     private final AuthTokenGenerator serviceAuthGenerator;
@@ -72,7 +71,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
             eventInformation.getCaseTypeId()
         );
 
-        String tenantId = eventInformation.getJurisdictionId().toLowerCase(Locale.ENGLISH);
+        String tenantId = eventInformation.getJurisdictionId();
         String directionDueDate = extractDirectionDueDate(eventInformation.getAdditionalData());
         log.debug("Direction Due Date : {}", directionDueDate);
 
@@ -188,7 +187,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         );
 
 
-        Map<String, DmnValue<?>> processVariables = new HashMap<>();
+        Map<String, DmnValue<?>> processVariables = new ConcurrentHashMap<>();
 
         // Required process variables
         processVariables.put("idempotencyKey", dmnStringValue(idempotencyKey));

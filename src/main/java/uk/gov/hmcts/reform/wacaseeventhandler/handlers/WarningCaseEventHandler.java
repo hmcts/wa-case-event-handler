@@ -13,12 +13,11 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateDm
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -29,7 +28,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmn
 
 @Service
 @Order(2)
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.UseConcurrentHashMap", "unchecked"})
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "unchecked"})
 public class WarningCaseEventHandler implements CaseEventHandler {
 
     private final AuthTokenGenerator serviceAuthGenerator;
@@ -47,7 +46,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
             eventInformation.getCaseTypeId()
         );
 
-        String tenantId = eventInformation.getJurisdictionId().toLowerCase(Locale.ENGLISH);
+        String tenantId = eventInformation.getJurisdictionId();
 
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateDmnRequest(
             eventInformation.getPreviousStateId(),
@@ -123,7 +122,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
                                                     DmnValue<String> categories,
                                                     DmnValue<String> processCategories) {
 
-        Map<String, DmnValue<?>> correlationKeys = new HashMap<>();
+        Map<String, DmnValue<?>> correlationKeys = new ConcurrentHashMap<>();
         correlationKeys.put("caseId", dmnStringValue(caseReference));
 
         if (categories != null && categories.getValue() != null) {
@@ -162,14 +161,15 @@ public class WarningCaseEventHandler implements CaseEventHandler {
      * @param caseReference the case id to be used as a correlation key
      * @param categories    the categories to be used as correlation keys
      * @return The message request object.
+     * @deprecated part of the old implementation with no support for multiple categories
      */
-    @Deprecated
+    @Deprecated(since = "1.1")
     private SendMessageRequest createOldFormatWarningMessage(String caseReference,
                                                              DmnValue<String> categories,
                                                              DmnValue<String> processCategories) {
 
         if (processCategories == null) {
-            Map<String, DmnValue<?>> correlationKeys = new HashMap<>();
+            Map<String, DmnValue<?>> correlationKeys = new ConcurrentHashMap<>();
             correlationKeys.put("caseId", dmnStringValue(caseReference));
 
             if (categories != null && categories.getValue() != null) {
