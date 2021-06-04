@@ -32,7 +32,7 @@ import java.util.Map;
 import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.APPEAL_TYPE;
-import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.DIRECTION_DUE_DATE;
+import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.DATE_DUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.LAST_MODIFIED_DIRECTION;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.HandlerConstants.TASK_INITIATION;
 
@@ -95,7 +95,7 @@ public class InitiationTaskHandler implements CaseEventHandler {
             Map<String, Object> data = additionalData.getData();
             if (data != null) {
                 return ofNullable((Map<String, String>) data.get(LAST_MODIFIED_DIRECTION.value())).orElse(emptyMap())
-                    .get(DIRECTION_DUE_DATE.value());
+                    .get(DATE_DUE.value());
             }
         }
         return null;
@@ -134,10 +134,15 @@ public class InitiationTaskHandler implements CaseEventHandler {
         InitiateEvaluateResponse initiateEvaluateResponse,
         EventInformation eventInformation
     ) {
+        final InitiateProcessVariables initiateProcessVariables = buildProcessVariables(
+            initiateEvaluateResponse,
+            eventInformation
+        );
+        log.info("SendMessage process variables {}", initiateProcessVariables);
 
         return SendMessageRequest.<InitiateProcessVariables, CorrelationKeys>builder()
             .messageName(TASK_INITIATION.getMessageName())
-            .processVariables(buildProcessVariables(initiateEvaluateResponse, eventInformation))
+            .processVariables(initiateProcessVariables)
             .build();
     }
 
