@@ -38,7 +38,7 @@ java:
             alias: S2S_SECRET_TASK_MANAGEMENT_API
 
   functionaltests:
-    image: hmctspublic.azurecr.io/wa/post-deployment-ft-tests
+    image: hmctspublic.azurecr.io/wa/post-deployment-ft-tests:aat-0923cad3
     enabled: true
     environment:
       AZURE_SERVICE_BUS_TOPIC_NAME: "ccd-case-events-aat"
