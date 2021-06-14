@@ -10,8 +10,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.AdditionalData;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 
 import java.time.LocalDateTime;
@@ -202,7 +202,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String caseIdForTask1 = UUID.randomUUID().toString();
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
         final String task1Id = initiateTaskForGivenId(caseIdForTask1, "requestRespondentEvidence",
-                                                      "awaitingRespondentEvidence",
+            "awaitingRespondentEvidence",
             false, taskIdDmnColumn);
 
         // Then cancel the task1
@@ -219,7 +219,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String caseIdForTask1 = UUID.randomUUID().toString();
         String taskIdDmnColumn = "followUpOverdueCaseBuilding";
         final String task1Id = initiateTaskForGivenId(caseIdForTask1, "requestCaseBuilding",
-                                                      "caseBuilding",
+            "caseBuilding",
             true, taskIdDmnColumn);
 
         // Then cancel the task1
@@ -349,7 +349,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_initiated_tasks_with_delayTimer_toFuture_and_without_followup_overdue_then_complete_task() {
         String caseIdForTask2 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseIdForTask2, "makeAnApplication",
-                                                     "",
+            "",
             true, "processApplication");
 
         // add tasks to tear down.
@@ -360,7 +360,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_initiated_tasks_with_delayTimer_toCurrentTime_and_without_followup_overdue_then_complete_task() {
         String caseIdForTask2 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
-                                                     "appealSubmitted",
+            "appealSubmitted",
             false, "reviewTheAppeal");
 
         // add tasks to tear down.
@@ -374,7 +374,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         String caseIdForTask1 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseIdForTask1, "submitAppeal",
-                                                     "appealSubmitted",
+            "appealSubmitted",
             false, "reviewTheAppeal"
         );
 
@@ -384,7 +384,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         String caseIdForTask2 = UUID.randomUUID().toString();
         final String task2Id = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
-                                                      "appealSubmitted",
+            "appealSubmitted",
             false, "reviewTheAppeal"
         );
 
@@ -410,7 +410,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String taskId2DmnColumn = "reviewAppealSkeletonArgument";
         String caseId2 = UUID.randomUUID().toString();
         final String caseId2Task1Id = initiateTaskForGivenId(caseId2, "submitCase",
-                                                             "caseUnderReview",
+            "caseUnderReview",
             false, taskId2DmnColumn);
 
         // Then cancel all tasks on both caseIDs
@@ -447,7 +447,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String taskId2DmnColumn = "reviewRespondentResponse";
         String caseId2 = UUID.randomUUID().toString();
         final String caseId2Task1Id = initiateTaskForGivenId(caseId2, "uploadHomeOfficeAppealResponse",
-                                                             "respondentReview",
+            "respondentReview",
             false, taskId2DmnColumn);
         // Then cancel all tasks on both caseIDs
         sendMessage(caseId1, "makeAnApplication",
@@ -565,11 +565,18 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_event_requestHearingRequirementsFeature_when_initiated_verfiy_task_creation() {
         String caseId1 = UUID.randomUUID().toString();
         final String taskId = initiateTaskForGivenId(caseId1, "requestHearingRequirementsFeature",
-                                                     "submitHearingRequirements",
-                                                     false, "followUpOverdueHearingRequirements");
+            "submitHearingRequirements",
+            false, "followUpOverdueHearingRequirements");
 
         // add tasks to tear down.
         taskToTearDown = taskId;
+    }
+
+    @After
+    public void cleanUpTask() {
+        if (StringUtils.isNotEmpty(taskToTearDown)) {
+            completeTask(taskToTearDown, "completed");
+        }
     }
 
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
@@ -606,7 +613,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
                     return true;
                 });
     }
-
 
     private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
         await().ignoreException(AssertionError.class)
@@ -833,13 +839,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             () -> assertEquals(eventTimeStamp.getSecond(), delayUntilDateTime.getSecond()),
             () -> assertEquals(eventTimeStamp.getNano(), delayUntilDateTime.getNano())
         );
-    }
-
-    @After
-    public void cleanUpTask() {
-        if (StringUtils.isNotEmpty(taskToTearDown)) {
-            completeTask(taskToTearDown, "completed");
-        }
     }
 
 }

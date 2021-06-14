@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 
 import java.util.List;
 

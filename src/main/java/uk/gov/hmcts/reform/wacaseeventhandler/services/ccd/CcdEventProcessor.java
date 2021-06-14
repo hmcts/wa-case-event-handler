@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CaseEventHandler;
 
 import java.util.List;
@@ -63,7 +63,6 @@ public class CcdEventProcessor {
                 } else {
                     handler.handle(results, eventInformation);
                 }
-
             });
         } else {
             log.info(

@@ -3,14 +3,12 @@ package uk.gov.hmcts.reform.wacaseeventhandler.helpers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.AdditionalData;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnIntegerValue;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateDmnResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.request.EvaluateDmnRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.InitiateEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -18,6 +16,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnIntegerValue;
+import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnStringValue;
 
 public final class InitiateTaskHelper {
 
@@ -27,34 +28,34 @@ public final class InitiateTaskHelper {
 
     public static EvaluateDmnResponse<InitiateEvaluateResponse> buildInitiateTaskDmnResponse() {
         InitiateEvaluateResponse result = InitiateEvaluateResponse.builder()
-            .taskId(new DmnStringValue("processApplication"))
-            .group(new DmnStringValue("TCW"))
-            .delayDuration(new DmnIntegerValue(2))
-            .workingDaysAllowed(new DmnIntegerValue(2))
-            .name(new DmnStringValue("Process Application"))
+            .taskId(dmnStringValue("processApplication"))
+            .group(dmnStringValue("TCW"))
+            .delayDuration(dmnIntegerValue(2))
+            .workingDaysAllowed(dmnIntegerValue(2))
+            .name(dmnStringValue("Process Application"))
             .build();
 
         return new EvaluateDmnResponse<>(List.of(result));
     }
 
-    public static EvaluateDmnRequest<InitiateEvaluateRequest> buildInitiateTaskDmnRequest(String dueDate,
-                                                                                          String appealTypeValue) {
-        DmnStringValue eventId = new DmnStringValue("submitAppeal");
-        DmnStringValue postEventState = new DmnStringValue("");
-        DmnStringValue appealType = new DmnStringValue(appealTypeValue);
-        DmnStringValue now = new DmnStringValue(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
-        DmnStringValue directionDueDate = new DmnStringValue(dueDate);
-        InitiateEvaluateRequest initiateEvaluateRequestVariables =
-            new InitiateEvaluateRequest(
-                eventId,
-                postEventState,
-                appealType,
-                now,
-                directionDueDate
-            );
+    public static EvaluateDmnRequest buildInitiateTaskDmnRequest(String dueDate,
+                                                                 String appealTypeValue) {
+        DmnValue<String> eventId = dmnStringValue("submitAppeal");
+        DmnValue<String> postEventState = dmnStringValue("");
+        DmnValue<String> appealType = dmnStringValue(appealTypeValue);
+        DmnValue<String> now = dmnStringValue(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
+        DmnValue<String> directionDueDate = dmnStringValue(dueDate);
+        Map<String, DmnValue<?>> variables = Map.of(
+            "eventId", eventId,
+            "postEventState", postEventState,
+            "appealType", appealType,
+            "now", now,
+            "directionDueDate", directionDueDate
+        );
 
-        return new EvaluateDmnRequest<>(initiateEvaluateRequestVariables);
+        return new EvaluateDmnRequest(variables);
     }
+
 
     public static String asJsonString(final Object obj) throws JsonProcessingException {
         return new ObjectMapper().setPropertyNamingStrategy(

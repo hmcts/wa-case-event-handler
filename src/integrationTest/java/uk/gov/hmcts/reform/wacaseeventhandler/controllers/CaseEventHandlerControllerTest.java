@@ -5,14 +5,14 @@ import org.mockito.InOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.cancellationtask.CancellationEvaluateResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.DmnStringValue;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.initiatetask.InitiateEvaluateResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.warningtask.WarningResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CancellationTaskHandler;
-import uk.gov.hmcts.reform.wacaseeventhandler.handlers.InitiationTaskHandler;
-import uk.gov.hmcts.reform.wacaseeventhandler.handlers.WarningTaskHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.CancellationEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateDmnResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.InitiateEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CancellationCaseEventHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.handlers.InitiationCaseEventHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.handlers.WarningCaseEventHandler;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,26 +20,27 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.inOrder;
+import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnStringValue;
 
 @SpringBootTest(classes = {
     CaseEventHandlerController.class,
-    CancellationTaskHandler.class,
-    InitiationTaskHandler.class,
-    WarningTaskHandler.class
+    CancellationCaseEventHandler.class,
+    InitiationCaseEventHandler.class,
+    WarningCaseEventHandler.class
 })
 class CaseEventHandlerControllerTest {
 
     public static final String FIXED_DATE = "2020-12-07T17:39:22.232622";
     @MockBean
-    private CancellationTaskHandler cancellationTaskHandlerService;
+    private CancellationCaseEventHandler cancellationTaskHandlerService;
 
     @MockBean
-    private InitiationTaskHandler initiationTaskHandlerService;
+    private InitiationCaseEventHandler initiationTaskHandlerService;
 
     @MockBean
-    private WarningTaskHandler warningTaskHandlerService;
+    private WarningCaseEventHandler warningTaskHandlerService;
 
     @Autowired
     private CaseEventHandlerController controller;
@@ -47,17 +48,28 @@ class CaseEventHandlerControllerTest {
     @Test
     void given_message_then_apply_handlers_in_order() {
 
-        DmnStringValue cancelAction = new DmnStringValue("Cancel");
-        DmnStringValue warnAction = new DmnStringValue("Warn");
-        DmnStringValue taskCategory = new DmnStringValue("Time extension");
-        given(cancellationTaskHandlerService.evaluateDmn(any(EventInformation.class)))
-            .willReturn(List.of(new CancellationEvaluateResponse(cancelAction, taskCategory)));
+        DmnValue<String> cancelAction = dmnStringValue("Cancel");
+        DmnValue<String> warnAction = dmnStringValue("Warn");
+        DmnValue<String> taskCategory = dmnStringValue("Time extension");
 
-        given(warningTaskHandlerService.evaluateDmn(any(EventInformation.class)))
-            .willReturn(List.of(new WarningResponse(warnAction,taskCategory)));
+        EvaluateDmnResponse<CancellationEvaluateResponse> cancellationDmnResponse =
+            new EvaluateDmnResponse<>(List.of(new CancellationEvaluateResponse(cancelAction, taskCategory, null)));
 
-        given(initiationTaskHandlerService.evaluateDmn(any(EventInformation.class)))
-            .willReturn(List.of(InitiateEvaluateResponse.builder().build()));
+        doReturn(cancellationDmnResponse.getResults())
+            .when(cancellationTaskHandlerService).evaluateDmn(any(EventInformation.class));
+
+        EvaluateDmnResponse<CancellationEvaluateResponse> warningDmnResponse =
+            new EvaluateDmnResponse<>(List.of(new CancellationEvaluateResponse(warnAction, taskCategory, null)));
+
+        doReturn(warningDmnResponse.getResults())
+            .when(warningTaskHandlerService).evaluateDmn(any(EventInformation.class));
+
+        EvaluateDmnResponse<InitiateEvaluateResponse> initiationDmnResponse =
+            new EvaluateDmnResponse<>(List.of(InitiateEvaluateResponse.builder().build()));
+
+        doReturn(initiationDmnResponse.getResults())
+            .when(initiationTaskHandlerService).evaluateDmn(any(EventInformation.class));
+
 
         EventInformation eventInformation = EventInformation.builder()
             .eventInstanceId("some id")
