@@ -325,6 +325,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_initiate_tasks_with_follow_up_overdue_category_then_cancel_all_tasks() {
 
         eventTimeStamp = LocalDateTime.parse("2020-02-27T12:56:19.403975");
@@ -355,6 +356,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
+    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_initiate_tasks_with_different_categories_then_cancel_all_tasks() {
         String caseIdForTask1 = UUID.randomUUID().toString();
         String task1IdDmnColumn = "reviewTheAppeal";
