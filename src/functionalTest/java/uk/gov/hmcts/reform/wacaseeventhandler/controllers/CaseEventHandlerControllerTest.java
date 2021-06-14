@@ -9,6 +9,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
@@ -37,7 +38,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
-
 @Slf4j
 public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest {
 
@@ -53,7 +53,204 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
-    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+    public void should_succeed_and_create_a_task_with_no_categories() {
+        String caseId = UUID.randomUUID().toString();
+
+        sendMessage(
+            caseId,
+            "makeAnApplication",
+            "",
+            "",
+            false
+        );
+
+        Response taskFound = findTasksByCaseId(caseId, 1);
+
+        String taskId = taskFound
+            .then().assertThat()
+            .body("[0].id", notNullValue())
+            .extract()
+            .path("[0].id");
+
+        Response response = findTaskDetailsForGivenTaskId(taskId);
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("caseTypeId.value", is("asylum"))
+            .body("idempotencyKey.value", notNullValue())
+            .body("jurisdiction.value", is("ia"))
+            .body("dueDate.value", notNullValue())
+            .body("taskState.value", is("unconfigured")) // <- expected because caseId does not exist
+            .body("hasWarnings.value", is(false))
+            .body("caseId.value", is(caseId))
+            .body("name.value", is("Process Application"))
+            .body("workingDaysAllowed.value", is(2))
+            .body("isDuplicate.value", is(false))
+            .body("delayUntil.value", notNullValue())
+            .body("taskId.value", is("processApplication"))
+            .body("group.value", is("TCW"))
+            .body("caseId.value", is(caseId));
+
+        taskToTearDown = taskId;
+    }
+
+    @Test
+    public void should_succeed_and_create_a_task_with_single_categories() {
+        String caseId = UUID.randomUUID().toString();
+
+        sendMessage(
+            caseId,
+            "submitAppeal",
+            "",
+            "appealSubmitted",
+            false
+        );
+
+        Response taskFound = findTasksByCaseId(caseId, 1);
+
+        String taskId = taskFound
+            .then().assertThat()
+            .body("[0].id", notNullValue())
+            .extract()
+            .path("[0].id");
+
+        Response response = findTaskDetailsForGivenTaskId(taskId);
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("caseTypeId.value", is("asylum"))
+            .body("idempotencyKey.value", notNullValue())
+            .body("jurisdiction.value", is("ia"))
+            .body("dueDate.value", notNullValue())
+            .body("taskState.value", is("unconfigured")) // <- expected because caseId does not exist
+            .body("hasWarnings.value", is(false))
+            .body("caseId.value", is(caseId))
+            .body("name.value", is("Review the appeal"))
+            .body("workingDaysAllowed.value", is(2))
+            .body("isDuplicate.value", is(false))
+            .body("delayUntil.value", notNullValue())
+            .body("taskId.value", is("reviewTheAppeal"))
+            .body("group.value", is("TCW"))
+            .body("caseId.value", is(caseId))
+            .body("__processCategory__caseProgression.value", is(true));
+
+        taskToTearDown = taskId;
+    }
+
+    @Test
+    public void should_succeed_and_create_a_task_with_multiple_categories() {
+        String caseId = UUID.randomUUID().toString();
+
+        sendMessage(
+            caseId,
+            "dummyEventForMultipleCategories",
+            "",
+            "",
+            false
+        );
+
+        Response taskFound = findTasksByCaseId(caseId, 1);
+
+        String taskId = taskFound
+            .then().assertThat()
+            .body("[0].id", notNullValue())
+            .extract()
+            .path("[0].id");
+
+        Response response = findTaskDetailsForGivenTaskId(taskId);
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("caseTypeId.value", is("asylum"))
+            .body("idempotencyKey.value", notNullValue())
+            .body("jurisdiction.value", is("ia"))
+            .body("dueDate.value", notNullValue())
+            .body("taskState.value", is("unconfigured")) // <- expected because caseId does not exist
+            .body("hasWarnings.value", is(false))
+            .body("caseId.value", is(caseId))
+            .body("name.value", is("Test task to test multiple categories"))
+            .body("workingDaysAllowed.value", is(2))
+            .body("isDuplicate.value", is(false))
+            .body("delayUntil.value", notNullValue())
+            .body("taskId.value", is("testTaskIdForMultipleCategories"))
+            .body("group.value", is("TCW"))
+            .body("caseId.value", is(caseId))
+            .body("__processCategory__caseProgression.value", is(true))
+            .body("__processCategory__followUpOverdue.value", is(true));
+
+        taskToTearDown = taskId;
+    }
+
+    @Test
+    public void should_cancel_a_task_with_multiple_categories() {
+        String caseId = UUID.randomUUID().toString();
+
+        sendMessage(
+            caseId,
+            "dummyEventForMultipleCategories",
+            "",
+            "",
+            false
+        );
+
+        Response taskFound = findTasksByCaseId(caseId, 1);
+
+        String taskId = taskFound
+            .then().assertThat()
+            .body("[0].id", notNullValue())
+            .extract()
+            .path("[0].id");
+
+        sendMessage(
+            caseId,
+            "dummyEventForMultipleCategoriesCancel",
+            "",
+            "",
+            false);
+
+        // Assert the task was deleted
+        assertTaskDoesNotExist(caseId, "testTaskIdForMultipleCategories");
+        assertTaskDeleteReason(taskId, "deleted");
+    }
+
+
+    @Test
+    public void should_warn_a_task_with_multiple_categories() {
+        String caseId = UUID.randomUUID().toString();
+
+        sendMessage(
+            caseId,
+            "dummyEventForMultipleCategories",
+            "",
+            "",
+            false
+        );
+
+        Response taskFound = findTasksByCaseId(caseId, 1);
+
+        String taskId = taskFound
+            .then().assertThat()
+            .body("[0].id", notNullValue())
+            .extract()
+            .path("[0].id");
+
+        sendMessage(
+            caseId,
+            "dummyEventForMultipleCategoriesWarn",
+            "",
+            "",
+            false);
+
+        // Assert the task warning was set
+        assertTaskHasWarnings(caseId, taskId, true);
+
+        taskToTearDown = taskId;
+    }
+
+    @Test
     public void given_initiate_tasks_with_time_extension_category_then_cancel_task() {
         // Given multiple existing tasks
 
@@ -63,10 +260,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         // create task1
         String caseIdForTask1 = UUID.randomUUID().toString();
         String taskIdDmnColumn = "decideOnTimeExtension";
-        String task1Id = initiateTaskForGivenId(
+        String task1Id = createTaskWithId(
             caseIdForTask1,
             "submitTimeExtension",
-            "",
+            "", "",
             false,
             taskIdDmnColumn
         );
@@ -77,10 +274,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // create task2
         String caseIdForTask2 = UUID.randomUUID().toString();
-        String task2Id = initiateTaskForGivenId(
+        String task2Id = createTaskWithId(
             caseIdForTask2,
             "submitTimeExtension",
-            "", false,
+            "", "", false,
             taskIdDmnColumn
         );
 
@@ -103,7 +300,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
-    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_initiate_tasks_with_follow_up_overdue_category_then_cancel_task() {
         // Given multiple existing tasks
 
@@ -111,10 +307,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         // notice this creates only one task with the follow up category
         String caseIdForTask1 = UUID.randomUUID().toString();
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
-        String task1Id = initiateTaskForGivenId(
+        String task1Id = createTaskWithId(
             caseIdForTask1,
             "requestRespondentEvidence",
-            "awaitingRespondentEvidence", false,
+            "", "awaitingRespondentEvidence", false,
             taskIdDmnColumn
         );
 
@@ -139,10 +335,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
 
         // task1
-        String task1Id = initiateTaskForGivenId(
+        String task1Id = createTaskWithId(
             caseIdForTask1,
             "requestRespondentEvidence",
-            "awaitingRespondentEvidence", false,
+            "", "awaitingRespondentEvidence", false,
             taskIdDmnColumn
         );
 
@@ -166,19 +362,19 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String task1IdDmnColumn = "reviewTheAppeal";
 
         // task1 with category Case progression
-        String task1Id = initiateTaskForGivenId(
+        String task1Id = createTaskWithId(
             caseIdForTask1,
             "submitAppeal",
-            "appealSubmitted", false,
+            "", "appealSubmitted", false,
             task1IdDmnColumn
         );
 
         // task2 with category Time Extension
         String task2IdDmnColumn = "decideOnTimeExtension";
-        String task2Id = initiateTaskForGivenId(
+        String task2Id = createTaskWithId(
             caseIdForTask1,
             "submitTimeExtension",
-            "", false,
+            "", "", false,
             task2IdDmnColumn
         );
 
@@ -201,8 +397,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_initiated_tasks_with_delayTimer_toCurrentTime_with_followup_overdue_than_cancel_task() {
         String caseIdForTask1 = UUID.randomUUID().toString();
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
-        final String task1Id = initiateTaskForGivenId(caseIdForTask1, "requestRespondentEvidence",
-            "awaitingRespondentEvidence",
+        final String task1Id = createTaskWithId(caseIdForTask1, "requestRespondentEvidence",
+            "", "awaitingRespondentEvidence",
             false, taskIdDmnColumn);
 
         // Then cancel the task1
@@ -218,8 +414,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         // create task1
         String caseIdForTask1 = UUID.randomUUID().toString();
         String taskIdDmnColumn = "followUpOverdueCaseBuilding";
-        final String task1Id = initiateTaskForGivenId(caseIdForTask1, "requestCaseBuilding",
-            "caseBuilding",
+        final String task1Id = createTaskWithId(caseIdForTask1, "requestCaseBuilding",
+            "", "caseBuilding",
             true, taskIdDmnColumn);
 
         // Then cancel the task1
@@ -230,15 +426,15 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
-    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
-    public void given_initiate_tasks_with_follow_up_overdue_category_then_warn_task_with_no() {
+    public void given_initiate_tasks_with_follow_up_overdue_category_then_warn_task_with_no_category() {
+        // Given multiple existing tasks
         String caseIdForTask1 = UUID.randomUUID().toString();
-        String task1Id = initiateTaskForGivenId(
+        String taskIdDmnColumn = "allocateFtpaToJudge";
+        String task1Id = createTaskWithId(
             caseIdForTask1,
-            "requestCaseBuilding",
-            "caseBuilding",
-            false,
-            "followUpOverdueCaseBuilding"
+            "applyForFTPAAppellant",
+            "", "", false,
+            taskIdDmnColumn
         );
 
         sendMessage(caseIdForTask1, "makeAnApplication",
@@ -251,19 +447,20 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         taskToTearDown = task1Id;
     }
 
+
     @Test
-    @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+
     public void given_caseId_with_multiple_tasks_and_same_category_when_warning_raised_then_mark_tasks_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
 
         // Initiate task1, category (Case progression)
-        sendMessage(caseIdForTask1, "submitCase", null,
-            "caseUnderReview", false);
+        sendMessage(caseIdForTask1, "applyForFTPAAppellant", null,
+            null, false);
 
-        AtomicReference<Response> response = findTaskProcessVariables(
+        Response response = findTasksByCaseId(
             caseIdForTask1, 1);
 
-        String task1Id = response.get()
+        String task1Id = response
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())
@@ -275,13 +472,13 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertDelayDuration(responseTaskDetails);
 
         // initiate task2, category (Case progression)
-        sendMessage(caseIdForTask1, "submitCase", null,
-            "caseUnderReview", false);
+        sendMessage(caseIdForTask1, "applyForFTPARespondent", null,
+            null, false);
 
-        response = findTaskProcessVariables(
+        response = findTasksByCaseId(
             caseIdForTask1, 2);
 
-        String task2Id = response.get()
+        String task2Id = response
             .then()
             .body("size()", is(2))
             .assertThat().body("[1].id", notNullValue())
@@ -309,23 +506,23 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         sendMessage(caseIdForTask1, "submitTimeExtension", "",
             null, false);
 
-        AtomicReference<Response> response = findTaskProcessVariables(
+        Response response = findTasksByCaseId(
             caseIdForTask1, 1);
 
-        String task1Id = response.get()
+        String task1Id = response
             .then()
             .assertThat().body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
 
         // initiate task2, category (Case progression)
-        sendMessage(caseIdForTask1, "requestCaseBuilding", null,
-            "caseBuilding", false);
+        sendMessage(caseIdForTask1, "applyForFTPARespondent", null,
+            null, false);
 
-        response = findTaskProcessVariables(
+        response = findTasksByCaseId(
             caseIdForTask1, 2);
 
-        String task2Id = response.get()
+        String task2Id = response
             .then()
             .body("size()", is(2))
             .assertThat().body("[1].id", notNullValue())
@@ -347,10 +544,15 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     @Test
     public void given_initiated_tasks_with_delayTimer_toFuture_and_without_followup_overdue_then_complete_task() {
-        String caseIdForTask2 = UUID.randomUUID().toString();
-        final String taskId = initiateTaskForGivenId(caseIdForTask2, "makeAnApplication",
+        String caseId = UUID.randomUUID().toString();
+        final String taskId = createTaskWithId(
+            caseId,
+            "makeAnApplication",
             "",
-            true, "processApplication");
+            "",
+            true,
+            "processApplication"
+        );
 
         // add tasks to tear down.
         taskToTearDown = taskId;
@@ -358,9 +560,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     @Test
     public void given_initiated_tasks_with_delayTimer_toCurrentTime_and_without_followup_overdue_then_complete_task() {
-        String caseIdForTask2 = UUID.randomUUID().toString();
-        final String taskId = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
-            "appealSubmitted",
+        String caseId = UUID.randomUUID().toString();
+        final String taskId = createTaskWithId(caseId, "submitAppeal",
+            "", "appealSubmitted",
             false, "reviewTheAppeal");
 
         // add tasks to tear down.
@@ -373,8 +575,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         eventTimeStamp = LocalDateTime.parse("2020-10-23T12:56:19.403975");
 
         String caseIdForTask1 = UUID.randomUUID().toString();
-        final String taskId = initiateTaskForGivenId(caseIdForTask1, "submitAppeal",
-            "appealSubmitted",
+        final String taskId = createTaskWithId(caseIdForTask1, "submitAppeal",
+            "", "appealSubmitted",
             false, "reviewTheAppeal"
         );
 
@@ -383,8 +585,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertDelayDuration(responseTaskDetails);
 
         String caseIdForTask2 = UUID.randomUUID().toString();
-        final String task2Id = initiateTaskForGivenId(caseIdForTask2, "submitAppeal",
-            "appealSubmitted",
+        final String task2Id = createTaskWithId(caseIdForTask2, "submitAppeal",
+            "", "appealSubmitted",
             false, "reviewTheAppeal"
         );
 
@@ -399,20 +601,19 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // caseId1 with category Followup overdue
         // task1
-        final String caseId1Task1Id = initiateTaskForGivenId(
+        final String caseId1Task1Id = createTaskWithId(
             caseId1,
             "requestRespondentEvidence",
-            "awaitingRespondentEvidence", false,
+            "", "awaitingRespondentEvidence", false,
             taskIdDmnColumn
         );
 
         // caseId2 with category Case progression
-        String taskId2DmnColumn = "reviewAppealSkeletonArgument";
+        String taskId2DmnColumn = "allocateFtpaToJudge";
         String caseId2 = UUID.randomUUID().toString();
-        final String caseId2Task1Id = initiateTaskForGivenId(caseId2, "submitCase",
-            "caseUnderReview",
+        final String caseId2Task1Id = createTaskWithId(caseId2, "applyForFTPAAppellant",
+            "", "",
             false, taskId2DmnColumn);
-
         // Then cancel all tasks on both caseIDs
         String eventToCancelTask = "removeAppealFromOnline";
         sendMessage(caseId1, eventToCancelTask, "", "", false);
@@ -436,18 +637,18 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         //caseId1 with category Case progression
         String caseId1 = UUID.randomUUID().toString();
         String taskIdDmnColumn = "attendCma";
-        final String caseId1Task1Id = initiateTaskForGivenId(
+        final String caseId1Task1Id = createTaskWithId(
             caseId1,
             "listCma",
-            "cmaListed", false,
+            "", "cmaListed", false,
             taskIdDmnColumn
         );
 
         //caseId1 with category Case progression
         String taskId2DmnColumn = "reviewRespondentResponse";
         String caseId2 = UUID.randomUUID().toString();
-        final String caseId2Task1Id = initiateTaskForGivenId(caseId2, "uploadHomeOfficeAppealResponse",
-            "respondentReview",
+        final String caseId2Task1Id = createTaskWithId(caseId2, "uploadHomeOfficeAppealResponse",
+            "", "respondentReview",
             false, taskId2DmnColumn);
         // Then cancel all tasks on both caseIDs
         sendMessage(caseId1, "makeAnApplication",
@@ -546,10 +747,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // caseId1 with category Followup overdue
         // task1
-        final String caseId1Task1Id = initiateTaskForGivenId(
+        final String caseId1Task1Id = createTaskWithId(
             caseId1,
             "requestCaseBuilding",
-            "caseBuilding", false,
+            "", "caseBuilding", false,
             taskIdDmnColumn
         );
 
@@ -564,8 +765,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     @Test
     public void given_event_requestHearingRequirementsFeature_when_initiated_verfiy_task_creation() {
         String caseId1 = UUID.randomUUID().toString();
-        final String taskId = initiateTaskForGivenId(caseId1, "requestHearingRequirementsFeature",
-            "submitHearingRequirements",
+        final String taskId = createTaskWithId(caseId1, "requestHearingRequirementsFeature",
+            "", "submitHearingRequirements",
             false, "followUpOverdueHearingRequirements");
 
         // add tasks to tear down.
@@ -591,7 +792,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("[0].deleteReason", is(expectedDeletedReason));
     }
 
-    private void assertTaskDoesNotExist(String caseId, String taskIdDmnColumn) {
+    private void assertTaskDoesNotExist(String caseId, String taskId) {
         await().ignoreException(AssertionError.class)
             .pollInterval(500, MILLISECONDS)
             .atMost(30, SECONDS)
@@ -604,7 +805,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
                         .basePath("/task")
                         .param(
                             "processVariables",
-                            "caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn
+                            "caseId_eq_" + caseId + ",taskId_eq_" + taskId
                         )
                         .when()
                         .get()
@@ -688,13 +889,14 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         publisher.sendMessage(message);
     }
 
-    private String initiateTaskForGivenId(String caseId,
-                                          String eventId,
-                                          String newStateId,
-                                          boolean delayUntil,
-                                          String taskIdDmnColumn) {
+    private String createTaskWithId(String caseId,
+                                    String eventId,
+                                    String previousStateId,
+                                    String newStateId,
+                                    boolean delayUntil,
+                                    String outcomeTaskId) {
 
-        sendMessage(caseId, eventId, "", newStateId, delayUntil);
+        sendMessage(caseId, eventId, previousStateId, newStateId, delayUntil);
 
         // if the delayUntil is true, then the taskCreation process waits for delayUntil timer
         // to expire. The task is delayed for 2 seconds,
@@ -705,11 +907,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             waitSeconds(5);
         }
 
-        return findTaskForGivenCaseId(caseId, taskIdDmnColumn);
+        return findTaskForGivenCaseId(caseId, outcomeTaskId);
     }
 
-    private AtomicReference<Response> findTaskProcessVariables(
-        String caseId, int tasks
+    private Response findTasksByCaseId(
+        String caseId, int expectedTaskAmount
     ) {
 
         log.info("Finding task for caseId = {}", caseId);
@@ -731,14 +933,14 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
                     result
                         .then().assertThat()
-                        .statusCode(200)
-                        .body("size()", is(tasks));
+                        .statusCode(HttpStatus.OK.value())
+                        .body("size()", is(expectedTaskAmount));
 
                     response.set(result);
                     return true;
                 });
 
-        return response;
+        return response.get();
     }
 
     private Response findTaskDetailsForGivenTaskId(String taskId) {

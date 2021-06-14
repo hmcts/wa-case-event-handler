@@ -1,9 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
-import lombok.Builder;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,7 +23,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -42,7 +39,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.
 @ActiveProfiles({"local"})
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-class CaseEventHandlerControllerEndPointTest {
+class CaseEventHandlerControllerBackwardsCompatibilityTest {
 
     public static final String S2S_TOKEN = "Bearer s2s token";
     public static final String TENANT_ID = "ia";
@@ -59,20 +56,87 @@ class CaseEventHandlerControllerEndPointTest {
     @BeforeEach
     void setUp() {
         when(authTokenGenerator.generate()).thenReturn(S2S_TOKEN);
-        mockApiCallsTemplate();
+        setUpMocks();
     }
 
-    @ParameterizedTest
-    @MethodSource(value = "scenarioProvider")
-    void given_message_then_return_expected_status_code(Scenario scenario) throws Exception {
+    @Test
+    void event_information_should_succeed_and_return_204() throws Exception {
+        EventInformation validEventInformation = getBaseEventInformation(null);
+
+
         mockMvc.perform(post("/messages")
             .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(scenario.eventInformation)))
+            .content(asJsonString(validEventInformation)))
             .andDo(print())
-            .andExpect(status().is(scenario.expectedStatus));
+            .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
     }
 
-    private void mockApiCallsTemplate() {
+    @Test
+    void event_information_with_additional_data_should_succeed_and_return_204() throws Exception {
+        Map<String, Object> dataMap = Map.of(
+            "lastModifiedDirection", Map.of("directionDueDate", "2021-04-06"),
+            "appealType", "protection"
+        );
+
+        AdditionalData additionalData = AdditionalData.builder()
+            .data(dataMap)
+            .build();
+
+
+        EventInformation validEventInformation = getBaseEventInformation(additionalData);
+
+
+        mockMvc.perform(post("/messages")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(asJsonString(validEventInformation)))
+            .andDo(print())
+            .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
+    }
+
+    @Test
+    void should_return_400_when_mandatory_field_is_null() throws Exception {
+
+        EventInformation partialEventInformation = EventInformation.builder()
+            .eventInstanceId(null)
+            .caseId("some case reference")
+            .jurisdictionId("somme jurisdiction Id")
+            .caseTypeId("some case type Id")
+            .eventId("some event Id")
+            .newStateId("some new state Id")
+            .userId("some user Id")
+            .build();
+
+
+        mockMvc.perform(post("/messages")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(asJsonString(partialEventInformation)))
+            .andDo(print())
+            .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
+    }
+
+    @Test
+    void should_return_400_when_mandatory_field_is_empty() throws Exception {
+
+
+        EventInformation emptyStringEventInformation = EventInformation.builder()
+            .eventInstanceId("")
+            .caseId("some case reference")
+            .jurisdictionId("somme jurisdiction Id")
+            .caseTypeId("some case type Id")
+            .eventId("some event Id")
+            .newStateId("some new state Id")
+            .userId("some user Id")
+            .build();
+
+
+        mockMvc.perform(post("/messages")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(asJsonString(emptyStringEventInformation)))
+            .andDo(print())
+            .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
+    }
+
+    private void setUpMocks() {
         mockInitiateHandler();
         mockCancellationHandler();
         mockWarningHandler();
@@ -140,59 +204,7 @@ class CaseEventHandlerControllerEndPointTest {
         return response;
     }
 
-    private static Stream<Scenario> scenarioProvider() {
-        EventInformation validEventInformation = getEventInformation(null);
-
-        Scenario validEventInformationScenario200 = Scenario.builder()
-            .eventInformation(validEventInformation)
-            .expectedStatus(HttpStatus.NO_CONTENT.value())
-            .build();
-
-        Scenario validEventWithAdditionalDataScenario200 = Scenario.builder()
-            .eventInformation(validAdditionalData())
-            .expectedStatus(HttpStatus.NO_CONTENT.value())
-            .build();
-
-        EventInformation invalidEventInformationBecauseMandatoryFieldCannotBeNull = EventInformation.builder()
-            .eventInstanceId(null)
-            .caseId("some case reference")
-            .jurisdictionId("somme jurisdiction Id")
-            .caseTypeId("some case type Id")
-            .eventId("some event Id")
-            .newStateId("some new state Id")
-            .userId("some user Id")
-            .build();
-
-        Scenario mandatoryFieldCannotBeNullScenario400 = Scenario.builder()
-            .eventInformation(invalidEventInformationBecauseMandatoryFieldCannotBeNull)
-            .expectedStatus(HttpStatus.BAD_REQUEST.value())
-            .build();
-
-        EventInformation invalidEventInformationBecauseMandatoryFieldCannotBeEmpty = EventInformation.builder()
-            .eventInstanceId("")
-            .caseId("some case reference")
-            .jurisdictionId("somme jurisdiction Id")
-            .caseTypeId("some case type Id")
-            .eventId("some event Id")
-            .newStateId("some new state Id")
-            .userId("some user Id")
-            .build();
-
-        Scenario mandatoryFieldCannotBeEmptyScenario400 = Scenario.builder()
-            .eventInformation(invalidEventInformationBecauseMandatoryFieldCannotBeEmpty)
-            .expectedStatus(HttpStatus.BAD_REQUEST.value())
-            .build();
-
-
-        return Stream.of(
-            validEventInformationScenario200,
-            validEventWithAdditionalDataScenario200,
-            mandatoryFieldCannotBeNullScenario400,
-            mandatoryFieldCannotBeEmptyScenario400
-        );
-    }
-
-    private static EventInformation getEventInformation(AdditionalData additionalData) {
+    private static EventInformation getBaseEventInformation(AdditionalData additionalData) {
         EventInformation validEventInformation = EventInformation.builder()
             .eventInstanceId("some event instance Id")
             .eventTimeStamp(LocalDateTime.now())
@@ -207,23 +219,5 @@ class CaseEventHandlerControllerEndPointTest {
         return validEventInformation;
     }
 
-    private static EventInformation validAdditionalData() {
-        Map<String, Object> dataMap = Map.of(
-            "lastModifiedDirection", Map.of("directionDueDate", "2021-04-06"),
-            "appealType", "protection"
-        );
-
-        AdditionalData additionalData = AdditionalData.builder()
-            .data(dataMap)
-            .build();
-
-        return getEventInformation(additionalData);
-    }
-
-    @Builder
-    private static class Scenario {
-        EventInformation eventInformation;
-        int expectedStatus;
-    }
 }
 
