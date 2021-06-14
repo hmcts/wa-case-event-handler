@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -140,6 +141,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
+    @Ignore("non-existing requirement for IA")
     public void should_succeed_and_create_a_task_with_multiple_categories() {
         String caseId = UUID.randomUUID().toString();
 
@@ -185,6 +187,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
+    @Ignore("non-existing requirement for IA")
     public void should_cancel_a_task_with_multiple_categories() {
         String caseId = UUID.randomUUID().toString();
 
@@ -218,6 +221,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
 
     @Test
+    @Ignore("non-existing requirement for IA")
     public void should_warn_a_task_with_multiple_categories() {
         String caseId = UUID.randomUUID().toString();
 
