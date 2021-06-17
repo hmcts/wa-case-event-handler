@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 @EqualsAndHashCode
 @ToString
 public class CountryHolidayDates {
