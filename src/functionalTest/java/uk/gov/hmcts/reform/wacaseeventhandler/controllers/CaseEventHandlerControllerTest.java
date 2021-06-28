@@ -433,12 +433,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_initiate_tasks_with_follow_up_overdue_category_then_warn_task_with_no_category() {
         // Given multiple existing tasks
         String caseIdForTask1 = UUID.randomUUID().toString();
-        String taskIdDmnColumn = "allocateFtpaToJudge";
         String task1Id = createTaskWithId(
             caseIdForTask1,
-            "applyForFTPAAppellant",
-            "", "", false,
-            taskIdDmnColumn
+            "requestCaseBuilding",
+            "", "caseBuilding", false,
+            "followUpOverdueCaseBuilding"
         );
 
         sendMessage(caseIdForTask1, "makeAnApplication",
