@@ -457,8 +457,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String caseIdForTask1 = UUID.randomUUID().toString();
 
         // Initiate task1, category (Case progression)
-        sendMessage(caseIdForTask1, "applyForFTPAAppellant", null,
-            null, false);
+        sendMessage(caseIdForTask1, "submitCase", null,
+            "caseUnderReview", false);
 
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
@@ -475,8 +475,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertDelayDuration(responseTaskDetails);
 
         // initiate task2, category (Case progression)
-        sendMessage(caseIdForTask1, "applyForFTPARespondent", null,
-            null, false);
+        sendMessage(caseIdForTask1, "submitCase", null,
+            "caseUnderReview", false);
 
         response = findTasksByCaseId(
             caseIdForTask1, 2);
