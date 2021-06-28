@@ -519,8 +519,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .path("[0].id");
 
         // initiate task2, category (Case progression)
-        sendMessage(caseIdForTask1, "applyForFTPARespondent", null,
-            null, false);
+        sendMessage(caseIdForTask1, "requestCaseBuilding", null,
+            "caseBuilding", false);
 
         response = findTasksByCaseId(
             caseIdForTask1, 2);
