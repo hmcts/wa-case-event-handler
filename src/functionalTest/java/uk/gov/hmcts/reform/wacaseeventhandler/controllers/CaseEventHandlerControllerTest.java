@@ -612,10 +612,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         );
 
         // caseId2 with category Case progression
-        String taskId2DmnColumn = "allocateFtpaToJudge";
+        String taskId2DmnColumn = "reviewAppealSkeletonArgument";
         String caseId2 = UUID.randomUUID().toString();
-        final String caseId2Task1Id = createTaskWithId(caseId2, "applyForFTPAAppellant",
-            "", "",
+        final String caseId2Task1Id = createTaskWithId(caseId2, "submitCase",
+            "", "caseUnderReview",
             false, taskId2DmnColumn);
         // Then cancel all tasks on both caseIDs
         String eventToCancelTask = "removeAppealFromOnline";
