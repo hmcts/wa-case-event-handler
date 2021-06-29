@@ -433,12 +433,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_initiate_tasks_with_follow_up_overdue_category_then_warn_task_with_no_category() {
         // Given multiple existing tasks
         String caseIdForTask1 = UUID.randomUUID().toString();
-        String taskIdDmnColumn = "allocateFtpaToJudge";
         String task1Id = createTaskWithId(
             caseIdForTask1,
-            "applyForFTPAAppellant",
-            "", "", false,
-            taskIdDmnColumn
+            "requestCaseBuilding",
+            "", "caseBuilding", false,
+            "followUpOverdueCaseBuilding"
         );
 
         sendMessage(caseIdForTask1, "makeAnApplication",
@@ -458,8 +457,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String caseIdForTask1 = UUID.randomUUID().toString();
 
         // Initiate task1, category (Case progression)
-        sendMessage(caseIdForTask1, "applyForFTPAAppellant", null,
-            null, false);
+        sendMessage(caseIdForTask1, "submitCase", null,
+            "caseUnderReview", false);
 
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
@@ -476,8 +475,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertDelayDuration(responseTaskDetails);
 
         // initiate task2, category (Case progression)
-        sendMessage(caseIdForTask1, "applyForFTPARespondent", null,
-            null, false);
+        sendMessage(caseIdForTask1, "submitCase", null,
+            "caseUnderReview", false);
 
         response = findTasksByCaseId(
             caseIdForTask1, 2);
@@ -520,8 +519,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .path("[0].id");
 
         // initiate task2, category (Case progression)
-        sendMessage(caseIdForTask1, "applyForFTPARespondent", null,
-            null, false);
+        sendMessage(caseIdForTask1, "requestCaseBuilding", null,
+            "caseBuilding", false);
 
         response = findTasksByCaseId(
             caseIdForTask1, 2);
@@ -613,10 +612,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         );
 
         // caseId2 with category Case progression
-        String taskId2DmnColumn = "allocateFtpaToJudge";
+        String taskId2DmnColumn = "reviewAppealSkeletonArgument";
         String caseId2 = UUID.randomUUID().toString();
-        final String caseId2Task1Id = createTaskWithId(caseId2, "applyForFTPAAppellant",
-            "", "",
+        final String caseId2Task1Id = createTaskWithId(caseId2, "submitCase",
+            "", "caseUnderReview",
             false, taskId2DmnColumn);
         // Then cancel all tasks on both caseIDs
         String eventToCancelTask = "removeAppealFromOnline";
