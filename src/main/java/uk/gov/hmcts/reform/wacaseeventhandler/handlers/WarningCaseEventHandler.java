@@ -75,7 +75,9 @@ public class WarningCaseEventHandler implements CaseEventHandler {
                 sendWarningMessage(
                     eventInformation.getCaseId(),
                     taskCategories,
-                    processCategories
+                    processCategories,
+                    cancellationEvaluateResponse.getWarningCode(),
+                    cancellationEvaluateResponse.getWarningText()
                 );
             });
 
@@ -83,9 +85,12 @@ public class WarningCaseEventHandler implements CaseEventHandler {
 
     private void sendWarningMessage(String caseReference,
                                     DmnValue<String> categories,
-                                    DmnValue<String> processCategories) {
+                                    DmnValue<String> processCategories,
+                                    DmnValue<String> warningCode,
+                                    DmnValue<String> warningText) {
         Set<SendMessageRequest> warningMessageRequest =
-            buildWarningMessageRequest(caseReference, categories, processCategories);
+            buildWarningMessageRequest(caseReference, categories,
+                                       processCategories, warningCode, warningText);
 
         warningMessageRequest.forEach(message -> {
                 if (message != null) {
@@ -99,13 +104,17 @@ public class WarningCaseEventHandler implements CaseEventHandler {
     private Set<SendMessageRequest> buildWarningMessageRequest(
         String caseReference,
         DmnValue<String> categories,
-        DmnValue<String> processCategories
+        DmnValue<String> processCategories,
+        DmnValue<String> warningCode,
+        DmnValue<String> warningText
     ) {
 
         SendMessageRequest oldFormatWarningMessage =
-            createOldFormatWarningMessage(caseReference, categories, processCategories);
+            createOldFormatWarningMessage(caseReference, categories, processCategories,
+                                          warningCode, warningText);
         SendMessageRequest warningMessage =
-            createWarningMessage(caseReference, categories, processCategories);
+            createWarningMessage(caseReference, categories, processCategories,
+                                 warningCode, warningText);
 
         return new HashSet<>(asList(oldFormatWarningMessage, warningMessage));
     }
@@ -120,7 +129,9 @@ public class WarningCaseEventHandler implements CaseEventHandler {
      */
     private SendMessageRequest createWarningMessage(String caseReference,
                                                     DmnValue<String> categories,
-                                                    DmnValue<String> processCategories) {
+                                                    DmnValue<String> processCategories,
+                                                    DmnValue<String> warningCode,
+                                                    DmnValue<String> warningText) {
 
         Map<String, DmnValue<?>> correlationKeys = new ConcurrentHashMap<>();
         correlationKeys.put("caseId", dmnStringValue(caseReference));
@@ -145,13 +156,25 @@ public class WarningCaseEventHandler implements CaseEventHandler {
             );
         }
 
+        if (warningCode != null && warningText != null) {
+            Map<String, DmnValue<?>> processVariables = Map.of(
+                "warningCode", warningCode,
+                "warningText", warningText
+            );
+
+            return SendMessageRequest.builder()
+                .messageName(TASK_WARN.getMessageName())
+                .correlationKeys(correlationKeys)
+                .processVariables(processVariables)
+                .all(true)
+                .build();
+        }
+
         return SendMessageRequest.builder()
             .messageName(TASK_WARN.getMessageName())
             .correlationKeys(correlationKeys)
             .all(true)
             .build();
-
-
     }
 
     /**
@@ -166,7 +189,9 @@ public class WarningCaseEventHandler implements CaseEventHandler {
     @Deprecated(since = "1.1")
     private SendMessageRequest createOldFormatWarningMessage(String caseReference,
                                                              DmnValue<String> categories,
-                                                             DmnValue<String> processCategories) {
+                                                             DmnValue<String> processCategories,
+                                                             DmnValue<String> warningCode,
+                                                             DmnValue<String> warningText) {
 
         if (processCategories == null) {
             Map<String, DmnValue<?>> correlationKeys = new ConcurrentHashMap<>();
@@ -176,6 +201,19 @@ public class WarningCaseEventHandler implements CaseEventHandler {
                 correlationKeys.put("taskCategory", categories);
             }
 
+            if (warningCode != null && warningText != null) {
+                Map<String, DmnValue<?>> processVariables = Map.of(
+                    "warningCode", warningCode,
+                    "warningText", warningText
+                );
+
+                return SendMessageRequest.builder()
+                    .messageName(TASK_WARN.getMessageName())
+                    .correlationKeys(correlationKeys)
+                    .processVariables(processVariables)
+                    .all(true)
+                    .build();
+            }
             return SendMessageRequest.builder()
                 .messageName(TASK_WARN.getMessageName())
                 .correlationKeys(correlationKeys)

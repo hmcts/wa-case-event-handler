@@ -78,7 +78,7 @@ class WarningCaseEventHandlerTest {
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateDmnRequest();
 
         List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
-            dmnStringValue("Warn"),
+            dmnStringValue("Warn"), dmnStringValue("Code"), dmnStringValue("Text"),
             null,
             null
         ));
@@ -133,11 +133,15 @@ class WarningCaseEventHandlerTest {
         CancellationEvaluateResponse result1 = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Warn"))
             .processCategories(dmnStringValue("some category"))
+            .warningCode(dmnStringValue("Code"))
+            .warningText(dmnStringValue("Text"))
             .build();
 
         CancellationEvaluateResponse result2 = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Warn"))
             .processCategories(dmnStringValue("some other category"))
+            .warningCode(dmnStringValue("Code"))
+            .warningText(dmnStringValue("Text"))
             .build();
 
         List<CancellationEvaluateResponse> results = List.of(result1, result2);
@@ -147,13 +151,13 @@ class WarningCaseEventHandlerTest {
         verify(workflowApiClient, times(2))
             .sendMessage(eq(SERVICE_AUTH_TOKEN), sendMessageRequestCaptor.capture());
 
-        assertSendMessageRequest(
+        assertSendMessageRequestWithWarnings(
             sendMessageRequestCaptor.getAllValues().get(0),
             "some case reference",
             dmnStringValue("some category")
         );
 
-        assertSendMessageRequest(
+        assertSendMessageRequestWithWarnings(
             sendMessageRequestCaptor.getAllValues().get(1),
             "some case reference",
             dmnStringValue("some other category")
@@ -165,6 +169,8 @@ class WarningCaseEventHandlerTest {
         CancellationEvaluateResponse result = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Warn"))
             .processCategories(dmnStringValue("category1, category2"))
+            .warningCode(dmnStringValue("Code"))
+            .warningText(dmnStringValue("Text"))
             .build();
 
         List<CancellationEvaluateResponse> results = List.of(result);
@@ -174,7 +180,7 @@ class WarningCaseEventHandlerTest {
         verify(workflowApiClient, times(1))
             .sendMessage(eq(SERVICE_AUTH_TOKEN), sendMessageRequestCaptor.capture());
 
-        assertSendMessageRequest(
+        assertSendMessageRequestWithWarnings(
             sendMessageRequestCaptor.getAllValues().get(0),
             "some case reference",
             dmnStringValue("category1, category2")
@@ -196,6 +202,29 @@ class WarningCaseEventHandlerTest {
             .sendMessage(eq(SERVICE_AUTH_TOKEN), sendMessageRequestCaptor.capture());
 
         assertSendMessageRequest(
+            sendMessageRequestCaptor.getAllValues().get(0),
+            "some case reference",
+            null
+        );
+    }
+
+    @Test
+    void should_be_able_to_handle_with_no_categories_and_with_warnings() {
+        CancellationEvaluateResponse result = CancellationEvaluateResponse.builder()
+            .action(dmnStringValue("Warn"))
+            .warningCode(dmnStringValue("Code"))
+            .warningText(dmnStringValue("Text"))
+            .build();
+
+        List<CancellationEvaluateResponse> results = List.of(result);
+
+        handlerService.handle(results, eventInformation);
+
+        // Because of backwards compatibility 2 messages will be created but they are identical hence only sending once.
+        verify(workflowApiClient, times(1))
+            .sendMessage(eq(SERVICE_AUTH_TOKEN), sendMessageRequestCaptor.capture());
+
+        assertSendMessageRequestWithWarnings(
             sendMessageRequestCaptor.getAllValues().get(0),
             "some case reference",
             null
@@ -239,23 +268,6 @@ class WarningCaseEventHandlerTest {
         return new EvaluateDmnRequest(variables);
     }
 
-    private void assertSendMessageRequestOldFormat(
-        SendMessageRequest sendMessageRequest,
-        String caseReference,
-        DmnValue<String> categories
-    ) {
-
-        Map<String, DmnValue<?>> expectedCorrelationKeys = new HashMap<>();
-        expectedCorrelationKeys.put("caseId", dmnStringValue(caseReference));
-        if (categories != null && categories.getValue() != null) {
-            expectedCorrelationKeys.put("taskCategory", categories);
-        }
-
-        assertThat(sendMessageRequest.getMessageName()).isEqualTo(WARN_TASKS_MESSAGE_NAME);
-        assertThat(sendMessageRequest.getCorrelationKeys()).isEqualTo(expectedCorrelationKeys);
-        assertTrue(sendMessageRequest.isAll());
-    }
-
     private void assertSendMessageRequest(
         SendMessageRequest sendMessageRequest,
         String caseReference,
@@ -275,9 +287,38 @@ class WarningCaseEventHandlerTest {
             );
         }
 
+        assertThat(sendMessageRequest.getMessageName()).isEqualTo(WARN_TASKS_MESSAGE_NAME);
+        assertThat(sendMessageRequest.getCorrelationKeys()).isEqualTo(expectedCorrelationKeys);
+        assertTrue(sendMessageRequest.isAll());
+    }
+
+    private void assertSendMessageRequestWithWarnings(
+        SendMessageRequest sendMessageRequest,
+        String caseReference,
+        DmnValue<String> categories
+    ) {
+
+        Map<String, DmnValue<?>> expectedCorrelationKeys = new HashMap<>();
+        expectedCorrelationKeys.put("caseId", dmnStringValue(caseReference));
+
+        if (categories != null && categories.getValue() != null) {
+            List<String> categoriesToCancel = Stream.of(categories.getValue().split(","))
+                .map(String::trim)
+                .collect(Collectors.toList());
+
+            categoriesToCancel.forEach(category ->
+                                           expectedCorrelationKeys.put(
+                                               "__processCategory__" + category,
+                                               dmnBooleanValue(true)
+                                           )
+            );
+        }
+
 
         assertThat(sendMessageRequest.getMessageName()).isEqualTo(WARN_TASKS_MESSAGE_NAME);
         assertThat(sendMessageRequest.getCorrelationKeys()).isEqualTo(expectedCorrelationKeys);
         assertTrue(sendMessageRequest.isAll());
+        assertTrue(sendMessageRequest.getProcessVariables().containsKey("warningCode"));
+        assertTrue(sendMessageRequest.getProcessVariables().containsKey("warningText"));
     }
 }

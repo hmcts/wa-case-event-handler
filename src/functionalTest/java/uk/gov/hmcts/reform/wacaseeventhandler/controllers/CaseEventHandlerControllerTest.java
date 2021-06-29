@@ -91,7 +91,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("delayUntil.value", notNullValue())
             .body("taskId.value", is("processApplication"))
             .body("group.value", is("TCW"))
-            .body("caseId.value", is(caseId));
+            .body("caseId.value", is(caseId))
+            .body("hasWarnings.value", is(false))
+            .body("warningList.value", is("[]"));
 
         taskToTearDown = taskId;
     }
@@ -135,7 +137,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("taskId.value", is("reviewTheAppeal"))
             .body("group.value", is("TCW"))
             .body("caseId.value", is(caseId))
-            .body("__processCategory__caseProgression.value", is(true));
+            .body("__processCategory__caseProgression.value", is(true))
+            .body("hasWarnings.value", is(false))
+            .body("warningList.value", is("[]"));
 
         taskToTearDown = taskId;
     }
@@ -181,7 +185,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("group.value", is("TCW"))
             .body("caseId.value", is(caseId))
             .body("__processCategory__caseProgression.value", is(true))
-            .body("__processCategory__followUpOverdue.value", is(true));
+            .body("__processCategory__followUpOverdue.value", is(true))
+            .body("hasWarnings.value", is(false))
+            .body("warningList.value", is("[]"));
 
         taskToTearDown = taskId;
     }
@@ -218,7 +224,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertTaskDoesNotExist(caseId, "testTaskIdForMultipleCategories");
         assertTaskDeleteReason(taskId, "deleted");
     }
-
 
     @Test
     @Ignore("non-existing requirement for IA")
@@ -451,9 +456,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         taskToTearDown = task1Id;
     }
 
-
     @Test
-
     public void given_caseId_with_multiple_tasks_and_same_category_when_warning_raised_then_mark_tasks_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
 
@@ -835,7 +838,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
                     result.then()
                         .body("caseId.value", is(caseId))
-                        .body("hasWarnings.value", is(hasWarningValue));
+                        .body("hasWarnings.value", is(hasWarningValue))
+                        .body("warningList.value",
+                              is("[{\"warningCode\":\"TA01\","
+                                     + "\"warningText\":\"There is an application task which "
+                                     + "might impact other active tasks\"}]"));
 
                     return true;
                 });

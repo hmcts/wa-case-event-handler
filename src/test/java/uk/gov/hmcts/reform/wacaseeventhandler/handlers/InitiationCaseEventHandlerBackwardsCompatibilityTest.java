@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClient;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.WarningValues;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.request.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.request.SendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateDmnResponse;
@@ -289,7 +290,8 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
                 entry("caseId", dmnStringValue("some case reference")),
                 entry("taskCategory", dmnStringValue(taskCategory)),
                 entry("delayUntil", dmnStringValue(delayUntil)),
-                entry("hasWarnings", dmnBooleanValue(false))
+                entry("hasWarnings", dmnBooleanValue(false)),
+                entry("warningList", dmnStringValue(new WarningValues().getValuesAsJson()))
             );
 
         return new SendMessageRequest(
