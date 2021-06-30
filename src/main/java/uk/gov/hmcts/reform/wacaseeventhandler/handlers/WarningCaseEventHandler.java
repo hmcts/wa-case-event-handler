@@ -156,18 +156,8 @@ public class WarningCaseEventHandler implements CaseEventHandler {
             );
         }
 
-        if (warningCode != null && warningText != null) {
-            Map<String, DmnValue<?>> processVariables = Map.of(
-                "warningCode", warningCode,
-                "warningText", warningText
-            );
-
-            return SendMessageRequest.builder()
-                .messageName(TASK_WARN.getMessageName())
-                .correlationKeys(correlationKeys)
-                .processVariables(processVariables)
-                .all(true)
-                .build();
+        if (checkForWarningProperties(warningCode, warningText)) {
+            return addWarningsToProcessVariables(correlationKeys, warningCode, warningText);
         }
 
         return SendMessageRequest.builder()
@@ -201,18 +191,8 @@ public class WarningCaseEventHandler implements CaseEventHandler {
                 correlationKeys.put("taskCategory", categories);
             }
 
-            if (warningCode != null && warningText != null) {
-                Map<String, DmnValue<?>> processVariables = Map.of(
-                    "warningCode", warningCode,
-                    "warningText", warningText
-                );
-
-                return SendMessageRequest.builder()
-                    .messageName(TASK_WARN.getMessageName())
-                    .correlationKeys(correlationKeys)
-                    .processVariables(processVariables)
-                    .all(true)
-                    .build();
+            if (checkForWarningProperties(warningCode, warningText)) {
+                return addWarningsToProcessVariables(correlationKeys, warningCode, warningText);
             }
             return SendMessageRequest.builder()
                 .messageName(TASK_WARN.getMessageName())
@@ -240,5 +220,27 @@ public class WarningCaseEventHandler implements CaseEventHandler {
         return new EvaluateDmnRequest(variables);
     }
 
+    private boolean checkForWarningProperties(
+        DmnValue<String> warningCode, DmnValue<String> warningText) {
+        return warningCode != null && warningText != null;
+    }
+
+    private SendMessageRequest addWarningsToProcessVariables(
+        Map<String, DmnValue<?>> correlationKeys,
+        DmnValue<String> warningCode,
+        DmnValue<String> warningText) {
+
+        Map<String, DmnValue<?>> processVariables = Map.of(
+            "warningCode", warningCode,
+            "warningText", warningText
+        );
+
+        return SendMessageRequest.builder()
+            .messageName(TASK_WARN.getMessageName())
+            .correlationKeys(correlationKeys)
+            .processVariables(processVariables)
+            .all(true)
+            .build();
+    }
 }
 
