@@ -824,7 +824,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
         await().ignoreException(AssertionError.class)
             .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
+            .atMost(120, SECONDS)
             .until(
                 () -> {
 
