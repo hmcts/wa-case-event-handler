@@ -21,6 +21,7 @@ To build the project execute the following command:
   ./gradlew build
 ```
 
+
 ### Running the application
 
 - Prerequisite:
