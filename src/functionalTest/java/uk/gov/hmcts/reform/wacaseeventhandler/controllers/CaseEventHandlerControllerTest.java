@@ -481,10 +481,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         sendMessage(caseIdForTask1, "submitCase", null,
             "caseUnderReview", false);
 
+        waitSeconds(5);
         response = findTasksByCaseId(
             caseIdForTask1, 2);
 
-        String task2Id = response
+        final String task2Id = response
             .then()
             .body("size()", is(2))
             .assertThat().body("[1].id", notNullValue())
@@ -494,6 +495,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         // send warning message
         sendMessage(caseIdForTask1, "makeAnApplication",
             "", "", false);
+
+        waitSeconds(5);
 
         // check for warnings flag on both the tasks
         assertTaskHasWarnings(caseIdForTask1, task1Id, true);
@@ -512,6 +515,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         sendMessage(caseIdForTask1, "submitTimeExtension", "",
             null, false);
 
+        waitSeconds(5);
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
 
@@ -524,6 +528,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         // initiate task2, category (Case progression)
         sendMessage(caseIdForTask1, "requestCaseBuilding", null,
             "caseBuilding", false);
+
+        waitSeconds(5);
 
         response = findTasksByCaseId(
             caseIdForTask1, 2);
@@ -659,10 +665,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         // Then cancel all tasks on both caseIDs
         sendMessage(caseId1, "makeAnApplication",
             "", "", false);
-        waitSeconds(5);
+        waitSeconds(10);
         sendMessage(caseId2, "makeAnApplication",
             "", "", false);
-        waitSeconds(5);
+        waitSeconds(10);
 
         // check for warnings flag on both the tasks
         assertTaskHasWarnings(caseId1, caseId1Task1Id, true);
@@ -822,6 +828,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
+        log.info("Finding warnings task for caseId = {} and taskId = {}", caseId, taskId);
         await().ignoreException(AssertionError.class)
             .pollInterval(500, MILLISECONDS)
             .atMost(60, SECONDS)
