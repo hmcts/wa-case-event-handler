@@ -481,7 +481,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         sendMessage(caseIdForTask1, "submitCase", null,
             "caseUnderReview", false);
 
-        waitSeconds(5);
         response = findTasksByCaseId(
             caseIdForTask1, 2);
 
@@ -496,14 +495,12 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         sendMessage(caseIdForTask1, "makeAnApplication",
             "", "", false);
 
-        waitSeconds(5);
-
         // check for warnings flag on both the tasks
         assertTaskHasWarnings(caseIdForTask1, task1Id, true);
         assertTaskHasWarnings(caseIdForTask1, task2Id, true);
 
         // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
+        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id, "processApplication"), "completed");
     }
 
     @Test
@@ -515,7 +512,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         sendMessage(caseIdForTask1, "submitTimeExtension", "",
             null, false);
 
-        waitSeconds(5);
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
 
@@ -528,8 +524,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         // initiate task2, category (Case progression)
         sendMessage(caseIdForTask1, "requestCaseBuilding", null,
             "caseBuilding", false);
-
-        waitSeconds(5);
 
         response = findTasksByCaseId(
             caseIdForTask1, 2);
@@ -665,10 +659,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         // Then cancel all tasks on both caseIDs
         sendMessage(caseId1, "makeAnApplication",
             "", "", false);
-        waitSeconds(10);
+        waitSeconds(5);
         sendMessage(caseId2, "makeAnApplication",
             "", "", false);
-        waitSeconds(10);
+        waitSeconds(5);
 
         // check for warnings flag on both the tasks
         assertTaskHasWarnings(caseId1, caseId1Task1Id, true);
