@@ -500,7 +500,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertTaskHasWarnings(caseIdForTask1, task2Id, true);
 
         // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id, "processApplication"), "completed");
+        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
     }
 
     @Test
