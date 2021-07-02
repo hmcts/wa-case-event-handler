@@ -448,7 +448,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         sendMessage(caseIdForTask1, "makeAnApplication",
             "", "", false);
 
-        waitSeconds(40);
+        waitSeconds(5);
 
         assertTaskHasWarnings(caseIdForTask1, task1Id, true);
 
@@ -494,7 +494,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         // send warning message
         sendMessage(caseIdForTask1, "makeAnApplication",
             "", "", false);
-        waitSeconds(40);
+
         // check for warnings flag on both the tasks
         assertTaskHasWarnings(caseIdForTask1, task1Id, true);
         assertTaskHasWarnings(caseIdForTask1, task2Id, true);
@@ -539,7 +539,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         sendMessage(caseIdForTask1, "makeAnApplication",
             "", "", false);
 
-        waitSeconds(40);
+        waitSeconds(5);
         // check for warnings flag on both the tasks
         assertTaskHasWarnings(caseIdForTask1, task1Id, true);
         assertTaskHasWarnings(caseIdForTask1, task2Id, true);
@@ -659,10 +659,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         // Then cancel all tasks on both caseIDs
         sendMessage(caseId1, "makeAnApplication",
             "", "", false);
-        waitSeconds(40);
+        waitSeconds(5);
         sendMessage(caseId2, "makeAnApplication",
             "", "", false);
-        waitSeconds(40);
+        waitSeconds(5);
 
         // check for warnings flag on both the tasks
         assertTaskHasWarnings(caseId1, caseId1Task1Id, true);
