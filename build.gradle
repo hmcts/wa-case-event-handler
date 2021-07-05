@@ -294,7 +294,7 @@ dependencies {
   implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '3.1.2'
 
   compile 'org.camunda.bpm:camunda-external-task-client:1.4.0'
-  compile group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.2.2'
+  compile group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.6.0'
 
   testImplementation libraries.junit5
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
