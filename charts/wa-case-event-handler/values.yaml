@@ -20,22 +20,14 @@ java:
     keyVaults:
       wa:
         secrets:
-          - name: idam-redirect-uri
-            alias: IA_IDAM_REDIRECT_URI
-          - name: wa-idam-client-secret
-            alias: WA_IDAM_CLIENT_SECRET
-          - name: ccd-shared-servicebus-connection-string
-            alias: AZURE_SERVICE_BUS_CONNECTION_STRING
-          - name: wa-test-law-firm-a-username
-            alias: TEST_WA_LAW_FIRM_USERNAME
-          - name: wa-test-law-firm-a-password
-            alias: TEST_WA_LAW_FIRM_PASSWORD
-          - name: wa-test-caseofficer-a-username
-            alias: TEST_WA_CASEOFFICER_PUBLIC_A_USERNAME
-          - name: wa-test-caseofficer-a-password
-            alias: TEST_WA_CASEOFFICER_PUBLIC_A_PASSWORD
-          - name: s2s-secret-task-management-api
-            alias: S2S_SECRET_TASK_MANAGEMENT_API
+          idam-redirect-uri: IA_IDAM_REDIRECT_URI
+          wa-idam-client-secret: WA_IDAM_CLIENT_SECRET
+          ccd-shared-servicebus-connection-string: AZURE_SERVICE_BUS_CONNECTION_STRING
+          wa-test-law-firm-a-username: TEST_WA_LAW_FIRM_USERNAME
+          wa-test-law-firm-a-password: TEST_WA_LAW_FIRM_PASSWORD
+          wa-test-caseofficer-a-username: TEST_WA_CASEOFFICER_PUBLIC_A_USERNAME
+          wa-test-caseofficer-a-password: TEST_WA_CASEOFFICER_PUBLIC_A_PASSWORD
+          s2s-secret-task-management-api: S2S_SECRET_TASK_MANAGEMENT_API
 
   functionaltests:
     image: hmctspublic.azurecr.io/wa/post-deployment-ft-tests:aat-0923cad3
