@@ -239,6 +239,8 @@ dependencyManagement {
       entry 'spring-web'
       entry 'spring-webmvc'
     }
+    //CVE-2021-27568
+    dependency group: 'net.minidev', name: 'json-smart', version: '2.4.7'
   }
 }
 
