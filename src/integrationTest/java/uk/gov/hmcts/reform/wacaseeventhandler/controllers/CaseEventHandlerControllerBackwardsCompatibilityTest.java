@@ -63,7 +63,6 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
     void event_information_should_succeed_and_return_204() throws Exception {
         EventInformation validEventInformation = getBaseEventInformation(null);
 
-
         mockMvc.perform(post("/messages")
             .contentType(MediaType.APPLICATION_JSON)
             .content(asJsonString(validEventInformation)))
@@ -82,9 +81,7 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
             .data(dataMap)
             .build();
 
-
         EventInformation validEventInformation = getBaseEventInformation(additionalData);
-
 
         mockMvc.perform(post("/messages")
             .contentType(MediaType.APPLICATION_JSON)
@@ -106,7 +103,6 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
             .userId("some user Id")
             .build();
 
-
         mockMvc.perform(post("/messages")
             .contentType(MediaType.APPLICATION_JSON)
             .content(asJsonString(partialEventInformation)))
@@ -117,7 +113,6 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
     @Test
     void should_return_400_when_mandatory_field_is_empty() throws Exception {
 
-
         EventInformation emptyStringEventInformation = EventInformation.builder()
             .eventInstanceId("")
             .caseId("some case reference")
@@ -127,7 +122,6 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
             .newStateId("some new state Id")
             .userId("some user Id")
             .build();
-
 
         mockMvc.perform(post("/messages")
             .contentType(MediaType.APPLICATION_JSON)
@@ -145,7 +139,7 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
 
     private void mockCancellationHandler() {
         List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
-            dmnStringValue("some action"),
+            dmnStringValue("some action"), null, null,
             dmnStringValue("some category"),
             null
         ));
@@ -163,6 +157,8 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
     private void mockWarningHandler() {
         List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
             dmnStringValue("some action"),
+            dmnStringValue("Code"),
+            dmnStringValue("Text"),
             dmnStringValue("some category"),
             null
         ));
@@ -178,7 +174,7 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
 
     private void mockWarningHandlerWithFalse() {
         List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
-            dmnStringValue("Warn"),
+            dmnStringValue("Warn"), null, null,
             dmnStringValue("some task cat"),
             null
         ));

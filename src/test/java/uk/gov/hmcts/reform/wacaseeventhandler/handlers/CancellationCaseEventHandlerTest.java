@@ -77,6 +77,7 @@ class CancellationCaseEventHandlerTest {
 
         List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
             dmnStringValue("Cancel"),
+            null, null,
             null,
             null
         ));

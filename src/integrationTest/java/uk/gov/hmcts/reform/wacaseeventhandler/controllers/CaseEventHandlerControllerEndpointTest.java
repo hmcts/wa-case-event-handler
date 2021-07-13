@@ -84,7 +84,6 @@ class CaseEventHandlerControllerEndpointTest {
             .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
     }
 
-
     @Test
     void event_information_should_succeed_and_return_204_with_multiple_category() throws Exception {
         mockInitiateHandlerResponseWithMultipleCategories();
@@ -123,7 +122,6 @@ class CaseEventHandlerControllerEndpointTest {
             .content(asJsonString(validEventInformation)))
             .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
     }
-
 
     @Test
     void event_information_with_additional_data_should_succeed_and_return_204_with_multiple_category()
@@ -189,7 +187,7 @@ class CaseEventHandlerControllerEndpointTest {
 
     private void mockCancellationHandler() {
         List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
-            dmnStringValue("Cancel"),
+            dmnStringValue("Cancel"), null, null,
             null,
             dmnStringValue("some category")
         ));
@@ -206,7 +204,7 @@ class CaseEventHandlerControllerEndpointTest {
 
     private void mockWarningHandler() {
         List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
-            dmnStringValue("Warn"),
+            dmnStringValue("Warn"), null, null,
             null,
             dmnStringValue("some category")
         ));
@@ -222,7 +220,7 @@ class CaseEventHandlerControllerEndpointTest {
 
     private void mockWarningHandlerWithMultipleCategories() {
         List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
-            dmnStringValue("Warn"),
+            dmnStringValue("Warn"), null, null,
             null,
             dmnStringValue("some category, some other category")
         ));
@@ -277,7 +275,6 @@ class CaseEventHandlerControllerEndpointTest {
 
         return response;
     }
-
 
     private EvaluateDmnResponse<InitiateEvaluateResponse> mockInitiateHandlerResponseWithMultipleCategories() {
 
