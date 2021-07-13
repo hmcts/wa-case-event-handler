@@ -27,6 +27,20 @@ spring:
     name: WA Case Event Handler
   jackson.serialization.indent_output: true
 
+security:
+  anonymousPaths:
+    - "/"
+    - "/health"
+    - "/health/liveness"
+    - "/health/readiness"
+    - "/loggers/**"
+    - "/swagger-resources/**"
+    - "/swagger-ui/**"
+    - "/swagger-ui/index.html"
+    - "/v2/api-docs"
+    - "/webjars/springfox-swagger-ui/**"
+    - "/favicon.ico"
+
 govUkHolidays:
   url: https://www.gov.uk/
 
