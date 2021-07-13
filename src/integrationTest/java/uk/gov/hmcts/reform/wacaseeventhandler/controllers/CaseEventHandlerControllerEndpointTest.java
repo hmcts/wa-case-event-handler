@@ -298,8 +298,8 @@ class CaseEventHandlerControllerEndpointTest {
         return response;
     }
 
-    private static EventInformation getBaseEventInformation(AdditionalData additionalData) {
-        EventInformation validEventInformation = EventInformation.builder()
+    public static EventInformation getBaseEventInformation(AdditionalData additionalData) {
+        return EventInformation.builder()
             .eventInstanceId("some event instance Id")
             .eventTimeStamp(LocalDateTime.now())
             .caseId("some case reference")
@@ -310,7 +310,6 @@ class CaseEventHandlerControllerEndpointTest {
             .userId("some user Id")
             .additionalData(additionalData)
             .build();
-        return validEventInformation;
     }
 
     private static EventInformation getBaseEventInformationWithAdditionalData() {

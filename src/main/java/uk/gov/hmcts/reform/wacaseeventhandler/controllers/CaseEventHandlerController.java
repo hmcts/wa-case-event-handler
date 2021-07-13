@@ -14,9 +14,8 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateRe
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CaseEventHandler;
 
-import javax.validation.Valid;
-
 import java.util.List;
+import javax.validation.Valid;
 
 import static org.springframework.http.ResponseEntity.noContent;
 
