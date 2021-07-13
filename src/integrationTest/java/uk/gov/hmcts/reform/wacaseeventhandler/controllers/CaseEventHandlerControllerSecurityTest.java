@@ -1,7 +1,9 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,6 +21,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.handlers.InitiationCaseEventHandle
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.WarningCaseEventHandler;
 
 import java.util.Collections;
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -34,6 +37,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.
 @AutoConfigureMockMvc
 class CaseEventHandlerControllerSecurityTest {
 
+    public static final String SOME_SERVICE_AUTHORIZATION = "Bearer some service authorization";
     @MockBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
     @MockBean
@@ -58,30 +62,18 @@ class CaseEventHandlerControllerSecurityTest {
         mockHandlers();
     }
 
-    @Test
-    void given_authorised_service_header_should_respond_204() throws Exception {
+    @ParameterizedTest
+    @MethodSource("scenarioProvider")
+    void given_authorised_service_header_should_respond_204(String serviceName, HttpStatus expectedHttpStatus)
+        throws Exception {
 
-        when(serviceAuthorisationApi.getServiceName("Bearer some service authorization"))
-            .thenReturn("wa_case_event_handler");
-
-        mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .header(ServiceAuthFilter.AUTHORISATION, "Bearer some service authorization")
-            .content(asJsonString(getBaseEventInformation(null))))
-            .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
-    }
-
-    @Test
-    void given_non_authorised_service_header_should_respond_403() throws Exception {
-
-        when(serviceAuthorisationApi.getServiceName("Bearer some service authorization"))
-            .thenReturn("no authorised service name");
+        when(serviceAuthorisationApi.getServiceName(SOME_SERVICE_AUTHORIZATION)).thenReturn(serviceName);
 
         mockMvc.perform(post("/messages")
             .contentType(MediaType.APPLICATION_JSON)
-            .header(ServiceAuthFilter.AUTHORISATION, "Bearer some service authorization")
+            .header(ServiceAuthFilter.AUTHORISATION, SOME_SERVICE_AUTHORIZATION)
             .content(asJsonString(getBaseEventInformation(null))))
-            .andExpect(status().is(HttpStatus.FORBIDDEN.value()));
+            .andExpect(status().is(expectedHttpStatus.value()));
     }
 
     private void mockHandlers() {
@@ -90,5 +82,11 @@ class CaseEventHandlerControllerSecurityTest {
         when(warningCaseEventHandler.evaluateDmn(any())).thenReturn(Collections.emptyList());
     }
 
+    private static Stream<Arguments> scenarioProvider() {
+        Arguments response200Scenario = Arguments.of("wa_case_event_handler", HttpStatus.NO_CONTENT);
+        Arguments response403Scenario = Arguments.of("ccd", HttpStatus.FORBIDDEN);
+
+        return Stream.of(response200Scenario, response403Scenario);
+    }
 }
 
