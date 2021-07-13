@@ -83,10 +83,13 @@ class CaseEventHandlerControllerSecurityTest {
     }
 
     private static Stream<Arguments> scenarioProvider() {
-        Arguments response200Scenario = Arguments.of("wa_case_event_handler", HttpStatus.NO_CONTENT);
+        Arguments response200ForCaseEventHandlerScenario = Arguments.of("wa_case_event_handler", HttpStatus.NO_CONTENT);
+        Arguments response200ForTaskMonitorScenario = Arguments.of("wa_task_monitor", HttpStatus.NO_CONTENT);
         Arguments response403Scenario = Arguments.of("ccd", HttpStatus.FORBIDDEN);
 
-        return Stream.of(response200Scenario, response403Scenario);
+        return Stream.of(response200ForCaseEventHandlerScenario,
+            response200ForTaskMonitorScenario,
+            response403Scenario);
     }
 }
 
