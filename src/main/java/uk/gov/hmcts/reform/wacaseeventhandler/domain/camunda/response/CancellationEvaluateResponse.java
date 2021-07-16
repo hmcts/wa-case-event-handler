@@ -13,6 +13,10 @@ public final class CancellationEvaluateResponse implements EvaluateResponse {
 
     @JsonProperty("action")
     private DmnValue<String> action;
+    @JsonProperty("warningCode")
+    private DmnValue<String> warningCode;
+    @JsonProperty("warningText")
+    private DmnValue<String> warningText;
     @JsonProperty("TaskCategories")
     private DmnValue<String> taskCategories;
     @JsonProperty("processCategories")
@@ -23,9 +27,13 @@ public final class CancellationEvaluateResponse implements EvaluateResponse {
     }
 
     public CancellationEvaluateResponse(DmnValue<String> action,
+                                        DmnValue<String> warningCode,
+                                        DmnValue<String> warningText,
                                         DmnValue<String> taskCategories,
                                         DmnValue<String> processCategories) {
         this.action = action;
+        this.warningCode = warningCode;
+        this.warningText = warningText;
         this.taskCategories = taskCategories;
         this.processCategories = processCategories;
 
@@ -48,5 +56,13 @@ public final class CancellationEvaluateResponse implements EvaluateResponse {
     @Deprecated(since = "1.1")
     public DmnValue<String> getTaskCategories() {
         return taskCategories;
+    }
+
+    public DmnValue<String> getWarningCode() {
+        return warningCode;
+    }
+
+    public DmnValue<String> getWarningText() {
+        return warningText;
     }
 }

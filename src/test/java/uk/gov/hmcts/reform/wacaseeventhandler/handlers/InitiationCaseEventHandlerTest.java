@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClient;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.WarningValues;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.request.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.request.SendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateDmnResponse;
@@ -314,7 +315,8 @@ class InitiationCaseEventHandlerTest {
                 entry("__processCategory__caseProgression", dmnBooleanValue(true)),
                 entry("__processCategory__timeExtension", dmnBooleanValue(true)),
                 entry("delayUntil", dmnStringValue("2020-12-10T16:00:00")),
-                entry("hasWarnings", dmnBooleanValue(false))
+                entry("hasWarnings", dmnBooleanValue(false)),
+                entry("warningList", dmnStringValue(new WarningValues().getValuesAsJson()))
             );
 
         SendMessageRequest expectation = new SendMessageRequest(
@@ -360,7 +362,8 @@ class InitiationCaseEventHandlerTest {
                 entry("caseId", dmnStringValue("some case reference")),
                 entry(processCategory, dmnBooleanValue(true)),
                 entry("delayUntil", dmnStringValue(delayUntil)),
-                entry("hasWarnings", dmnBooleanValue(false))
+                entry("hasWarnings", dmnBooleanValue(false)),
+                entry("warningList", dmnStringValue(new WarningValues().getValuesAsJson()))
             );
 
         return new SendMessageRequest(
