@@ -484,7 +484,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         response = findTasksByCaseId(
             caseIdForTask1, 2);
 
-        String task2Id = response
+        final String task2Id = response
             .then()
             .body("size()", is(2))
             .assertThat().body("[1].id", notNullValue())
@@ -822,6 +822,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
+        log.info("Finding warnings task for caseId = {} and taskId = {}", caseId, taskId);
         await().ignoreException(AssertionError.class)
             .pollInterval(500, MILLISECONDS)
             .atMost(120, SECONDS)
