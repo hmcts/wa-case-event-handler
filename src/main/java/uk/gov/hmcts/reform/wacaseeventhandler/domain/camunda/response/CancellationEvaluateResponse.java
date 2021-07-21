@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
 
+import java.util.Objects;
+
 @ToString
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -64,5 +66,28 @@ public final class CancellationEvaluateResponse implements EvaluateResponse {
 
     public DmnValue<String> getWarningText() {
         return warningText;
+    }
+
+    @Override
+    public boolean equals(Object anotherobject) {
+        if (this == anotherobject) {
+            return true;
+        }
+        if (!(anotherobject instanceof CancellationEvaluateResponse)) {
+            return false;
+        }
+        CancellationEvaluateResponse response = (CancellationEvaluateResponse) anotherobject;
+        return Objects.equals(warningCode, response.warningCode) && Objects.equals(
+            warningText,
+            response.warningText
+        ) && Objects.equals(taskCategories, response.taskCategories) && Objects.equals(
+            processCategories,
+            response.processCategories
+        );
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(warningCode, warningText, taskCategories, processCategories);
     }
 }

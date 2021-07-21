@@ -152,19 +152,19 @@ class WarningCaseEventHandlerBackwardsCompatibilityTest {
         verify(workflowApiClient, times(4))
             .sendMessage(eq(SERVICE_AUTH_TOKEN), sendMessageRequestCaptor.capture());
 
-        assertSendMessageRequestOldFormat(
+        assertSendMessageRequestWithNewFormat(
             sendMessageRequestCaptor.getAllValues().get(0),
             "some case reference",
             dmnStringValue("some category")
         );
 
-        assertSendMessageRequestWithWarnings(
+        assertSendMessageRequestOldFormat(
             sendMessageRequestCaptor.getAllValues().get(1),
             "some case reference",
             dmnStringValue("some category")
         );
 
-        assertSendMessageRequestWithWarnings(
+        assertSendMessageRequestWithNewFormat(
             sendMessageRequestCaptor.getAllValues().get(2),
             "some case reference",
             dmnStringValue("some other category")
@@ -201,7 +201,7 @@ class WarningCaseEventHandlerBackwardsCompatibilityTest {
             dmnStringValue("category1, category2")
         );
 
-        assertSendMessageRequestWithWarnings(
+        assertSendMessageRequestWithNewFormat(
             sendMessageRequestCaptor.getAllValues().get(1),
             "some case reference",
             dmnStringValue("category1, category2")
@@ -245,7 +245,7 @@ class WarningCaseEventHandlerBackwardsCompatibilityTest {
         verify(workflowApiClient, times(1))
             .sendMessage(eq(SERVICE_AUTH_TOKEN), sendMessageRequestCaptor.capture());
 
-        assertSendMessageRequestWithWarnings(
+        assertSendMessageRequestWithNewFormat(
             sendMessageRequestCaptor.getAllValues().get(0),
             "some case reference",
             null
@@ -304,8 +304,7 @@ class WarningCaseEventHandlerBackwardsCompatibilityTest {
         assertThat(sendMessageRequest.getMessageName()).isEqualTo(WARN_TASKS_MESSAGE_NAME);
         assertThat(sendMessageRequest.getCorrelationKeys()).isEqualTo(expectedCorrelationKeys);
         assertTrue(sendMessageRequest.isAll());
-        assertTrue(sendMessageRequest.getProcessVariables().containsKey("warningCode"));
-        assertTrue(sendMessageRequest.getProcessVariables().containsKey("warningText"));
+        assertTrue(sendMessageRequest.getProcessVariables().containsKey("warnings"));
     }
 
     private void assertSendMessageRequest(
@@ -333,7 +332,7 @@ class WarningCaseEventHandlerBackwardsCompatibilityTest {
         assertTrue(sendMessageRequest.isAll());
     }
 
-    private void assertSendMessageRequestWithWarnings(
+    private void assertSendMessageRequestWithNewFormat(
         SendMessageRequest sendMessageRequest,
         String caseReference,
         DmnValue<String> categories
@@ -357,7 +356,6 @@ class WarningCaseEventHandlerBackwardsCompatibilityTest {
         assertThat(sendMessageRequest.getMessageName()).isEqualTo(WARN_TASKS_MESSAGE_NAME);
         assertThat(sendMessageRequest.getCorrelationKeys()).isEqualTo(expectedCorrelationKeys);
         assertTrue(sendMessageRequest.isAll());
-        assertTrue(sendMessageRequest.getProcessVariables().containsKey("warningCode"));
-        assertTrue(sendMessageRequest.getProcessVariables().containsKey("warningText"));
+        assertThat(sendMessageRequest.getProcessVariables().containsKey("warnings"));
     }
 }
