@@ -698,7 +698,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .additionalData(additionalData)
             .build();
 
-        callRestEndpoint(eventInformation);
+        callRestEndpoint(s2sToken, eventInformation);
 
         final String taskId = findTaskForGivenCaseId(
             caseIdForTask,
@@ -735,7 +735,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .additionalData(additionalData)
             .build();
 
-        callRestEndpoint(eventInformation);
+        callRestEndpoint(s2sToken, eventInformation);
 
         final String taskId = findTaskForGivenCaseId(
             caseIdForTask,
@@ -840,9 +840,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
                         .body("caseId.value", is(caseId))
                         .body("hasWarnings.value", is(hasWarningValue))
                         .body("warningList.value",
-                              is("[{\"warningCode\":\"TA01\","
-                                     + "\"warningText\":\"There is an application task which "
-                                     + "might impact other active tasks\"}]"));
+                            is("[{\"warningCode\":\"TA01\","
+                               + "\"warningText\":\"There is an application task which "
+                               + "might impact other active tasks\"}]"));
 
                     return true;
                 });
@@ -862,7 +862,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             publishMessageToTopic(eventInformation);
             waitSeconds(2);
         } else {
-            callRestEndpoint(eventInformation);
+            callRestEndpoint(s2sToken, eventInformation);
         }
     }
 
@@ -882,9 +882,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .build();
     }
 
-    private void callRestEndpoint(EventInformation eventInformation) {
+    private void callRestEndpoint(String s2sToken, EventInformation eventInformation) {
         given()
             .contentType(APPLICATION_JSON_VALUE)
+            .header(SERVICE_AUTHORIZATION, s2sToken)
             .body(asJsonString(eventInformation))
             .when()
             .post("/messages")
