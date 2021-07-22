@@ -241,6 +241,15 @@ dependencyManagement {
     }
     //CVE-2021-27568
     dependency group: 'net.minidev', name: 'json-smart', version: '2.4.7'
+
+    // CVE-2021-22112
+    dependencySet(group: 'org.springframework.security', version: '5.4.6') {
+      entry 'spring-security-crypto'
+      entry 'spring-security-core'
+      entry 'spring-security-test'
+      entry 'spring-security-config'
+      entry 'spring-security-web'
+    }
   }
 }
 
@@ -255,7 +264,7 @@ def versions = [
   junitPlatform   : '1.7.0',
   reformLogging   : '5.1.5',
   springBoot      : '2.4.2',
-  springfoxSwagger: '2.9.2',
+  springfoxSwagger: '3.0.0',
   serenity        : '2.2.12',
   pitest          : '1.5.2',
   logbook         : '2.6.2',
@@ -278,13 +287,20 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
   implementation('org.springframework.boot:spring-boot-starter-validation')
-  implementation group: 'io.springfox', name: 'springfox-swagger2', version: versions.springfoxSwagger
+  implementation 'org.springframework.boot:spring-boot-starter-security'
+  implementation 'org.springframework.security:spring-security-test'
+
+  implementation group: 'io.springfox', name: 'springfox-boot-starter', version: versions.springfoxSwagger
+  implementation group: 'io.springfox', name: 'springfox-swagger-ui', version: versions.springfoxSwagger
+
+
+  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.2.7.RELEASE'
+
   implementation group: 'org.zalando', name:'logbook-spring-boot-starter', version: versions.logbook
 
   implementation group: 'com.github.hmcts.java-logging', name: 'java-logging', version: versions.reformLogging
   implementation group: 'com.github.hmcts.java-logging', name: 'java-logging-appinsights', version: versions.reformLogging
   implementation group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.0'
-  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-netflix-hystrix', version: '2.2.7.RELEASE'
 
   implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.0.2'
 
