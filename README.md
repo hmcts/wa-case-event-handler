@@ -64,6 +64,7 @@ To build the project execute the following command:
    ```
        ./gradlew test integration functional
    ```
+   
   or
   ```
   ./gradlew tests
