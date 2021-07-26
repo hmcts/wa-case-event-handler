@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,9 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClient;
-import uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.request.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.request.SendMessageRequest;
@@ -30,6 +29,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -49,13 +49,12 @@ class WarningCaseEventHandlerBackwardsCompatibilityTest {
     public static final String WARN_TASKS_MESSAGE_NAME = "warnProcess";
     private static final String TASK_CANCELLATION_DMN_TABLE = "wa-task-cancellation-ia-asylum";
     private static final String SERVICE_AUTH_TOKEN = "s2s token";
+    public static final String WARNING_LIST = "warningsToAdd";
     private EventInformation eventInformation;
     @Mock
     private WorkflowApiClient workflowApiClient;
     @Mock
     private AuthTokenGenerator serviceAuthGenerator;
-    @Mock
-    private LaunchDarklyFeatureFlagProvider featureFlagProvider;
     @Captor
     private ArgumentCaptor<SendMessageRequest> sendMessageRequestCaptor;
     @InjectMocks
@@ -64,7 +63,6 @@ class WarningCaseEventHandlerBackwardsCompatibilityTest {
     @BeforeEach
     void setUp() {
         lenient().when(serviceAuthGenerator.generate()).thenReturn(SERVICE_AUTH_TOKEN);
-        lenient().when(featureFlagProvider.getBooleanValue(FeatureFlag.WA_NON_IAC_WARNINGS)).thenReturn(Boolean.FALSE);
         eventInformation = EventInformation.builder()
             .eventId("some event id")
             .newStateId("some post state")
@@ -133,19 +131,19 @@ class WarningCaseEventHandlerBackwardsCompatibilityTest {
     }
 
     @Test
-    void should_be_able_to_handle() {
+    void should_be_able_to_handle_with_different_categories_and_warnings() {
         CancellationEvaluateResponse result1 = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Warn"))
             .taskCategories(dmnStringValue("some category"))
-            .warningCode(dmnStringValue("Code"))
-            .warningText(dmnStringValue("Text"))
+            .warningCode(dmnStringValue("Code1"))
+            .warningText(dmnStringValue("Text1"))
             .build();
 
         CancellationEvaluateResponse result2 = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Warn"))
             .taskCategories(dmnStringValue("some other category"))
-            .warningCode(dmnStringValue("Code"))
-            .warningText(dmnStringValue("Text"))
+            .warningCode(dmnStringValue("Code2"))
+            .warningText(dmnStringValue("Text2"))
             .build();
 
         List<CancellationEvaluateResponse> results = List.of(result1, result2);
@@ -162,13 +160,13 @@ class WarningCaseEventHandlerBackwardsCompatibilityTest {
             dmnStringValue("some category")
         );
 
-        assertSendMessageRequestWithWarnings(
+        assertSendMessageRequest(
             sendMessageRequestCaptor.getAllValues().get(1),
             "some case reference",
             dmnStringValue("some category")
         );
 
-        assertSendMessageRequestWithWarnings(
+        assertSendMessageRequest(
             sendMessageRequestCaptor.getAllValues().get(2),
             "some case reference",
             dmnStringValue("some other category")
@@ -183,12 +181,12 @@ class WarningCaseEventHandlerBackwardsCompatibilityTest {
     }
 
     @Test
-    void should_be_able_to_handle_with_multiple_categories() {
+    void should_be_able_to_handle_with_multiple_different_categories_and_same_warnings() {
         CancellationEvaluateResponse result = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Warn"))
             .taskCategories(dmnStringValue("category1, category2"))
-            .warningCode(dmnStringValue("Code"))
-            .warningText(dmnStringValue("Text"))
+            .warningCode(dmnStringValue("Code1"))
+            .warningText(dmnStringValue("Text1"))
             .build();
 
         List<CancellationEvaluateResponse> results = List.of(result);
@@ -199,13 +197,13 @@ class WarningCaseEventHandlerBackwardsCompatibilityTest {
         verify(workflowApiClient, times(2))
             .sendMessage(eq(SERVICE_AUTH_TOKEN), sendMessageRequestCaptor.capture());
 
-        assertSendMessageRequestOldFormat(
+        assertSendMessageRequest(
             sendMessageRequestCaptor.getAllValues().get(0),
             "some case reference",
             dmnStringValue("category1, category2")
         );
 
-        assertSendMessageRequestWithWarnings(
+        assertSendMessageRequestOldFormat(
             sendMessageRequestCaptor.getAllValues().get(1),
             "some case reference",
             dmnStringValue("category1, category2")
@@ -213,9 +211,11 @@ class WarningCaseEventHandlerBackwardsCompatibilityTest {
     }
 
     @Test
-    void should_be_able_to_handle_with_no_categories() {
+    void should_be_able_to_handle_with_warnings_and_no_categories() {
         CancellationEvaluateResponse result = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Warn"))
+            .warningCode(dmnStringValue("Code1"))
+            .warningText(dmnStringValue("Text1"))
             .build();
 
         List<CancellationEvaluateResponse> results = List.of(result);
@@ -234,11 +234,9 @@ class WarningCaseEventHandlerBackwardsCompatibilityTest {
     }
 
     @Test
-    void should_be_able_to_handle_with_no_categories_and_with_warnings() {
+    void should_be_able_to_handle_with_no_categories_and_warnings() {
         CancellationEvaluateResponse result = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Warn"))
-            .warningCode(dmnStringValue("Code"))
-            .warningText(dmnStringValue("Text"))
             .build();
 
         List<CancellationEvaluateResponse> results = List.of(result);
@@ -249,7 +247,7 @@ class WarningCaseEventHandlerBackwardsCompatibilityTest {
         verify(workflowApiClient, times(1))
             .sendMessage(eq(SERVICE_AUTH_TOKEN), sendMessageRequestCaptor.capture());
 
-        assertSendMessageRequestWithWarnings(
+        assertSendMessageRequestWithoutWarnings(
             sendMessageRequestCaptor.getAllValues().get(0),
             "some case reference",
             null
@@ -308,8 +306,7 @@ class WarningCaseEventHandlerBackwardsCompatibilityTest {
         assertThat(sendMessageRequest.getMessageName()).isEqualTo(WARN_TASKS_MESSAGE_NAME);
         assertThat(sendMessageRequest.getCorrelationKeys()).isEqualTo(expectedCorrelationKeys);
         assertTrue(sendMessageRequest.isAll());
-        assertTrue(sendMessageRequest.getProcessVariables().containsKey("warningCode"));
-        assertTrue(sendMessageRequest.getProcessVariables().containsKey("warningText"));
+        assertTrue(sendMessageRequest.getProcessVariables().containsKey(WARNING_LIST));
     }
 
     private void assertSendMessageRequest(
@@ -318,31 +315,29 @@ class WarningCaseEventHandlerBackwardsCompatibilityTest {
         DmnValue<String> categories
     ) {
 
-        Map<String, DmnValue<?>> expectedCorrelationKeys = new HashMap<>();
-        expectedCorrelationKeys.put("caseId", dmnStringValue(caseReference));
-
-        if (categories != null && categories.getValue() != null) {
-            List<String> categoriesToCancel = Stream.of(categories.getValue().split(","))
-                .map(String::trim)
-                .collect(Collectors.toList());
-
-            categoriesToCancel.forEach(category ->
-                expectedCorrelationKeys.put("__processCategory__" + category, dmnBooleanValue(true))
-            );
-        }
-
+        Map<String, DmnValue<?>> expectedCorrelationKeys = getCorrelatedKeyMap(caseReference, categories);
 
         assertThat(sendMessageRequest.getMessageName()).isEqualTo(WARN_TASKS_MESSAGE_NAME);
         assertThat(sendMessageRequest.getCorrelationKeys()).isEqualTo(expectedCorrelationKeys);
         assertTrue(sendMessageRequest.isAll());
+        assertTrue(sendMessageRequest.getProcessVariables().containsKey(WARNING_LIST));
     }
 
-    private void assertSendMessageRequestWithWarnings(
+    private void assertSendMessageRequestWithoutWarnings(
         SendMessageRequest sendMessageRequest,
         String caseReference,
-        DmnValue<String> categories
-    ) {
+        DmnValue<String> categories) {
 
+        Map<String, DmnValue<?>> expectedCorrelationKeys = getCorrelatedKeyMap(caseReference, categories);
+
+        assertThat(sendMessageRequest.getMessageName()).isEqualTo(WARN_TASKS_MESSAGE_NAME);
+        assertThat(sendMessageRequest.getCorrelationKeys()).isEqualTo(expectedCorrelationKeys);
+        assertTrue(sendMessageRequest.isAll());
+        assertNull(sendMessageRequest.getProcessVariables());
+    }
+
+    @NotNull
+    private Map<String, DmnValue<?>> getCorrelatedKeyMap(String caseReference, DmnValue<String> categories) {
         Map<String, DmnValue<?>> expectedCorrelationKeys = new HashMap<>();
         expectedCorrelationKeys.put("caseId", dmnStringValue(caseReference));
 
@@ -353,15 +348,11 @@ class WarningCaseEventHandlerBackwardsCompatibilityTest {
 
             categoriesToCancel.forEach(category ->
                                            expectedCorrelationKeys.put(
-                                               "__processCategory__" + category, dmnBooleanValue(true))
+                                               "__processCategory__" + category,
+                                               dmnBooleanValue(true)
+                                           )
             );
         }
-
-
-        assertThat(sendMessageRequest.getMessageName()).isEqualTo(WARN_TASKS_MESSAGE_NAME);
-        assertThat(sendMessageRequest.getCorrelationKeys()).isEqualTo(expectedCorrelationKeys);
-        assertTrue(sendMessageRequest.isAll());
-        assertTrue(sendMessageRequest.getProcessVariables().containsKey("warningCode"));
-        assertTrue(sendMessageRequest.getProcessVariables().containsKey("warningText"));
+        return expectedCorrelationKeys;
     }
 }
