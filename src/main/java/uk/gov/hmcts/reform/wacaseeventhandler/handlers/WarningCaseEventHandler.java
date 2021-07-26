@@ -85,7 +85,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
                 } else {
                     if (!StringUtils.isEmpty(warnResponse.getProcessCategories())
                         || !StringUtils.isEmpty(warnResponse.getTaskCategories())) {
-                        final CancellationEvaluateResponse localWarnResponse = CancellationEvaluateResponse.builder()
+                        CancellationEvaluateResponse localWarnResponse = CancellationEvaluateResponse.builder()
                             .processCategories(warnResponse.getProcessCategories())
                             .taskCategories(warnResponse.getTaskCategories())
                             .warningText(warnResponse.getWarningText())

@@ -3,14 +3,14 @@ package uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
-
-import java.util.Objects;
 
 @ToString
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
+@EqualsAndHashCode
 public final class CancellationEvaluateResponse implements EvaluateResponse {
 
     @JsonProperty("action")
@@ -66,28 +66,5 @@ public final class CancellationEvaluateResponse implements EvaluateResponse {
 
     public DmnValue<String> getWarningText() {
         return warningText;
-    }
-
-    @Override
-    public boolean equals(Object anotherobject) {
-        if (this == anotherobject) {
-            return true;
-        }
-        if (!(anotherobject instanceof CancellationEvaluateResponse)) {
-            return false;
-        }
-        CancellationEvaluateResponse response = (CancellationEvaluateResponse) anotherobject;
-        return Objects.equals(warningCode, response.warningCode) && Objects.equals(
-            warningText,
-            response.warningText
-        ) && Objects.equals(taskCategories, response.taskCategories) && Objects.equals(
-            processCategories,
-            response.processCategories
-        );
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(warningCode, warningText, taskCategories, processCategories);
     }
 }
