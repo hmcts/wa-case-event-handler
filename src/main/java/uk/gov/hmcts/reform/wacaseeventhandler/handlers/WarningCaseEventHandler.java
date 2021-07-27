@@ -80,7 +80,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
             .filter(result -> CancellationActions.WARN == CancellationActions.from(result.getAction().getValue()))
             .forEach(warnResponse -> {
                 if (StringUtils.isEmpty(warnResponse.getWarningCode())
-                    || StringUtils.isEmpty(warnResponse.getWarningText() != null)) {
+                    || StringUtils.isEmpty(warnResponse.getWarningText())) {
                     emptyWarnings.add(warnResponse);
                 } else {
                     if (!StringUtils.isEmpty(warnResponse.getProcessCategories())

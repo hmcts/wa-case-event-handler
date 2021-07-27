@@ -290,6 +290,50 @@ class WarningCaseEventHandlerTest {
     }
 
     @Test
+    void should_be_able_to_handle_with_categories_and_with_no_warning_code() {
+        CancellationEvaluateResponse result = CancellationEvaluateResponse.builder()
+            .action(dmnStringValue("Warn"))
+            .processCategories(dmnStringValue("some category"))
+            .warningText(dmnStringValue("Text1"))
+            .build();
+
+        List<CancellationEvaluateResponse> results = List.of(result);
+
+        handlerService.handle(results, eventInformation);
+
+        verify(workflowApiClient, times(1))
+            .sendMessage(eq(SERVICE_AUTH_TOKEN), sendMessageRequestCaptor.capture());
+
+        assertSendMessageRequestWithoutWarnings(
+            sendMessageRequestCaptor.getAllValues().get(0),
+            "some case reference",
+            dmnStringValue("some category")
+        );
+    }
+
+    @Test
+    void should_be_able_to_handle_with_categories_and_with_no_warning_text() {
+        CancellationEvaluateResponse result = CancellationEvaluateResponse.builder()
+            .action(dmnStringValue("Warn"))
+            .processCategories(dmnStringValue("some category"))
+            .warningCode(dmnStringValue("Code1"))
+            .build();
+
+        List<CancellationEvaluateResponse> results = List.of(result);
+
+        handlerService.handle(results, eventInformation);
+
+        verify(workflowApiClient, times(1))
+            .sendMessage(eq(SERVICE_AUTH_TOKEN), sendMessageRequestCaptor.capture());
+
+        assertSendMessageRequestWithoutWarnings(
+            sendMessageRequestCaptor.getAllValues().get(0),
+            "some case reference",
+            dmnStringValue("some category")
+        );
+    }
+
+    @Test
     void should_ignore_invalid_instances() {
         InitiateEvaluateResponse invalidInstanceResults = InitiateEvaluateResponse.builder().build();
 

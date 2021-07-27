@@ -83,6 +83,49 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
     }
 
     /**
+     * Scenario: 1 event creates 2 different warnings on single task.
+     */
+    @Test
+    public void given_caseId_with_single_task_and_same_category_when_warning_raised_then_mark_tasks_with_warnings() {
+        String caseIdForTask1 = UUID.randomUUID().toString();
+
+        // Initiate task1, category (Case progression)
+        sendMessage(caseIdForTask1, "submitCase", null,
+                    "caseUnderReview", false);
+
+        Response response = findTasksByCaseId(
+            caseIdForTask1, 1);
+
+        String task1Id = response
+            .then()
+            .body("size()", is(1))
+            .assertThat().body("[0].id", notNullValue())
+            .extract()
+            .path("[0].id");
+
+        // test for workingDaysAllowed  = 5
+        Response responseTaskDetails = findTaskDetailsForGivenTaskId(task1Id);
+        assertDelayDuration(responseTaskDetails);
+
+        // send warning message
+        sendMessage(caseIdForTask1, "_DUMMY_makeAnApplication",
+                    "", "", false);
+
+        String warningsAsJson = "[{\"warningCode\":\"TA01\","
+            + "\"warningText\":\"There is an application task which "
+            + "might impact other active tasks\"},"
+            + "{\"warningCode\":\"TA02\","
+            + "\"warningText\":\"There is another task on this case that needs your attention\"}"
+            + "]";
+        // check for warnings flag on both the tasks
+        assertTaskHasMultipleWarnings(caseIdForTask1, task1Id, new WarningValues(warningsAsJson));
+
+        // tear down all tasks
+        tearDownMultipleTasks(Arrays.asList(task1Id), "completed");
+    }
+
+
+    /**
      * Scenario: 1 event creates 2 different warnings each for a different task type.
      */
     @Test
