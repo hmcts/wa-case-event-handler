@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Ignore;
 import org.junit.Test;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.WarningValues;
 
@@ -23,6 +24,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  *
  */
 @Slf4j
+@Ignore("These tests are related to Non-IAC requirements which are not part of production dmns.")
 public class WarningEventHandlerControllerTest extends CaseEventHandlerControllerTest {
 
     /**
