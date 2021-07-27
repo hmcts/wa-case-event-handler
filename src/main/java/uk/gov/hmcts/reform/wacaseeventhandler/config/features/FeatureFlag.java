@@ -10,7 +10,6 @@ public enum FeatureFlag {
 
     //Features
     TASK_INITIATION_FEATURE("wa-task-initiation-feature"),
-    WA_NON_IAC_WARNINGS("wa-dmn-warnings-non-iac-feature"),
 
     //The following keys are used for testing purposes only.
     TEST_KEY("tester"),
