@@ -698,7 +698,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .additionalData(additionalData)
             .build();
 
-        callRestEndpoint(eventInformation);
+        callRestEndpoint(s2sToken, eventInformation);
 
         final String taskId = findTaskForGivenCaseId(
             caseIdForTask,
@@ -735,7 +735,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .additionalData(additionalData)
             .build();
 
-        callRestEndpoint(eventInformation);
+        callRestEndpoint(s2sToken, eventInformation);
 
         final String taskId = findTaskForGivenCaseId(
             caseIdForTask,
@@ -840,15 +840,15 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
                         .body("caseId.value", is(caseId))
                         .body("hasWarnings.value", is(hasWarningValue))
                         .body("warningList.value",
-                              is("[{\"warningCode\":\"TA01\","
-                                     + "\"warningText\":\"There is an application task which "
-                                     + "might impact other active tasks\"}]"));
+                            is("[{\"warningCode\":\"TA01\","
+                               + "\"warningText\":\"There is an application task which "
+                               + "might impact other active tasks\"}]"));
 
                     return true;
                 });
     }
 
-    private void sendMessage(String caseId, String event, String previousStateId,
+    protected void sendMessage(String caseId, String event, String previousStateId,
                              String newStateId, boolean taskDelay) {
 
         if (taskDelay) {
@@ -862,7 +862,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             publishMessageToTopic(eventInformation);
             waitSeconds(2);
         } else {
-            callRestEndpoint(eventInformation);
+            callRestEndpoint(s2sToken, eventInformation);
         }
     }
 
@@ -882,9 +882,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .build();
     }
 
-    private void callRestEndpoint(EventInformation eventInformation) {
+    private void callRestEndpoint(String s2sToken, EventInformation eventInformation) {
         given()
             .contentType(APPLICATION_JSON_VALUE)
+            .header(SERVICE_AUTHORIZATION, s2sToken)
             .body(asJsonString(eventInformation))
             .when()
             .post("/messages")
@@ -900,7 +901,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         publisher.sendMessage(message);
     }
 
-    private String createTaskWithId(String caseId,
+    protected String createTaskWithId(String caseId,
                                     String eventId,
                                     String previousStateId,
                                     String newStateId,
@@ -921,7 +922,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         return findTaskForGivenCaseId(caseId, outcomeTaskId);
     }
 
-    private Response findTasksByCaseId(
+    protected Response findTasksByCaseId(
         String caseId, int expectedTaskAmount
     ) {
 
@@ -954,7 +955,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         return response.get();
     }
 
-    private Response findTaskDetailsForGivenTaskId(String taskId) {
+    protected Response findTaskDetailsForGivenTaskId(String taskId) {
         log.info("Attempting to retrieve task details with taskId = {}", taskId);
 
         return given()
@@ -1013,11 +1014,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertTaskDeleteReason(taskId, status);
     }
 
-    private void tearDownMultipleTasks(List<String> tasks, String status) {
+    protected void tearDownMultipleTasks(List<String> tasks, String status) {
         tasks.forEach(task -> completeTask(task, status));
     }
 
-    private void assertDelayDuration(Response result) {
+    protected void assertDelayDuration(Response result) {
         Map<String, Object> mapJson = result.jsonPath().get("dueDate");
         final String dueDateVal = (String) mapJson.get("value");
         final LocalDateTime dueDateTime = LocalDateTime.parse(dueDateVal);

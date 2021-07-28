@@ -20,7 +20,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +30,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.CaseEventHandlerControllerEndpointTest.getBaseEventInformation;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnStringValue;
 import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.asJsonString;
 
@@ -198,21 +198,6 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
             any(EvaluateDmnRequest.class));
 
         return response;
-    }
-
-    private static EventInformation getBaseEventInformation(AdditionalData additionalData) {
-        EventInformation validEventInformation = EventInformation.builder()
-            .eventInstanceId("some event instance Id")
-            .eventTimeStamp(LocalDateTime.now())
-            .caseId("some case reference")
-            .jurisdictionId("ia")
-            .caseTypeId("asylum")
-            .eventId("some event Id")
-            .newStateId("some new state Id")
-            .userId("some user Id")
-            .additionalData(additionalData)
-            .build();
-        return validEventInformation;
     }
 
 }
