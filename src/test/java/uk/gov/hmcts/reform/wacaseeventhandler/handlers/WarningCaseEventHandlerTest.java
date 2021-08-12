@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -385,12 +386,12 @@ class WarningCaseEventHandlerTest {
         assertTrue(sendMessageRequest.getProcessVariables().containsKey(WARNING_LIST));
         final DmnValue<?> warnings = sendMessageRequest.getProcessVariables().get(WARNING_LIST);
 
-        assertTrue(warnings != null);
+        assertNotNull(warnings);
 
         final String warningAsString = (String) warnings.getValue();
         WarningValues warningValues = new WarningValues(warningAsString);
 
-        assertThat(warningValues.getValues().contains(new Warning(warningCode, warningText)));
+        assertThat(warningValues.getValues()).contains(new Warning(warningCode, warningText));
     }
 
     @NotNull

@@ -2,7 +2,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ObjectUtils;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClient;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.CancellationActions;
@@ -79,12 +79,12 @@ public class WarningCaseEventHandler implements CaseEventHandler {
             .map(CancellationEvaluateResponse.class::cast)
             .filter(result -> CancellationActions.WARN == CancellationActions.from(result.getAction().getValue()))
             .forEach(warnResponse -> {
-                if (StringUtils.isEmpty(warnResponse.getWarningCode())
-                    || StringUtils.isEmpty(warnResponse.getWarningText())) {
+                if (ObjectUtils.isEmpty(warnResponse.getWarningCode())
+                    || ObjectUtils.isEmpty(warnResponse.getWarningText())) {
                     emptyWarnings.add(warnResponse);
                 } else {
-                    if (!StringUtils.isEmpty(warnResponse.getProcessCategories())
-                        || !StringUtils.isEmpty(warnResponse.getTaskCategories())) {
+                    if (!ObjectUtils.isEmpty(warnResponse.getProcessCategories())
+                        || !ObjectUtils.isEmpty(warnResponse.getTaskCategories())) {
                         CancellationEvaluateResponse localWarnResponse = CancellationEvaluateResponse.builder()
                             .processCategories(warnResponse.getProcessCategories())
                             .taskCategories(warnResponse.getTaskCategories())
@@ -124,7 +124,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
         // scenario: event without categories. Should contain unique warning attributes
         if (!warnings.isEmpty()) {
             WarningValues warningValues = new WarningValues();
-            warnings.stream().forEach(warning -> warningValues.getValues().add(warning));
+            warnings.forEach(warning -> warningValues.getValues().add(warning));
 
             sendWarningMessage(
                 eventInformation.getCaseId(),
@@ -220,7 +220,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
             );
         }
 
-        if (!StringUtils.isEmpty(warningVariables)) {
+        if (!ObjectUtils.isEmpty(warningVariables)) {
             return addWarningsToProcessVariables(correlationKeys, warningVariables);
         }
 
@@ -254,7 +254,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
                 correlationKeys.put("taskCategory", categories);
             }
 
-            if (!StringUtils.isEmpty(warningVariables)) {
+            if (!ObjectUtils.isEmpty(warningVariables)) {
                 return addWarningsToProcessVariables(correlationKeys, warningVariables);
             }
             return SendMessageRequest.builder()
