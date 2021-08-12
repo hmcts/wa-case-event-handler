@@ -23,6 +23,8 @@ wa-workflow-api:
   url: ${WA_WORKFLOW_API_URL:http://localhost:8099}
 
 spring:
+  config:
+    import: "optional:configtree:/mnt/secrets/wa/"
   application:
     name: WA Case Event Handler
   jackson.serialization.indent_output: true
