@@ -61,7 +61,7 @@ class CaseEventHandlerControllerHandlersOrderTest {
 
         EvaluateDmnResponse<CancellationEvaluateResponse> warningDmnResponse =
             new EvaluateDmnResponse<>(List.of(new CancellationEvaluateResponse(
-                warnAction, null, null,taskCategory, null)));
+                warnAction, null, null, taskCategory, null)));
 
         doReturn(warningDmnResponse.getResults())
             .when(warningTaskHandlerService).evaluateDmn(any(EventInformation.class));
