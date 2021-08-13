@@ -6,10 +6,14 @@ java:
   keyVaults:
     wa:
       secrets:
-        - AppInsightsInstrumentationKey
-        - s2s-secret-case-event-handler
-        - ccd-shared-servicebus-connection-string
-        - ld-secret
+        - name: AppInsightsInstrumentationKey
+          alias: azure.application-insights.instrumentation-key
+        - name: s2s-secret-case-event-handler
+          alias: S2S_SECRET_CASE_EVENT_HANDLER
+        - name: ccd-shared-servicebus-connection-string
+          alias: AZURE_SERVICE_BUS_CONNECTION_STRING
+        - name: ld-secret
+          alias: LAUNCH_DARKLY_SDK_KEY
   environment:
     S2S_URL: "http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     WA_WORKFLOW_API_URL: "http://wa-workflow-api-pr-249.service.core-compute-preview.internal"
