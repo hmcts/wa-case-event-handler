@@ -312,7 +312,7 @@ class CaseEventHandlerControllerEndpointTest {
 
     private static EventInformation getBaseEventInformationWithAdditionalData() {
         Map<String, Object> dataMap = Map.of(
-            "lastModifiedDirection", Map.of("directionDueDate", "2021-04-06"),
+            "lastModifiedDirection", Map.of("dateDue", "2021-04-06"),
             "appealType", "protection"
         );
 

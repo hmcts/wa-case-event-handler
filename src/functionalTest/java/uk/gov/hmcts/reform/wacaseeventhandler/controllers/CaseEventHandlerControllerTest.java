@@ -676,7 +676,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_an_event_when_directionDueDate_is_empty_then_task_should_start_without_delay() {
 
         Map<String, Object> dataMap = Map.of(
-            "lastModifiedDirection", Map.of("directionDueDate", ""),
+            "lastModifiedDirection", Map.of("dateDue", ""),
             "appealType", "protection"
         );
 
@@ -877,7 +877,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .eventId(event)
             .newStateId(newStateId)
             .previousStateId(previousStateId)
-            .additionalData(new AdditionalData(emptyMap(), emptyMap()))
+            .additionalData(setAdditionalData())
             .userId("some user Id")
             .build();
     }
@@ -1014,6 +1014,20 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertTaskDeleteReason(taskId, status);
     }
 
+    private AdditionalData setAdditionalData() {
+        Map<String, Object> dataMap = Map.of(
+            "lastModifiedDirection", Map.of(
+                "dateDue", "",
+                "uniqueId", "",
+            "directionType", ""
+            ),
+            "appealType", "protection"
+        );
+
+        return AdditionalData.builder()
+            .data(dataMap)
+            .build();
+    }
     protected void tearDownMultipleTasks(List<String> tasks, String status) {
         tasks.forEach(task -> completeTask(task, status));
     }
