@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.request;
 
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -11,6 +13,7 @@ import java.util.Map;
 @EqualsAndHashCode
 @ToString
 @Builder
+@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class SendMessageRequest {
     private final String messageName;
     private final Map<String, DmnValue<?>> processVariables;
