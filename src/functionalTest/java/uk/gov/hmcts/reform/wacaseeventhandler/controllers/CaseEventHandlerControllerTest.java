@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.util.Collections.emptyMap;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
@@ -1028,6 +1027,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .data(dataMap)
             .build();
     }
+
     protected void tearDownMultipleTasks(List<String> tasks, String status) {
         tasks.forEach(task -> completeTask(task, status));
     }
