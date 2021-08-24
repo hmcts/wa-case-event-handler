@@ -198,7 +198,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
                                                     String warningVariables) {
 
         Map<String, DmnValue<?>> correlationKeys = new ConcurrentHashMap<>();
-        correlationKeys.put("caseId", dmnStringValue(caseReference));
+        correlationKeys.put("case_id", dmnStringValue(caseReference));
 
         if (categories != null && categories.getValue() != null) {
             List<String> categoriesToCancel = Stream.of(categories.getValue().split(","))
@@ -206,7 +206,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
                 .collect(Collectors.toList());
 
             categoriesToCancel.forEach(cat ->
-                correlationKeys.put("__processCategory__" + cat, dmnBooleanValue(true))
+                correlationKeys.put("__process_category__" + cat, dmnBooleanValue(true))
             );
         }
 
@@ -216,7 +216,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
                 .collect(Collectors.toList());
 
             categoriesToCancel.forEach(cat ->
-                correlationKeys.put("__processCategory__" + cat, dmnBooleanValue(true))
+                correlationKeys.put("__process_category__" + cat, dmnBooleanValue(true))
             );
         }
 
@@ -248,10 +248,10 @@ public class WarningCaseEventHandler implements CaseEventHandler {
 
         if (processCategories == null) {
             Map<String, DmnValue<?>> correlationKeys = new ConcurrentHashMap<>();
-            correlationKeys.put("caseId", dmnStringValue(caseReference));
+            correlationKeys.put("case_id", dmnStringValue(caseReference));
 
             if (categories != null && categories.getValue() != null) {
-                correlationKeys.put("taskCategory", categories);
+                correlationKeys.put("task_category", categories);
             }
 
             if (!StringUtils.isEmpty(warningVariables)) {
@@ -276,7 +276,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
         Map<String, DmnValue<?>> variables = Map.of(
             "event", dmnStringValue(eventId),
             "state", dmnStringValue(newStateId),
-            "fromState", dmnStringValue(previousStateId)
+            "from_state", dmnStringValue(previousStateId)
         );
 
         return new EvaluateDmnRequest(variables);
@@ -289,7 +289,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
         return SendMessageRequest.builder()
             .messageName(TASK_WARN.getMessageName())
             .correlationKeys(correlationKeys)
-            .processVariables(Map.of("warningsToAdd", new DmnValue<>(warningVariables, "String")))
+            .processVariables(Map.of("warnings_to_add", new DmnValue<>(warningVariables, "String")))
             .all(true)
             .build();
     }

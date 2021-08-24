@@ -88,7 +88,7 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
         Map<String, DmnValue<?>> variables = Map.of(
             "event", dmnStringValue(eventId),
             "state", dmnStringValue(newStateId),
-            "fromState", dmnStringValue(previousStateId)
+            "from_state", dmnStringValue(previousStateId)
         );
 
         return new EvaluateDmnRequest(variables);
@@ -136,7 +136,7 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
                                                          DmnValue<String> processCategories) {
 
         Map<String, DmnValue<?>> correlationKeys = new ConcurrentHashMap<>();
-        correlationKeys.put("caseId", dmnStringValue(caseReference));
+        correlationKeys.put("case_id", dmnStringValue(caseReference));
 
         if (categories != null && categories.getValue() != null) {
             List<String> categoriesToCancel = Stream.of(categories.getValue().split(","))
@@ -144,7 +144,7 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
                 .collect(Collectors.toList());
 
             categoriesToCancel.forEach(cat ->
-                correlationKeys.put("__processCategory__" + cat, dmnBooleanValue(true))
+                correlationKeys.put("__process_category__" + cat, dmnBooleanValue(true))
             );
         }
 
@@ -154,7 +154,7 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
                 .collect(Collectors.toList());
 
             categoriesToCancel.forEach(cat ->
-                correlationKeys.put("__processCategory__" + cat, dmnBooleanValue(true))
+                correlationKeys.put("__process_category__" + cat, dmnBooleanValue(true))
             );
         }
 
@@ -182,10 +182,10 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
 
         if (processCategories == null) {
             Map<String, DmnValue<?>> correlationKeys = new ConcurrentHashMap<>();
-            correlationKeys.put("caseId", dmnStringValue(caseReference));
+            correlationKeys.put("case_id", dmnStringValue(caseReference));
 
             if (categories != null && categories.getValue() != null) {
-                correlationKeys.put("taskCategory", categories);
+                correlationKeys.put("task_category", categories);
             }
 
             return SendMessageRequest.builder()

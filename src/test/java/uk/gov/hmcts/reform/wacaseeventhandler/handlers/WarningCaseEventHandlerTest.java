@@ -51,7 +51,7 @@ class WarningCaseEventHandlerTest {
     public static final String WARN_TASKS_MESSAGE_NAME = "warnProcess";
     private static final String TASK_CANCELLATION_DMN_TABLE = "wa-task-cancellation-ia-asylum";
     private static final String SERVICE_AUTH_TOKEN = "s2s token";
-    public static final String WARNING_LIST = "warningsToAdd";
+    public static final String WARNING_LIST = "warnings_to_add";
     private EventInformation eventInformation;
     @Mock
     private WorkflowApiClient workflowApiClient;
@@ -364,7 +364,7 @@ class WarningCaseEventHandlerTest {
         Map<String, DmnValue<?>> variables = Map.of(
             "event", dmnStringValue("some event id"),
             "state", dmnStringValue("some post state"),
-            "fromState", dmnStringValue("some previous state")
+            "from_state", dmnStringValue("some previous state")
         );
 
         return new EvaluateDmnRequest(variables);
@@ -396,7 +396,7 @@ class WarningCaseEventHandlerTest {
     @NotNull
     private Map<String, DmnValue<?>> getCorrelatedKeyMap(String caseReference, DmnValue<String> categories) {
         Map<String, DmnValue<?>> expectedCorrelationKeys = new HashMap<>();
-        expectedCorrelationKeys.put("caseId", dmnStringValue(caseReference));
+        expectedCorrelationKeys.put("case_id", dmnStringValue(caseReference));
 
         if (categories != null && categories.getValue() != null) {
             List<String> categoriesToCancel = Stream.of(categories.getValue().split(","))
@@ -405,7 +405,7 @@ class WarningCaseEventHandlerTest {
 
             categoriesToCancel.forEach(category ->
                                            expectedCorrelationKeys.put(
-                                               "__processCategory__" + category,
+                                               "__process_category__" + category,
                                                dmnBooleanValue(true)
                                            )
             );

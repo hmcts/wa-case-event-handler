@@ -3,7 +3,7 @@
   "correlation_keys": null,
   "message_name": "createTaskMessage",
   "process_variables": {
-    "idempotencyKey": {
+    "idempotency_key": {
       "type": "String",
       "value": "a23422af-e92d-49d6-b591-be81f73e2dcf"
     },
@@ -15,23 +15,23 @@
       "type": "String",
       "value": "ia"
     },
-    "caseType": {
+    "case_type": {
       "type": "String",
       "value": "asylum"
     },
-    "taskId": {
+    "task_id": {
       "type": "String",
       "value": "processApplication"
     },
-    "caseId": {
+    "case_id": {
       "type": "String",
       "value": "b675a81b-cea9-432f-9d63-9279973d0391"
     },
-    "delayUntil": {
+    "delay_until": {
       "type": "String",
       "value": "2021-08-12T15:52:35.00000"
     },
-    "dueDate": {
+    "due_date": {
       "type": "String",
       "value": "2021-08-12T15:52:35.00000"
     }

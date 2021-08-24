@@ -137,7 +137,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("taskId.value", is("reviewTheAppeal"))
             .body("group.value", is("TCW"))
             .body("caseId.value", is(caseId))
-            .body("__processCategory__caseProgression.value", is(true))
+            .body("processCategoryCaseprogression.value", is(true))
             .body("hasWarnings.value", is(false))
             .body("warningList.value", is("[]"));
 

@@ -278,20 +278,20 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
     ) {
         Map<String, DmnValue<?>> expectedProcessVariables =
             Map.ofEntries(
-                entry("idempotencyKey", dmnStringValue(idempotencyKey)),
-                entry("taskState", dmnStringValue("unconfigured")),
-                entry("caseTypeId", dmnStringValue("asylum")),
-                entry("dueDate", dmnStringValue(dueDate)),
-                entry("workingDaysAllowed", dmnIntegerValue(workingDays)),
+                entry("idempotency_key", dmnStringValue(idempotencyKey)),
+                entry("task_state", dmnStringValue("unconfigured")),
+                entry("case_type_id", dmnStringValue("asylum")),
+                entry("due_date", dmnStringValue(dueDate)),
+                entry("working_days_allowed", dmnIntegerValue(workingDays)),
                 entry("group", dmnStringValue(group)),
                 entry("jurisdiction", dmnStringValue("ia")),
                 entry("name", dmnStringValue(name)),
-                entry("taskId", dmnStringValue(taskId)),
-                entry("caseId", dmnStringValue("some case reference")),
-                entry("taskCategory", dmnStringValue(taskCategory)),
-                entry("delayUntil", dmnStringValue(delayUntil)),
-                entry("hasWarnings", dmnBooleanValue(false)),
-                entry("warningList", dmnStringValue(new WarningValues().getValuesAsJson()))
+                entry("task_id", dmnStringValue(taskId)),
+                entry("case_id", dmnStringValue("some case reference")),
+                entry("task_category", dmnStringValue(taskCategory)),
+                entry("delay_until", dmnStringValue(delayUntil)),
+                entry("has_warnings", dmnBooleanValue(false)),
+                entry("warning_list", dmnStringValue(new WarningValues().getValuesAsJson()))
             );
 
         return new SendMessageRequest(

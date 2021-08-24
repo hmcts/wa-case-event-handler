@@ -185,7 +185,7 @@ class InitiationCaseEventHandlerTest {
             "idempotencyKey1",
             "Process Application",
             "processApplication",
-            "__processCategory__caseProgression",
+            "__process_category__caseProgression",
             "TCW",
             handleDateTimeScenario.dateAt4pm,
             handleDateTimeScenario.expectedDate,
@@ -196,7 +196,7 @@ class InitiationCaseEventHandlerTest {
             "idempotencyKey2",
             "Decide On Time Extension",
             "decideOnTimeExtension",
-            "__processCategory__timeExtension",
+            "__process_category__timeExtension",
             "external",
             handleDateTimeScenario.dateAt4pm,
             handleDateTimeScenario.expectedDate,
@@ -250,7 +250,7 @@ class InitiationCaseEventHandlerTest {
             "idempotencyKey1",
             "Process Application",
             "processApplication",
-            "__processCategory__caseProgression",
+            "__process_category__caseProgression",
             "TCW",
             "2020-12-12T16:00:00",
             "2020-12-10T16:00:00",
@@ -302,21 +302,21 @@ class InitiationCaseEventHandlerTest {
 
         Map<String, DmnValue<?>> expectedProcessVariables =
             Map.ofEntries(
-                entry("idempotencyKey", dmnStringValue("idempotencyKey1")),
-                entry("taskState", dmnStringValue("unconfigured")),
-                entry("caseTypeId", dmnStringValue("asylum")),
-                entry("dueDate", dmnStringValue("2020-12-12T16:00:00")),
-                entry("workingDaysAllowed", dmnIntegerValue(2)),
+                entry("idempotency_key", dmnStringValue("idempotencyKey1")),
+                entry("task_state", dmnStringValue("unconfigured")),
+                entry("case_type_id", dmnStringValue("asylum")),
+                entry("due_date", dmnStringValue("2020-12-12T16:00:00")),
+                entry("working_days_allowed", dmnIntegerValue(2)),
                 entry("group", dmnStringValue("TCW")),
                 entry("jurisdiction", dmnStringValue("ia")),
                 entry("name", dmnStringValue("Process Application")),
-                entry("taskId", dmnStringValue("processApplication")),
-                entry("caseId", dmnStringValue("some case reference")),
-                entry("__processCategory__caseProgression", dmnBooleanValue(true)),
-                entry("__processCategory__timeExtension", dmnBooleanValue(true)),
-                entry("delayUntil", dmnStringValue("2020-12-10T16:00:00")),
-                entry("hasWarnings", dmnBooleanValue(false)),
-                entry("warningList", dmnStringValue(new WarningValues().getValuesAsJson()))
+                entry("task_id", dmnStringValue("processApplication")),
+                entry("case_id", dmnStringValue("some case reference")),
+                entry("__process_category__caseProgression", dmnBooleanValue(true)),
+                entry("__process_category__timeExtension", dmnBooleanValue(true)),
+                entry("delay_until", dmnStringValue("2020-12-10T16:00:00")),
+                entry("has_warnings", dmnBooleanValue(false)),
+                entry("warning_list", dmnStringValue(new WarningValues().getValuesAsJson()))
             );
 
         SendMessageRequest expectation = new SendMessageRequest(
@@ -350,20 +350,20 @@ class InitiationCaseEventHandlerTest {
     ) {
         Map<String, DmnValue<?>> expectedProcessVariables =
             Map.ofEntries(
-                entry("idempotencyKey", dmnStringValue(idempotencyKey)),
-                entry("taskState", dmnStringValue("unconfigured")),
-                entry("caseTypeId", dmnStringValue("asylum")),
-                entry("dueDate", dmnStringValue(dueDate)),
-                entry("workingDaysAllowed", dmnIntegerValue(workingDays)),
+                entry("idempotency_key", dmnStringValue(idempotencyKey)),
+                entry("task_state", dmnStringValue("unconfigured")),
+                entry("case_type_id", dmnStringValue("asylum")),
+                entry("due_date", dmnStringValue(dueDate)),
+                entry("working_days_allowed", dmnIntegerValue(workingDays)),
                 entry("group", dmnStringValue(group)),
                 entry("jurisdiction", dmnStringValue("ia")),
                 entry("name", dmnStringValue(name)),
-                entry("taskId", dmnStringValue(taskId)),
-                entry("caseId", dmnStringValue("some case reference")),
+                entry("task_id", dmnStringValue(taskId)),
+                entry("case_id", dmnStringValue("some case reference")),
                 entry(processCategory, dmnBooleanValue(true)),
-                entry("delayUntil", dmnStringValue(delayUntil)),
-                entry("hasWarnings", dmnBooleanValue(false)),
-                entry("warningList", dmnStringValue(new WarningValues().getValuesAsJson()))
+                entry("delay_until", dmnStringValue(delayUntil)),
+                entry("has_warnings", dmnBooleanValue(false)),
+                entry("warning_list", dmnStringValue(new WarningValues().getValuesAsJson()))
             );
 
         return new SendMessageRequest(

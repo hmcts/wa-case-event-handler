@@ -139,11 +139,11 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
     ) {
 
         Map<String, DmnValue<?>> variables = Map.of(
-            "eventId", dmnStringValue(eventId),
-            "postEventState", dmnStringValue(newStateId),
-            "appealType", dmnStringValue(appealType),
+            "event_id", dmnStringValue(eventId),
+            "post_event_state", dmnStringValue(newStateId),
+            "appeal_type", dmnStringValue(appealType),
             "now", dmnStringValue(now),
-            "directionDueDate", dmnStringValue(directionDueDate)
+            "direction_due_date", dmnStringValue(directionDueDate)
         );
 
         return new EvaluateDmnRequest(variables);
@@ -191,23 +191,23 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         Map<String, DmnValue<?>> processVariables = new ConcurrentHashMap<>();
 
         // Required process variables
-        processVariables.put("idempotencyKey", dmnStringValue(idempotencyKey));
-        processVariables.put("taskState", dmnStringValue("unconfigured"));
-        processVariables.put("caseTypeId", dmnStringValue(eventInformation.getCaseTypeId()));
-        processVariables.put("dueDate", dmnStringValue(dueDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)));
-        processVariables.put("workingDaysAllowed", cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()));
+        processVariables.put("idempotency_key", dmnStringValue(idempotencyKey));
+        processVariables.put("task_state", dmnStringValue("unconfigured"));
+        processVariables.put("case_type_id", dmnStringValue(eventInformation.getCaseTypeId()));
+        processVariables.put("due_date", dmnStringValue(dueDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)));
+        processVariables.put("working_days_allowed", cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()));
         processVariables.put("group", initiateEvaluateResponse.getGroup());
         processVariables.put("jurisdiction", dmnStringValue(eventInformation.getJurisdictionId()));
         processVariables.put("name", initiateEvaluateResponse.getName());
-        processVariables.put("taskId", initiateEvaluateResponse.getTaskId());
-        processVariables.put("caseId", dmnStringValue(eventInformation.getCaseId()));
-        processVariables.put("delayUntil", dmnStringValue(delayUntil.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)));
-        processVariables.put("hasWarnings", dmnBooleanValue(false));
-        processVariables.put("warningList", dmnStringValue(new WarningValues().getValuesAsJson()));
+        processVariables.put("task_id", initiateEvaluateResponse.getTaskId());
+        processVariables.put("case_id", dmnStringValue(eventInformation.getCaseId()));
+        processVariables.put("delay_until", dmnStringValue(delayUntil.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)));
+        processVariables.put("has_warnings", dmnBooleanValue(false));
+        processVariables.put("warning_list", dmnStringValue(new WarningValues().getValuesAsJson()));
 
         // Optional process variables this would be deprecated
         if (initiateEvaluateResponse.getTaskCategory() != null) {
-            processVariables.put("taskCategory", initiateEvaluateResponse.getTaskCategory());
+            processVariables.put("task_category", initiateEvaluateResponse.getTaskCategory());
         }
 
         // If it contains process categories and set to true (new format) add to processVariables map.
@@ -221,7 +221,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
                 .collect(Collectors.toList());
 
             categoriesToAdd.forEach(cat ->
-                processVariables.put("__processCategory__" + cat, dmnBooleanValue(true))
+                processVariables.put("__process_category__" + cat, dmnBooleanValue(true))
             );
         }
 

@@ -4,7 +4,7 @@
 *.class
 bin/main/application.yaml
 /target/
-
+/bin/
 /target/*
 # exception to the rule
 !target/.gitkeep

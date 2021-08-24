@@ -46,11 +46,11 @@ public final class InitiateTaskHelper {
         DmnValue<String> now = dmnStringValue(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
         DmnValue<String> directionDueDate = dmnStringValue(dueDate);
         Map<String, DmnValue<?>> variables = Map.of(
-            "eventId", eventId,
-            "postEventState", postEventState,
-            "appealType", appealType,
+            "event_id", eventId,
+            "post_event_state", postEventState,
+            "appeal_type", appealType,
             "now", now,
-            "directionDueDate", directionDueDate
+            "direction_due_date", directionDueDate
         );
 
         return new EvaluateDmnRequest(variables);

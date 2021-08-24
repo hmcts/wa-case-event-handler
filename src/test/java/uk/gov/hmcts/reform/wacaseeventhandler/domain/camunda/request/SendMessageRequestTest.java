@@ -51,14 +51,14 @@ class SendMessageRequestTest {
     private SendMessageRequest buildSendMessageRequest(String dueDate) {
 
         Map<String, DmnValue<?>> variables = Map.of(
-            "idempotencyKey", dmnStringValue("a23422af-e92d-49d6-b591-be81f73e2dcf"),
+            "idempotency_key", dmnStringValue("a23422af-e92d-49d6-b591-be81f73e2dcf"),
             "group", dmnStringValue("TCW"),
             "jurisdiction", dmnStringValue("ia"),
-            "caseType", dmnStringValue("asylum"),
-            "taskId", dmnStringValue("processApplication"),
-            "caseId", dmnStringValue("b675a81b-cea9-432f-9d63-9279973d0391"),
-            "delayUntil", dmnStringValue(dueDate),
-            "dueDate", dmnStringValue(dueDate)
+            "case_type", dmnStringValue("asylum"),
+            "task_id", dmnStringValue("processApplication"),
+            "case_id", dmnStringValue("b675a81b-cea9-432f-9d63-9279973d0391"),
+            "delay_until", dmnStringValue(dueDate),
+            "due_date", dmnStringValue(dueDate)
         );
 
         return SendMessageRequest.builder().all(false).correlationKeys(null)
