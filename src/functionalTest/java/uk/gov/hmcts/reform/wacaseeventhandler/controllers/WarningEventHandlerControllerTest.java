@@ -24,7 +24,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
  *
  */
 @Slf4j
-@Ignore("These tests are related to Non-IAC requirements which are not part of production dmns.")
 public class WarningEventHandlerControllerTest extends CaseEventHandlerControllerTest {
 
     /**
@@ -34,9 +33,16 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
     public void given_caseId_with_multiple_tasks_and_same_category_when_warning_raised_then_mark_tasks_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
 
-        // Initiate task1, category (Case progression)
-        sendMessage(caseIdForTask1, "submitCase", null,
-                    "caseUnderReview", false);
+        // Initiate task1
+        sendMessage(
+            caseIdForTask1,
+            "submitCase",
+            null,
+            "caseUnderReview",
+            false,
+            "WA",
+            "WaCaseType"
+        );
 
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
@@ -48,16 +54,21 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .extract()
             .path("[0].id");
 
-        // test for workingDaysAllowed  = 5
         Response responseTaskDetails = findTaskDetailsForGivenTaskId(task1Id);
         assertDelayDuration(responseTaskDetails);
 
-        // initiate task2, category (Case progression)
-        sendMessage(caseIdForTask1, "submitCase", null,
-                    "caseUnderReview", false);
+        // initiate task2 with same caseId
+        sendMessage(
+            caseIdForTask1,
+            "submitCase",
+            null,
+            "caseUnderReview",
+            false,
+            "WA",
+            "WaCaseType"
+        );
 
-        response = findTasksByCaseId(
-            caseIdForTask1, 2);
+        response = findTasksByCaseId(caseIdForTask1, 2);
 
         final String task2Id = response
             .then()
@@ -67,8 +78,15 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .path("[1].id");
 
         // send warning message
-        sendMessage(caseIdForTask1, "_DUMMY_makeAnApplication",
-                    "", "", false);
+        sendMessage(
+            caseIdForTask1,
+            "_DUMMY_makeAnApplication",
+            "",
+            "",
+            false,
+            "WA",
+            "WaCaseType"
+        );
 
         String warningsAsJson = "[{\"warningCode\":\"TA01\","
             + "\"warningText\":\"There is an application task which "
@@ -88,12 +106,14 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      * Scenario: 1 event creates 2 different warnings on single task.
      */
     @Test
+    @Ignore
     public void given_caseId_with_single_task_and_same_category_when_warning_raised_then_mark_tasks_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
 
         // Initiate task1, category (Case progression)
         sendMessage(caseIdForTask1, "submitCase", null,
-                    "caseUnderReview", false);
+                    "caseUnderReview", false, "IA", "Asylum"
+        );
 
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
@@ -111,7 +131,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         // send warning message
         sendMessage(caseIdForTask1, "_DUMMY_makeAnApplication",
-                    "", "", false);
+                    "", "", false, "IA", "Asylum"
+        );
 
         String warningsAsJson = "[{\"warningCode\":\"TA01\","
             + "\"warningText\":\"There is an application task which "
@@ -132,12 +153,14 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      */
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
+    @Ignore
     public void given_caseId_and_multiple_tasks_and_different_ctg_when_warning_raised_then_mark_tasks_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
 
         // Initiate task1 , category (timeExtension)
         sendMessage(caseIdForTask1, "submitTimeExtension", "",
-                    null, false);
+                    null, false, "IA", "Asylum"
+        );
 
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
@@ -150,7 +173,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         // initiate task2, category (followUpOverdue)
         sendMessage(caseIdForTask1, "requestCaseBuilding", null,
-                    "caseBuilding", false);
+                    "caseBuilding", false, "IA", "Asylum"
+        );
 
         response = findTasksByCaseId(
             caseIdForTask1, 2);
@@ -164,7 +188,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         // initiate task3, category (caseProgression)
         sendMessage(caseIdForTask1, "listCma", null,
-                    "cmaListed", false);
+                    "cmaListed", false, "IA", "Asylum"
+        );
 
         response = findTasksByCaseId(
             caseIdForTask1, 3);
@@ -178,7 +203,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         // send warning message
         sendMessage(caseIdForTask1, "_DUMMY_makeAnApplication101",
-                    "", "", false);
+                    "", "", false, "IA", "Asylum"
+        );
 
         waitSeconds(5);
 
@@ -205,6 +231,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      * Scenario: 1 event on 2 different caseIds creates 2 different warnings each for all task types.
      */
     @Test
+    @Ignore
     public void given_multiple_caseIDs_when_actions_is_warn_then_mark_all_tasks_with_warnings() {
         //caseId1 with category Case progression
         String caseId1 = UUID.randomUUID().toString();
@@ -224,10 +251,12 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
                                                        false, taskId2DmnColumn);
         // Then cancel all tasks on both caseIDs
         sendMessage(caseId1, "_DUMMY_makeAnApplication",
-                    "", "", false);
+                    "", "", false, "IA", "Asylum"
+        );
         waitSeconds(5);
         sendMessage(caseId2, "_DUMMY_makeAnApplication",
-                    "", "", false);
+                    "", "", false, "IA", "Asylum"
+        );
         waitSeconds(5);
 
         String warningsAsJson = "[{\"warningCode\":\"TA01\","
@@ -249,11 +278,13 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      * (should only be able to add the same warning once - if warning code is already on task, then do not add).
      */
     @Test
+    @Ignore
     public void given_caseID_when_action_is_warn_with_same_warnings_then_add_the_warning_only_once() {
         String caseIdForTask1 = UUID.randomUUID().toString();
 
         sendMessage(caseIdForTask1, "submitCase", null,
-                    "caseUnderReview", false);
+                    "caseUnderReview", false, "IA", "Asylum"
+        );
 
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
@@ -266,7 +297,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .path("[0].id");
 
         sendMessage(caseIdForTask1, "_DUMMY_makeAnApplication103",
-                    "", "", false);
+                    "", "", false, "IA", "Asylum"
+        );
         waitSeconds(5);
 
         String singleWarning = "[{\"warningCode\":\"Code103\","
@@ -284,12 +316,14 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      * Scenario: 1 event creates the same warning on tasks of a different category.
      */
     @Test
+    @Ignore
     public void given_caseId_with_different_category_when_same_warning_raised_then_mark_tasks_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
 
         // Initiate task1, category (timeExtension)
         sendMessage(caseIdForTask1, "submitTimeExtension", null,
-                    "", false);
+                    "", false, "IA", "Asylum"
+        );
 
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
@@ -307,7 +341,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         // initiate task2, category (followUpOverdue)
         sendMessage(caseIdForTask1, "requestCaseBuilding", null,
-                    "caseBuilding", false);
+                    "caseBuilding", false, "IA", "Asylum"
+        );
 
         response = findTasksByCaseId(
             caseIdForTask1, 2);
@@ -321,7 +356,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         // send warning message
         sendMessage(caseIdForTask1, "_DUMMY_makeAnApplication104",
-                    "", "", false);
+                    "", "", false, "IA", "Asylum"
+        );
 
         String singleWarning = "[{\"warningCode\":\"Code104\","
             + "\"warningText\":\"Warning Text 104\"}]";
@@ -338,12 +374,14 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      * Scenario: 1 event creates warning with no ID or description on all tasks.
      */
     @Test
+    @Ignore
     public void given_caseId_when_warning_raised_without_warning_attributes_mark_tasks_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
 
         // Initiate task1, category (Case progression)
         sendMessage(caseIdForTask1, "submitCase", null,
-                    "caseUnderReview", false);
+                    "caseUnderReview", false, "IA", "Asylum"
+        );
 
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
@@ -361,7 +399,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         // initiate task2, category (Case progression)
         sendMessage(caseIdForTask1, "submitCase", null,
-                    "caseUnderReview", false);
+                    "caseUnderReview", false, "IA", "Asylum"
+        );
 
         response = findTasksByCaseId(
             caseIdForTask1, 2);
@@ -375,7 +414,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         // send warning message
         sendMessage(caseIdForTask1, "_DUMMY_makeAnApplication102",
-                    "", "", false);
+                    "", "", false, "IA", "Asylum"
+        );
 
         // check for warnings flag on both the tasks
         assertTaskWithoutWarnings(caseIdForTask1, task1Id, true);
@@ -389,12 +429,14 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      * Scenario: 1 event creates warning with no ID or description on tasks of a single category.
      */
     @Test
+    @Ignore
     public void given_caseId_with_category_when_warning_raised_without_warnings_then_mark_tasks_with_warning() {
         String caseIdForTask1 = UUID.randomUUID().toString();
 
         // Initiate task1, category (Case progression)
         sendMessage(caseIdForTask1, "submitCase", null,
-                    "caseUnderReview", false);
+                    "caseUnderReview", false, "IA", "Asylum"
+        );
 
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
@@ -412,7 +454,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         // send warning message
         sendMessage(caseIdForTask1, "_DUMMY_makeAnApplication102",
-                    "", "", false);
+                    "", "", false, "IA", "Asylum"
+        );
 
         // check for warnings flag on both the tasks
         assertTaskWithoutWarnings(caseIdForTask1, task1Id, true);
@@ -425,12 +468,14 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      * Scenario: 2 events creates same warnings on tasks of a single category.
      */
     @Test
+    @Ignore
     public void given_caseId_with_category_and_same_warnings_when_warnings_raised_then_mark_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
 
         // Initiate task1, category (timeExtension)
         sendMessage(caseIdForTask1, "submitTimeExtension", null,
-                    "", false);
+                    "", false, "IA", "Asylum"
+        );
 
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
@@ -444,10 +489,12 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         // send warning message
         sendMessage(caseIdForTask1, "_DUMMY_makeAnApplication105",
-                    "", "", false);
+                    "", "", false, "IA", "Asylum"
+        );
         waitSeconds(5);
         sendMessage(caseIdForTask1, "_DUMMY_makeAnApplication106",
-                    "", "", false);
+                    "", "", false, "IA", "Asylum"
+        );
         waitSeconds(5);
 
         String singleWarning = "[{\"warningCode\":\"Code105\","
@@ -464,12 +511,14 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      * Scenario: Single event with category and without warnings.
      */
     @Test
+    @Ignore
     public void given_caseId_with_without_warnings_when_warning_raised_then_mark_tasks_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
 
         // Initiate task1, category (followUpOverdue)
         sendMessage(caseIdForTask1, "requestRespondentEvidence", null,
-                    "awaitingRespondentEvidence", false);
+                    "awaitingRespondentEvidence", false, "IA", "Asylum"
+        );
 
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
@@ -483,7 +532,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         // send warning message
         sendMessage(caseIdForTask1, "_DUMMY_makeAnApplication107",
-                    "", "", false);
+                    "", "", false, "IA", "Asylum"
+        );
 
         // check for warnings flag on both the tasks
         assertTaskWithoutWarnings(caseIdForTask1, task1Id, true);
