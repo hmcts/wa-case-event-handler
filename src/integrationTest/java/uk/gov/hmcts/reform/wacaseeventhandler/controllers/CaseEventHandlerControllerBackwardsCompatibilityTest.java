@@ -71,7 +71,7 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
     @Test
     void event_information_with_additional_data_should_succeed_and_return_204() throws Exception {
         Map<String, Object> dataMap = Map.of(
-            "lastModifiedDirection", Map.of("directionDueDate", "2021-04-06"),
+            "lastModifiedDirection", Map.of("dateDue", "2021-04-06"),
             "appealType", "protection"
         );
 
