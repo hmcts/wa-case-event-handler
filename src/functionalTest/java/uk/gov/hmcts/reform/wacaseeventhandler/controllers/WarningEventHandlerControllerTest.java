@@ -7,6 +7,7 @@ import org.junit.Test;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.WarningValues;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -18,11 +19,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-/**
- * Functional tests for non-IAC requirements. These tests are executed against dummy events
- * defined in ia-task-configuration in src/main/resources/nonprod folder.
- *
- */
 @Slf4j
 public class WarningEventHandlerControllerTest extends CaseEventHandlerControllerTest {
 
@@ -89,11 +85,11 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         );
 
         String warningsAsJson = "[{\"warningCode\":\"TA01\","
-            + "\"warningText\":\"There is an application task which "
-            + "might impact other active tasks\"},"
-            + "{\"warningCode\":\"TA02\","
-            + "\"warningText\":\"There is another task on this case that needs your attention\"}"
-            + "]";
+                                + "\"warningText\":\"There is an application task which "
+                                + "might impact other active tasks\"},"
+                                + "{\"warningCode\":\"TA02\","
+                                + "\"warningText\":\"There is another task on this case that needs your attention\"}"
+                                + "]";
         // check for warnings flag on both the tasks
         assertTaskHasMultipleWarnings(caseIdForTask1, task1Id, new WarningValues(warningsAsJson));
         assertTaskHasMultipleWarnings(caseIdForTask1, task2Id, new WarningValues(warningsAsJson));
@@ -106,17 +102,21 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      * Scenario: 1 event creates 2 different warnings on single task.
      */
     @Test
-    @Ignore
     public void given_caseId_with_single_task_and_same_category_when_warning_raised_then_mark_tasks_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
 
-        // Initiate task1, category (Case progression)
-        sendMessage(caseIdForTask1, "submitCase", null,
-                    "caseUnderReview", false, "IA", "Asylum"
+        // Initiate task1
+        sendMessage(
+            caseIdForTask1,
+            "submitCase",
+            null,
+            "caseUnderReview",
+            false,
+            "WA",
+            "WaCaseType"
         );
 
-        Response response = findTasksByCaseId(
-            caseIdForTask1, 1);
+        Response response = findTasksByCaseId(caseIdForTask1, 1);
 
         String task1Id = response
             .then()
@@ -125,26 +125,32 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .extract()
             .path("[0].id");
 
-        // test for workingDaysAllowed  = 5
+        // test for workingDaysAllowed
         Response responseTaskDetails = findTaskDetailsForGivenTaskId(task1Id);
         assertDelayDuration(responseTaskDetails);
 
         // send warning message
-        sendMessage(caseIdForTask1, "_DUMMY_makeAnApplication",
-                    "", "", false, "IA", "Asylum"
+        sendMessage(
+            caseIdForTask1,
+            "_DUMMY_makeAnApplication",
+            "",
+            "",
+            false,
+            "Wa",
+            "WaCaseType"
         );
 
         String warningsAsJson = "[{\"warningCode\":\"TA01\","
-            + "\"warningText\":\"There is an application task which "
-            + "might impact other active tasks\"},"
-            + "{\"warningCode\":\"TA02\","
-            + "\"warningText\":\"There is another task on this case that needs your attention\"}"
-            + "]";
+                                + "\"warningText\":\"There is an application task which "
+                                + "might impact other active tasks\"},"
+                                + "{\"warningCode\":\"TA02\","
+                                + "\"warningText\":\"There is another task on this case that needs your attention\"}"
+                                + "]";
         // check for warnings flag on both the tasks
         assertTaskHasMultipleWarnings(caseIdForTask1, task1Id, new WarningValues(warningsAsJson));
 
         // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(task1Id), "completed");
+        tearDownMultipleTasks(List.of(task1Id), "completed");
     }
 
 
@@ -209,11 +215,11 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         waitSeconds(5);
 
         String timeExtensionWarning = "[{\"warningCode\":\"Code101\","
-            + "\"warningText\":\"Warning Text 101\"}]";
+                                      + "\"warningText\":\"Warning Text 101\"}]";
         WarningValues timeExtensionWarningValues = new WarningValues(timeExtensionWarning);
 
         String followUpOverdueWarning = "[{\"warningCode\":\"Code102\","
-            + "\"warningText\":\"Warning Text 102\"}]";
+                                        + "\"warningText\":\"Warning Text 102\"}]";
         WarningValues overdueWarningValues = new WarningValues(followUpOverdueWarning);
 
         // check for warnings flag on both the tasks
@@ -248,7 +254,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         String caseId2 = UUID.randomUUID().toString();
         final String caseId2Task1Id = createTaskWithId(caseId2, "uploadHomeOfficeAppealResponse",
                                                        "", "respondentReview",
-                                                       false, taskId2DmnColumn);
+                                                       false, taskId2DmnColumn
+        );
         // Then cancel all tasks on both caseIDs
         sendMessage(caseId1, "_DUMMY_makeAnApplication",
                     "", "", false, "IA", "Asylum"
@@ -260,11 +267,11 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         waitSeconds(5);
 
         String warningsAsJson = "[{\"warningCode\":\"TA01\","
-            + "\"warningText\":\"There is an application task which "
-            + "might impact other active tasks\"},"
-            + "{\"warningCode\":\"TA02\","
-            + "\"warningText\":\"There is another task on this case that needs your attention\"}"
-            + "]";
+                                + "\"warningText\":\"There is an application task which "
+                                + "might impact other active tasks\"},"
+                                + "{\"warningCode\":\"TA02\","
+                                + "\"warningText\":\"There is another task on this case that needs your attention\"}"
+                                + "]";
         // check for warnings flag on both the tasks
         assertTaskHasMultipleWarnings(caseId1, caseId1Task1Id, new WarningValues(warningsAsJson));
         assertTaskHasMultipleWarnings(caseId2, caseId2Task1Id, new WarningValues(warningsAsJson));
@@ -302,7 +309,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         waitSeconds(5);
 
         String singleWarning = "[{\"warningCode\":\"Code103\","
-            + "\"warningText\":\"Warning Text 103\"}]";
+                               + "\"warningText\":\"Warning Text 103\"}]";
         WarningValues warningValues = new WarningValues(singleWarning);
 
         // check for warnings flag on both the tasks
@@ -360,7 +367,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         );
 
         String singleWarning = "[{\"warningCode\":\"Code104\","
-            + "\"warningText\":\"Warning Text 104\"}]";
+                               + "\"warningText\":\"Warning Text 104\"}]";
 
         // check for warnings flag on both the tasks
         assertTaskHasMultipleWarnings(caseIdForTask1, task1Id, new WarningValues(singleWarning));
@@ -498,7 +505,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         waitSeconds(5);
 
         String singleWarning = "[{\"warningCode\":\"Code105\","
-            + "\"warningText\":\"Warning Text 105\"}]";
+                               + "\"warningText\":\"Warning Text 105\"}]";
 
         // check for warnings flag on both the tasks
         assertTaskHasMultipleWarnings(caseIdForTask1, task1Id, new WarningValues(singleWarning));
