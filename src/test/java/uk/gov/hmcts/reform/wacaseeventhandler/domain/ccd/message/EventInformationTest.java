@@ -91,7 +91,7 @@ class EventInformationTest {
         ObjectMapper objectMapper = new ObjectMapper();
 
         Map<String, Object> dataMap = Map.of(
-            "lastModifiedDirection", Map.of("directionDueDate", "2021-04-08"),
+            "lastModifiedDirection", Map.of("dateDue", "2021-04-08"),
             "appealType", "protection"
         );
 
@@ -99,11 +99,11 @@ class EventInformationTest {
                             + "        \"type\": \"Complex\",\n"
                             + "        \"subtype\": \"lastModifiedDirection\",\n"
                             + "        \"typeDef\": {\n"
-                            + "          \"directionDueDate\": {\n"
+                            + "          \"dateDue\": {\n"
                             + "            \"type\": \"SimpleDate\",\n"
                             + "            \"subtype\": \"Date\",\n"
                             + "            \"typeDef\": null,\n"
-                            + "            \"originalId\": \"directionDueDate\"\n"
+                            + "            \"originalId\": \"dateDue\"\n"
                             + "          }\n"
                             + "        },\n"
                             + "        \"originalId\": \"lastModifiedDirection\"\n"
