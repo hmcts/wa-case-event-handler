@@ -159,13 +159,18 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      */
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
-    @Ignore
     public void given_caseId_and_multiple_tasks_and_different_ctg_when_warning_raised_then_mark_tasks_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
 
         // Initiate task1 , category (timeExtension)
-        sendMessage(caseIdForTask1, "submitTimeExtension", "",
-                    null, false, "IA", "Asylum"
+        sendMessage(
+            caseIdForTask1,
+            "submitTimeExtension",
+            "",
+            null,
+            false,
+            "WA",
+            "WaCaseType"
         );
 
         Response response = findTasksByCaseId(
@@ -178,8 +183,14 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .path("[0].id");
 
         // initiate task2, category (followUpOverdue)
-        sendMessage(caseIdForTask1, "requestCaseBuilding", null,
-                    "caseBuilding", false, "IA", "Asylum"
+        sendMessage(
+            caseIdForTask1,
+            "requestCaseBuilding",
+            null,
+            "caseBuilding",
+            false,
+            "WA",
+            "WaCaseType"
         );
 
         response = findTasksByCaseId(
@@ -193,8 +204,14 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .path("[1].id");
 
         // initiate task3, category (caseProgression)
-        sendMessage(caseIdForTask1, "listCma", null,
-                    "cmaListed", false, "IA", "Asylum"
+        sendMessage(
+            caseIdForTask1,
+            "listCma",
+            null,
+            "cmaListed",
+            false,
+            "WA",
+            "WaCaseType"
         );
 
         response = findTasksByCaseId(
@@ -208,8 +225,14 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .path("[2].id");
 
         // send warning message
-        sendMessage(caseIdForTask1, "_DUMMY_makeAnApplication101",
-                    "", "", false, "IA", "Asylum"
+        sendMessage(
+            caseIdForTask1,
+            "_DUMMY_makeAnApplication101",
+            "",
+            "",
+            false,
+            "WA",
+            "WaCaseType"
         );
 
         waitSeconds(5);
