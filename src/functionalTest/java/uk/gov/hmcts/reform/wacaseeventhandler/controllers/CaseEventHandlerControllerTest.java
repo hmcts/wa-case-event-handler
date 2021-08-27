@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.util.Collections.emptyMap;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
@@ -729,7 +728,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_an_event_when_directionDueDate_is_empty_then_task_should_start_without_delay() {
 
         Map<String, Object> dataMap = Map.of(
-            "lastModifiedDirection", Map.of("directionDueDate", ""),
+            "lastModifiedDirection", Map.of("dateDue", ""),
             "appealType", "protection"
         );
 
@@ -948,7 +947,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .eventId(event)
             .newStateId(newStateId)
             .previousStateId(previousStateId)
-            .additionalData(new AdditionalData(emptyMap(), emptyMap()))
+            .additionalData(setAdditionalData())
             .userId("some user Id")
             .build();
     }
