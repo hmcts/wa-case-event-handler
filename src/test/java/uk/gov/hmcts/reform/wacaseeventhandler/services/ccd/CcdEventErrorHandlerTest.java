@@ -68,6 +68,7 @@ class CcdEventErrorHandlerTest {
 
     @Test
     void should_handle_application_error_with_message_abandon() {
+        when(receivedMessage.getBody()).thenReturn(BinaryData.fromBytes("testMessage".getBytes()));
         when(receivedMessage.getRawAmqpMessage()).thenReturn(amqpAnnotatedMessage);
         when(amqpAnnotatedMessage.getHeader()).thenReturn(header);
         when(header.getDeliveryCount()).thenReturn(1L);
