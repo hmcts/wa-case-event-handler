@@ -8,7 +8,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.jupiter.api.Disabled;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -260,14 +259,14 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     /**
-     *  This FT sends additionalData to DMN to evaluate appealType in json format.
-     *  Disabled as the task is created with delayUntil to 28 days and can't be
+     *  This FT sends additionalData to DMN in json format to evaluate appealType.
+     *  Disabled as the checkFeeStatus task is created with delayUntil to 28 days and can't be
      *  retrieved until the task is active.
      *  When the DMN is deployed onto new wa jurisdiction, this test can be enabled
      *  with delayUntil as 0.
      */
-    @Disabled
     @Test
+    @Ignore("CheckFeeStatus task cannot be retrieved")
     public void given_event_submitAppeal_when_appealType_sent_as_json_then_initiate_task() {
         String caseId = UUID.randomUUID().toString();
 
