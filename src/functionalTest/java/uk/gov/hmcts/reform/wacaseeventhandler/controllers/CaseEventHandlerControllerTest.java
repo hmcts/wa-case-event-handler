@@ -8,6 +8,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -257,6 +258,58 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertTaskHasWarnings(caseId, taskId, true);
 
         taskToTearDown = taskId;
+    }
+
+    /**
+     *  This FT sends additionalData to DMN to evaluate appealType in json format.
+     *  Disabled as the task is created with delayUntil to 28 days and can't be
+     *  retrieved until the task is active.
+     *  When the DMN is deployed onto new wa jurisdiction, this test can be enabled
+     *  with delayUntil as 0.
+     */
+    @Disabled
+    @Test
+    public void given_event_submitAppeal_when_appealType_sent_as_json_then_initiate_task() {
+        String caseId = UUID.randomUUID().toString();
+
+        sendMessageWithAdditionalData(
+            caseId,
+            "submitAppeal",
+            "",
+            "appealSubmitted",
+            false
+        );
+
+        waitSeconds(10);
+        Response taskFound = findTasksByCaseId(caseId, 2);
+
+        String taskId1 = taskFound
+            .then().assertThat()
+            .body("[0].id", notNullValue())
+            .extract()
+            .path("[0].id");
+
+        Response response = findTaskDetailsForGivenTaskId(taskId1);
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("taskId.value", is("checkFeeStatus"));
+
+        String taskId2 = taskFound
+            .then().assertThat()
+            .body("[1].id", notNullValue())
+            .extract()
+            .path("[1].id");
+
+        response = findTaskDetailsForGivenTaskId(taskId2);
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("taskId.value", is("reviewTheAppeal"));
+
+        tearDownMultipleTasks(Arrays.asList(taskId1, taskId2), "completed");
     }
 
     @Test
@@ -769,7 +822,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
-    public void given_event_requestHearingRequirementsFeature_when_initiated_verfiy_task_creation() {
+    public void given_event_requestHearingRequirementsFeature_when_initiated_verify_task_creation() {
         String caseId1 = UUID.randomUUID().toString();
         final String taskId = createTaskWithId(caseId1, "requestHearingRequirementsFeature",
             "", "submitHearingRequirements",
@@ -866,6 +919,24 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         }
     }
 
+    protected void sendMessageWithAdditionalData(String caseId, String event, String previousStateId,
+                               String newStateId, boolean taskDelay) {
+
+        if (taskDelay) {
+            eventTimeStamp = LocalDateTime.now().plusSeconds(2);
+        }
+        EventInformation eventInformation = getEventInformationWithAdditionalData(
+            caseId, event, previousStateId, newStateId, eventTimeStamp
+        );
+
+        if (publisher != null) {
+            publishMessageToTopic(eventInformation);
+            waitSeconds(2);
+        } else {
+            callRestEndpoint(s2sToken, eventInformation);
+        }
+    }
+
     private EventInformation getEventInformation(String caseId, String event, String previousStateId,
                                                  String newStateId, LocalDateTime localDateTime) {
         return EventInformation.builder()
@@ -878,6 +949,22 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .newStateId(newStateId)
             .previousStateId(previousStateId)
             .additionalData(new AdditionalData(emptyMap(), emptyMap()))
+            .userId("some user Id")
+            .build();
+    }
+
+    private EventInformation getEventInformationWithAdditionalData(String caseId, String event, String previousStateId,
+                                                 String newStateId, LocalDateTime localDateTime) {
+        return EventInformation.builder()
+            .eventInstanceId(UUID.randomUUID().toString())
+            .eventTimeStamp(localDateTime)
+            .caseId(caseId)
+            .jurisdictionId("IA")
+            .caseTypeId("Asylum")
+            .eventId(event)
+            .newStateId(newStateId)
+            .previousStateId(previousStateId)
+            .additionalData(setAdditionalData())
             .userId("some user Id")
             .build();
     }
@@ -1012,6 +1099,21 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .post(camundaUrl + "/task/{task-id}/complete", taskId);
 
         assertTaskDeleteReason(taskId, status);
+    }
+
+    private AdditionalData setAdditionalData() {
+        Map<String, Object> dataMap = Map.of(
+            "lastModifiedDirection", Map.of(
+                "dateDue", "",
+                "uniqueId", "",
+                "directionType", ""
+            ),
+            "appealType", "protection"
+        );
+
+        return AdditionalData.builder()
+            .data(dataMap)
+            .build();
     }
 
     protected void tearDownMultipleTasks(List<String> tasks, String status) {
