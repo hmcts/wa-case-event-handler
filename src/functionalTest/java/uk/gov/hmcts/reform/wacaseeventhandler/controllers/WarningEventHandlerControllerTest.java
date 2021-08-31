@@ -452,17 +452,21 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      * Scenario: 1 event creates warning with no ID or description on all tasks.
      */
     @Test
-    @Ignore
     public void given_caseId_when_warning_raised_without_warning_attributes_mark_tasks_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
 
         // Initiate task1, category (Case progression)
-        sendMessage(caseIdForTask1, "submitCase", null,
-                    "caseUnderReview", false, "IA", "Asylum"
+        sendMessage(
+            caseIdForTask1,
+            "submitCase",
+            null,
+            "caseUnderReview",
+            false,
+            "WA",
+            "WaCaseType"
         );
 
-        Response response = findTasksByCaseId(
-            caseIdForTask1, 1);
+        Response response = findTasksByCaseId(caseIdForTask1, 1);
 
         String task1Id = response
             .then()
@@ -476,8 +480,14 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         assertDelayDuration(responseTaskDetails);
 
         // initiate task2, category (Case progression)
-        sendMessage(caseIdForTask1, "submitCase", null,
-                    "caseUnderReview", false, "IA", "Asylum"
+        sendMessage(
+            caseIdForTask1,
+            "submitCase",
+            null,
+            "caseUnderReview",
+            false,
+            "WA",
+            "WaCaseType"
         );
 
         response = findTasksByCaseId(
@@ -491,8 +501,14 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .path("[1].id");
 
         // send warning message
-        sendMessage(caseIdForTask1, "_DUMMY_makeAnApplication102",
-                    "", "", false, "IA", "Asylum"
+        sendMessage(
+            caseIdForTask1,
+            "_DUMMY_makeAnApplication102",
+            "",
+            "",
+            false,
+            "WA",
+            "WaCaseType"
         );
 
         // check for warnings flag on both the tasks
