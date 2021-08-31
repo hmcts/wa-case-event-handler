@@ -523,17 +523,21 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      * Scenario: 1 event creates warning with no ID or description on tasks of a single category.
      */
     @Test
-    @Ignore
     public void given_caseId_with_category_when_warning_raised_without_warnings_then_mark_tasks_with_warning() {
         String caseIdForTask1 = UUID.randomUUID().toString();
 
         // Initiate task1, category (Case progression)
-        sendMessage(caseIdForTask1, "submitCase", null,
-                    "caseUnderReview", false, "IA", "Asylum"
+        sendMessage(
+            caseIdForTask1,
+            "submitCase",
+            null,
+            "caseUnderReview",
+            false,
+            "WA",
+            "WaCaseType"
         );
 
-        Response response = findTasksByCaseId(
-            caseIdForTask1, 1);
+        Response response = findTasksByCaseId(caseIdForTask1, 1);
 
         String task1Id = response
             .then()
@@ -547,15 +551,21 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         assertDelayDuration(responseTaskDetails);
 
         // send warning message
-        sendMessage(caseIdForTask1, "_DUMMY_makeAnApplication102",
-                    "", "", false, "IA", "Asylum"
+        sendMessage(
+            caseIdForTask1,
+            "_DUMMY_makeAnApplication102",
+            "",
+            "",
+            false,
+            "WA",
+            "WaCaseType"
         );
 
         // check for warnings flag on both the tasks
         assertTaskWithoutWarnings(caseIdForTask1, task1Id, true);
 
         // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(task1Id), "completed");
+        tearDownMultipleTasks(List.of(task1Id), "completed");
     }
 
     /**
