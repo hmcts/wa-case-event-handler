@@ -260,7 +260,6 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      * Scenario: 1 event on 2 different caseIds creates 2 different warnings each for all task types.
      */
     @Test
-    @Ignore
     public void given_multiple_caseIDs_when_actions_is_warn_then_mark_all_tasks_with_warnings() {
         //caseId1 with category Case progression
         String caseId1 = UUID.randomUUID().toString();
@@ -268,24 +267,47 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         final String caseId1Task1Id = createTaskWithId(
             caseId1,
             "listCma",
-            "", "cmaListed", false,
-            taskIdDmnColumn
+            "",
+            "cmaListed",
+            false,
+            taskIdDmnColumn,
+            "WA",
+            "WaCaseType"
         );
 
         //caseId1 with category Case progression
         String taskId2DmnColumn = "reviewRespondentResponse";
         String caseId2 = UUID.randomUUID().toString();
-        final String caseId2Task1Id = createTaskWithId(caseId2, "uploadHomeOfficeAppealResponse",
-                                                       "", "respondentReview",
-                                                       false, taskId2DmnColumn
+        final String caseId2Task1Id = createTaskWithId(
+            caseId2,
+            "uploadHomeOfficeAppealResponse",
+            "",
+            "respondentReview",
+            false,
+            taskId2DmnColumn,
+            "WA",
+            "WaCaseType"
         );
+
         // Then cancel all tasks on both caseIDs
-        sendMessage(caseId1, "_DUMMY_makeAnApplication",
-                    "", "", false, "IA", "Asylum"
+        sendMessage(
+            caseId1,
+            "_DUMMY_makeAnApplication",
+            "",
+            "",
+            false,
+            "WA",
+            "WaCaseType"
         );
         waitSeconds(5);
-        sendMessage(caseId2, "_DUMMY_makeAnApplication",
-                    "", "", false, "IA", "Asylum"
+        sendMessage(
+            caseId2,
+            "_DUMMY_makeAnApplication",
+            "",
+            "",
+            false,
+            "WA",
+            "WaCaseType"
         );
         waitSeconds(5);
 
