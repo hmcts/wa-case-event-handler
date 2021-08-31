@@ -433,8 +433,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             "",
             "",
             false,
-            "IA",
-            "Asylum"
+            "WA",
+            "WaCaseType"
         );
 
         String singleWarning = "[{\"warningCode\":\"Code104\","
