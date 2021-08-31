@@ -631,17 +631,21 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      * Scenario: Single event with category and without warnings.
      */
     @Test
-    @Ignore
     public void given_caseId_with_without_warnings_when_warning_raised_then_mark_tasks_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
 
         // Initiate task1, category (followUpOverdue)
-        sendMessage(caseIdForTask1, "requestRespondentEvidence", null,
-                    "awaitingRespondentEvidence", false, "IA", "Asylum"
+        sendMessage(
+            caseIdForTask1,
+            "requestRespondentEvidence",
+            null,
+            "awaitingRespondentEvidence",
+            false,
+            "WA",
+            "WaCaseType"
         );
 
-        Response response = findTasksByCaseId(
-            caseIdForTask1, 1);
+        Response response = findTasksByCaseId(caseIdForTask1, 1);
 
         String task1Id = response
             .then()
@@ -651,15 +655,21 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .path("[0].id");
 
         // send warning message
-        sendMessage(caseIdForTask1, "_DUMMY_makeAnApplication107",
-                    "", "", false, "IA", "Asylum"
+        sendMessage(
+            caseIdForTask1,
+            "_DUMMY_makeAnApplication107",
+            "",
+            "",
+            false,
+            "WA",
+            "WaCaseType"
         );
 
         // check for warnings flag on both the tasks
         assertTaskWithoutWarnings(caseIdForTask1, task1Id, true);
 
         // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(task1Id), "completed");
+        tearDownMultipleTasks(List.of(task1Id), "completed");
     }
 
     public void assertTaskHasMultipleWarnings(String caseId, String taskId,
