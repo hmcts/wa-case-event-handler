@@ -572,17 +572,21 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      * Scenario: 2 events creates same warnings on tasks of a single category.
      */
     @Test
-    @Ignore
     public void given_caseId_with_category_and_same_warnings_when_warnings_raised_then_mark_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
 
         // Initiate task1, category (timeExtension)
-        sendMessage(caseIdForTask1, "submitTimeExtension", null,
-                    "", false, "IA", "Asylum"
+        sendMessage(
+            caseIdForTask1,
+            "submitTimeExtension",
+            null,
+            "",
+            false,
+            "WA",
+            "WaCaseType"
         );
 
-        Response response = findTasksByCaseId(
-            caseIdForTask1, 1);
+        Response response = findTasksByCaseId(caseIdForTask1, 1);
 
         final String task1Id = response
             .then()
@@ -592,12 +596,24 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .path("[0].id");
 
         // send warning message
-        sendMessage(caseIdForTask1, "_DUMMY_makeAnApplication105",
-                    "", "", false, "IA", "Asylum"
+        sendMessage(
+            caseIdForTask1,
+            "_DUMMY_makeAnApplication105",
+            "",
+            "",
+            false,
+            "WA",
+            "WaCaseType"
         );
         waitSeconds(5);
-        sendMessage(caseIdForTask1, "_DUMMY_makeAnApplication106",
-                    "", "", false, "IA", "Asylum"
+        sendMessage(
+            caseIdForTask1,
+            "_DUMMY_makeAnApplication106",
+            "",
+            "",
+            false,
+            "WA",
+            "WaCaseType"
         );
         waitSeconds(5);
 
@@ -608,7 +624,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         assertTaskHasMultipleWarnings(caseIdForTask1, task1Id, new WarningValues(singleWarning));
 
         // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(task1Id), "completed");
+        tearDownMultipleTasks(List.of(task1Id), "completed");
     }
 
     /**
