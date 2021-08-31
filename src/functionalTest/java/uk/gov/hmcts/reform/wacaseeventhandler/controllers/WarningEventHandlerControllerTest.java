@@ -330,16 +330,20 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      * (should only be able to add the same warning once - if warning code is already on task, then do not add).
      */
     @Test
-    @Ignore
     public void given_caseID_when_action_is_warn_with_same_warnings_then_add_the_warning_only_once() {
         String caseIdForTask1 = UUID.randomUUID().toString();
 
-        sendMessage(caseIdForTask1, "submitCase", null,
-                    "caseUnderReview", false, "IA", "Asylum"
+        sendMessage(
+            caseIdForTask1,
+            "submitCase",
+            null,
+            "caseUnderReview",
+            false,
+            "WA",
+            "WaCaseType"
         );
 
-        Response response = findTasksByCaseId(
-            caseIdForTask1, 1);
+        Response response = findTasksByCaseId(caseIdForTask1, 1);
 
         String task1Id = response
             .then()
@@ -348,8 +352,14 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .extract()
             .path("[0].id");
 
-        sendMessage(caseIdForTask1, "_DUMMY_makeAnApplication103",
-                    "", "", false, "IA", "Asylum"
+        sendMessage(
+            caseIdForTask1,
+            "_DUMMY_makeAnApplication103",
+            "",
+            "",
+            false,
+            "WA",
+            "WaCaseType"
         );
         waitSeconds(5);
 
@@ -361,7 +371,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         assertTaskHasMultipleWarnings(caseIdForTask1, task1Id, warningValues);
 
         // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(task1Id), "completed");
+        tearDownMultipleTasks(List.of(task1Id), "completed");
     }
 
     /**
