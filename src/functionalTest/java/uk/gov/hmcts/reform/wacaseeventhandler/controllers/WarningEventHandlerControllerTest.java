@@ -378,17 +378,21 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      * Scenario: 1 event creates the same warning on tasks of a different category.
      */
     @Test
-    @Ignore
     public void given_caseId_with_different_category_when_same_warning_raised_then_mark_tasks_with_warnings() {
         String caseIdForTask1 = UUID.randomUUID().toString();
 
         // Initiate task1, category (timeExtension)
-        sendMessage(caseIdForTask1, "submitTimeExtension", null,
-                    "", false, "IA", "Asylum"
+        sendMessage(
+            caseIdForTask1,
+            "submitTimeExtension",
+            null,
+            "",
+            false,
+            "WA",
+            "WaCaseType"
         );
 
-        Response response = findTasksByCaseId(
-            caseIdForTask1, 1);
+        Response response = findTasksByCaseId(caseIdForTask1, 1);
 
         String task1Id = response
             .then()
@@ -402,8 +406,14 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         assertDelayDuration(responseTaskDetails);
 
         // initiate task2, category (followUpOverdue)
-        sendMessage(caseIdForTask1, "requestCaseBuilding", null,
-                    "caseBuilding", false, "IA", "Asylum"
+        sendMessage(
+            caseIdForTask1,
+            "requestCaseBuilding",
+            null,
+            "caseBuilding",
+            false,
+            "WA",
+            "WaCaseType"
         );
 
         response = findTasksByCaseId(
@@ -417,8 +427,14 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .path("[1].id");
 
         // send warning message
-        sendMessage(caseIdForTask1, "_DUMMY_makeAnApplication104",
-                    "", "", false, "IA", "Asylum"
+        sendMessage(
+            caseIdForTask1,
+            "_DUMMY_makeAnApplication104",
+            "",
+            "",
+            false,
+            "IA",
+            "Asylum"
         );
 
         String singleWarning = "[{\"warningCode\":\"Code104\","
