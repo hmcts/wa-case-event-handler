@@ -134,7 +134,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
     private EvaluateDmnRequest buildEvaluateDmnRequest(
         String eventId,
         String newStateId,
-        Map<String, Object> caseData,
+        Map<String, Object> additionalData,
         String now,
         String directionDueDate
 
@@ -143,7 +143,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         Map<String, DmnValue<?>> variables = Map.of(
             "eventId", dmnStringValue(eventId),
             "postEventState", dmnStringValue(newStateId),
-            "caseData", dmnMapValue(caseData),
+            "additionalData", dmnMapValue(additionalData),
             "now", dmnStringValue(now),
             "directionDueDate", dmnStringValue(directionDueDate)
         );

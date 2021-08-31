@@ -49,7 +49,7 @@ public final class InitiateTaskHelper {
         Map<String, DmnValue<?>> variables = Map.of(
             "eventId", eventId,
             "postEventState", postEventState,
-            "caseData", mapDmnValue,
+            "additionalData", mapDmnValue,
             "now", now,
             "directionDueDate", directionDueDate
         );

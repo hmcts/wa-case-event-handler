@@ -26,20 +26,19 @@ public class CcdEventErrorHandler {
     public void handleJsonError(ServiceBusReceiverClient receiver,
                                 ServiceBusReceivedMessage message,
                                 JsonProcessingException ex) {
-        String incomingMessage = new String(message.getBody().toBytes());
-        log.error("Unable to parse incoming message '{}'", incomingMessage, ex);
+        log.error("Unable to parse incoming message with id '{}'", message.getMessageId(), ex);
         String messageData = new String(message.getBody().toBytes());
 
         receiver.deadLetter(message, deadLetterService.handleParsingError(messageData, ex.getMessage()));
 
-        log.warn("Message '{}' was dead lettered", incomingMessage, ex);
+        log.warn("Message with id '{}' was dead lettered", message.getMessageId(), ex);
     }
 
     public void handleApplicationError(ServiceBusReceiverClient receiver,
                                        ServiceBusReceivedMessage message,
                                        RestClientException ex) {
-        String incomingMessage = new String(message.getBody().toBytes());
-        log.error("Unable to process incoming message '{}'", incomingMessage, ex);
+        log.error("Unable to process incoming message with id '{}'", message.getMessageId(), ex);
+
         final Long deliveryCount = message.getRawAmqpMessage().getHeader().getDeliveryCount();
         if (deliveryCount >= retryAttempts) {
             String messageData = new String(message.getBody().toBytes());
@@ -47,19 +46,18 @@ public class CcdEventErrorHandler {
             receiver.deadLetter(message, deadLetterService
                 .handleApplicationError(messageData, ex.getMessage()));
 
-            log.warn("Max delivery count reached. Message '{}' was dead lettered", incomingMessage);
+            log.warn("Max delivery count reached. Message with id '{}' was dead lettered", message.getMessageId());
 
         } else {
             receiver.abandon(message);
-            log.warn("Retrying message '{}'", incomingMessage);
+            log.warn("Retrying message with id '{}'", message.getMessageId());
         }
     }
 
     public void handleGenericError(ServiceBusReceiverClient receiver,
                                    ServiceBusReceivedMessage message,
                                    Exception ex) {
-        String incomingMessage = new String(message.getBody().toBytes());
-        log.error("Unable to parse incoming message '{}'", incomingMessage, ex);
+        log.error("Unable to parse incoming message with id '{}'", message.getMessageId(), ex);
         String messageData = new String(message.getBody().toBytes());
 
         if (StringUtils.isEmpty(ex.getMessage())) {
@@ -69,7 +67,7 @@ public class CcdEventErrorHandler {
             receiver.deadLetter(message, deadLetterService
                 .handleApplicationError(messageData, ex.getMessage()));
         }
-        log.warn("Unknown error occurred. Message '{}' was dead lettered", incomingMessage, ex);
+        log.warn("Unknown Error. Message with id '{}' was dead lettered", message.getMessageId(), ex);
     }
 
 }

@@ -278,7 +278,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             false
         );
 
-        waitSeconds(10);
         Response taskFound = findTasksByCaseId(caseId, 2);
 
         String taskId1 = taskFound
@@ -929,7 +928,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         if (publisher != null) {
             publishMessageToTopic(eventInformation);
-            waitSeconds(2);
         } else {
             callRestEndpoint(s2sToken, eventInformation);
         }
