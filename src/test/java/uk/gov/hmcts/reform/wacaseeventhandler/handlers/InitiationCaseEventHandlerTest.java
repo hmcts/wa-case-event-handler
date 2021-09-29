@@ -1,7 +1,9 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
 import org.assertj.core.util.Lists;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +34,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -51,6 +54,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmn
 import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.buildInitiateTaskDmnRequest;
 import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.validAdditionalData;
 import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.withEmptyDirectionDueDate;
+import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.withoutAppealType;
 import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.withoutDirectionDueDate;
 import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.withoutLastModifiedDirection;
 
@@ -73,6 +77,8 @@ class InitiationCaseEventHandlerTest {
     private IsoDateFormatter isoDateFormatter;
     @Mock
     private DueDateService dueDateService;
+    @Mock
+    private ObjectMapper objectMapper;
 
     @InjectMocks
     private InitiationCaseEventHandler handlerService;
@@ -108,11 +114,14 @@ class InitiationCaseEventHandlerTest {
 
     @ParameterizedTest
     @MethodSource("provideEventInformation")
-    void evaluateDmn(EventInformation eventInformation, String directionDueDate, String appealType) {
+    void evaluateDmn(EventInformation eventInformation, String directionDueDate, Map<String, Object> appealType) {
+        Map<String, Object> dataMap = appealType == null || appealType.isEmpty()
+            ? Collections.emptyMap() : mapAppealType();
+        lenient().when(objectMapper.convertValue(eventInformation.getAdditionalData(), Map.class)).thenReturn(dataMap);
         EvaluateDmnRequest requestParameters =
             buildInitiateTaskDmnRequest(directionDueDate, appealType);
 
-        Mockito.when(workflowApiClient.evaluateInitiationDmn(
+        lenient().when(workflowApiClient.evaluateInitiationDmn(
             SERVICE_AUTH_TOKEN,
             TASK_INITIATION_DMN_TABLE,
             TENANT_ID,
@@ -127,6 +136,15 @@ class InitiationCaseEventHandlerTest {
             TENANT_ID,
             requestParameters
         );
+    }
+
+    @NotNull
+    private static Map<String, Object> mapAppealType() {
+        Map<String, Object> appealMap = new HashMap<>();
+        appealMap.put("appealType", "protection");
+        Map<String, Object> dataMap = new HashMap<>();
+        dataMap.put("data", appealMap);
+        return dataMap;
     }
 
     @ParameterizedTest
@@ -388,13 +406,15 @@ class InitiationCaseEventHandlerTest {
     }
 
     private static Stream<Arguments> provideEventInformation() {
+        Map<String, Object> dataMap = mapAppealType();
         return Stream.of(
             Arguments.of(getEventInformation("eventInstanceId",
                 "2020-03-29T10:53:36.530377"), null, null),
-            Arguments.of(validAdditionalData(), "2021-04-06", "protection"),
-            Arguments.of(withEmptyDirectionDueDate(), "", ""),
-            Arguments.of(withoutDirectionDueDate(), null, "protection"),
-            Arguments.of(withoutLastModifiedDirection(), null, "protection")
+            Arguments.of(validAdditionalData(), "2021-04-06", dataMap),
+            Arguments.of(withEmptyDirectionDueDate(), "", dataMap),
+            Arguments.of(withoutDirectionDueDate(), null, dataMap),
+            Arguments.of(withoutLastModifiedDirection(), null, dataMap),
+            Arguments.of(withoutAppealType(), "2021-04-06", Collections.emptyMap())
         );
     }
 

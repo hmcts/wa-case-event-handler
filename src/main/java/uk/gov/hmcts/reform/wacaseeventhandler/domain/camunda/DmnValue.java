@@ -3,6 +3,8 @@ package uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.util.Map;
+
 @EqualsAndHashCode
 @ToString
 public class DmnValue<T> {
@@ -23,6 +25,10 @@ public class DmnValue<T> {
 
     public static DmnValue<String> dmnStringValue(String value) {
         return new DmnValue<>(value, "String");
+    }
+
+    public static DmnValue<Map<String, Object>> dmnMapValue(Map<String, Object> value) {
+        return new DmnValue<>(value, null);
     }
 
     public static DmnValue<Integer> dmnIntegerValue(Integer value) {

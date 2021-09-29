@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnIntegerValue;
+import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnMapValue;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnStringValue;
 
 public final class InitiateTaskHelper {
@@ -39,16 +40,16 @@ public final class InitiateTaskHelper {
     }
 
     public static EvaluateDmnRequest buildInitiateTaskDmnRequest(String dueDate,
-                                                                 String appealTypeValue) {
+                                                                 Map<String, Object> appealType) {
         DmnValue<String> eventId = dmnStringValue("submitAppeal");
         DmnValue<String> postEventState = dmnStringValue("");
-        DmnValue<String> appealType = dmnStringValue(appealTypeValue);
+        DmnValue<Map<String, Object>> mapDmnValue = dmnMapValue(appealType);
         DmnValue<String> now = dmnStringValue(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
         DmnValue<String> directionDueDate = dmnStringValue(dueDate);
         Map<String, DmnValue<?>> variables = Map.of(
             "eventId", eventId,
             "postEventState", postEventState,
-            "appealType", appealType,
+            "additionalData", mapDmnValue,
             "now", now,
             "directionDueDate", directionDueDate
         );
@@ -71,6 +72,19 @@ public final class InitiateTaskHelper {
         Map<String, Object> dataMap = Map.of(
             "lastModifiedDirection", Map.of("dateDue", "2021-04-06"),
             "appealType", "protection"
+        );
+
+        AdditionalData additionalData = AdditionalData.builder()
+            .data(dataMap)
+            .build();
+
+        return getEventInformation(additionalData);
+    }
+
+    public static EventInformation withoutAppealType() {
+
+        Map<String, Object> dataMap = Map.of(
+            "lastModifiedDirection", Map.of("dateDue", "2021-04-06")
         );
 
         AdditionalData additionalData = AdditionalData.builder()
@@ -107,7 +121,7 @@ public final class InitiateTaskHelper {
     public static EventInformation withEmptyDirectionDueDate() {
         Map<String, Object> dataMap = Map.of(
             "lastModifiedDirection", Map.of("dateDue", ""),
-            "appealType", ""
+            "appealType", "protection"
         );
 
         AdditionalData additionalData = AdditionalData.builder()
