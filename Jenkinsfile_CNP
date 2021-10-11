@@ -24,6 +24,8 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
     ]
 }
 
+def branchesToSync = ['demo']
+
 withPipeline(type, product, component) {
     disableLegacyDeployment()
 
@@ -47,4 +49,6 @@ withPipeline(type, product, component) {
         steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/functional/**/*'
     }
 
+    // Sync environment specific branches with master branch
+    syncBranchesWithMaster(branchesToSync)
 }
