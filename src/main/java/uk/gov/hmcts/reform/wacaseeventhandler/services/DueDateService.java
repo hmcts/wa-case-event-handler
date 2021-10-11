@@ -20,9 +20,7 @@ public class DueDateService {
         if (delayDuration <= 0) {
             return eventDateTime;
         }
-        final ZonedDateTime zonedDateTime = addWorkingDays(eventDateTime, delayDuration);
-
-        return resetTo4PmTime(zonedDateTime);
+        return resetTo4PmTime(eventDateTime.plusDays(delayDuration));
     }
 
     public ZonedDateTime calculateDueDate(ZonedDateTime delayUntil, int workingDaysAllowed) {

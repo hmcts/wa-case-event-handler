@@ -1,7 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
-import com.azure.core.amqp.models.AmqpAnnotatedMessage;
-import com.azure.core.amqp.models.AmqpMessageHeader;
 import com.azure.core.util.BinaryData;
 import com.azure.core.util.IterableStream;
 import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
@@ -43,13 +41,7 @@ class CcdEventConsumerTest {
     @Mock
     private ServiceBusReceivedMessage receivedMessage;
     @Mock
-    private AmqpAnnotatedMessage amqpAnnotatedMessage;
-    @Mock
-    private AmqpMessageHeader header;
-    @Mock
     private CcdEventErrorHandler ccdEventErrorHandler;
-    @Mock
-    private BinaryData binaryData;
 
     private CcdEventConsumer underTest;
 

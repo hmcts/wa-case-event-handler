@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EvaluateResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.handlers.common.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CaseEventHandler;
 
 import java.util.List;
@@ -38,14 +38,16 @@ public class CcdEventProcessor {
             "Case details:\n"
                 + "Case id: '{}'\n"
                 + "Event id: '{}'\n"
+                + "New state id: '{}'\n"
+                + "Previous state id: '{}'\n"
                 + "Jurisdiction id: '{}'\n"
-                + "Case type id: '{}'\n"
-                + "Additional Data: '{}'",
+                + "Case type id: '{}'",
             eventInformation.getCaseId(),
             eventInformation.getEventId(),
+            eventInformation.getNewStateId(),
+            eventInformation.getPreviousStateId(),
             eventInformation.getJurisdictionId(),
-            eventInformation.getCaseTypeId(),
-            eventInformation.getAdditionalData()
+            eventInformation.getCaseTypeId()
         );
 
         boolean isTaskInitiationEnabled = featureFlagProvider.getBooleanValue(
@@ -56,7 +58,11 @@ public class CcdEventProcessor {
         if (isTaskInitiationEnabled) {
             handlerServices.forEach(handler -> {
                 List<? extends EvaluateResponse> results = handler.evaluateDmn(eventInformation);
-                if (!results.isEmpty()) {
+                if (results.isEmpty()) {
+                    log.info(
+                        "No results returned when evaluating {}", handler.getClass().getName()
+                    );
+                } else {
                     handler.handle(results, eventInformation);
                 }
             });
