@@ -15,3 +15,15 @@ variable "deployment_namespace" {}
 variable "common_tags" {
   type = map(string)
 }
+
+variable "postgres_db_component_name" {
+  default = "cft-case-event-handler"
+}
+
+variable "postgresql_database_name" {
+  default = "cft_case_event_handler_db"
+}
+
+variable "postgresql_user" {
+  default = "wa_wa"
+}
