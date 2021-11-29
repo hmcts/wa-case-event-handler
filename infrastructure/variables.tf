@@ -21,7 +21,7 @@ variable "postgres_db_component_name" {
 }
 
 variable "postgresql_database_name" {
-  default = "cft_case_event_handler_db"
+  default = "wa_case_event_messages_db"
 }
 
 variable "postgresql_user" {
