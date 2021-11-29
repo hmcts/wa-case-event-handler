@@ -20,8 +20,6 @@ def component = "case-event-handler"
 def secrets = [
   'wa-${env}' : [
     secret('ld-secret', 'LAUNCH_DARKLY_SDK_KEY'),
-    secret('cft-case-event-handler-POSTGRES-PASS', 'POSTGRES_PASSWORD'),
-    secret('cft-case-event-handler-POSTGRES-USER', 'POSTGRES_USERNAME'),
   ],
   's2s-${env}': [
     secret('microservicekey-wa-case-event-handler', 'S2S_SECRET_CASE_EVENT_HANDLER')
@@ -42,7 +40,6 @@ withNightlyPipeline(type, product, component) {
   env.Rules = params.SecurityRules
   env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
   env.CAMUNDA_URL = "http://camunda-api-aat.service.core-compute-aat.internal/engine-rest"
-  env.POSTGRES_HOST = "cft-case-event-handler-postgres-db-aat.postgres.database.azure.com"
 
   loadVaultSecrets(secrets)
 
