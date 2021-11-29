@@ -17,7 +17,7 @@ variable "common_tags" {
 }
 
 variable "postgres_db_component_name" {
-  default = "cft-case-event-handler"
+  default = "wa-case-event-handler"
 }
 
 variable "postgresql_database_name" {
