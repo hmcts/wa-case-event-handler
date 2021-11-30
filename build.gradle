@@ -287,6 +287,7 @@ dependencies {
   testImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
   testImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
   testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
+  testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.16.2'
 
   testImplementation group: 'org.pitest', name: 'pitest', version: versions.pitest
   testImplementation 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.6.0'
