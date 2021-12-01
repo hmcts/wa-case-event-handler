@@ -28,6 +28,15 @@ spring:
   application:
     name: WA Case Event Handler
   jackson.serialization.indent_output: true
+  flyway:
+    out-of-order: true
+    ignore-missing-migrations: true
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_NAME:wa_case_event_messages_db}${POSTGRES_CONNECTION_OPTIONS:?stringtype=unspecified}
+    username: ${POSTGRES_USERNAME:ccd}
+    password: ${POSTGRES_PASSWORD:ccd}
+    type: com.zaxxer.hikari.HikariDataSource
 
 security:
   anonymousPaths:

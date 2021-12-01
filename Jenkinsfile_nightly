@@ -20,6 +20,10 @@ def component = "case-event-handler"
 def secrets = [
   'wa-${env}' : [
     secret('ld-secret', 'LAUNCH_DARKLY_SDK_KEY'),
+    secret('wa-case-event-handler-POSTGRES-PASS', 'POSTGRES_PASSWORD'),
+    secret('wa-case-event-handler-POSTGRES-USER', 'POSTGRES_USERNAME'),
+    secret('wa-case-event-handler-POSTGRES-HOST', 'POSTGRES_HOST'),
+    secret('wa-case-event-handler-POSTGRES-PORT', 'POSTGRES_PORT')
   ],
   's2s-${env}': [
     secret('microservicekey-wa-case-event-handler', 'S2S_SECRET_CASE_EVENT_HANDLER')

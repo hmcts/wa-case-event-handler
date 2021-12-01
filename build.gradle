@@ -245,6 +245,7 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
   implementation('org.springframework.boot:spring-boot-starter-validation:2.5.3')
   implementation 'org.springframework.boot:spring-boot-starter-security:2.5.3'
   implementation 'org.springframework.security:spring-security-test:5.5.1'
@@ -286,6 +287,7 @@ dependencies {
   testImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
   testImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
   testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
+  testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.16.2'
 
   testImplementation group: 'org.pitest', name: 'pitest', version: versions.pitest
   testImplementation 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.6.0'
@@ -303,6 +305,10 @@ dependencies {
   smokeTestImplementation sourceSets.main.runtimeClasspath
   smokeTestImplementation sourceSets.test.runtimeClasspath
 
+  compile group: 'org.flywaydb', name: 'flyway-core', version: '8.1.0'
+  compile group: 'com.zaxxer', name: 'HikariCP', version: '5.0.0'
+
+  runtime group: 'org.postgresql', name: 'postgresql', version: '42.3.1'
 }
 
 mainClassName = 'uk.gov.hmcts.reform.wacaseeventhandler.Application'
