@@ -85,8 +85,8 @@ class CaseEventHandlerControllerHandlersOrderTest {
 
         InOrder inOrder = inOrder(
             cancellationTaskHandlerService,
-            initiationTaskHandlerService,
-            warningTaskHandlerService
+            warningTaskHandlerService,
+            initiationTaskHandlerService
         );
 
 
