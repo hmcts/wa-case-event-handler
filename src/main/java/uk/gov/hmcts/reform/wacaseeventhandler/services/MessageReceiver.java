@@ -16,10 +16,12 @@ public class MessageReceiver {
         this.objectMapper = objectMapper;
     }
 
+    @SuppressWarnings({"PMD.UnusedLocalVariable", "PMD.DataflowAnomalyAnalysis"})
     public void processCaseEvent(String message) throws JsonProcessingException {
         final EventInformation caseEventInformation = createEventInformation(message, "Case Event");
     }
 
+    @SuppressWarnings({"PMD.UnusedLocalVariable", "PMD.DataflowAnomalyAnalysis"})
     public void processCaseEventDeadLetterQueue(String message) throws JsonProcessingException {
         final EventInformation caseEventDlqInformation = createEventInformation(message,
                 "Case Event Dead Letter Queue");
