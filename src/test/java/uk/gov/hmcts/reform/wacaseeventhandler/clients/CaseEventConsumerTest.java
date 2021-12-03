@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class CcdEventConsumerTest {
+class CaseEventConsumerTest {
 
     @Mock
     private ServiceBusConfiguration serviceBusConfiguration;
@@ -43,11 +43,11 @@ class CcdEventConsumerTest {
     @Mock
     private CcdEventErrorHandler ccdEventErrorHandler;
 
-    private CcdEventConsumer underTest;
+    private CaseEventConsumer underTest;
 
     @BeforeEach
     void setUp() {
-        underTest = new CcdEventConsumer(serviceBusConfiguration, processor,
+        underTest = new CaseEventConsumer(serviceBusConfiguration, processor,
             ccdEventErrorHandler
         );
 

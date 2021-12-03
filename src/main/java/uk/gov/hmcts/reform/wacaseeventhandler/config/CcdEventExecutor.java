@@ -5,7 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.CcdEventConsumer;
+import uk.gov.hmcts.reform.wacaseeventhandler.clients.CaseEventConsumer;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,7 +19,7 @@ public class CcdEventExecutor {
     private int concurrentSessions;
 
     @Autowired
-    private CcdEventConsumer serviceBusTask;
+    private CaseEventConsumer serviceBusTask;
 
     @Bean
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")

@@ -17,15 +17,15 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
 @Scope("prototype")
 @ConditionalOnProperty("azure.servicebus.enableASB")
 @SuppressWarnings("PMD.DoNotUseThreads")
-public class CcdEventConsumer implements Runnable {
+public class CaseEventConsumer implements Runnable {
 
     private final ServiceBusConfiguration serviceBusConfiguration;
     private final CcdEventProcessor ccdEventProcessor;
     private final CcdEventErrorHandler ccdEventErrorHandler;
 
-    public CcdEventConsumer(ServiceBusConfiguration serviceBusConfiguration,
-                            CcdEventProcessor ccdEventProcessor,
-                            CcdEventErrorHandler ccdEventErrorHandler
+    public CaseEventConsumer(ServiceBusConfiguration serviceBusConfiguration,
+                             CcdEventProcessor ccdEventProcessor,
+                             CcdEventErrorHandler ccdEventErrorHandler
     ) {
         this.serviceBusConfiguration = serviceBusConfiguration;
         this.ccdEventProcessor = ccdEventProcessor;
