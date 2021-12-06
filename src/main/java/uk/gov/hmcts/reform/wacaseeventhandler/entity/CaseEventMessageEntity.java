@@ -1,0 +1,173 @@
+package uk.gov.hmcts.reform.wacaseeventhandler.entity;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import java.time.LocalDateTime;
+
+@Table(name = "wa_case_event_messages")
+@Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class CaseEventMessageEntity {
+    public static final String MESSAGE_ID = "message_id";
+    public static final String SEQUENCE = "sequence";
+    public static final String CASE_ID = "case_id";
+    public static final String EVENT_TIMESTAMP = "event_timestamp";
+    public static final String FROM_DLQ = "from_dlq";
+    public static final String STATE = "state";
+    public static final String MESSAGE_PROPERTIES = "message_properties";
+    public static final String MESSAGE_CONTENT = "message_content";
+    public static final String RECEIVED = "received";
+    public static final String DELIVERY_COUNT = "delivery_count";
+    public static final String HOLD_UNTIL = "hold_until";
+    public static final String RETRY_COUNT = "retry_count";
+
+    @Column(name = MESSAGE_ID, nullable = false)
+    private String messageId;
+
+    @Id
+    @Column(name = SEQUENCE, nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long sequence;
+
+    @Column(name = CASE_ID, nullable = false)
+    private String caseId;
+
+    @Column(name = EVENT_TIMESTAMP)
+    private LocalDateTime eventTimestamp;
+
+    @Column(name = FROM_DLQ, nullable = false)
+    private Boolean fromDlq;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = STATE, nullable = false)
+    private MessageState state;
+
+    @Column(name = MESSAGE_PROPERTIES)
+    @Convert(converter = JsonCaseEventMessageConverter.class)
+    private JsonNode messageProperties;
+
+    @Column(name = MESSAGE_CONTENT)
+    private String messageContent;
+
+    @Column(name = RECEIVED, nullable = false)
+    private LocalDateTime received;
+
+    @Column(name = DELIVERY_COUNT, nullable = false)
+    private Integer deliveryCount;
+
+    @Column(name = HOLD_UNTIL)
+    private LocalDateTime holdUntil;
+
+    @Column(name = RETRY_COUNT, nullable = false)
+    private Integer retryCount;
+
+    public String getMessageId() {
+        return messageId;
+    }
+
+    public void setMessageId(String messageId) {
+        this.messageId = messageId;
+    }
+
+    public Long getSequence() {
+        return sequence;
+    }
+
+    public void setSequence(Long sequence) {
+        this.sequence = sequence;
+    }
+
+    public String getCaseId() {
+        return caseId;
+    }
+
+    public void setCaseId(String caseId) {
+        this.caseId = caseId;
+    }
+
+    public LocalDateTime getEventTimestamp() {
+        return eventTimestamp;
+    }
+
+    public void setEventTimestamp(LocalDateTime eventTimestamp) {
+        this.eventTimestamp = eventTimestamp;
+    }
+
+    public Boolean getFromDlq() {
+        return fromDlq;
+    }
+
+    public void setFromDlq(Boolean fromDlq) {
+        this.fromDlq = fromDlq;
+    }
+
+    public MessageState getState() {
+        return state;
+    }
+
+    public void setState(MessageState state) {
+        this.state = state;
+    }
+
+    public JsonNode getMessageProperties() {
+        return messageProperties;
+    }
+
+    public void setMessageProperties(JsonNode messageProperties) {
+        this.messageProperties = messageProperties;
+    }
+
+    public String getMessageContent() {
+        return messageContent;
+    }
+
+    public void setMessageContent(String messageContent) {
+        this.messageContent = messageContent;
+    }
+
+    public LocalDateTime getReceived() {
+        return received;
+    }
+
+    public void setReceived(LocalDateTime received) {
+        this.received = received;
+    }
+
+    public Integer getDeliveryCount() {
+        return deliveryCount;
+    }
+
+    public void setDeliveryCount(Integer deliveryCount) {
+        this.deliveryCount = deliveryCount;
+    }
+
+    public LocalDateTime getHoldUntil() {
+        return holdUntil;
+    }
+
+    public void setHoldUntil(LocalDateTime holdUntil) {
+        this.holdUntil = holdUntil;
+    }
+
+    public Integer getRetryCount() {
+        return retryCount;
+    }
+
+    public void setRetryCount(Integer retryCount) {
+        this.retryCount = retryCount;
+    }
+}

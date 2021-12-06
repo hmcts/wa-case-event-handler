@@ -11,6 +11,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.InitiateEv
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CaseEventHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.InitiationCaseEventHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageReceiverService;
 
 import java.util.List;
 
@@ -25,11 +26,14 @@ class CaseEventHandlerControllerTest {
 
     @Mock
     private InitiationCaseEventHandler initiationTaskHandler;
+    @Mock
+    private EventMessageReceiverService eventMessageReceiverService;
 
     @Test
     void given_evaluateDmn_returns_nothing_then_caseEventHandler_does_not_handle() {
         List<CaseEventHandler> handlerServices = List.of(initiationTaskHandler);
-        CaseEventHandlerController controller = new CaseEventHandlerController(handlerServices);
+        CaseEventHandlerController controller = new CaseEventHandlerController(handlerServices,
+                                                                               eventMessageReceiverService);
 
         ResponseEntity<Void> response = controller.caseEventHandler(
             EventInformation.builder()
@@ -51,7 +55,8 @@ class CaseEventHandlerControllerTest {
         doReturn(dmnResponse.getResults()).when(initiationTaskHandler).evaluateDmn(any(EventInformation.class));
 
         List<CaseEventHandler> handlerServices = List.of(initiationTaskHandler);
-        CaseEventHandlerController controller = new CaseEventHandlerController(handlerServices);
+        CaseEventHandlerController controller = new CaseEventHandlerController(handlerServices,
+                                                                               eventMessageReceiverService);
 
         ResponseEntity<Void> response = controller.caseEventHandler(
             EventInformation.builder()
