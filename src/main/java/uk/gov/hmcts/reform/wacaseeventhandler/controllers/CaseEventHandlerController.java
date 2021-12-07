@@ -19,8 +19,8 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CaseEventHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageReceiverService;
 
-import javax.validation.Valid;
 import java.util.List;
+import javax.validation.Valid;
 
 import static org.springframework.http.ResponseEntity.noContent;
 

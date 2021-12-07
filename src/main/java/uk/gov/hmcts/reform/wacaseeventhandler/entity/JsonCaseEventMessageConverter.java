@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CaseEventMessageInvalidJsonException;
 
+import java.io.IOException;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
-import java.io.IOException;
 
 @Converter(autoApply = true)
 public class JsonCaseEventMessageConverter implements AttributeConverter<JsonNode, String> {
