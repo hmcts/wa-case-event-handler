@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils;
@@ -58,12 +59,14 @@ public class EventMessageReceiverService {
             CaseEventMessageEntity messageEntity = CaseEventMessageEntity.builder()
                 .messageId(messageId)
                 .caseId(eventInformation.getCaseId())
+                .eventTimestamp(eventInformation.getEventTimeStamp())
+                .fromDlq(fromDlq)
+                .state(state)
+                .messageProperties(getMessageProperties(message))
                 .messageContent(message)
                 .received(LocalDateTime.now())
                 .deliveryCount(0)
                 .retryCount(0)
-                .fromDlq(fromDlq)
-                .state(state)
                 .build();
             repository.save(messageEntity);
 
@@ -78,7 +81,16 @@ public class EventMessageReceiverService {
                 .build();
 
             repository.save(messageEntity);
-            e.printStackTrace();
+        }
+    }
+
+    private JsonNode getMessageProperties(String message) throws JsonProcessingException {
+        JsonNode messageAsJson = objectMapper.readTree(message);
+        JsonNode messageProperties = messageAsJson.findPath("MessageProperties");
+        if (messageProperties.isNull() || messageProperties.isEmpty()) {
+            return objectMapper.readTree("{}");
+        } else {
+            return messageProperties;
         }
     }
 

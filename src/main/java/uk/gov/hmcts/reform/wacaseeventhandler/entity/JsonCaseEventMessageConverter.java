@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.entity;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CaseEventMessageInvalidJsonException;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
@@ -32,7 +33,7 @@ public class JsonCaseEventMessageConverter implements AttributeConverter<JsonNod
             }
             return mapper.readTree(dataValue);
         } catch (IOException e) {
-            throw new RuntimeException("Unable to deserialize to json field", e);
+            throw new CaseEventMessageInvalidJsonException("Unable to deserialize to json field", e);
         }
     }
 }

@@ -83,7 +83,7 @@ public class CaseEventHandlerController {
             response = CaseEventMessageEntity.class,
             responseContainer = "List")
     })
-    @GetMapping(value = "/messages/{message_id}")
+    @GetMapping("/messages/{message_id}")
     public CaseEventMessageEntity getMessagesByMessageId(@PathVariable("message_id") final String messageId) {
         // TODO: map to model and return domain object instead of the entity
         return eventMessageReceiverService.getMessage(messageId);
@@ -97,7 +97,7 @@ public class CaseEventHandlerController {
             response = CaseEventMessageEntity.class,
             responseContainer = "List")
     })
-    @GetMapping(value = "/messages")
+    @GetMapping("/messages")
     public List<CaseEventMessageEntity> getMessages() {
         // TODO: map to model and return domain object instead of the entity
         return eventMessageReceiverService.getAllMessages();
