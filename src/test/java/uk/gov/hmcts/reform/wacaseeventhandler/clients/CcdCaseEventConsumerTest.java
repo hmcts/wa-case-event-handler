@@ -56,6 +56,20 @@ class CcdCaseEventConsumerTest {
     void given_session_is_accepted_when_receiver_complete_throws_error() {
         publishMessageToReceiver();
 
+        doThrow(new ServiceBusException(new Exception(), ServiceBusErrorSource.UNKNOWN)).doNothing()
+                .when(receiverClient).complete(receivedMessage);
+
+        underTest.consumeMessage(sessionReceiverClient);
+
+        verify(receiverClient, Mockito.times(2)).complete(receivedMessage);
+        verify(receiverClient, Mockito.times(0)).abandon(any());
+        verify(receiverClient, Mockito.times(0)).deadLetter(any(), any());
+    }
+
+    @Test
+    void given_session_is_accepted_when_receiver_complete_throws_error_on_both_calls() {
+        publishMessageToReceiver();
+
         doThrow(new ServiceBusException(new Exception(), ServiceBusErrorSource.UNKNOWN))
                 .when(receiverClient).complete(receivedMessage);
 
