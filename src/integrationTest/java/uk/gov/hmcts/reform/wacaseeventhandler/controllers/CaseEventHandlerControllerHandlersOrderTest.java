@@ -45,7 +45,7 @@ class CaseEventHandlerControllerHandlersOrderTest {
     private WarningCaseEventHandler warningTaskHandlerService;
 
     @MockBean
-    private EventMessageReceiverService EventMessageReceiverService;
+    private EventMessageReceiverService eventMessageReceiverService;
 
     @Autowired
     private CaseEventHandlerController controller;
