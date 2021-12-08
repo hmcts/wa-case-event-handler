@@ -10,9 +10,6 @@ import java.util.List;
 @Repository
 public interface CaseEventMessageRepository extends CrudRepository<CaseEventMessageEntity, Long> {
 
-    @Query("FROM CaseEventMessageEntity cem")
-    List<CaseEventMessageEntity> findAllMessages();
-
     @Query("FROM CaseEventMessageEntity cem WHERE cem.messageId=:messageId")
     List<CaseEventMessageEntity> findByMessageId(String messageId);
 }

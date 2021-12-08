@@ -72,6 +72,18 @@ class CaseEventHandlerControllerEndpointTest {
     }
 
     @Test
+    void case_event_message_should_be_stored_and_return_204_no_content() throws Exception {
+
+        EventInformation validEventInformation = getBaseEventInformation(null);
+        String messageId = "123";
+
+        mockMvc.perform(post("/messages/" + messageId)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(asJsonString(validEventInformation)))
+            .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
+    }
+
+    @Test
     void event_information_should_succeed_and_return_204_with_single_category() throws Exception {
         mockInitiateHandlerResponseWithSingleCategory();
 

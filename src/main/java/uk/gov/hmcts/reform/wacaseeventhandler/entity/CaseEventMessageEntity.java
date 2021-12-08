@@ -1,9 +1,12 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.entity;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.vladmihalcea.hibernate.type.json.JsonType;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.TypeDefs;
 
 import java.time.LocalDateTime;
 import javax.persistence.Column;
@@ -18,9 +21,11 @@ import javax.persistence.Table;
 
 @Table(name = "wa_case_event_messages")
 @Entity
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@TypeDefs({
+    @TypeDef(name = "json", typeClass = JsonType.class)
+})
 public class CaseEventMessageEntity {
     public static final String MESSAGE_ID = "message_id";
     public static final String SEQUENCE = "sequence";
@@ -56,8 +61,10 @@ public class CaseEventMessageEntity {
     @Column(name = STATE, nullable = false)
     private MessageState state;
 
-    @Column(name = MESSAGE_PROPERTIES)
-    @Convert(converter = JsonCaseEventMessageConverter.class)
+    @Column(name = MESSAGE_PROPERTIES, columnDefinition = "jsonb")
+//    @Convert(converter = JsonCaseEventMessageConverter.class) // doesn't work in the CaseEventHandlerControllerEndpointTest
+    @Convert(disableConversion = true)
+    @Type(type = "json")
     private JsonNode messageProperties;
 
     @Column(name = MESSAGE_CONTENT)

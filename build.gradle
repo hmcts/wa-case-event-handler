@@ -308,6 +308,7 @@ dependencies {
 
   compile group: 'org.flywaydb', name: 'flyway-core', version: '8.1.0'
   compile group: 'com.zaxxer', name: 'HikariCP', version: '5.0.0'
+  compile group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.14.0'
 
   runtime group: 'org.postgresql', name: 'postgresql', version: '42.3.1'
 }

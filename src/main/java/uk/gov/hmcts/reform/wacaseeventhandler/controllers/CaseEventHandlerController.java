@@ -75,31 +75,16 @@ public class CaseEventHandlerController {
         return noContent().build();
     }
 
-    @ApiOperation("Gets the CCD case event messages by messageId")
+    @ApiOperation("Gets the case event message by messageId")
     @ApiResponses({
         @ApiResponse(
             code = 200,
             message = "Messages returned successfully",
-            response = CaseEventMessageEntity.class,
-            responseContainer = "List")
+            response = CaseEventMessageEntity.class)
     })
     @GetMapping("/messages/{message_id}")
     public CaseEventMessageEntity getMessagesByMessageId(@PathVariable("message_id") final String messageId) {
         // TODO: map to model and return domain object instead of the entity
         return eventMessageReceiverService.getMessage(messageId);
-    }
-
-    @ApiOperation("Gets the CCD case event messages")
-    @ApiResponses({
-        @ApiResponse(
-            code = 200,
-            message = "Messages returned successfully",
-            response = CaseEventMessageEntity.class,
-            responseContainer = "List")
-    })
-    @GetMapping("/messages")
-    public List<CaseEventMessageEntity> getMessages() {
-        // TODO: map to model and return domain object instead of the entity
-        return eventMessageReceiverService.getAllMessages();
     }
 }

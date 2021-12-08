@@ -18,7 +18,7 @@ public class JsonCaseEventMessageConverter implements AttributeConverter<JsonNod
     }
 
     @Override
-    public String convertToDatabaseColumn(JsonNode objectValue) {
+    public String convertToDatabaseColumn(final JsonNode objectValue) {
         if (objectValue == null) {
             return null;
         }
@@ -26,7 +26,7 @@ public class JsonCaseEventMessageConverter implements AttributeConverter<JsonNod
     }
 
     @Override
-    public JsonNode convertToEntityAttribute(String dataValue) {
+    public JsonNode convertToEntityAttribute(final String dataValue) {
         try {
             if (dataValue == null) {
                 return null;

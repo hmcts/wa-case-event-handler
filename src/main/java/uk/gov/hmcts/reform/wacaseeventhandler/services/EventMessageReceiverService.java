@@ -44,10 +44,6 @@ public class EventMessageReceiverService {
                 String.format("Could not find a message with message_id: %s", messageId)));
     }
 
-    public List<CaseEventMessageEntity> getAllMessages() {
-        return repository.findAllMessages();
-    }
-
     private void handleMessage(String messageId, String message, boolean fromDlq) {
 
         try {
@@ -56,42 +52,55 @@ public class EventMessageReceiverService {
             // TODO: implement retry mechanism if required - check when 'transientProcessingProblem' might happen - HLD
             MessageState state = validate(messageId, eventInformation);
 
-            CaseEventMessageEntity messageEntity = CaseEventMessageEntity.builder()
-                .messageId(messageId)
-                .caseId(eventInformation.getCaseId())
-                .eventTimestamp(eventInformation.getEventTimeStamp())
-                .fromDlq(fromDlq)
-                .state(state)
-                .messageProperties(getMessageProperties(message))
-                .messageContent(message)
-                .received(LocalDateTime.now())
-                .deliveryCount(0)
-                .retryCount(0)
-                .build();
+            CaseEventMessageEntity messageEntity = build(messageId, message, fromDlq, eventInformation, state);
             repository.save(messageEntity);
 
             log.info("Message with id '{}' successfully stored into the DB", messageId);
         } catch (JsonProcessingException e) {
             log.error("Could not parse the message with id '{}'", messageId);
 
-            CaseEventMessageEntity messageEntity = CaseEventMessageEntity.builder()
-                .messageId(messageId)
-                .messageContent(message)
-                .state(MessageState.UNPROCESSABLE)
-                .build();
-
+            CaseEventMessageEntity messageEntity = build(messageId, message, fromDlq, MessageState.UNPROCESSABLE);
             repository.save(messageEntity);
         }
     }
 
+    private CaseEventMessageEntity build(String messageId,
+                                         String message,
+                                         boolean fromDlq,
+                                         EventInformation eventInformation,
+                                         MessageState state) throws JsonProcessingException {
+        CaseEventMessageEntity caseEventMessageEntity = new CaseEventMessageEntity();
+        caseEventMessageEntity.setMessageId(messageId);
+        caseEventMessageEntity.setCaseId(eventInformation.getCaseId());
+        caseEventMessageEntity.setEventTimestamp(eventInformation.getEventTimeStamp());
+        caseEventMessageEntity.setFromDlq(fromDlq);
+        caseEventMessageEntity.setState(state);
+        caseEventMessageEntity.setMessageProperties(getMessageProperties(message));
+        caseEventMessageEntity.setMessageContent(message);
+        caseEventMessageEntity.setReceived(LocalDateTime.now());
+        caseEventMessageEntity.setDeliveryCount(0);
+        caseEventMessageEntity.setRetryCount(0);
+
+        return caseEventMessageEntity;
+    }
+
+    private CaseEventMessageEntity build(String messageId,
+                                         String message,
+                                         boolean fromDlq,
+                                         MessageState state) {
+        CaseEventMessageEntity caseEventMessageEntity = new CaseEventMessageEntity();
+        caseEventMessageEntity.setMessageId(messageId);
+        caseEventMessageEntity.setFromDlq(fromDlq);
+        caseEventMessageEntity.setState(state);
+        caseEventMessageEntity.setMessageContent(message);
+        caseEventMessageEntity.setReceived(LocalDateTime.now());
+
+        return caseEventMessageEntity;
+    }
+
     private JsonNode getMessageProperties(String message) throws JsonProcessingException {
         JsonNode messageAsJson = objectMapper.readTree(message);
-        JsonNode messageProperties = messageAsJson.findPath("MessageProperties");
-        if (messageProperties.isNull() || messageProperties.isEmpty()) {
-            return objectMapper.readTree("{}");
-        } else {
-            return messageProperties;
-        }
+        return messageAsJson.findPath("MessageProperties");
     }
 
     private MessageState validate(String messageId, EventInformation eventInformation) {
