@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.entity;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
@@ -24,7 +25,8 @@ import javax.persistence.Table;
 @AllArgsConstructor
 @NoArgsConstructor
 @TypeDefs({
-    @TypeDef(name = "json", typeClass = JsonType.class)
+    @TypeDef(name = "json", typeClass = JsonType.class),
+    @TypeDef(name = "pgsql_enum", typeClass = PostgreSQLEnumType.class)
 })
 public class CaseEventMessageEntity {
     public static final String MESSAGE_ID = "message_id";
@@ -58,11 +60,11 @@ public class CaseEventMessageEntity {
     private Boolean fromDlq;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = STATE, nullable = false)
+    @Column(columnDefinition = "message_state_enum")
+    @Type( type = "pgsql_enum" )
     private MessageState state;
 
     @Column(name = MESSAGE_PROPERTIES, columnDefinition = "jsonb")
-//    @Convert(converter = JsonCaseEventMessageConverter.class) // doesn't work in the CaseEventHandlerControllerEndpointTest
     @Convert(disableConversion = true)
     @Type(type = "json")
     private JsonNode messageProperties;
