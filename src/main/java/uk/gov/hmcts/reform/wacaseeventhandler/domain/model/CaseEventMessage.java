@@ -1,87 +1,39 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.entity;
+package uk.gov.hmcts.reform.wacaseeventhandler.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
-import com.vladmihalcea.hibernate.type.json.JsonType;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
+import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
 
-@Table(name = "wa_case_event_messages")
-@Entity
-@AllArgsConstructor
-@NoArgsConstructor
-@TypeDefs({
-    @TypeDef(name = "json", typeClass = JsonType.class),
-    @TypeDef(name = "pgsql_enum", typeClass = PostgreSQLEnumType.class)
-})
-public class CaseEventMessageEntity {
-    public static final String MESSAGE_ID = "message_id";
-    public static final String SEQUENCE = "sequence";
-    public static final String CASE_ID = "case_id";
-    public static final String EVENT_TIMESTAMP = "event_timestamp";
-    public static final String FROM_DLQ = "from_dlq";
-    public static final String STATE = "state";
-    public static final String MESSAGE_PROPERTIES = "message_properties";
-    public static final String MESSAGE_CONTENT = "message_content";
-    public static final String RECEIVED = "received";
-    public static final String DELIVERY_COUNT = "delivery_count";
-    public static final String HOLD_UNTIL = "hold_until";
-    public static final String RETRY_COUNT = "retry_count";
+public class CaseEventMessage implements Serializable {
 
-    @Column(name = MESSAGE_ID, nullable = false)
+    private static final long serialVersionUID = 3213665975741833471L;
+
+    @JsonProperty("MessageId")
     private String messageId;
-
-    @Id
-    @Column(name = SEQUENCE, nullable = false)
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonProperty("Sequence")
     private Long sequence;
-
-    @Column(name = CASE_ID, nullable = false)
+    @JsonProperty("CaseId")
     private String caseId;
-
-    @Column(name = EVENT_TIMESTAMP)
+    @JsonProperty("EventTimestamp")
     private LocalDateTime eventTimestamp;
-
-    @Column(name = FROM_DLQ, nullable = false)
+    @JsonProperty("FromDlq")
     private Boolean fromDlq;
-
-    @Enumerated(EnumType.STRING)
-    @Column(columnDefinition = "message_state_enum")
-    @Type(type = "pgsql_enum")
+    @JsonProperty("State")
     private MessageState state;
-
-    @Column(name = MESSAGE_PROPERTIES, columnDefinition = "jsonb")
-    @Convert(disableConversion = true)
-    @Type(type = "json")
+    @JsonProperty("MessageProperties")
     private JsonNode messageProperties;
-
-    @Column(name = MESSAGE_CONTENT)
+    @JsonProperty("MessageContent")
     private String messageContent;
-
-    @Column(name = RECEIVED, nullable = false)
+    @JsonProperty("Received")
     private LocalDateTime received;
-
-    @Column(name = DELIVERY_COUNT, nullable = false)
+    @JsonProperty("DeliveryCount")
     private Integer deliveryCount;
-
-    @Column(name = HOLD_UNTIL)
+    @JsonProperty("HoldUntil")
     private LocalDateTime holdUntil;
-
-    @Column(name = RETRY_COUNT, nullable = false)
+    @JsonProperty("RetryCount")
     private Integer retryCount;
 
     public String getMessageId() {

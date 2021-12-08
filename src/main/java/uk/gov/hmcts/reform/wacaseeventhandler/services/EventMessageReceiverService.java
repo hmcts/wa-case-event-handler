@@ -5,62 +5,78 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
+import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CaseEventMessageDuplicateMessageIdException;
 import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CaseEventMessageNotFoundException;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
 import java.time.LocalDateTime;
-import java.util.List;
+
+import static java.lang.String.format;
 
 @Slf4j
 @Service
 @Transactional
 public class EventMessageReceiverService {
+    public static final String MESSAGE_PROPERTIES = "MessageProperties";
+
     private final ObjectMapper objectMapper;
     private final CaseEventMessageRepository repository;
+    private final CaseEventMessageMapper mapper;
 
-    public EventMessageReceiverService(ObjectMapper objectMapper, CaseEventMessageRepository repository) {
+    public EventMessageReceiverService(ObjectMapper objectMapper,
+                                       CaseEventMessageRepository repository,
+                                       CaseEventMessageMapper caseEventMessageMapper) {
         this.objectMapper = objectMapper;
         this.repository = repository;
+        this.mapper = caseEventMessageMapper;
     }
 
-    public void handleDlqMessage(String messageId, String message) {
+    public CaseEventMessage handleDlqMessage(String messageId, String message) {
         log.info("Received DLQ message with id '{}'", messageId);
-        handleMessage(messageId, message, true);
+        return handleMessage(messageId, message, true);
     }
 
-    public void handleAsbMessage(String messageId, String message) {
+    public CaseEventMessage handleAsbMessage(String messageId, String message) {
         log.info("Received ASB message with id '{}'", messageId);
-        handleMessage(messageId, message, false);
+        return handleMessage(messageId, message, false);
     }
 
     public CaseEventMessageEntity getMessage(String messageId) {
         return repository.findByMessageId(messageId).stream().findFirst()
             .orElseThrow(() -> new CaseEventMessageNotFoundException(
-                String.format("Could not find a message with message_id: %s", messageId)));
+                format("Could not find a message with message_id: %s", messageId)));
     }
 
-    private void handleMessage(String messageId, String message, boolean fromDlq) {
+    private CaseEventMessage handleMessage(String messageId, String message, boolean fromDlq) {
 
         try {
             EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
 
-            // TODO: implement retry mechanism if required - check when 'transientProcessingProblem' might happen - HLD
             MessageState state = validate(messageId, eventInformation);
 
             CaseEventMessageEntity messageEntity = build(messageId, message, fromDlq, eventInformation, state);
             repository.save(messageEntity);
 
             log.info("Message with id '{}' successfully stored into the DB", messageId);
+
+            return mapper.mapToCaseEventMessage(messageEntity);
         } catch (JsonProcessingException e) {
             log.error("Could not parse the message with id '{}'", messageId);
 
             CaseEventMessageEntity messageEntity = build(messageId, message, fromDlq, MessageState.UNPROCESSABLE);
             repository.save(messageEntity);
+
+            return mapper.mapToCaseEventMessage(messageEntity);
+        } catch (DataIntegrityViolationException e) {
+            throw new CaseEventMessageDuplicateMessageIdException(
+                format("Trying to save a message with a duplicate messageId: %s", messageId), e);
         }
     }
 
@@ -100,7 +116,7 @@ public class EventMessageReceiverService {
 
     private JsonNode getMessageProperties(String message) throws JsonProcessingException {
         JsonNode messageAsJson = objectMapper.readTree(message);
-        return messageAsJson.findPath("MessageProperties");
+        return messageAsJson.findPath(MESSAGE_PROPERTIES);
     }
 
     private MessageState validate(String messageId, EventInformation eventInformation) {

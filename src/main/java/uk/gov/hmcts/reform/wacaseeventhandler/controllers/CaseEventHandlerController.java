@@ -11,10 +11,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CaseEventHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageReceiverService;
@@ -68,11 +70,16 @@ public class CaseEventHandlerController {
     })
     @PostMapping(path = "/messages/{message_id}", consumes = {MediaType.APPLICATION_JSON_VALUE})
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public ResponseEntity<Void> caseEventHandler(@Valid @RequestBody String message,
-                                                 @PathVariable("message_id") final String messageId) {
-        eventMessageReceiverService.handleAsbMessage(messageId, message);
-        return noContent().build();
+    @ResponseStatus(HttpStatus.CREATED)
+    public CaseEventMessage caseEventHandler(@Valid @RequestBody String message,
+                                             @PathVariable("message_id") final String messageId,
+                                             @RequestParam(value = "from_dlq",
+                                                 required = false) final Boolean fromDlq) {
+        if (fromDlq != null && fromDlq) {
+            return eventMessageReceiverService.handleDlqMessage(messageId, message);
+        } else {
+            return eventMessageReceiverService.handleAsbMessage(messageId, message);
+        }
     }
 
     @ApiOperation("Gets the case event message by messageId")
@@ -84,7 +91,6 @@ public class CaseEventHandlerController {
     })
     @GetMapping("/messages/{message_id}")
     public CaseEventMessageEntity getMessagesByMessageId(@PathVariable("message_id") final String messageId) {
-        // TODO: map to model and return domain object instead of the entity
         return eventMessageReceiverService.getMessage(messageId);
     }
 }
