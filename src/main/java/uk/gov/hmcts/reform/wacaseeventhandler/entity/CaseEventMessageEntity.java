@@ -7,7 +7,6 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
 
 import java.time.LocalDateTime;
 import javax.persistence.Column;
@@ -24,10 +23,9 @@ import javax.persistence.Table;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@TypeDefs({
-    @TypeDef(name = "json", typeClass = JsonType.class),
-    @TypeDef(name = "pgsql_enum", typeClass = PostgreSQLEnumType.class)
-})
+@TypeDef(name = "json", typeClass = JsonType.class)
+@TypeDef(name = "pgsql_enum", typeClass = PostgreSQLEnumType.class)
+@SuppressWarnings("squid:DuplicatedBlocks") // Ignore Sonar DuplicatedBlocks
 public class CaseEventMessageEntity {
     private static final String MESSAGE_ID = "message_id";
     private static final String CASE_ID = "case_id";
