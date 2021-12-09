@@ -28,6 +28,7 @@ import javax.persistence.Table;
     @TypeDef(name = "json", typeClass = JsonType.class),
     @TypeDef(name = "pgsql_enum", typeClass = PostgreSQLEnumType.class)
 })
+@SuppressWarnings({"common-java:DuplicatedBlocks"})
 public class CaseEventMessageEntity {
     public static final String MESSAGE_ID = "message_id";
     public static final String SEQUENCE = "sequence";
