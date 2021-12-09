@@ -48,10 +48,11 @@ public class EventMessageReceiverService {
         return handleMessage(messageId, message, false);
     }
 
-    public CaseEventMessageEntity getMessage(String messageId) {
-        return repository.findByMessageId(messageId).stream().findFirst()
+    public CaseEventMessage getMessage(String messageId) {
+        CaseEventMessageEntity messageEntity = repository.findByMessageId(messageId).stream().findFirst()
             .orElseThrow(() -> new CaseEventMessageNotFoundException(
                 format("Could not find a message with message_id: %s", messageId)));
+        return mapper.mapToCaseEventMessage(messageEntity);
     }
 
     private CaseEventMessage handleMessage(String messageId, String message, boolean fromDlq) {
@@ -110,6 +111,8 @@ public class EventMessageReceiverService {
         caseEventMessageEntity.setState(state);
         caseEventMessageEntity.setMessageContent(message);
         caseEventMessageEntity.setReceived(LocalDateTime.now());
+        caseEventMessageEntity.setDeliveryCount(0);
+        caseEventMessageEntity.setRetryCount(0);
 
         return caseEventMessageEntity;
     }

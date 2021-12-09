@@ -90,7 +90,7 @@ public class CaseEventHandlerController {
             response = CaseEventMessageEntity.class)
     })
     @GetMapping("/messages/{message_id}")
-    public CaseEventMessageEntity getMessagesByMessageId(@PathVariable("message_id") final String messageId) {
+    public CaseEventMessage getMessagesByMessageId(@PathVariable("message_id") final String messageId) {
         return eventMessageReceiverService.getMessage(messageId);
     }
 }

@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultMatcher;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClient;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.request.EvaluateDmnRequest;
@@ -31,10 +33,12 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnIntegerValue;
@@ -77,13 +81,9 @@ class CaseEventHandlerControllerEndpointTest {
         @Test
         void case_event_message_should_be_stored_and_return_200_ok() throws Exception {
 
-            String messageId = "123";
+            String messageId = "1230";
 
-            MvcResult result = mockMvc.perform(post("/messages/" + messageId)
-                                                   .contentType(MediaType.APPLICATION_JSON)
-                                                   .content(getCaseEventMessage()))
-                .andExpect(status().isCreated())
-                .andReturn();
+            MvcResult result = postMessage(messageId, status().isCreated(), false);
 
             String content = result.getResponse().getContentAsString();
             assertEquals(201, result.getResponse().getStatus(), content);
@@ -92,7 +92,7 @@ class CaseEventHandlerControllerEndpointTest {
             CaseEventMessage response = OBJECT_MAPPER.readValue(content, CaseEventMessage.class);
             assertNotNull(response, "Response should not be null");
             assertEquals(messageId, response.getMessageId(), "Valid MessageId should be returned");
-            assertEquals(1, response.getSequence(), "Valid sequence should be returned");
+            assertNotNull(response.getSequence(), "Valid sequence should be returned");
             assertEquals(CASE_REFERENCE, response.getCaseId(), "Valid CaseId should be returned");
             assertEquals(EVENT_TIME_STAMP, response.getEventTimestamp(), "Valid EventTimestamp should be returned");
             assertEquals(false, response.getFromDlq(), "Valid FromDlq should be returned");
@@ -104,20 +104,61 @@ class CaseEventHandlerControllerEndpointTest {
             );
             assertNotNull(response.getReceived(), "Valid Received should be returned");
             assertEquals(0, response.getDeliveryCount(), "Valid DeliveryCount should be returned");
-            assertEquals(null, response.getHoldUntil(), "Valid HoldUntil should be returned");
+            assertNull(response.getHoldUntil(), "Valid HoldUntil should be returned");
             assertEquals(0, response.getRetryCount(), "Valid RetryCount should be returned");
+        }
 
+        @Test
+        void should_get_the_case_event_message_successfully() throws Exception {
+
+            String messageId = "1240";
+
+            MvcResult storedResult = postMessage(messageId, status().isCreated(), false);
+            String storedContent = storedResult.getResponse().getContentAsString();
+            CaseEventMessage stored = OBJECT_MAPPER.readValue(storedContent, CaseEventMessage.class);
+
+            MvcResult result = mockMvc.perform(get("/messages/" + messageId))
+                .andExpect(status().isOk()).andReturn();
+
+            String content = result.getResponse().getContentAsString();
+            assertEquals(200, result.getResponse().getStatus(), content);
+            assertNotNull(content, "Content Should not be null");
+
+            CaseEventMessage response = OBJECT_MAPPER.readValue(content, CaseEventMessage.class);
+            assertNotNull(response, "Response should not be null");
+            assertEquals(stored.getMessageId(), response.getMessageId(), "Valid MessageId should be returned");
+            assertNotNull(response.getSequence(), "Valid sequence should be returned");
+            assertEquals(stored.getCaseId(), response.getCaseId(), "Valid CaseId should be returned");
+            assertEquals(stored.getEventTimestamp(), response.getEventTimestamp(), "Should be same EventTimestamp");
+            assertEquals(stored.getFromDlq(), response.getFromDlq(), "Valid FromDlq should be returned");
+            assertEquals(stored.getState(), response.getState(), "Valid State should be returned");
+            assertEquals(
+                stored.getMessageProperties().toString(),
+                response.getMessageProperties().toString(),
+                "Valid MessageProperties should be returned"
+            );
+            assertNotNull(response.getReceived(), "Valid Received should be returned");
+            assertEquals(stored.getDeliveryCount(), response.getDeliveryCount(), "Should be same DeliveryCount");
+            assertNull(response.getHoldUntil(), "Valid HoldUntil should be returned");
+            assertEquals(stored.getRetryCount(), response.getRetryCount(), "Valid RetryCount should be returned");
+        }
+
+        @Test
+        void should_return_404_when_get_the_case_event_message_not_found() throws Exception {
+
+            String messageId = "99999";
+
+            MvcResult result = mockMvc.perform(get("/messages/" + messageId))
+                .andExpect(status().isNotFound()).andReturn();
+
+            assertEquals(404, result.getResponse().getStatus(), "Should return 404 Not Found");
         }
 
         @Test
         void case_event_message_should_be_stored_and_sequence_bumped() throws Exception {
 
             String messageId1 = "1231";
-            MvcResult result1 = mockMvc.perform(post("/messages/" + messageId1)
-                                                    .contentType(MediaType.APPLICATION_JSON)
-                                                    .content(getCaseEventMessage()))
-                .andExpect(status().isCreated())
-                .andReturn();
+            MvcResult result1 = postMessage(messageId1, status().isCreated(), false);
 
             String content1 = result1.getResponse().getContentAsString();
             assertEquals(201, result1.getResponse().getStatus(), content1);
@@ -125,14 +166,11 @@ class CaseEventHandlerControllerEndpointTest {
             CaseEventMessage response1 = OBJECT_MAPPER.readValue(content1, CaseEventMessage.class);
             assertNotNull(response1, "Response should not be null");
             assertEquals(messageId1, response1.getMessageId(), "Valid MessageId should be returned");
-            assertEquals(2, response1.getSequence(), "Valid sequence should be returned");
+            assertNotNull(response1.getSequence(), "Valid sequence should be returned");
+            long sequence = response1.getSequence();
 
             String messageId2 = "1232";
-            MvcResult result2 = mockMvc.perform(post("/messages/" + messageId2)
-                                                    .contentType(MediaType.APPLICATION_JSON)
-                                                    .content(getCaseEventMessage()))
-                .andExpect(status().isCreated())
-                .andReturn();
+            MvcResult result2 = postMessage(messageId2, status().isCreated(), false);
 
             String content2 = result2.getResponse().getContentAsString();
             assertEquals(201, result2.getResponse().getStatus(), content2);
@@ -140,25 +178,55 @@ class CaseEventHandlerControllerEndpointTest {
             CaseEventMessage response2 = OBJECT_MAPPER.readValue(content2, CaseEventMessage.class);
             assertNotNull(response2, "Response should not be null");
             assertEquals(messageId2, response2.getMessageId(), "Valid MessageId should be returned");
-            assertEquals(3, response2.getSequence(), "Valid sequence should be returned");
-
+            assertEquals(sequence + 1, response2.getSequence(), "Valid sequence should be returned");
         }
 
         @Test
         void post_case_event_message_should_return_400_when_messageId_has_been_stored_already() throws Exception {
 
-            String messageId1 = "1230";
+            String messageId1 = "1233";
 
-            mockMvc.perform(post("/messages/" + messageId1)
-                                                    .contentType(MediaType.APPLICATION_JSON)
-                                                    .content(getCaseEventMessage()))
-                .andExpect(status().isCreated())
-                .andReturn();
+            postMessage(messageId1, status().isCreated(), false);
 
-            mockMvc.perform(post("/messages/" + messageId1)
-                                                    .contentType(MediaType.APPLICATION_JSON)
-                                                    .content(getCaseEventMessage()))
-                .andExpect(status().isBadRequest())
+            postMessage(messageId1, status().isBadRequest(), false);
+        }
+
+        @Test
+        void dlq_case_event_message_should_be_stored_and_return_200_ok() throws Exception {
+
+            String messageId = "1234";
+
+            MvcResult result = postMessage(messageId, status().isCreated(), true);
+
+            String content = result.getResponse().getContentAsString();
+            assertEquals(201, result.getResponse().getStatus(), content);
+            assertNotNull(content, "Content Should not be null");
+
+            CaseEventMessage response = OBJECT_MAPPER.readValue(content, CaseEventMessage.class);
+            assertNotNull(response, "Response should not be null");
+            assertEquals(messageId, response.getMessageId(), "Valid MessageId should be returned");
+            assertNotNull(response.getSequence(), "Valid sequence should be returned");
+            assertEquals(CASE_REFERENCE, response.getCaseId(), "Valid CaseId should be returned");
+            assertEquals(EVENT_TIME_STAMP, response.getEventTimestamp(), "Valid EventTimestamp should be returned");
+            assertEquals(true, response.getFromDlq(), "Valid FromDlq should be returned");
+            assertEquals(MessageState.NEW, response.getState(), "Valid State should be returned");
+            assertEquals(
+                "{\"property1\":\"test1\"}",
+                response.getMessageProperties().toString(),
+                "Valid MessageProperties should be returned"
+            );
+            assertNotNull(response.getReceived(), "Valid Received should be returned");
+            assertEquals(0, response.getDeliveryCount(), "Valid DeliveryCount should be returned");
+            assertNull(response.getHoldUntil(), "Valid HoldUntil should be returned");
+            assertEquals(0, response.getRetryCount(), "Valid RetryCount should be returned");
+        }
+
+        @NotNull
+        private MvcResult postMessage(String messageId, ResultMatcher created, boolean fromDlq) throws Exception {
+            return mockMvc.perform(post("/messages/" + messageId + (fromDlq ? "?from_dlq=true" : ""))
+                                       .contentType(MediaType.APPLICATION_JSON)
+                                       .content(getCaseEventMessage(CASE_REFERENCE)))
+                .andExpect(created)
                 .andReturn();
         }
     }
@@ -430,11 +498,11 @@ class CaseEventHandlerControllerEndpointTest {
         return getBaseEventInformation(additionalData);
     }
 
-    public static String getCaseEventMessage() {
+    public static String getCaseEventMessage(String caseId) {
         return "{\n"
             + "  \"EventInstanceId\" : \"some event instance Id\",\n"
             + "  \"EventTimeStamp\" : \"" + EVENT_TIME_STAMP + "\",\n"
-            + "  \"CaseId\" : \"some case reference\",\n"
+            + (caseId != null ? "  \"CaseId\" : \"" + caseId + "\",\n" : "  \"CaseId\" : null,\n")
             + "  \"JurisdictionId\" : \"ia\",\n"
             + "  \"CaseTypeId\" : \"asylum\",\n"
             + "  \"EventId\" : \"some event Id\",\n"
