@@ -7,7 +7,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@SuppressWarnings({"common-java:DuplicatedBlocks"})
 public class CaseEventMessage implements Serializable {
 
     private static final long serialVersionUID = 3213665975741833471L;

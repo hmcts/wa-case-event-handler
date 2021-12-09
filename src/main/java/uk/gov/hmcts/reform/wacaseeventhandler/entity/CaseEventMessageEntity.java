@@ -28,26 +28,22 @@ import javax.persistence.Table;
     @TypeDef(name = "json", typeClass = JsonType.class),
     @TypeDef(name = "pgsql_enum", typeClass = PostgreSQLEnumType.class)
 })
-@SuppressWarnings({"common-java:DuplicatedBlocks"})
 public class CaseEventMessageEntity {
-    public static final String MESSAGE_ID = "message_id";
-    public static final String SEQUENCE = "sequence";
-    public static final String CASE_ID = "case_id";
-    public static final String EVENT_TIMESTAMP = "event_timestamp";
-    public static final String FROM_DLQ = "from_dlq";
-    public static final String STATE = "state";
-    public static final String MESSAGE_PROPERTIES = "message_properties";
-    public static final String MESSAGE_CONTENT = "message_content";
-    public static final String RECEIVED = "received";
-    public static final String DELIVERY_COUNT = "delivery_count";
-    public static final String HOLD_UNTIL = "hold_until";
-    public static final String RETRY_COUNT = "retry_count";
+    private static final String MESSAGE_ID = "message_id";
+    private static final String CASE_ID = "case_id";
+    private static final String EVENT_TIMESTAMP = "event_timestamp";
+    private static final String FROM_DLQ = "from_dlq";
+    private static final String MESSAGE_PROPERTIES = "message_properties";
+    private static final String MESSAGE_CONTENT = "message_content";
+    private static final String DELIVERY_COUNT = "delivery_count";
+    private static final String HOLD_UNTIL = "hold_until";
+    private static final String RETRY_COUNT = "retry_count";
 
     @Column(name = MESSAGE_ID, nullable = false)
     private String messageId;
 
     @Id
-    @Column(name = SEQUENCE, nullable = false)
+    @Column(nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long sequence;
 
@@ -73,7 +69,7 @@ public class CaseEventMessageEntity {
     @Column(name = MESSAGE_CONTENT)
     private String messageContent;
 
-    @Column(name = RECEIVED, nullable = false)
+    @Column(nullable = false)
     private LocalDateTime received;
 
     @Column(name = DELIVERY_COUNT, nullable = false)
