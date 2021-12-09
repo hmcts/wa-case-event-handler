@@ -25,7 +25,6 @@ import javax.persistence.Table;
 @NoArgsConstructor
 @TypeDef(name = "json", typeClass = JsonType.class)
 @TypeDef(name = "pgsql_enum", typeClass = PostgreSQLEnumType.class)
-@SuppressWarnings("squid:DuplicatedBlocks") // Ignore Sonar DuplicatedBlocks
 public class CaseEventMessageEntity {
     private static final String MESSAGE_ID = "message_id";
     private static final String CASE_ID = "case_id";
