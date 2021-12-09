@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +18,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageReposit
 import java.time.LocalDateTime;
 
 import static java.lang.String.format;
+import static net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Slf4j
 @Service
@@ -60,9 +60,13 @@ public class EventMessageReceiverService {
         try {
             EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
 
-            MessageState state = validate(messageId, eventInformation);
-
-            CaseEventMessageEntity messageEntity = build(messageId, message, fromDlq, eventInformation, state);
+            boolean isValid = validate(messageId, eventInformation);
+            CaseEventMessageEntity messageEntity;
+            if (isValid) {
+                messageEntity = build(messageId, message, fromDlq, eventInformation, MessageState.NEW);
+            } else {
+                messageEntity = build(messageId, message, fromDlq, MessageState.UNPROCESSABLE);
+            }
             repository.save(messageEntity);
 
             log.info("Message with id '{}' successfully stored into the DB", messageId);
@@ -122,13 +126,9 @@ public class EventMessageReceiverService {
         return messageAsJson.findPath(MESSAGE_PROPERTIES);
     }
 
-    private MessageState validate(String messageId, EventInformation eventInformation) {
+    private boolean validate(String messageId, EventInformation eventInformation) {
         // check all required fields
         log.info("Validating message with id '{}'", messageId);
-        if (StringUtils.isNotBlank(eventInformation.getCaseId())) {
-            return MessageState.NEW;
-        } else {
-            return MessageState.UNPROCESSABLE;
-        }
+        return isNotBlank(eventInformation.getCaseId()) && eventInformation.getEventTimeStamp() != null;
     }
 }
