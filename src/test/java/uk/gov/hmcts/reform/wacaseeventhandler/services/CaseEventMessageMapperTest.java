@@ -20,7 +20,7 @@ class CaseEventMessageMapperTest {
     private CaseEventMessageMapper mapper = new CaseEventMessageMapper();
 
     @Test
-    public void shouldMapEntity() throws Exception {
+    void shouldMapEntity() throws Exception {
         CaseEventMessageEntity entity = new CaseEventMessageEntity();
 
         entity.setMessageId("messageId_123");
@@ -54,7 +54,7 @@ class CaseEventMessageMapperTest {
     }
 
     @Test
-    public void shouldMapNullEntity() {
+    void shouldMapNullEntity() {
         assertNull(mapper.mapToCaseEventMessage(null));
     }
 }
