@@ -3,8 +3,8 @@ package uk.gov.hmcts.reform.wacaseeventhandler.entity;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
 import com.vladmihalcea.hibernate.type.json.JsonType;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
@@ -21,8 +21,8 @@ import javax.persistence.Table;
 
 @Table(name = "wa_case_event_messages")
 @Entity
-@AllArgsConstructor
-@NoArgsConstructor
+@EqualsAndHashCode
+@ToString
 @TypeDef(name = "json", typeClass = JsonType.class)
 @TypeDef(name = "pgsql_enum", typeClass = PostgreSQLEnumType.class)
 public class CaseEventMessageEntity {

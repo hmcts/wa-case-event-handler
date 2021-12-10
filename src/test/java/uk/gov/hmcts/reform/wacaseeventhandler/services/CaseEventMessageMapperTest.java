@@ -15,9 +15,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class CaseEventMessageMapperTest {
     private static final LocalDateTime EVENT_TIME_STAMP = LocalDateTime.now();
     private static final LocalDateTime RECEIVED = LocalDateTime.now();
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private CaseEventMessageMapper mapper = new CaseEventMessageMapper();
+    private final CaseEventMessageMapper mapper = new CaseEventMessageMapper();
 
     @Test
     void shouldMapEntity() throws Exception {

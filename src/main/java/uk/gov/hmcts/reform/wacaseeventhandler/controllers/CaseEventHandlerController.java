@@ -64,7 +64,7 @@ public class CaseEventHandlerController {
     @ApiOperation("Handles the CCD case event message")
     @ApiResponses({
         @ApiResponse(
-            code = 204,
+            code = 201,
             message = "Message processed successfully",
             response = Object.class)
     })
