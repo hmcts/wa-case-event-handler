@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,7 +52,8 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.
 @ActiveProfiles("db")
 class CaseEventHandlerControllerEndpointTest {
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-        .registerModule(new JavaTimeModule());
+        .registerModule(new JavaTimeModule())
+        .registerModule(new Jdk8Module());
 
     public static final String S2S_TOKEN = "Bearer s2s token";
     public static final String TENANT_ID = "ia";

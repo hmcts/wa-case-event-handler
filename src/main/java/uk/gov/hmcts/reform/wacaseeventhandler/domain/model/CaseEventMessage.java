@@ -13,29 +13,32 @@ public class CaseEventMessage implements Serializable {
     private static final long serialVersionUID = 3213665975741833471L;
 
     @JsonProperty("MessageId")
-    private final String messageId;
+    private String messageId;
     @JsonProperty("Sequence")
-    private final Long sequence;
+    private Long sequence;
     @JsonProperty("CaseId")
-    private final String caseId;
+    private String caseId;
     @JsonProperty("EventTimestamp")
-    private final LocalDateTime eventTimestamp;
+    private LocalDateTime eventTimestamp;
     @JsonProperty("FromDlq")
-    private final Boolean fromDlq;
+    private Boolean fromDlq;
     @JsonProperty("State")
-    private final MessageState state;
+    private MessageState state;
     @JsonProperty("MessageProperties")
-    private final JsonNode messageProperties;
+    private JsonNode messageProperties;
     @JsonProperty("MessageContent")
-    private final String messageContent;
+    private String messageContent;
     @JsonProperty("Received")
-    private final LocalDateTime received;
+    private LocalDateTime received;
     @JsonProperty("DeliveryCount")
-    private final Integer deliveryCount;
+    private Integer deliveryCount;
     @JsonProperty("HoldUntil")
-    private final LocalDateTime holdUntil;
+    private LocalDateTime holdUntil;
     @JsonProperty("RetryCount")
-    private final Integer retryCount;
+    private Integer retryCount;
+
+    public CaseEventMessage() {
+    }
 
     public CaseEventMessage(String messageId, Long sequence, String caseId, LocalDateTime eventTimestamp,
                             Boolean fromDlq, MessageState state, JsonNode messageProperties, String messageContent,
