@@ -23,7 +23,7 @@ public class CcdCaseEventsExecutor {
 
     @Bean
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-    public void createServiceBus() {
+    public void createCcdCaseEventServiceBus() {
         final ExecutorService executorService = Executors.newFixedThreadPool(
             Integer.valueOf(concurrentSessions));
 
