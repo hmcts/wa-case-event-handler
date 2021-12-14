@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
@@ -19,13 +20,6 @@ import java.time.LocalDateTime;
 
 import static java.lang.String.format;
 import static net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils.isNotBlank;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
-
 import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.DLQ_DB_INSERT;
 
 
@@ -33,38 +27,56 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag
 @Service
 @Transactional
 public class EventMessageReceiverService {
-    public static final String MESSAGE_PROPERTIES = "MessageProperties";
+    private static final String MESSAGE_PROPERTIES = "MessageProperties";
+    private static final String USER_ID = "UserId";
 
     private final ObjectMapper objectMapper;
+    private final LaunchDarklyFeatureFlagProvider featureFlagProvider;
     private final CaseEventMessageRepository repository;
     private final CaseEventMessageMapper mapper;
 
     public EventMessageReceiverService(ObjectMapper objectMapper,
                                        CaseEventMessageRepository repository,
-                                       CaseEventMessageMapper caseEventMessageMapper) {
+                                       CaseEventMessageMapper caseEventMessageMapper,
+                                       LaunchDarklyFeatureFlagProvider featureFlagProvider) {
         this.objectMapper = objectMapper;
         this.repository = repository;
         this.mapper = caseEventMessageMapper;
+        this.featureFlagProvider = featureFlagProvider;
     }
 
     public CaseEventMessage handleDlqMessage(String messageId, String message) {
-        log.info("Received DLQ message with id '{}'", messageId);
+        log.info("Received Case Event Dead Letter Queue message with id '{}'", messageId);
         return handleMessage(messageId, message, true);
     }
 
     public CaseEventMessage handleAsbMessage(String messageId, String message) {
         log.info("Received ASB message with id '{}'", messageId);
-        return handleMessage(messageId, message, false);
+        return handleMessage(messageId, message, true);
+    }
+
+    public CaseEventMessage handleCcdCaseEventAsbMessage(String messageId, String message) {
+        log.info("Received CCD Case Events ASB message with id '{}'", messageId);
+
+        if (featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, getUserId(message))) {
+            return handleMessage(messageId, message, true);
+        } else {
+            log.info("Feature flag '{}' evaluated to false. Message not inserted into DB", DLQ_DB_INSERT.getKey());
+        }
+
+        return null;
     }
 
     public CaseEventMessage getMessage(String messageId) {
         CaseEventMessageEntity messageEntity = repository.findByMessageId(messageId).stream().findFirst()
             .orElseThrow(() -> new CaseEventMessageNotFoundException(
-                format("Could not find a message with message_id: %s", messageId)));
+                format("Could not find a message with message id: %s", messageId)));
         return mapper.mapToCaseEventMessage(messageEntity);
     }
 
-    private CaseEventMessage handleMessage(String messageId, String message, boolean fromDlq) {
+    private CaseEventMessage handleMessage(String messageId,
+                                           String message,
+                                           boolean fromDlq) {
 
         try {
             EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
@@ -135,76 +147,24 @@ public class EventMessageReceiverService {
         return messageAsJson.findPath(MESSAGE_PROPERTIES);
     }
 
+    public String getUserId(String message) {
+        try {
+            JsonNode messageAsJson = objectMapper.readTree(message);
+            final JsonNode userIdNode = messageAsJson.findPath(USER_ID);
+            if (!userIdNode.isMissingNode()) {
+                String userIdTextValue = userIdNode.textValue();
+                log.info("Returning User Id {} found in message", userIdTextValue);
+                return userIdTextValue;
+            }
+        } catch (JsonProcessingException e) {
+            log.info("Unable to find User Id in message");
+        }
+        return null;
+    }
+
     private boolean validate(String messageId, EventInformation eventInformation) {
         // check all required fields
         log.info("Validating message with id '{}'", messageId);
         return isNotBlank(eventInformation.getCaseId()) && eventInformation.getEventTimeStamp() != null;
-    }
-}
-
-    private final ObjectMapper objectMapper;
-    private final LaunchDarklyFeatureFlagProvider featureFlagProvider;
-
-    public EventMessageReceiverService(ObjectMapper objectMapper, LaunchDarklyFeatureFlagProvider featureFlagProvider) {
-        this.objectMapper = objectMapper;
-        this.featureFlagProvider = featureFlagProvider;
-    }
-
-    public void handleDlqMessage(String messageId, String message) {
-        log.info("Received Case Event Dead Letter Queue message with id '{}'", messageId);
-        try {
-            EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
-            handleMessage(messageId, eventInformation, true, "Case Event Dead Letter Queue");
-        } catch (JsonProcessingException e) {
-            log.error("Could not parse the message with id '{}'", messageId);
-        }
-    }
-
-    public void handleAsbMessage(String messageId, String message) {
-        log.info("Received ASB message with id '{}'", messageId);
-        try {
-            EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
-            handleMessage(messageId, eventInformation, true, "Case Event");
-        } catch (JsonProcessingException e) {
-            log.error("Could not parse the message with id '{}'", messageId);
-        }
-    }
-
-    public void handleCcdCaseEventAsbMessage(String messageId, String message) {
-        try {
-            log.info("Received CCD Case Events ASB message with id '{}'", messageId);
-            EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
-
-            if (featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, eventInformation.getUserId())) {
-                handleMessage(messageId, eventInformation, true, "Case Event Dead Letter Queue");
-            } else {
-                log.info("Feature flag '{}' evaluated to false. Message not inserted into DB", DLQ_DB_INSERT.getKey());
-            }
-
-        } catch (JsonProcessingException e) {
-            log.error("Could not parse the message with id '{}'", messageId);
-        }
-    }
-
-    @SuppressWarnings("PMD.UnusedFormalParameter")
-    private void handleMessage(String messageId, EventInformation eventInformation, boolean fromDlq, String eventName) {
-        log.info(
-                "{} details:\n"
-                        + "Case id: '{}'\n"
-                        + "Event id: '{}'\n"
-                        + "New state id: '{}'\n"
-                        + "Previous state id: '{}'\n"
-                        + "Jurisdiction id: '{}'\n"
-                        + "Case type id: '{}'",
-                eventName,
-                eventInformation.getCaseId(),
-                eventInformation.getEventId(),
-                eventInformation.getNewStateId(),
-                eventInformation.getPreviousStateId(),
-                eventInformation.getJurisdictionId(),
-                eventInformation.getCaseTypeId()
-        );
-
-        log.info("Message with id '{}' successfully stored into the DB", messageId);
     }
 }
