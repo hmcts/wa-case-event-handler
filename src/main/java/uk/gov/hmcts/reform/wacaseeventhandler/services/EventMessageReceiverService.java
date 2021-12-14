@@ -129,6 +129,6 @@ public class EventMessageReceiverService {
     private boolean validate(String messageId, EventInformation eventInformation) {
         // check all required fields
         log.info("Validating message with id '{}'", messageId);
-        return isNotBlank(eventInformation.getCaseId()) && eventInformation.getEventTimeStamp() != null;
+        return isNotBlank(eventInformation.getCaseId());
     }
 }
