@@ -50,15 +50,6 @@ class EventMessageReceiverServiceTest {
     private static final LocalDateTime EVENT_TIME_STAMP = LocalDateTime.now();
     private static final LocalDateTime RECEIVED = LocalDateTime.now();
 
-    private static class JsonProcessingExceptionWrapper extends JsonProcessingException {
-
-        private static final long serialVersionUID = 2345537482383128554L;
-
-        protected JsonProcessingExceptionWrapper(String msg) {
-            super(msg);
-        }
-    }
-
     private ListAppender<ILoggingEvent> listAppender;
 
     @Mock
@@ -167,7 +158,7 @@ class EventMessageReceiverServiceTest {
     void test_handle_invalid_message_deserialization() throws JsonProcessingException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
-            .thenThrow(new JsonProcessingExceptionWrapper("Unprocessable message!"));
+            .thenThrow(jsonProcessingException);
         CaseEventMessage result = eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
 
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
