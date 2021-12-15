@@ -52,14 +52,14 @@ public class EventMessageReceiverService {
 
     public CaseEventMessage handleAsbMessage(String messageId, String message) {
         log.info("Received ASB message with id '{}'", messageId);
-        return handleMessage(messageId, message, true);
+        return handleMessage(messageId, message, false);
     }
 
     public CaseEventMessage handleCcdCaseEventAsbMessage(String messageId, String message) {
         log.info("Received CCD Case Events ASB message with id '{}'", messageId);
 
         if (featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, getUserId(message))) {
-            return handleMessage(messageId, message, true);
+            return handleMessage(messageId, message, false);
         } else {
             log.info("Feature flag '{}' evaluated to false. Message not inserted into DB", DLQ_DB_INSERT.getKey());
         }
