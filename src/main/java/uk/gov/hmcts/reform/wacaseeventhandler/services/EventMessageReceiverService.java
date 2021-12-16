@@ -47,7 +47,12 @@ public class EventMessageReceiverService {
 
     public CaseEventMessage handleDlqMessage(String messageId, String message) {
         log.info("Received Case Event Dead Letter Queue message with id '{}'", messageId);
-        return handleMessage(messageId, message, true);
+        if (featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, getUserId(message))) {
+            return handleMessage(messageId, message, true);
+        } else {
+            log.info("Feature flag '{}' evaluated to false. Message not inserted into DB", DLQ_DB_INSERT.getKey());
+        }
+        return null;
     }
 
     public CaseEventMessage handleAsbMessage(String messageId, String message) {
