@@ -12,20 +12,18 @@ public class CaseEventMessageMapper {
             return null;
         }
 
-        CaseEventMessage caseEventMessage = new CaseEventMessage();
-        caseEventMessage.setMessageId(entity.getMessageId());
-        caseEventMessage.setSequence(entity.getSequence());
-        caseEventMessage.setCaseId(entity.getCaseId());
-        caseEventMessage.setEventTimestamp(entity.getEventTimestamp());
-        caseEventMessage.setFromDlq(entity.getFromDlq());
-        caseEventMessage.setState(entity.getState());
-        caseEventMessage.setMessageProperties(entity.getMessageProperties());
-        caseEventMessage.setMessageContent(entity.getMessageContent());
-        caseEventMessage.setReceived(entity.getReceived());
-        caseEventMessage.setDeliveryCount(entity.getDeliveryCount());
-        caseEventMessage.setHoldUntil(entity.getHoldUntil());
-        caseEventMessage.setRetryCount(entity.getRetryCount());
-
-        return caseEventMessage;
+        return new CaseEventMessage(
+            entity.getMessageId(),
+            entity.getSequence(),
+            entity.getCaseId(),
+            entity.getEventTimestamp(),
+            entity.getFromDlq(),
+            entity.getState(),
+            entity.getMessageProperties(),
+            entity.getMessageContent(),
+            entity.getReceived(),
+            entity.getDeliveryCount(),
+            entity.getHoldUntil(),
+            entity.getRetryCount());
     }
 }
