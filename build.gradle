@@ -174,8 +174,9 @@ sonarqube {
     property "sonar.pitest.reportsDirectory", "build/reports/pitest"
     property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/config/**," +
       "src/testUtils/java/uk/gov/hmcts/reform/wacaseeventhandler/**," +
-      "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/Application.java"
-
+      "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/Application.java," +
+      "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/clients/*Consumer.java,"
+      "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/entity/CaseEventMessageEntity.java"
   }
 }
 
@@ -270,14 +271,15 @@ dependencies {
 
   implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.4.2'
 
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.13.3'
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.13.3'
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.15.0'
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.15.0'
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: versions.tomcat
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: versions.tomcat
   implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
 
   implementation 'org.camunda.bpm:camunda-external-task-client:7.15.0'
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.2.2'
+  implementation 'org.apache.commons:commons-lang3:3.12.0'
 
   testImplementation libraries.junit5
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
@@ -315,6 +317,9 @@ dependencies {
 
   compile group: 'org.flywaydb', name: 'flyway-core', version: '8.1.0'
   compile group: 'com.zaxxer', name: 'HikariCP', version: '5.0.0'
+  compile group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.14.0'
+
+  compile group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.10.3'
 
   runtime group: 'org.postgresql', name: 'postgresql', version: '42.3.1'
 }

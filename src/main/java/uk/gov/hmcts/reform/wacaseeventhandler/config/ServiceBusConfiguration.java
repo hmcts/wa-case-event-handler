@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.config;
 import com.azure.core.amqp.AmqpRetryOptions;
 import com.azure.messaging.servicebus.ServiceBusClientBuilder;
 import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
+import com.azure.messaging.servicebus.models.SubQueue;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -23,6 +24,8 @@ public class ServiceBusConfiguration {
     private String topicName;
     @Value("${azure.servicebus.subscription-name}")
     private String subscriptionName;
+    @Value("${azure.servicebus.ccd-case-events-subscription-name}")
+    private String ccdCaseEventsSubscriptionName;
     @Value("${azure.servicebus.retry-duration}")
     private int retryTime;
 
@@ -37,6 +40,35 @@ public class ServiceBusConfiguration {
             .buildClient();
 
         log.info("Session receiver created, successfully");
+        return client;
+    }
+
+    public ServiceBusSessionReceiverClient createCcdCaseEventsSessionReceiver() {
+        log.info("Creating CCD Case Events Session receiver");
+        ServiceBusSessionReceiverClient client = new ServiceBusClientBuilder()
+                .connectionString(connectionString)
+                .retryOptions(retryOptions())
+                .sessionReceiver()
+                .topicName(topicName)
+                .subscriptionName(ccdCaseEventsSubscriptionName)
+                .buildClient();
+
+        log.info("CCD Case Events Session receiver created, successfully");
+        return client;
+    }
+
+    public ServiceBusSessionReceiverClient createCcdCaseEventsDeadLetterQueueSessionReceiver() {
+        log.info("Creating CCD Case Events Dead Letter Queue Session receiver");
+        ServiceBusSessionReceiverClient client = new ServiceBusClientBuilder()
+                .connectionString(connectionString)
+                .retryOptions(retryOptions())
+                .sessionReceiver()
+                .topicName(topicName)
+                .subQueue(SubQueue.DEAD_LETTER_QUEUE)
+                .subscriptionName(ccdCaseEventsSubscriptionName)
+                .buildClient();
+
+        log.info("CCD Case Events Dead Letter Queue Session receiver created, successfully");
         return client;
     }
 
