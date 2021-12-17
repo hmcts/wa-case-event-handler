@@ -27,7 +27,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag
 @Service
 @Transactional
 public class EventMessageReceiverService {
-    private static final String MESSAGE_PROPERTIES = "MessageProperties";
+    protected static final String MESSAGE_PROPERTIES = "MessageProperties";
     private static final String USER_ID = "UserId";
 
     private final ObjectMapper objectMapper;
@@ -66,7 +66,8 @@ public class EventMessageReceiverService {
         if (featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, getUserId(message))) {
             return handleMessage(messageId, message, false);
         } else {
-            log.info("Feature flag '{}' evaluated to false. Message not inserted into DB", DLQ_DB_INSERT.getKey());
+            log.info("Feature flag '{}' evaluated to false. Message not inserted into database",
+                    DLQ_DB_INSERT.getKey());
         }
 
         return null;
@@ -152,7 +153,13 @@ public class EventMessageReceiverService {
         return messageAsJson.findPath(MESSAGE_PROPERTIES);
     }
 
-    public String getUserId(String message) {
+    private boolean validate(String messageId, EventInformation eventInformation) {
+        // check all required fields
+        log.info("Validating message with id '{}'", messageId);
+        return isNotBlank(eventInformation.getCaseId());
+    }
+
+    private String getUserId(String message) {
         try {
             JsonNode messageAsJson = objectMapper.readTree(message);
             final JsonNode userIdNode = messageAsJson.findPath(USER_ID);
@@ -165,11 +172,5 @@ public class EventMessageReceiverService {
             log.info("Unable to find User Id in message");
         }
         return null;
-    }
-
-    private boolean validate(String messageId, EventInformation eventInformation) {
-        // check all required fields
-        log.info("Validating message with id '{}'", messageId);
-        return isNotBlank(eventInformation.getCaseId()) && eventInformation.getEventTimeStamp() != null;
     }
 }
