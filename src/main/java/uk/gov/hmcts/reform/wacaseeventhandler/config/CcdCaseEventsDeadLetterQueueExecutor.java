@@ -23,7 +23,7 @@ public class CcdCaseEventsDeadLetterQueueExecutor {
 
     @Bean
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-    public void createServiceBus() {
+    public void createDeadLetterQueueServiceBus() {
         final ExecutorService executorService = Executors.newFixedThreadPool(
             Integer.valueOf(concurrentSessions));
 
