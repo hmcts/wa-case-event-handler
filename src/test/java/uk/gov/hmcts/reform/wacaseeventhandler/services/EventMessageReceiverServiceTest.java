@@ -133,24 +133,6 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_message_valid_dlq_message() throws JsonProcessingException {
-
-        when(objectMapper.readValue(MESSAGE, EventInformation.class))
-            .thenReturn(getEventInformation());
-        mockMessageProperties();
-
-        CaseEventMessage result = eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, MESSAGE);
-
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
-        verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
-
-        assertEquals(MessageState.NEW, caseEventMessageEntityCaptor.getValue().getState());
-        assertEquals(MESSAGE_ID, result.getMessageId());
-        assertEquals(CASE_ID, result.getCaseId());
-        assertEquals(true, result.getFromDlq());
-    }
-
-    @Test
     void test_handle_invalid_message() throws JsonProcessingException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
@@ -228,23 +210,75 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_dlq_message_valid_message() throws JsonProcessingException {
+    void test_handle_dlq_asb_message_feature_flag_disabled() throws JsonProcessingException {
+        when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(FALSE);
+
+        String userIdJson = "{"
+                + "\"UserId\": \"" + USER_ID + "\"}";
+
+        final JsonNode jsonNode = new ObjectMapper().readTree(userIdJson);
+        when(objectMapper.readTree(MESSAGE))
+                .thenReturn(jsonNode);
+
+        eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, MESSAGE);
+
+        verifyNoInteractions(caseEventMessageRepository);
+        assertLogMessageEquals(String.format("Received Case Event Dead Letter Queue message with id '%s'", MESSAGE_ID), 0);
+        assertLogMessageEquals(
+                String.format("Feature flag '%s' evaluated to false. Message not inserted into database",
+                        DLQ_DB_INSERT.getKey()), 2);
+    }
+
+    @Test
+    void test_handle_dlq_asb_message_feature_flag_enabled_valid_message() throws JsonProcessingException {
+        String userIdJson = "{"
+                + "\"UserId\": \"" + USER_ID + "\"}";
+
+        final JsonNode jsonNode = new ObjectMapper().readTree(userIdJson);
+        when(objectMapper.readTree(MESSAGE))
+                .thenReturn(jsonNode);
+
+        when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(TRUE);
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
-            .thenReturn(EventInformation.builder()
-                            .userId(USER_ID)
-                            .jurisdictionId(JURISDICTION)
-                            .caseTypeId(CASE_TYPE_ID)
-                            .caseId("CASEID")
-                            .eventTimeStamp(LocalDateTime.now())
-                            .build());
-        mockMessageProperties();
+                .thenReturn(EventInformation
+                        .builder()
+                        .userId(USER_ID)
+                        .jurisdictionId(JURISDICTION)
+                        .caseTypeId("CASEID")
+                        .caseId("CASEID")
+                        .eventTimeStamp(LocalDateTime.now())
+                        .build());
+
 
         eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, MESSAGE);
 
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
         assertEquals(MessageState.NEW, caseEventMessageEntityCaptor.getValue().getState());
-        assertTrue(caseEventMessageEntityCaptor.getValue().getFromDlq());
+    }
+
+    @Test
+    void test_handle_dlq_asb_message_feature_flag_enabled_invalid_message() throws JsonProcessingException {
+        String userIdJson = "{"
+                + "\"UserId\": \"" + USER_ID + "\"}";
+
+        final JsonNode jsonNode = new ObjectMapper().readTree(userIdJson);
+        when(objectMapper.readTree(MESSAGE)).thenReturn(jsonNode);
+
+        when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(TRUE);
+
+        when(objectMapper.readValue(MESSAGE, EventInformation.class))
+                .thenReturn(EventInformation
+                        .builder()
+                        .userId(USER_ID)
+                        .jurisdictionId(JURISDICTION)
+                        .caseTypeId("CASEID")
+                        .build());
+
+        eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, MESSAGE);
+
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
     }
 
     @Test

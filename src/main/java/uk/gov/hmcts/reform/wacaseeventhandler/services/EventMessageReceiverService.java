@@ -50,7 +50,8 @@ public class EventMessageReceiverService {
         if (featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, getUserId(message))) {
             return handleMessage(messageId, message, true);
         } else {
-            log.info("Feature flag '{}' evaluated to false. Message not inserted into DB", DLQ_DB_INSERT.getKey());
+            log.info("Feature flag '{}' evaluated to false. Message not inserted into database",
+                    DLQ_DB_INSERT.getKey());
         }
         return null;
     }
