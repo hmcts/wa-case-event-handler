@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CaseEventMessageNotFoun
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static java.lang.String.format;
 import static net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -51,22 +52,43 @@ public class EventMessageReceiverService {
     public CaseEventMessage getMessage(String messageId) {
         CaseEventMessageEntity messageEntity = repository.findByMessageId(messageId).stream().findFirst()
             .orElseThrow(() -> new CaseEventMessageNotFoundException(
-                format("Could not find a message with message_id: %s", messageId)));
+                format("Could not find a message with message id: %s", messageId)));
         return mapper.mapToCaseEventMessage(messageEntity);
     }
 
-    private CaseEventMessage handleMessage(String messageId, String message, boolean fromDlq) {
+    public CaseEventMessage upsertMessage(String messageId, String message, Boolean fromDlq) {
+
+        Optional<CaseEventMessageEntity> messageEntityOptional = repository
+            .findByMessageId(messageId).stream().findFirst();
+
+        if (messageEntityOptional.isPresent()) {
+            try {
+
+                CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId, message, isDlq(fromDlq));
+                messageEntityOptional.ifPresent(eventMessageEntity -> messageEntity.setSequence(eventMessageEntity.getSequence()));
+                repository.save(messageEntity);
+
+                log.info("Message with id '{}' successfully updated and saved into DB", messageId);
+
+                return mapper.mapToCaseEventMessage(messageEntity);
+            } catch (JsonProcessingException e) {
+                log.error("Could not parse the message with id '{}'", messageId);
+
+                CaseEventMessageEntity messageEntity = build(messageId, message, isDlq(fromDlq),
+                                                             MessageState.UNPROCESSABLE);
+                repository.save(messageEntity);
+
+                return mapper.mapToCaseEventMessage(messageEntity);
+            }
+        } else {
+            return handleMessage(messageId, message, fromDlq);
+        }
+    }
+
+    public CaseEventMessage handleMessage(String messageId, String message, Boolean fromDlq) {
 
         try {
-            EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
-
-            boolean isValid = validate(messageId, eventInformation);
-            CaseEventMessageEntity messageEntity;
-            if (isValid) {
-                messageEntity = build(messageId, message, fromDlq, eventInformation, MessageState.NEW);
-            } else {
-                messageEntity = build(messageId, message, fromDlq, MessageState.UNPROCESSABLE);
-            }
+            CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId, message, fromDlq);
             repository.save(messageEntity);
 
             log.info("Message with id '{}' successfully stored into the DB", messageId);
@@ -85,18 +107,42 @@ public class EventMessageReceiverService {
         }
     }
 
+    private boolean isDlq(Boolean fromDlq) {
+        return fromDlq != null && fromDlq;
+    }
+
+    private CaseEventMessageEntity buildCaseEventMessageEntity(String messageId,
+                                                               String message,
+                                                               boolean fromDlq)
+        throws JsonProcessingException {
+
+        EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
+        boolean isValid = validate(messageId, eventInformation);
+
+        CaseEventMessageEntity messageEntity;
+        if (isValid) {
+            messageEntity = build(messageId, message, fromDlq, eventInformation, MessageState.NEW);
+        } else {
+            messageEntity = build(messageId, message, fromDlq, MessageState.UNPROCESSABLE);
+        }
+        JsonNode messageProperties = getMessageProperties(message);
+        if (!messageProperties.isMissingNode()) {
+            messageEntity.setMessageProperties(messageProperties);
+        }
+        return messageEntity;
+    }
+
     private CaseEventMessageEntity build(String messageId,
                                          String message,
                                          boolean fromDlq,
                                          EventInformation eventInformation,
-                                         MessageState state) throws JsonProcessingException {
+                                         MessageState state) {
         CaseEventMessageEntity caseEventMessageEntity = new CaseEventMessageEntity();
         caseEventMessageEntity.setMessageId(messageId);
         caseEventMessageEntity.setCaseId(eventInformation.getCaseId());
         caseEventMessageEntity.setEventTimestamp(eventInformation.getEventTimeStamp());
         caseEventMessageEntity.setFromDlq(fromDlq);
         caseEventMessageEntity.setState(state);
-        caseEventMessageEntity.setMessageProperties(getMessageProperties(message));
         caseEventMessageEntity.setMessageContent(message);
         caseEventMessageEntity.setReceived(LocalDateTime.now());
         caseEventMessageEntity.setDeliveryCount(0);
