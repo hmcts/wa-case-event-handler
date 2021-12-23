@@ -19,6 +19,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CaseEventMessageNotFoun
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static java.lang.String.format;
@@ -64,32 +65,34 @@ public class EventMessageReceiverService {
 
     public CaseEventMessage upsertMessage(String messageId, String message, Boolean fromDlq) {
 
-        Optional<CaseEventMessageEntity> messageEntityOptional = repository
-            .findByMessageId(messageId).stream().findFirst();
+        List<CaseEventMessageEntity> byMessageId = repository.findByMessageId(messageId);
+        if (byMessageId != null) {
+            Optional<CaseEventMessageEntity> messageEntityOptional = byMessageId.stream().findFirst();
+            if (messageEntityOptional.isPresent()) {
+                try {
 
-        if (messageEntityOptional.isPresent()) {
-            try {
+                    CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId,
+                                                                                       message, isDlq(fromDlq));
+                    messageEntityOptional.ifPresent(eventMessageEntity -> messageEntity
+                        .setSequence(eventMessageEntity.getSequence()));
+                    repository.save(messageEntity);
 
-                CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId, message, isDlq(fromDlq));
-                messageEntityOptional.ifPresent(eventMessageEntity -> messageEntity
-                    .setSequence(eventMessageEntity.getSequence()));
-                repository.save(messageEntity);
+                    log.info("Message with id '{}' successfully updated and saved into DB", messageId);
 
-                log.info("Message with id '{}' successfully updated and saved into DB", messageId);
+                    return mapper.mapToCaseEventMessage(messageEntity);
+                } catch (JsonProcessingException e) {
+                    log.error("Could not parse the message with id '{}'", messageId);
 
-                return mapper.mapToCaseEventMessage(messageEntity);
-            } catch (JsonProcessingException e) {
-                log.error("Could not parse the message with id '{}'", messageId);
+                    CaseEventMessageEntity messageEntity = build(messageId, message, isDlq(fromDlq),
+                                                                 MessageState.UNPROCESSABLE);
+                    repository.save(messageEntity);
 
-                CaseEventMessageEntity messageEntity = build(messageId, message, isDlq(fromDlq),
-                                                             MessageState.UNPROCESSABLE);
-                repository.save(messageEntity);
-
-                return mapper.mapToCaseEventMessage(messageEntity);
+                    return mapper.mapToCaseEventMessage(messageEntity);
+                }
             }
-        } else {
-            return handleMessage(messageId, message, fromDlq);
         }
+
+        return handleMessage(messageId, message, fromDlq);
     }
 
     public CaseEventMessage handleMessage(String messageId, String message, Boolean fromDlq) {

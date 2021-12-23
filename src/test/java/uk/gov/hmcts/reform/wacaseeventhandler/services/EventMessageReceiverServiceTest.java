@@ -315,11 +315,8 @@ class EventMessageReceiverServiceTest {
             "messageProperty2", "value2"
         );
         when(objectMapper.readValue(MESSAGE, EventInformationRequest.class))
-            .thenReturn(EventInformationRequest.builder()
-                            .eventInformationMetadata(EventInformationMetadata.builder()
-                                                          .messageProperties(messageProperties)
-                                                          .build())
-                            .build());
+            .thenReturn(new EventInformationRequest(null,
+                                                    new EventInformationMetadata(messageProperties, null)));
         when(objectMapper.writeValueAsString(messageProperties)).thenReturn("jsonMessageProperties");
         when(objectMapper.readTree(any(String.class))).thenReturn(getMessagesPropertyAsJson());
     }

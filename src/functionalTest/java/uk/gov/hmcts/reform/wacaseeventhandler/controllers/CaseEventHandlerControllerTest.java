@@ -884,16 +884,15 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         EventInformation eventInformation = buildEventInformation(eventInstanceId, caseIdForTask);
 
-        EventInformationRequest createRequest = EventInformationRequest.builder()
-            .eventInformation(eventInformation)
-            .eventInformationMetadata(EventInformationMetadata.builder()
-                                          .messageProperties(Map.of(
-                                              "messageProperty1", "value1",
-                                              "messageProperty2", "value2"
-                                          ))
-                                          .holdUntil(holdUntilTimeStamp)
-                                          .build())
-            .build();
+        EventInformationRequest createRequest = new EventInformationRequest(
+            eventInformation,
+            new EventInformationMetadata(
+                Map.of(
+                    "messageProperty1", "value1",
+                    "messageProperty2", "value2"
+                ),
+                holdUntilTimeStamp
+            ));
 
         postEventToRestEndpoint(messageId, s2sToken, createRequest)
             .then()
@@ -923,9 +922,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String eventInstanceId = UUID.randomUUID().toString();
         LocalDateTime updatedEventTimestamp = eventTimeStamp.minusDays(10);
 
-        EventInformationRequest createRequest = EventInformationRequest.builder()
-            .eventInformation(buildEventInformation(eventInstanceId, caseIdForTask))
-            .build();
+        EventInformationRequest createRequest = new EventInformationRequest(
+            buildEventInformation(eventInstanceId, caseIdForTask), null);
 
         Integer sequence = postEventToRestEndpoint(messageId, s2sToken, createRequest)
             .then()
@@ -933,27 +931,27 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .extract()
             .path("Sequence");
 
-        EventInformationRequest updateRequest = EventInformationRequest.builder()
-            .eventInformation(EventInformation.builder()
-                                  .eventInstanceId(eventInstanceId)
-                                  .eventTimeStamp(updatedEventTimestamp)
-                                  .caseId(caseIdForTask)
-                                  .jurisdictionId("IA")
-                                  .caseTypeId("Asylum")
-                                  .eventId("sendDirection")
-                                  .newStateId(null)
-                                  .previousStateId(null)
-                                  .userId("some user Id")
-                                  .additionalData(additionalData())
-                                  .build())
-            .eventInformationMetadata(EventInformationMetadata.builder()
-                                          .messageProperties(Map.of(
-                                              "messageProperty1", "value1",
-                                              "messageProperty2", "value2"
-                                          ))
-                                          .holdUntil(holdUntilTimeStamp)
-                                          .build())
-            .build();
+        EventInformationRequest updateRequest = new EventInformationRequest(
+            EventInformation.builder()
+                .eventInstanceId(eventInstanceId)
+                .eventTimeStamp(updatedEventTimestamp)
+                .caseId(caseIdForTask)
+                .jurisdictionId("IA")
+                .caseTypeId("Asylum")
+                .eventId("sendDirection")
+                .newStateId(null)
+                .previousStateId(null)
+                .userId("some user Id")
+                .additionalData(additionalData())
+                .build(),
+            new EventInformationMetadata(
+                Map.of(
+                    "messageProperty1", "value1",
+                    "messageProperty2", "value2"
+                ),
+                holdUntilTimeStamp
+            )
+        );
 
         putEventToRestEndpoint(messageId, s2sToken, updateRequest, true)
             .then()
@@ -983,16 +981,16 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String eventInstanceId = UUID.randomUUID().toString();
 
         EventInformation eventInformation = buildEventInformation(eventInstanceId, caseIdForTask);
-        EventInformationRequest createRequest = EventInformationRequest.builder()
-            .eventInformation(eventInformation)
-            .eventInformationMetadata(EventInformationMetadata.builder()
-                                          .messageProperties(Map.of(
-                                              "messageProperty1", "value1",
-                                              "messageProperty2", "value2"
-                                          ))
-                                          .holdUntil(holdUntilTimeStamp)
-                                          .build())
-            .build();
+        EventInformationRequest createRequest = new EventInformationRequest(
+            eventInformation,
+            new EventInformationMetadata(
+                Map.of(
+                    "messageProperty1", "value1",
+                    "messageProperty2", "value2"
+                ),
+                holdUntilTimeStamp
+            )
+        );
 
         Integer sequence = postEventToRestEndpoint(messageId, s2sToken, createRequest)
             .then()

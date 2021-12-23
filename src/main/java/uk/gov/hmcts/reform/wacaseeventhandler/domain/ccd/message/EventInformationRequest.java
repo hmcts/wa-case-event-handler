@@ -1,20 +1,18 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 @ToString
-@Builder
 @EqualsAndHashCode
 public class EventInformationRequest {
 
     @JsonUnwrapped
-    private EventInformation eventInformation;
+    private final EventInformation eventInformation;
 
     @JsonUnwrapped
-    private EventInformationMetadata eventInformationMetadata;
+    private final EventInformationMetadata eventInformationMetadata;
 
     public EventInformationRequest(EventInformation eventInformation,
                                    EventInformationMetadata eventInformationMetadata) {
