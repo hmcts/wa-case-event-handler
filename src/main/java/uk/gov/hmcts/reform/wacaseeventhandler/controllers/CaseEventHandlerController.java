@@ -98,7 +98,7 @@ public class CaseEventHandlerController {
                                                        @RequestParam(value = "from_dlq", required = false)
                                                            final Boolean fromDlq) {
 
-            return eventMessageReceiverService.upsertMessage(messageId, message, fromDlq);
+        return eventMessageReceiverService.upsertMessage(messageId, message, fromDlq);
     }
 
     @ApiOperation("Gets the case event message by messageId")

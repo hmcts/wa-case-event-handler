@@ -22,6 +22,8 @@ import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationMetadata;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 
@@ -44,7 +46,6 @@ import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.core.IsNull.nullValue;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -55,6 +56,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     private String taskToTearDown;
     private LocalDateTime eventTimeStamp;
+    private LocalDateTime holdUntilTimeStamp;
 
     @Autowired
     private DueDateService dueDateService;
@@ -62,20 +64,22 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     @Before
     public void setup() {
         eventTimeStamp = LocalDateTime.now().minusDays(1);
+        holdUntilTimeStamp = LocalDateTime.now().plusDays(10);
 
-        RestAssured.config = RestAssuredConfig.config().objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
-            (type, s) -> {
-                ObjectMapper objectMapper = new ObjectMapper();
-                objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE);
-                objectMapper.registerModule(new Jdk8Module());
-                objectMapper.registerModule(new JavaTimeModule());
-                return objectMapper;
-            }
-        ));
+        RestAssured.config = RestAssuredConfig.config()
+            .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
+                (type, s) -> {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE);
+                    objectMapper.registerModule(new Jdk8Module());
+                    objectMapper.registerModule(new JavaTimeModule());
+                    return objectMapper;
+                }
+            ));
     }
 
-
     @Test
+    @SuppressWarnings("checkstyle:Indentation")
     public void should_succeed_and_create_a_task_with_no_categories() {
         String caseId = UUID.randomUUID().toString();
 
@@ -876,10 +880,22 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void should_save_ccd_event_using_test_rest_endpoints() {
         String messageId = randomMessageId();
         String caseIdForTask = UUID.randomUUID().toString();
+        String eventInstanceId = UUID.randomUUID().toString();
 
-        EventInformation eventInformation = buildEventInformation(caseIdForTask);
+        EventInformation eventInformation = buildEventInformation(eventInstanceId, caseIdForTask);
 
-        postEventToRestEndpoint(messageId, s2sToken, eventInformation)
+        EventInformationRequest createRequest = EventInformationRequest.builder()
+            .eventInformation(eventInformation)
+            .eventInformationMetadata(EventInformationMetadata.builder()
+                                          .messageProperties(Map.of(
+                                              "messageProperty1", "value1",
+                                              "messageProperty2", "value2"
+                                          ))
+                                          .holdUntil(holdUntilTimeStamp)
+                                          .build())
+            .build();
+
+        postEventToRestEndpoint(messageId, s2sToken, createRequest)
             .then()
             .statusCode(HttpStatus.CREATED.value())
             .assertThat()
@@ -889,56 +905,120 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("EventTimestamp", equalTo(eventTimeStamp.toString()))
             .body("FromDlq", equalTo(false))
             .body("State", equalTo(MessageState.NEW.name()))
-            .body("MessageProperties", nullValue())
-            .body("MessageContent", equalTo(asJsonString(eventInformation)))
+            .body("MessageContent", equalTo(asJsonString(createRequest)))
             .body("Received", notNullValue())
             .body("DeliveryCount", equalTo(0))
-            .body("HoldUntil", nullValue())
-            .body("RetryCount", equalTo(0));
+            .body("HoldUntil", equalTo(holdUntilTimeStamp.toString()))
+            .body("RetryCount", equalTo(0))
+
+            .rootPath("MessageProperties")
+            .body("messageProperty1", equalTo("value1"))
+            .body("messageProperty2", equalTo("value2"));
     }
 
     @Test
     public void should_update_ccd_event_using_test_rest_endpoints() {
         String messageId = randomMessageId();
         String caseIdForTask = UUID.randomUUID().toString();
+        String eventInstanceId = UUID.randomUUID().toString();
+        LocalDateTime updatedEventTimestamp = eventTimeStamp.minusDays(10);
 
-        EventInformation eventInformation = buildEventInformation(caseIdForTask);
+        EventInformationRequest createRequest = EventInformationRequest.builder()
+            .eventInformation(buildEventInformation(eventInstanceId, caseIdForTask))
+            .build();
 
-        Long sequence = postEventToRestEndpoint(messageId, s2sToken, eventInformation)
+        Integer sequence = postEventToRestEndpoint(messageId, s2sToken, createRequest)
             .then()
             .statusCode(HttpStatus.CREATED.value())
             .extract()
             .path("Sequence");
 
-        EventInformation updatedEventInformation = EventInformation.builder()
-            .eventInstanceId(UUID.randomUUID().toString())
-            .eventTimeStamp(eventTimeStamp.minusDays(10))
-            .caseId(caseIdForTask)
-            .jurisdictionId("IA")
-            .caseTypeId("Asylum")
-            .eventId("sendDirection")
-            .newStateId(null)
-            .previousStateId(null)
-            .userId("some user Id")
-            .additionalData(additionalData())
+        EventInformationRequest updateRequest = EventInformationRequest.builder()
+            .eventInformation(EventInformation.builder()
+                                  .eventInstanceId(eventInstanceId)
+                                  .eventTimeStamp(updatedEventTimestamp)
+                                  .caseId(caseIdForTask)
+                                  .jurisdictionId("IA")
+                                  .caseTypeId("Asylum")
+                                  .eventId("sendDirection")
+                                  .newStateId(null)
+                                  .previousStateId(null)
+                                  .userId("some user Id")
+                                  .additionalData(additionalData())
+                                  .build())
+            .eventInformationMetadata(EventInformationMetadata.builder()
+                                          .messageProperties(Map.of(
+                                              "messageProperty1", "value1",
+                                              "messageProperty2", "value2"
+                                          ))
+                                          .holdUntil(holdUntilTimeStamp)
+                                          .build())
             .build();
 
-        putEventToRestEndpoint(messageId, s2sToken, updatedEventInformation)
+        putEventToRestEndpoint(messageId, s2sToken, updateRequest, true)
             .then()
             .statusCode(HttpStatus.CREATED.value())
             .assertThat()
             .body("MessageId", equalTo(messageId))
-            .body("Sequence", equalTo(sequence.intValue() + 1)) // updated
+            .body("Sequence", equalTo(sequence))
             .body("CaseId", equalTo(caseIdForTask))
-            .body("EventTimestamp", equalTo(eventTimeStamp.minusDays(10).toString())) // updated
-            .body("FromDlq", equalTo(false))
+            .body("EventTimestamp", equalTo(updatedEventTimestamp.toString())) // updated
+            .body("FromDlq", equalTo(true)) // updated
             .body("State", equalTo(MessageState.NEW.name()))
-            .body("MessageProperties", nullValue())
-            .body("MessageContent", equalTo(asJsonString(eventInformation)))
+            .body("MessageContent", equalTo(asJsonString(updateRequest))) // updated
             .body("Received", notNullValue())
             .body("DeliveryCount", equalTo(0))
-            .body("HoldUntil", nullValue())
-            .body("RetryCount", equalTo(0));
+            .body("HoldUntil", equalTo(holdUntilTimeStamp.toString()))
+            .body("RetryCount", equalTo(0))
+
+            .rootPath("MessageProperties")
+            .body("messageProperty1", equalTo("value1"))
+            .body("messageProperty2", equalTo("value2"));
+    }
+
+    @Test
+    public void should_get_ccd_event_using_test_rest_endpoints() {
+        String messageId = randomMessageId();
+        String caseIdForTask = UUID.randomUUID().toString();
+        String eventInstanceId = UUID.randomUUID().toString();
+
+        EventInformation eventInformation = buildEventInformation(eventInstanceId, caseIdForTask);
+        EventInformationRequest createRequest = EventInformationRequest.builder()
+            .eventInformation(eventInformation)
+            .eventInformationMetadata(EventInformationMetadata.builder()
+                                          .messageProperties(Map.of(
+                                              "messageProperty1", "value1",
+                                              "messageProperty2", "value2"
+                                          ))
+                                          .holdUntil(holdUntilTimeStamp)
+                                          .build())
+            .build();
+
+        Integer sequence = postEventToRestEndpoint(messageId, s2sToken, createRequest)
+            .then()
+            .statusCode(HttpStatus.CREATED.value())
+            .extract()
+            .path("Sequence");
+
+        getEventToRestEndpoint(messageId, s2sToken)
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .assertThat()
+            .body("MessageId", equalTo(messageId))
+            .body("Sequence", equalTo(sequence))
+            .body("CaseId", equalTo(caseIdForTask))
+            .body("EventTimestamp", equalTo(eventTimeStamp.toString()))
+            .body("FromDlq", equalTo(false))
+            .body("State", equalTo(MessageState.NEW.name()))
+            .body("MessageContent", equalTo(asJsonString(createRequest)))
+            .body("Received", notNullValue())
+            .body("DeliveryCount", equalTo(0))
+            .body("HoldUntil", equalTo(holdUntilTimeStamp.toString()))
+            .body("RetryCount", equalTo(0))
+
+            .rootPath("MessageProperties")
+            .body("messageProperty1", equalTo("value1"))
+            .body("messageProperty2", equalTo("value2"));
     }
 
     @After
@@ -948,9 +1028,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         }
     }
 
-    private EventInformation buildEventInformation(String caseIdForTask) {
+    private EventInformation buildEventInformation(String eventInstanceId, String caseIdForTask) {
         return EventInformation.builder()
-            .eventInstanceId(UUID.randomUUID().toString())
+            .eventInstanceId(eventInstanceId)
             .eventTimeStamp(eventTimeStamp)
             .caseId(caseIdForTask)
             .jurisdictionId("IA")
@@ -1137,7 +1217,18 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .statusCode(HttpStatus.NO_CONTENT.value());
     }
 
-    private Response postEventToRestEndpoint(String messageId, String s2sToken, EventInformation eventInformation) {
+    private Response getEventToRestEndpoint(String messageId,
+                                            String s2sToken) {
+        return given()
+            .contentType(APPLICATION_JSON_VALUE)
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .when()
+            .get("/messages/" + messageId);
+    }
+
+    private Response postEventToRestEndpoint(String messageId,
+                                             String s2sToken,
+                                             EventInformationRequest eventInformation) {
         return given()
             .contentType(APPLICATION_JSON_VALUE)
             .header(SERVICE_AUTHORIZATION, s2sToken)
@@ -1146,13 +1237,15 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .post("/messages/" + messageId);
     }
 
-    private Response putEventToRestEndpoint(String messageId, String s2sToken, EventInformation eventInformation) {
+    private Response putEventToRestEndpoint(String messageId, String s2sToken,
+                                            EventInformationRequest request,
+                                            boolean fromDlq) {
         return given()
             .contentType(APPLICATION_JSON_VALUE)
             .header(SERVICE_AUTHORIZATION, s2sToken)
-            .body(asJsonString(eventInformation))
+            .body(asJsonString(request))
             .when()
-            .put("/messages/" + messageId);
+            .put("/messages/" + messageId + (fromDlq ? "?from_dlq=true" : ""));
     }
 
     private Response getMessageToRestEndpoint(String messageId, String s2sToken) {

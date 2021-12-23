@@ -17,7 +17,10 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationMetadata;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
@@ -28,6 +31,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageReposit
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -82,6 +86,7 @@ class EventMessageReceiverServiceTest {
         eventMessageReceiverService = new EventMessageReceiverService(objectMapper,
                                                                       caseEventMessageRepository,
                                                                       caseEventMessageMapper);
+        ReflectionTestUtils.setField(eventMessageReceiverService, "environment", "local");
     }
 
     @Test
@@ -113,7 +118,7 @@ class EventMessageReceiverServiceTest {
         assertNotNull(result.getEventTimestamp());
         assertEquals(false, result.getFromDlq());
         assertEquals(MessageState.NEW, result.getState());
-        assertEquals(getMessagesPropertyAsJson().findPath(MESSAGE_PROPERTIES), result.getMessageProperties());
+        assertEquals(getMessagesPropertyAsJson(), result.getMessageProperties());
         assertEquals(MESSAGE, result.getMessageContent());
         assertNotNull(result.getReceived());
         assertEquals(0, result.getDeliveryCount());
@@ -147,6 +152,7 @@ class EventMessageReceiverServiceTest {
                             .jurisdictionId(JURISDICTION)
                             .caseTypeId(CASE_TYPE_ID)
                             .build());
+        mockMessageProperties();
 
         eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
 
@@ -203,6 +209,7 @@ class EventMessageReceiverServiceTest {
 
         when(caseEventMessageRepository.save(any(CaseEventMessageEntity.class)))
             .thenThrow(new DataIntegrityViolationException("Exception message"));
+        mockMessageProperties();
 
         final CaseEventMessageDuplicateMessageIdException caseEventMessageDuplicateMessageIdException =
             assertThrows(CaseEventMessageDuplicateMessageIdException.class,
@@ -277,7 +284,7 @@ class EventMessageReceiverServiceTest {
         CaseEventMessageNotFoundException caseEventMessageNotFoundException =
             assertThrows(CaseEventMessageNotFoundException.class,
                 () -> eventMessageReceiverService.getMessage(MESSAGE_ID));
-        assertEquals(String.format("Could not find a message with message_id: %s", MESSAGE_ID),
+        assertEquals(String.format("Could not find a message with message id: %s", MESSAGE_ID),
                      caseEventMessageNotFoundException.getMessage());
     }
 
@@ -303,6 +310,17 @@ class EventMessageReceiverServiceTest {
     }
 
     private void mockMessageProperties() throws JsonProcessingException {
+        Map<String, String> messageProperties = Map.of(
+            "messageProperty1", "value1",
+            "messageProperty2", "value2"
+        );
+        when(objectMapper.readValue(MESSAGE, EventInformationRequest.class))
+            .thenReturn(EventInformationRequest.builder()
+                            .eventInformationMetadata(EventInformationMetadata.builder()
+                                                          .messageProperties(messageProperties)
+                                                          .build())
+                            .build());
+        when(objectMapper.writeValueAsString(messageProperties)).thenReturn("jsonMessageProperties");
         when(objectMapper.readTree(any(String.class))).thenReturn(getMessagesPropertyAsJson());
     }
 

@@ -4,10 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationMetadata;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
@@ -26,6 +29,9 @@ import static net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils.
 @Transactional
 public class EventMessageReceiverService {
     public static final String MESSAGE_PROPERTIES = "MessageProperties";
+
+    @Value("${environment}")
+    private String environment;
 
     private final ObjectMapper objectMapper;
     private final CaseEventMessageRepository repository;
@@ -65,7 +71,8 @@ public class EventMessageReceiverService {
             try {
 
                 CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId, message, isDlq(fromDlq));
-                messageEntityOptional.ifPresent(eventMessageEntity -> messageEntity.setSequence(eventMessageEntity.getSequence()));
+                messageEntityOptional.ifPresent(eventMessageEntity -> messageEntity
+                    .setSequence(eventMessageEntity.getSequence()));
                 repository.save(messageEntity);
 
                 log.info("Message with id '{}' successfully updated and saved into DB", messageId);
@@ -125,11 +132,38 @@ public class EventMessageReceiverService {
         } else {
             messageEntity = build(messageId, message, fromDlq, MessageState.UNPROCESSABLE);
         }
-        JsonNode messageProperties = getMessageProperties(message);
-        if (!messageProperties.isMissingNode()) {
-            messageEntity.setMessageProperties(messageProperties);
+
+        log.info("Processing '{}' in '{}' environment ", messageId, environment);
+        if (isNonProdEnvironment()) {
+            EventInformationRequest eventInformationRequest = objectMapper.readValue(
+                message,
+                EventInformationRequest.class
+            );
+            EventInformationMetadata eventInformationMetadata = eventInformationRequest.getEventInformationMetadata();
+            updateMessageEntity(messageEntity, eventInformationMetadata);
         }
         return messageEntity;
+    }
+
+    private void updateMessageEntity(CaseEventMessageEntity messageEntity,
+                                     EventInformationMetadata eventInformationMetadata) {
+        JsonNode actualObj = convertMapToJsonNode(eventInformationMetadata);
+        messageEntity.setMessageProperties(actualObj);
+        messageEntity.setHoldUntil(eventInformationMetadata.getHoldUntil());
+    }
+
+    private JsonNode convertMapToJsonNode(EventInformationMetadata eventInformationMetadata) {
+        try {
+            String json = objectMapper.writeValueAsString(eventInformationMetadata.getMessageProperties());
+            return objectMapper.readTree(json);
+        } catch (JsonProcessingException e) {
+            log.error("Could not deserialize values");
+            return objectMapper.createObjectNode();
+        }
+    }
+
+    private boolean isNonProdEnvironment() {
+        return !"prod".equalsIgnoreCase(environment);
     }
 
     private CaseEventMessageEntity build(String messageId,
@@ -165,11 +199,6 @@ public class EventMessageReceiverService {
         caseEventMessageEntity.setRetryCount(0);
 
         return caseEventMessageEntity;
-    }
-
-    private JsonNode getMessageProperties(String message) throws JsonProcessingException {
-        JsonNode messageAsJson = objectMapper.readTree(message);
-        return messageAsJson.findPath(MESSAGE_PROPERTIES);
     }
 
     private boolean validate(String messageId, EventInformation eventInformation) {

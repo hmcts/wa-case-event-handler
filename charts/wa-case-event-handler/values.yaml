@@ -31,3 +31,4 @@ java:
     AZURE_SERVICE_BUS_SUBSCRIPTION_NAME: "wa-case-events-sub-{{ .Values.global.environment }}"
     AZURE_SERVICE_BUS_CCD_CASE_EVENTS_SUBSCRIPTION_NAME: "wa-ccd-case-events-sub-{{ .Values.global.environment }}"
     POSTGRES_CONNECTION_OPTIONS: "?stringtype=unspecified&gssEncMode=disable"
+    ENVIRONMENT: "{{ .Values.global.environment }}"
