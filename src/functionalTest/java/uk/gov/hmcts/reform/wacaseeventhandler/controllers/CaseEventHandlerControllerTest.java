@@ -63,8 +63,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     @Before
     public void setup() {
-        eventTimeStamp = LocalDateTime.now().minusDays(1);
-        holdUntilTimeStamp = LocalDateTime.now().plusDays(10);
+        eventTimeStamp = LocalDateTime.parse("2020-03-27T12:56:10.403975").minusDays(1);
+        holdUntilTimeStamp = LocalDateTime.parse("2020-03-27T12:56:10.403975").plusDays(10);
 
         RestAssured.config = RestAssuredConfig.config()
             .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
