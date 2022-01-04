@@ -90,18 +90,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_message_event_information_parsing_failed() throws JsonProcessingException {
-        when(objectMapper.readValue(MESSAGE, EventInformation.class)).thenThrow(jsonProcessingException);
-
-        eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
-
-        assertLogMessageEquals(String.format("Could not parse the message with id '%s'",  MESSAGE_ID), 1);
-
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
-    }
-
-    @Test
-    void test_handle_message_valid_message() throws JsonProcessingException {
+    void handles_valid_abs_message() throws JsonProcessingException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenReturn(getEventInformation());
@@ -126,7 +115,32 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_message_valid_dlq_message() throws JsonProcessingException {
+    void handle_abs_message_event_information_parsing_failed() throws JsonProcessingException {
+        when(objectMapper.readValue(MESSAGE, EventInformation.class)).thenThrow(jsonProcessingException);
+
+        eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
+
+        assertLogMessageEquals(String.format("Could not parse the message with id '%s'",  MESSAGE_ID), 1);
+
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+    }
+
+    @Test
+    void handle_abs_message_event_message_properties_parsing_failed() throws JsonProcessingException {
+
+        when(objectMapper.readValue(MESSAGE, EventInformation.class))
+            .thenReturn(getEventInformation());
+        mockParsingExceptionWhenRetrievingMessageProperties();
+
+        eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
+
+        assertLogMessageEquals(String.format("Could not parse the message with id '%s'",  MESSAGE_ID), 3);
+
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+    }
+
+    @Test
+    void handles_valid_dlq_message() throws JsonProcessingException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenReturn(getEventInformation());
@@ -144,7 +158,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_invalid_message() throws JsonProcessingException {
+    void handles_invalid_abs_message() throws JsonProcessingException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenReturn(EventInformation.builder()
@@ -161,7 +175,71 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_invalid_message_deserialization() throws JsonProcessingException {
+    void should_upsert_valid_dlq_message() throws JsonProcessingException {
+        CaseEventMessageEntity entity = new CaseEventMessageEntity();
+        when(caseEventMessageRepository.findByMessageId(MESSAGE_ID)).thenReturn(List.of(entity));
+
+        when(objectMapper.readValue(MESSAGE, EventInformation.class))
+            .thenReturn(getEventInformation());
+        mockMessageProperties();
+
+        CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, true);
+
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
+
+        assertEquals(MessageState.NEW, caseEventMessageEntityCaptor.getValue().getState());
+        assertEquals(MESSAGE_ID, result.getMessageId());
+        assertEquals(CASE_ID, result.getCaseId());
+        assertEquals(true, result.getFromDlq());
+    }
+
+    @Test
+    void should_upsert_invalid_dlq_message() throws JsonProcessingException {
+
+        CaseEventMessageEntity entity = new CaseEventMessageEntity();
+        when(caseEventMessageRepository.findByMessageId(MESSAGE_ID)).thenReturn(List.of(entity));
+        when(objectMapper.readValue(MESSAGE, EventInformation.class))
+            .thenThrow(jsonProcessingException);
+
+        CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, false);
+
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
+
+        assertEquals(MESSAGE_ID, result.getMessageId());
+        assertNull(result.getCaseId());
+        assertNull(result.getEventTimestamp());
+        assertEquals(false, result.getFromDlq());
+        assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
+        assertNull(result.getMessageProperties());
+        assertEquals(MESSAGE, result.getMessageContent());
+        assertNotNull(result.getReceived());
+        assertEquals(0, result.getDeliveryCount());
+        assertEquals(0, result.getRetryCount());
+    }
+
+    @Test
+    void should_upsert_valid_dlq_message_when_no_message_id_present() throws JsonProcessingException {
+        when(caseEventMessageRepository.findByMessageId(MESSAGE_ID)).thenReturn(List.of());
+
+        when(objectMapper.readValue(MESSAGE, EventInformation.class))
+            .thenReturn(getEventInformation());
+        mockMessageProperties();
+
+        CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, true);
+
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
+
+        assertEquals(MessageState.NEW, caseEventMessageEntityCaptor.getValue().getState());
+        assertEquals(MESSAGE_ID, result.getMessageId());
+        assertEquals(CASE_ID, result.getCaseId());
+        assertEquals(true, result.getFromDlq());
+    }
+
+    @Test
+    void handles_invalid_abs_message_deserialization() throws JsonProcessingException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenThrow(jsonProcessingException);
@@ -183,7 +261,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_message_message_parsing_failure() throws JsonProcessingException {
+    void handle_abs_message_parsing_failure() throws JsonProcessingException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenThrow(jsonProcessingException);
@@ -198,7 +276,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_message_data_integrity_violation() throws JsonProcessingException {
+    void handle_abs_message_data_integrity_violation() throws JsonProcessingException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenReturn(EventInformation.builder()
@@ -223,7 +301,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_dql_message_valid_message() throws JsonProcessingException {
+    void handle_dql_message_valid_message() throws JsonProcessingException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenReturn(EventInformation.builder()
@@ -242,7 +320,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_get_message_by_message_id_message_found() throws JsonProcessingException {
+    void should_get_message_by_message_id_message_found() throws JsonProcessingException {
         CaseEventMessageEntity entity = new CaseEventMessageEntity();
 
         entity.setMessageId(MESSAGE_ID);
@@ -279,7 +357,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_get_message_by_message_id_no_message_found() {
+    void should_get_message_by_message_id_no_message_found() {
         when(caseEventMessageRepository.findByMessageId(MESSAGE_ID)).thenReturn(Collections.emptyList());
         CaseEventMessageNotFoundException caseEventMessageNotFoundException =
             assertThrows(CaseEventMessageNotFoundException.class,
@@ -319,6 +397,17 @@ class EventMessageReceiverServiceTest {
                                                     new EventInformationMetadata(messageProperties, null)));
         when(objectMapper.writeValueAsString(messageProperties)).thenReturn("jsonMessageProperties");
         when(objectMapper.readTree(any(String.class))).thenReturn(getMessagesPropertyAsJson());
+    }
+
+    private void mockParsingExceptionWhenRetrievingMessageProperties() throws JsonProcessingException {
+        Map<String, String> messageProperties = Map.of(
+            "messageProperty1", "value1",
+            "messageProperty2", "value2"
+        );
+        when(objectMapper.readValue(MESSAGE, EventInformationRequest.class))
+            .thenReturn(new EventInformationRequest(null,
+                                                    new EventInformationMetadata(messageProperties, null)));
+        when(objectMapper.writeValueAsString(messageProperties)).thenThrow(jsonProcessingException);
     }
 
     private JsonNode getMessagesPropertyAsJson() throws JsonProcessingException {

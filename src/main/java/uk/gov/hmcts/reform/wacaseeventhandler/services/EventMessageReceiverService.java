@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static java.lang.Boolean.TRUE;
 import static java.lang.String.format;
 import static net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -69,10 +70,10 @@ public class EventMessageReceiverService {
         if (byMessageId != null) {
             Optional<CaseEventMessageEntity> messageEntityOptional = byMessageId.stream().findFirst();
             if (messageEntityOptional.isPresent()) {
+                boolean isDlq = TRUE.equals(fromDlq);
                 try {
 
-                    CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId,
-                                                                                       message, isDlq(fromDlq));
+                    CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId, message, isDlq);
                     messageEntityOptional.ifPresent(eventMessageEntity -> messageEntity
                         .setSequence(eventMessageEntity.getSequence()));
                     repository.save(messageEntity);
@@ -83,8 +84,7 @@ public class EventMessageReceiverService {
                 } catch (JsonProcessingException e) {
                     log.error("Could not parse the message with id '{}'", messageId);
 
-                    CaseEventMessageEntity messageEntity = build(messageId, message, isDlq(fromDlq),
-                                                                 MessageState.UNPROCESSABLE);
+                    CaseEventMessageEntity messageEntity = build(messageId, message, isDlq, MessageState.UNPROCESSABLE);
                     repository.save(messageEntity);
 
                     return mapper.mapToCaseEventMessage(messageEntity);
@@ -95,10 +95,10 @@ public class EventMessageReceiverService {
         return handleMessage(messageId, message, fromDlq);
     }
 
-    public CaseEventMessage handleMessage(String messageId, String message, Boolean fromDlq) {
-
+    private CaseEventMessage handleMessage(String messageId, String message, Boolean fromDlq) {
+        boolean isDlq = TRUE.equals(fromDlq);
         try {
-            CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId, message, fromDlq);
+            CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId, message, isDlq);
             repository.save(messageEntity);
 
             log.info("Message with id '{}' successfully stored into the DB", messageId);
@@ -107,7 +107,7 @@ public class EventMessageReceiverService {
         } catch (JsonProcessingException e) {
             log.error("Could not parse the message with id '{}'", messageId);
 
-            CaseEventMessageEntity messageEntity = build(messageId, message, fromDlq, MessageState.UNPROCESSABLE);
+            CaseEventMessageEntity messageEntity = build(messageId, message, isDlq, MessageState.UNPROCESSABLE);
             repository.save(messageEntity);
 
             return mapper.mapToCaseEventMessage(messageEntity);
@@ -115,10 +115,6 @@ public class EventMessageReceiverService {
             throw new CaseEventMessageDuplicateMessageIdException(
                 format("Trying to save a message with a duplicate messageId: %s", messageId), e);
         }
-    }
-
-    private boolean isDlq(Boolean fromDlq) {
-        return fromDlq != null && fromDlq;
     }
 
     private CaseEventMessageEntity buildCaseEventMessageEntity(String messageId,
@@ -149,20 +145,17 @@ public class EventMessageReceiverService {
     }
 
     private void updateMessageEntity(CaseEventMessageEntity messageEntity,
-                                     EventInformationMetadata eventInformationMetadata) {
+                                     EventInformationMetadata eventInformationMetadata) throws JsonProcessingException {
         JsonNode actualObj = convertMapToJsonNode(eventInformationMetadata);
         messageEntity.setMessageProperties(actualObj);
         messageEntity.setHoldUntil(eventInformationMetadata.getHoldUntil());
     }
 
-    private JsonNode convertMapToJsonNode(EventInformationMetadata eventInformationMetadata) {
-        try {
-            String json = objectMapper.writeValueAsString(eventInformationMetadata.getMessageProperties());
-            return objectMapper.readTree(json);
-        } catch (JsonProcessingException e) {
-            log.error("Could not deserialize values");
-            return objectMapper.createObjectNode();
-        }
+    private JsonNode convertMapToJsonNode(EventInformationMetadata eventInformationMetadata)
+        throws JsonProcessingException {
+
+        String json = objectMapper.writeValueAsString(eventInformationMetadata.getMessageProperties());
+        return objectMapper.readTree(json);
     }
 
     private boolean isNonProdEnvironment() {

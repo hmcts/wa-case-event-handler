@@ -84,8 +84,8 @@ class CaseEventHandlerControllerTest {
 
         CaseEventHandlerController controller = new CaseEventHandlerController(
             Collections.emptyList(),
-            eventMessageReceiverService);
-
+            eventMessageReceiverService
+        );
 
         CaseEventMessage response = controller.caseEventHandler(
             JSON_MESSAGE,
@@ -106,7 +106,8 @@ class CaseEventHandlerControllerTest {
 
         CaseEventHandlerController controller = new CaseEventHandlerController(
             Collections.emptyList(),
-            eventMessageReceiverService);
+            eventMessageReceiverService
+        );
 
         CaseEventMessage response = controller.caseEventHandler(
             JSON_MESSAGE,
@@ -117,6 +118,46 @@ class CaseEventHandlerControllerTest {
         assertThat(response).isEqualTo(responseMessage);
 
         verify(eventMessageReceiverService).handleDlqMessage(MESSAGE_ID, JSON_MESSAGE);
+        verifyNoMoreInteractions(initiationTaskHandler);
+        verifyNoMoreInteractions(eventMessageReceiverService);
+    }
+
+    @Test
+    void put_messages_should_delegate_to_eventMessageReceiverService() {
+        doReturn(responseMessage).when(eventMessageReceiverService).upsertMessage(MESSAGE_ID, JSON_MESSAGE, false);
+
+        CaseEventHandlerController controller = new CaseEventHandlerController(
+            Collections.emptyList(),
+            eventMessageReceiverService
+        );
+
+        CaseEventMessage response = controller.putCaseEventHandlerMessage(
+            JSON_MESSAGE,
+            MESSAGE_ID,
+            false
+        );
+
+        assertThat(response).isEqualTo(responseMessage);
+
+        verify(eventMessageReceiverService).upsertMessage(MESSAGE_ID, JSON_MESSAGE, false);
+        verifyNoMoreInteractions(initiationTaskHandler);
+        verifyNoMoreInteractions(eventMessageReceiverService);
+    }
+
+    @Test
+    void get_message_should_delegate_to_eventMessageReceiverService() {
+        doReturn(responseMessage).when(eventMessageReceiverService).getMessage(MESSAGE_ID);
+
+        CaseEventHandlerController controller = new CaseEventHandlerController(
+            Collections.emptyList(),
+            eventMessageReceiverService
+        );
+
+        CaseEventMessage response = controller.getMessagesByMessageId(MESSAGE_ID);
+
+        assertThat(response).isEqualTo(responseMessage);
+
+        verify(eventMessageReceiverService).getMessage(MESSAGE_ID);
         verifyNoMoreInteractions(initiationTaskHandler);
         verifyNoMoreInteractions(eventMessageReceiverService);
     }
