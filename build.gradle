@@ -113,6 +113,12 @@ task tests {
   dependsOn test, integration, functional
 }
 
+task fortifyScan(type: JavaExec)  {
+  main = "uk.gov.hmcts.fortifyclient.FortifyClientMainApp"
+  classpath += sourceSets.test.runtimeClasspath
+  jvmArgs = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED']
+}
+
 checkstyle {
   maxWarnings = 0
   toolVersion = '8.29'
@@ -169,8 +175,8 @@ sonarqube {
     property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/config/**," +
       "src/testUtils/java/uk/gov/hmcts/reform/wacaseeventhandler/**," +
       "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/Application.java," +
-      "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/entity/CaseEventMessageEntity.java,"
-      "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/clients/*Consumer.java"
+      "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/clients/*Consumer.java,"
+      "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/entity/CaseEventMessageEntity.java"
   }
 }
 
@@ -294,6 +300,8 @@ dependencies {
   testImplementation group: 'org.pitest', name: 'pitest', version: versions.pitest
   testImplementation 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.6.0'
   testImplementation 'org.codehaus.sonar-plugins:sonar-pitest-plugin:0.5'
+  testCompile 'com.github.hmcts:fortify-client:1.2.1:all'
+
 
   testUtilsImplementation sourceSets.main.runtimeClasspath
   testUtilsImplementation sourceSets.test.runtimeClasspath
