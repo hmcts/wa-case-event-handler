@@ -202,7 +202,6 @@ class InitiationCaseEventHandlerTest {
             "Process Application",
             "processApplication",
             "__processCategory__caseProgression",
-            "TCW",
             handleDateTimeScenario.dateAt4pm,
             handleDateTimeScenario.expectedDate,
             0
@@ -213,7 +212,6 @@ class InitiationCaseEventHandlerTest {
             "Decide On Time Extension",
             "decideOnTimeExtension",
             "__processCategory__timeExtension",
-            "external",
             handleDateTimeScenario.dateAt4pm,
             handleDateTimeScenario.expectedDate,
             0
@@ -266,7 +264,6 @@ class InitiationCaseEventHandlerTest {
             "Process Application",
             "processApplication",
             "__processCategory__caseProgression",
-            "TCW",
             "2020-12-12T16:00:00",
             "2020-12-10T16:00:00",
             2
@@ -356,7 +353,6 @@ class InitiationCaseEventHandlerTest {
         String name,
         String taskId,
         String processCategory,
-        String group,
         String dueDate,
         String delayUntil,
         int workingDays

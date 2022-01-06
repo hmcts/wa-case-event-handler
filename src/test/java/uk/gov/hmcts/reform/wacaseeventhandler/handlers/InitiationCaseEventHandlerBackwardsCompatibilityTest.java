@@ -192,7 +192,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
             "Process Application",
             "processApplication",
             "Case progression",
-            "TCW",
             handleDateTimeScenario.dateAt4pm,
             handleDateTimeScenario.expectedDate,
             0
@@ -203,7 +202,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
             "Decide On Time Extension",
             "decideOnTimeExtension",
             "Time extension",
-            "external",
             handleDateTimeScenario.dateAt4pm,
             handleDateTimeScenario.expectedDate,
             0
@@ -256,7 +254,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
             "Process Application",
             "processApplication",
             "Case progression",
-            "TCW",
             "2020-12-12T16:00:00",
             "2020-12-10T16:00:00",
             2
@@ -277,7 +274,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
         String name,
         String taskId,
         String taskCategory,
-        String group,
         String dueDate,
         String delayUntil,
         int workingDays
