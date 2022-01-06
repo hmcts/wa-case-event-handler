@@ -91,7 +91,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("isDuplicate.value", is(false))
             .body("delayUntil.value", notNullValue())
             .body("taskId.value", is("processApplication"))
-            .body("group.value", is("TCW"))
             .body("caseId.value", is(caseId))
             .body("hasWarnings.value", is(false))
             .body("warningList.value", is("[]"));
@@ -183,7 +182,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("isDuplicate.value", is(false))
             .body("delayUntil.value", notNullValue())
             .body("taskId.value", is("testTaskIdForMultipleCategories"))
-            .body("group.value", is("TCW"))
             .body("caseId.value", is(caseId))
             .body("__processCategory__caseProgression.value", is(true))
             .body("__processCategory__followUpOverdue.value", is(true))

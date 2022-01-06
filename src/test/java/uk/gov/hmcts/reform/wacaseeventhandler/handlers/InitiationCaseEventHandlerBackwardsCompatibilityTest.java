@@ -153,7 +153,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
         );
 
         InitiateEvaluateResponse initiateTaskResponse1 = InitiateEvaluateResponse.builder()
-            .group(dmnStringValue("TCW"))
             .name(dmnStringValue("Process Application"))
             .taskId(dmnStringValue("processApplication"))
             .delayDuration(dmnIntegerValue(0))
@@ -163,7 +162,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
 
         // response without delayDuration and WorkingDaysAllowed
         InitiateEvaluateResponse initiateTaskResponse2 = InitiateEvaluateResponse.builder()
-            .group(dmnStringValue("external"))
             .name(dmnStringValue("Decide On Time Extension"))
             .taskId(dmnStringValue("decideOnTimeExtension"))
             .taskCategory(dmnStringValue("Time extension"))
@@ -230,7 +228,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
         );
 
         InitiateEvaluateResponse initiateTaskResponse1 = InitiateEvaluateResponse.builder()
-            .group(dmnStringValue("TCW"))
             .name(dmnStringValue("Process Application"))
             .taskId(dmnStringValue("processApplication"))
             .delayDuration(dmnIntegerValue(2))
@@ -292,7 +289,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
                 entry("caseTypeId", dmnStringValue("asylum")),
                 entry("dueDate", dmnStringValue(dueDate)),
                 entry("workingDaysAllowed", dmnIntegerValue(workingDays)),
-                entry("group", dmnStringValue(group)),
                 entry("jurisdiction", dmnStringValue("ia")),
                 entry("name", dmnStringValue(name)),
                 entry("taskId", dmnStringValue(taskId)),

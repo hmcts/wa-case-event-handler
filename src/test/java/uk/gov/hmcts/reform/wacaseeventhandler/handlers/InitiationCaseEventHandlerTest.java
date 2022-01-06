@@ -162,7 +162,6 @@ class InitiationCaseEventHandlerTest {
         );
 
         InitiateEvaluateResponse initiateTaskResponse1 = InitiateEvaluateResponse.builder()
-            .group(dmnStringValue("TCW"))
             .name(dmnStringValue("Process Application"))
             .taskId(dmnStringValue("processApplication"))
             .delayDuration(dmnIntegerValue(0))
@@ -172,7 +171,6 @@ class InitiationCaseEventHandlerTest {
 
         // response without delayDuration and WorkingDaysAllowed
         InitiateEvaluateResponse initiateTaskResponse2 = InitiateEvaluateResponse.builder()
-            .group(dmnStringValue("external"))
             .name(dmnStringValue("Decide On Time Extension"))
             .taskId(dmnStringValue("decideOnTimeExtension"))
             .processCategories(dmnStringValue("timeExtension"))
@@ -240,7 +238,6 @@ class InitiationCaseEventHandlerTest {
         );
 
         InitiateEvaluateResponse initiateTaskResponse1 = InitiateEvaluateResponse.builder()
-            .group(dmnStringValue("TCW"))
             .name(dmnStringValue("Process Application"))
             .taskId(dmnStringValue("processApplication"))
             .delayDuration(dmnIntegerValue(2))
@@ -294,7 +291,6 @@ class InitiationCaseEventHandlerTest {
         );
 
         InitiateEvaluateResponse initiateTaskResponse1 = InitiateEvaluateResponse.builder()
-            .group(dmnStringValue("TCW"))
             .name(dmnStringValue("Process Application"))
             .taskId(dmnStringValue("processApplication"))
             .delayDuration(dmnIntegerValue(2))
@@ -325,7 +321,6 @@ class InitiationCaseEventHandlerTest {
                 entry("caseTypeId", dmnStringValue("asylum")),
                 entry("dueDate", dmnStringValue("2020-12-12T16:00:00")),
                 entry("workingDaysAllowed", dmnIntegerValue(2)),
-                entry("group", dmnStringValue("TCW")),
                 entry("jurisdiction", dmnStringValue("ia")),
                 entry("name", dmnStringValue("Process Application")),
                 entry("taskId", dmnStringValue("processApplication")),
@@ -373,7 +368,6 @@ class InitiationCaseEventHandlerTest {
                 entry("caseTypeId", dmnStringValue("asylum")),
                 entry("dueDate", dmnStringValue(dueDate)),
                 entry("workingDaysAllowed", dmnIntegerValue(workingDays)),
-                entry("group", dmnStringValue(group)),
                 entry("jurisdiction", dmnStringValue("ia")),
                 entry("name", dmnStringValue(name)),
                 entry("taskId", dmnStringValue(taskId)),
