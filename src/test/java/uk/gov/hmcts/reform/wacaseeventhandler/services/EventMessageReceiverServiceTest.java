@@ -96,7 +96,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_message_event_information_parsing_failed() throws JsonProcessingException {
+    void should_handle_message_event_information_when_parsing_failed() throws JsonProcessingException {
         when(objectMapper.readValue(MESSAGE, EventInformation.class)).thenThrow(jsonProcessingException);
 
         eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
@@ -107,7 +107,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_message_valid_message() throws JsonProcessingException {
+    void should_handle_message_when_valid_message_received() throws JsonProcessingException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenReturn(getEventInformation());
@@ -133,7 +133,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_message_valid_dlq_message() throws JsonProcessingException {
+    void should_handle_message_when_valid_dlq_message_received() throws JsonProcessingException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenReturn(getEventInformation());
@@ -151,7 +151,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_invalid_message() throws JsonProcessingException {
+    void should_handle_message_when_invalid_message_received() throws JsonProcessingException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenReturn(EventInformation.builder()
@@ -167,7 +167,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_invalid_message_deserialization() throws JsonProcessingException {
+    void should_handle_invalid_message_deserialization() throws JsonProcessingException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenThrow(jsonProcessingException);
@@ -189,7 +189,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_message_message_parsing_failure() throws JsonProcessingException {
+    void should_handle_message_when_message_parsing_fails() throws JsonProcessingException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenThrow(jsonProcessingException);
@@ -204,7 +204,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_message_data_integrity_violation() throws JsonProcessingException {
+    void should_handle_message_when_data_integrity_violation_occurs() throws JsonProcessingException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenReturn(EventInformation.builder()
@@ -228,7 +228,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_dlq_message_valid_message() throws JsonProcessingException {
+    void should_handle_dlq_message_when_valid_message_received() throws JsonProcessingException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenReturn(EventInformation.builder()
@@ -248,7 +248,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_ccd_case_event_asb_message_feature_flag_disabled() throws JsonProcessingException {
+    void should_handle_ccd_case_event_asb_message_when_feature_flag_disabled() throws JsonProcessingException {
         when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(FALSE);
 
         String userIdJson = "{"
@@ -268,7 +268,8 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_ccd_case_event_asb_message_feature_flag_enabled_valid_message() throws JsonProcessingException {
+    void should_handle_ccd_case_event_asb_message_when_feature_flag_enabled_and_valid_message_received()
+            throws JsonProcessingException {
         String userIdJson = "{"
                 + "\"UserId\": \"" + USER_ID + "\"}";
 
@@ -288,7 +289,6 @@ class EventMessageReceiverServiceTest {
                         .eventTimeStamp(LocalDateTime.now())
                         .build());
 
-
         eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, MESSAGE);
 
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
@@ -296,7 +296,8 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_ccd_case_event_asb_message_feature_flag_enabled_invalid_message() throws JsonProcessingException {
+    void should_handle_ccd_case_event_asb_message_when_feature_flag_enabled_and_invalid_message_received()
+            throws JsonProcessingException {
         String userIdJson = "{"
                 + "\"UserId\": \"" + USER_ID + "\"}";
 
@@ -320,7 +321,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_handle_ccd_case_event_asb_message_error_parsing_user_id()
+    void should_handle_ccd_case_event_asb_message_when_error_parsing_user_id()
             throws JsonProcessingException {
         when(objectMapper.readTree(MESSAGE)).thenThrow(jsonProcessingException);
 
@@ -332,11 +333,10 @@ class EventMessageReceiverServiceTest {
 
         assertEquals("userId is null", nullPointerException.getMessage());
         verifyNoInteractions(caseEventMessageRepository);
-
     }
 
     @Test
-    void test_handle_ccd_case_event_asb_message_missing_user_id()
+    void should_handle_ccd_case_event_asb_message_when_missing_user_id()
             throws JsonProcessingException {
 
         when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, null))
@@ -355,11 +355,10 @@ class EventMessageReceiverServiceTest {
 
         assertEquals("userId is null", nullPointerException.getMessage());
         verifyNoInteractions(caseEventMessageRepository);
-
     }
 
     @Test
-    void test_get_message_by_message_id_message_found() throws JsonProcessingException {
+    void should_get_message_by_message_id_when_message_found() throws JsonProcessingException {
         CaseEventMessageEntity entity = new CaseEventMessageEntity();
 
         entity.setMessageId(MESSAGE_ID);
@@ -396,7 +395,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void test_get_message_by_message_id_no_message_found() {
+    void should_get_message_by_message_id_when_no_message_found() {
         when(caseEventMessageRepository.findByMessageId(MESSAGE_ID)).thenReturn(Collections.emptyList());
         CaseEventMessageNotFoundException caseEventMessageNotFoundException =
             assertThrows(CaseEventMessageNotFoundException.class,
