@@ -395,7 +395,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void should_get_message_by_message_id_when_no_message_found() {
+    void should_return_message_not_found_exception_when_no_message_found() {
         when(caseEventMessageRepository.findByMessageId(MESSAGE_ID)).thenReturn(Collections.emptyList());
         CaseEventMessageNotFoundException caseEventMessageNotFoundException =
             assertThrows(CaseEventMessageNotFoundException.class,
