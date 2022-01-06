@@ -1,13 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import com.azure.messaging.servicebus.ServiceBusMessage;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import io.restassured.RestAssured;
-import io.restassured.config.ObjectMapperConfig;
-import io.restassured.config.RestAssuredConfig;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -65,17 +58,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void setup() {
         eventTimeStamp = LocalDateTime.parse("2020-03-27T12:56:10.403975").minusDays(1);
         holdUntilTimeStamp = LocalDateTime.parse("2020-03-27T12:56:10.403975").plusDays(10);
-
-        RestAssured.config = RestAssuredConfig.config()
-            .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
-                (type, s) -> {
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE);
-                    objectMapper.registerModule(new Jdk8Module());
-                    objectMapper.registerModule(new JavaTimeModule());
-                    return objectMapper;
-                }
-            ));
     }
 
     @Test

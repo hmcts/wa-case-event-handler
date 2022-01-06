@@ -1,7 +1,13 @@
 package uk.gov.hmcts.reform.wacaseeventhandler;
 
 import com.azure.messaging.servicebus.ServiceBusSenderClient;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.restassured.RestAssured;
+import io.restassured.config.ObjectMapperConfig;
+import io.restassured.config.RestAssuredConfig;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -40,6 +46,16 @@ public abstract class SpringBootFunctionalBaseTest {
 
     @Before
     public void setUp() {
+        RestAssured.config = RestAssuredConfig.config()
+            .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
+                (type, s) -> {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE);
+                    objectMapper.registerModule(new Jdk8Module());
+                    objectMapper.registerModule(new JavaTimeModule());
+                    return objectMapper;
+                }
+            ));
         RestAssured.baseURI = testUrl;
         RestAssured.useRelaxedHTTPSValidation();
         s2sToken = authTokenGenerator.generate();
