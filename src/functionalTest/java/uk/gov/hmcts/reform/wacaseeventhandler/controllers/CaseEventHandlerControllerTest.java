@@ -1246,14 +1246,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .put("/messages/" + messageId + (fromDlq ? "?from_dlq=true" : ""));
     }
 
-    private Response getMessageToRestEndpoint(String messageId, String s2sToken) {
-        return given()
-            .contentType(APPLICATION_JSON_VALUE)
-            .header(SERVICE_AUTHORIZATION, s2sToken)
-            .when()
-            .get("/messages/" + messageId);
-    }
-
     private void publishMessageToTopic(EventInformation eventInformation) {
         String jsonMessage = asJsonString(eventInformation);
         ServiceBusMessage message = new ServiceBusMessage(jsonMessage.getBytes());
