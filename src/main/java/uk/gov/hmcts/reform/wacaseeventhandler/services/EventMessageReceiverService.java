@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationMetadata;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationRequest;
@@ -25,36 +26,56 @@ import java.util.Optional;
 import static java.lang.Boolean.TRUE;
 import static java.lang.String.format;
 import static net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils.isNotBlank;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.DLQ_DB_INSERT;
+
 
 @Slf4j
 @Service
 @Transactional
+@SuppressWarnings("PMD.TooManyMethods")
 public class EventMessageReceiverService {
-    public static final String MESSAGE_PROPERTIES = "MessageProperties";
+    protected static final String MESSAGE_PROPERTIES = "MessageProperties";
+    private static final String USER_ID = "UserId";
 
     @Value("${environment}")
     private String environment;
 
     private final ObjectMapper objectMapper;
+    private final LaunchDarklyFeatureFlagProvider featureFlagProvider;
     private final CaseEventMessageRepository repository;
     private final CaseEventMessageMapper mapper;
 
     public EventMessageReceiverService(ObjectMapper objectMapper,
                                        CaseEventMessageRepository repository,
-                                       CaseEventMessageMapper caseEventMessageMapper) {
+                                       CaseEventMessageMapper caseEventMessageMapper,
+                                       LaunchDarklyFeatureFlagProvider featureFlagProvider) {
         this.objectMapper = objectMapper;
         this.repository = repository;
         this.mapper = caseEventMessageMapper;
+        this.featureFlagProvider = featureFlagProvider;
     }
 
     public CaseEventMessage handleDlqMessage(String messageId, String message) {
-        log.info("Received DLQ message with id '{}'", messageId);
+        log.info("Received Case Event Dead Letter Queue message with id '{}'", messageId);
         return handleMessage(messageId, message, true);
     }
 
     public CaseEventMessage handleAsbMessage(String messageId, String message) {
         log.info("Received ASB message with id '{}'", messageId);
         return handleMessage(messageId, message, false);
+    }
+
+    public CaseEventMessage handleCcdCaseEventAsbMessage(String messageId, String message) {
+        log.info("Received CCD Case Events ASB message with id '{}'", messageId);
+
+        if (featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, getUserId(message))) {
+            return handleMessage(messageId, message, false);
+        } else {
+            log.info("Feature flag '{}' evaluated to false. Message not inserted into database",
+                    DLQ_DB_INSERT.getKey());
+        }
+
+        return null;
     }
 
     public CaseEventMessage getMessage(String messageId) {
@@ -201,5 +222,20 @@ public class EventMessageReceiverService {
         // check all required fields
         log.info("Validating message with id '{}'", messageId);
         return isNotBlank(eventInformation.getCaseId());
+    }
+
+    private String getUserId(String message) {
+        try {
+            JsonNode messageAsJson = objectMapper.readTree(message);
+            final JsonNode userIdNode = messageAsJson.findPath(USER_ID);
+            if (!userIdNode.isMissingNode()) {
+                String userIdTextValue = userIdNode.textValue();
+                log.info("Returning User Id {} found in message", userIdTextValue);
+                return userIdTextValue;
+            }
+        } catch (JsonProcessingException e) {
+            log.info("Unable to find User Id in message");
+        }
+        return null;
     }
 }
