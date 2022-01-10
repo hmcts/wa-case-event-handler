@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
+import com.azure.core.util.BinaryData;
 import com.azure.core.util.IterableStream;
 import com.azure.messaging.servicebus.ServiceBusErrorSource;
 import com.azure.messaging.servicebus.ServiceBusException;
@@ -15,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.ServiceBusConfiguration;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageReceiverService;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -33,12 +35,16 @@ class CcdCaseEventConsumerTest {
     private ServiceBusReceiverClient receiverClient;
     @Mock
     private ServiceBusReceivedMessage receivedMessage;
+    @Mock
+    private LaunchDarklyFeatureFlagProvider featureFlagProvider;
+    @Mock
+    private EventMessageReceiverService eventMessageReceiverService;
 
     private CcdCaseEventsConsumer underTest;
 
     @BeforeEach
     void setUp() {
-        underTest = new CcdCaseEventsConsumer(serviceBusConfiguration);
+        underTest = new CcdCaseEventsConsumer(serviceBusConfiguration, eventMessageReceiverService);
     }
 
     @Test
@@ -54,6 +60,8 @@ class CcdCaseEventConsumerTest {
 
     @Test
     void given_session_is_accepted_when_receiver_complete_throws_error() {
+        when(receivedMessage.getBody()).thenReturn(BinaryData.fromString("TestMessage"));
+
         publishMessageToReceiver();
 
         doThrow(new ServiceBusException(new Exception(), ServiceBusErrorSource.UNKNOWN)).doNothing()
@@ -68,6 +76,8 @@ class CcdCaseEventConsumerTest {
 
     @Test
     void given_session_is_accepted_when_receiver_complete_throws_error_on_both_calls() {
+        when(receivedMessage.getBody()).thenReturn(BinaryData.fromString("TestMessage"));
+
         publishMessageToReceiver();
 
         doThrow(new ServiceBusException(new Exception(), ServiceBusErrorSource.UNKNOWN))
@@ -82,6 +92,8 @@ class CcdCaseEventConsumerTest {
 
     @Test
     void given_session_is_accepted_when_message_is_consumed() {
+        when(receivedMessage.getBody()).thenReturn(BinaryData.fromString("TestMessage"));
+
         publishMessageToReceiver();
 
         doNothing().when(receiverClient).complete(receivedMessage);
