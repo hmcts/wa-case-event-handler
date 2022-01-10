@@ -198,7 +198,6 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         processVariables.put("caseTypeId", dmnStringValue(eventInformation.getCaseTypeId()));
         processVariables.put("dueDate", dmnStringValue(dueDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)));
         processVariables.put("workingDaysAllowed", cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()));
-        processVariables.put("group", initiateEvaluateResponse.getGroup());
         processVariables.put("jurisdiction", dmnStringValue(eventInformation.getJurisdictionId()));
         processVariables.put("name", initiateEvaluateResponse.getName());
         processVariables.put("taskId", initiateEvaluateResponse.getTaskId());
