@@ -17,7 +17,6 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationMetadata;
@@ -97,7 +96,6 @@ class EventMessageReceiverServiceTest {
                                                                       caseEventMessageRepository,
                                                                       caseEventMessageMapper,
                                                                       featureFlagProvider);
-        ReflectionTestUtils.setField(eventMessageReceiverService, "environment", "local");
     }
 
     @Test
@@ -146,7 +144,7 @@ class EventMessageReceiverServiceTest {
 
         eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
 
-        assertLogMessageEquals(String.format("Could not parse the message with id '%s'",  MESSAGE_ID), 3);
+        assertLogMessageEquals(String.format("Could not parse the message with id '%s'",  MESSAGE_ID), 2);
 
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
     }

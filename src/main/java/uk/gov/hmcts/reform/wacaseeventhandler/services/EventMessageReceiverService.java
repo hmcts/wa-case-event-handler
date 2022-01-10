@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,9 +35,6 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag
 public class EventMessageReceiverService {
     protected static final String MESSAGE_PROPERTIES = "MessageProperties";
     private static final String USER_ID = "UserId";
-
-    @Value("${environment}")
-    private String environment;
 
     private final ObjectMapper objectMapper;
     private final LaunchDarklyFeatureFlagProvider featureFlagProvider;
@@ -153,15 +149,13 @@ public class EventMessageReceiverService {
             messageEntity = build(messageId, message, fromDlq, MessageState.UNPROCESSABLE);
         }
 
-        log.info("Processing '{}' in '{}' environment ", messageId, environment);
-        if (isNonProdEnvironment()) {
-            EventInformationRequest eventInformationRequest = objectMapper.readValue(
-                message,
-                EventInformationRequest.class
-            );
-            EventInformationMetadata eventInformationMetadata = eventInformationRequest.getEventInformationMetadata();
-            updateMessageEntity(messageEntity, eventInformationMetadata);
-        }
+        EventInformationRequest eventInformationRequest = objectMapper.readValue(
+            message,
+            EventInformationRequest.class
+        );
+        EventInformationMetadata eventInformationMetadata = eventInformationRequest.getEventInformationMetadata();
+        updateMessageEntity(messageEntity, eventInformationMetadata);
+
         return messageEntity;
     }
 
@@ -177,10 +171,6 @@ public class EventMessageReceiverService {
 
         String json = objectMapper.writeValueAsString(eventInformationMetadata.getMessageProperties());
         return objectMapper.readTree(json);
-    }
-
-    private boolean isNonProdEnvironment() {
-        return !"prod".equalsIgnoreCase(environment);
     }
 
     private CaseEventMessageEntity build(String messageId,
