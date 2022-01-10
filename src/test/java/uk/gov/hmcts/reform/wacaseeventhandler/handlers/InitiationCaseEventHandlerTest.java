@@ -162,7 +162,6 @@ class InitiationCaseEventHandlerTest {
         );
 
         InitiateEvaluateResponse initiateTaskResponse1 = InitiateEvaluateResponse.builder()
-            .group(dmnStringValue("TCW"))
             .name(dmnStringValue("Process Application"))
             .taskId(dmnStringValue("processApplication"))
             .delayDuration(dmnIntegerValue(0))
@@ -172,7 +171,6 @@ class InitiationCaseEventHandlerTest {
 
         // response without delayDuration and WorkingDaysAllowed
         InitiateEvaluateResponse initiateTaskResponse2 = InitiateEvaluateResponse.builder()
-            .group(dmnStringValue("external"))
             .name(dmnStringValue("Decide On Time Extension"))
             .taskId(dmnStringValue("decideOnTimeExtension"))
             .processCategories(dmnStringValue("timeExtension"))
@@ -204,7 +202,6 @@ class InitiationCaseEventHandlerTest {
             "Process Application",
             "processApplication",
             "__processCategory__caseProgression",
-            "TCW",
             handleDateTimeScenario.dateAt4pm,
             handleDateTimeScenario.expectedDate,
             0
@@ -215,7 +212,6 @@ class InitiationCaseEventHandlerTest {
             "Decide On Time Extension",
             "decideOnTimeExtension",
             "__processCategory__timeExtension",
-            "external",
             handleDateTimeScenario.dateAt4pm,
             handleDateTimeScenario.expectedDate,
             0
@@ -240,7 +236,6 @@ class InitiationCaseEventHandlerTest {
         );
 
         InitiateEvaluateResponse initiateTaskResponse1 = InitiateEvaluateResponse.builder()
-            .group(dmnStringValue("TCW"))
             .name(dmnStringValue("Process Application"))
             .taskId(dmnStringValue("processApplication"))
             .delayDuration(dmnIntegerValue(2))
@@ -269,7 +264,6 @@ class InitiationCaseEventHandlerTest {
             "Process Application",
             "processApplication",
             "__processCategory__caseProgression",
-            "TCW",
             "2020-12-12T16:00:00",
             "2020-12-10T16:00:00",
             2
@@ -294,7 +288,6 @@ class InitiationCaseEventHandlerTest {
         );
 
         InitiateEvaluateResponse initiateTaskResponse1 = InitiateEvaluateResponse.builder()
-            .group(dmnStringValue("TCW"))
             .name(dmnStringValue("Process Application"))
             .taskId(dmnStringValue("processApplication"))
             .delayDuration(dmnIntegerValue(2))
@@ -325,7 +318,6 @@ class InitiationCaseEventHandlerTest {
                 entry("caseTypeId", dmnStringValue("asylum")),
                 entry("dueDate", dmnStringValue("2020-12-12T16:00:00")),
                 entry("workingDaysAllowed", dmnIntegerValue(2)),
-                entry("group", dmnStringValue("TCW")),
                 entry("jurisdiction", dmnStringValue("ia")),
                 entry("name", dmnStringValue("Process Application")),
                 entry("taskId", dmnStringValue("processApplication")),
@@ -361,7 +353,6 @@ class InitiationCaseEventHandlerTest {
         String name,
         String taskId,
         String processCategory,
-        String group,
         String dueDate,
         String delayUntil,
         int workingDays
@@ -373,7 +364,6 @@ class InitiationCaseEventHandlerTest {
                 entry("caseTypeId", dmnStringValue("asylum")),
                 entry("dueDate", dmnStringValue(dueDate)),
                 entry("workingDaysAllowed", dmnIntegerValue(workingDays)),
-                entry("group", dmnStringValue(group)),
                 entry("jurisdiction", dmnStringValue("ia")),
                 entry("name", dmnStringValue(name)),
                 entry("taskId", dmnStringValue(taskId)),

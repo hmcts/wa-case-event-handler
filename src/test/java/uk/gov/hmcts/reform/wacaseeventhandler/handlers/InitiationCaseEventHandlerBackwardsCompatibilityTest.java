@@ -153,7 +153,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
         );
 
         InitiateEvaluateResponse initiateTaskResponse1 = InitiateEvaluateResponse.builder()
-            .group(dmnStringValue("TCW"))
             .name(dmnStringValue("Process Application"))
             .taskId(dmnStringValue("processApplication"))
             .delayDuration(dmnIntegerValue(0))
@@ -163,7 +162,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
 
         // response without delayDuration and WorkingDaysAllowed
         InitiateEvaluateResponse initiateTaskResponse2 = InitiateEvaluateResponse.builder()
-            .group(dmnStringValue("external"))
             .name(dmnStringValue("Decide On Time Extension"))
             .taskId(dmnStringValue("decideOnTimeExtension"))
             .taskCategory(dmnStringValue("Time extension"))
@@ -194,7 +192,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
             "Process Application",
             "processApplication",
             "Case progression",
-            "TCW",
             handleDateTimeScenario.dateAt4pm,
             handleDateTimeScenario.expectedDate,
             0
@@ -205,7 +202,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
             "Decide On Time Extension",
             "decideOnTimeExtension",
             "Time extension",
-            "external",
             handleDateTimeScenario.dateAt4pm,
             handleDateTimeScenario.expectedDate,
             0
@@ -230,7 +226,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
         );
 
         InitiateEvaluateResponse initiateTaskResponse1 = InitiateEvaluateResponse.builder()
-            .group(dmnStringValue("TCW"))
             .name(dmnStringValue("Process Application"))
             .taskId(dmnStringValue("processApplication"))
             .delayDuration(dmnIntegerValue(2))
@@ -259,7 +254,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
             "Process Application",
             "processApplication",
             "Case progression",
-            "TCW",
             "2020-12-12T16:00:00",
             "2020-12-10T16:00:00",
             2
@@ -280,7 +274,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
         String name,
         String taskId,
         String taskCategory,
-        String group,
         String dueDate,
         String delayUntil,
         int workingDays
@@ -292,7 +285,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
                 entry("caseTypeId", dmnStringValue("asylum")),
                 entry("dueDate", dmnStringValue(dueDate)),
                 entry("workingDaysAllowed", dmnIntegerValue(workingDays)),
-                entry("group", dmnStringValue(group)),
                 entry("jurisdiction", dmnStringValue("ia")),
                 entry("name", dmnStringValue(name)),
                 entry("taskId", dmnStringValue(taskId)),
