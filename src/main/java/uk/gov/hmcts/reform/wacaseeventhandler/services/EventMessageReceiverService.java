@@ -87,10 +87,9 @@ public class EventMessageReceiverService {
         if (byMessageId != null) {
             Optional<CaseEventMessageEntity> messageEntityOptional = byMessageId.stream().findFirst();
             if (messageEntityOptional.isPresent()) {
-                boolean isDlq = TRUE.equals(fromDlq);
-                try {
 
-                    CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId, message, isDlq);
+                try {
+                    CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId, message, fromDlq);
                     messageEntityOptional.ifPresent(eventMessageEntity -> messageEntity
                         .setSequence(eventMessageEntity.getSequence()));
                     repository.save(messageEntity);
@@ -101,6 +100,7 @@ public class EventMessageReceiverService {
                 } catch (JsonProcessingException e) {
                     log.error("Could not parse the message with id '{}'", messageId);
 
+                    boolean isDlq = TRUE.equals(fromDlq);
                     CaseEventMessageEntity messageEntity = build(messageId, message, isDlq, MessageState.UNPROCESSABLE);
                     repository.save(messageEntity);
 
@@ -113,9 +113,9 @@ public class EventMessageReceiverService {
     }
 
     private CaseEventMessage handleMessage(String messageId, String message, Boolean fromDlq) {
-        boolean isDlq = TRUE.equals(fromDlq);
+
         try {
-            CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId, message, isDlq);
+            CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId, message, fromDlq);
             repository.save(messageEntity);
 
             log.info("Message with id '{}' successfully stored into the DB", messageId);
@@ -124,6 +124,7 @@ public class EventMessageReceiverService {
         } catch (JsonProcessingException e) {
             log.error("Could not parse the message with id '{}'", messageId);
 
+            boolean isDlq = TRUE.equals(fromDlq);
             CaseEventMessageEntity messageEntity = build(messageId, message, isDlq, MessageState.UNPROCESSABLE);
             repository.save(messageEntity);
 
@@ -136,17 +137,17 @@ public class EventMessageReceiverService {
 
     private CaseEventMessageEntity buildCaseEventMessageEntity(String messageId,
                                                                String message,
-                                                               boolean fromDlq)
+                                                               Boolean fromDlq)
         throws JsonProcessingException {
 
         EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
-        boolean isValid = validate(messageId, eventInformation);
+        boolean isValid = validate(messageId, eventInformation, fromDlq);
 
         CaseEventMessageEntity messageEntity;
         if (isValid) {
             messageEntity = build(messageId, message, fromDlq, eventInformation, MessageState.NEW);
         } else {
-            messageEntity = build(messageId, message, fromDlq, MessageState.UNPROCESSABLE);
+            messageEntity = build(messageId, message, fromDlq, eventInformation, MessageState.UNPROCESSABLE);
         }
 
         EventInformationRequest eventInformationRequest = objectMapper.readValue(
@@ -175,7 +176,7 @@ public class EventMessageReceiverService {
 
     private CaseEventMessageEntity build(String messageId,
                                          String message,
-                                         boolean fromDlq,
+                                         Boolean fromDlq,
                                          EventInformation eventInformation,
                                          MessageState state) {
         CaseEventMessageEntity caseEventMessageEntity = new CaseEventMessageEntity();
@@ -208,10 +209,14 @@ public class EventMessageReceiverService {
         return caseEventMessageEntity;
     }
 
-    private boolean validate(String messageId, EventInformation eventInformation) {
-        // check all required fields
+    private boolean validate(String messageId, EventInformation eventInformation, Boolean fromDlq) {
+
         log.info("Validating message with id '{}'", messageId);
-        return isNotBlank(eventInformation.getCaseId());
+        return isNotBlank(eventInformation.getCaseId())
+            && isNotBlank(messageId)
+            && eventInformation.getEventTimeStamp() != null
+            && isNotBlank(eventInformation.getEventTimeStamp().toString())
+            && fromDlq != null;
     }
 
     private String getUserId(String message) {
