@@ -5,10 +5,6 @@
         "value": "processApplication",
         "type": "String"
       },
-      "group": {
-        "value": "TCW",
-        "type": "String"
-      },
       "delayDuration": {
         "value": 2,
         "type": "Integer"

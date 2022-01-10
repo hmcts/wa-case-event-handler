@@ -472,7 +472,6 @@ class CaseEventHandlerControllerEndpointTest {
 
         InitiateEvaluateResponse result = InitiateEvaluateResponse.builder()
             .taskId(dmnStringValue("processApplication"))
-            .group(dmnStringValue("TCW"))
             .delayDuration(dmnIntegerValue(2))
             .workingDaysAllowed(dmnIntegerValue(2))
             .name(dmnStringValue("Process Application"))
@@ -491,7 +490,6 @@ class CaseEventHandlerControllerEndpointTest {
 
         InitiateEvaluateResponse result = InitiateEvaluateResponse.builder()
             .taskId(dmnStringValue("reviewTheAppeal"))
-            .group(dmnStringValue("TCW"))
             .delayDuration(dmnIntegerValue(2))
             .workingDaysAllowed(dmnIntegerValue(2))
             .name(dmnStringValue("Review the appeal"))
@@ -511,7 +509,6 @@ class CaseEventHandlerControllerEndpointTest {
 
         InitiateEvaluateResponse result = InitiateEvaluateResponse.builder()
             .taskId(dmnStringValue("testTaskIdForMultipleCategories"))
-            .group(dmnStringValue("TCW"))
             .delayDuration(dmnIntegerValue(2))
             .workingDaysAllowed(dmnIntegerValue(2))
             .name(dmnStringValue("Test task to test multiple categories"))
