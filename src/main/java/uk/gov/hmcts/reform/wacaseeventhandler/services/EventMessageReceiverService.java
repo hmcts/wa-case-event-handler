@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationMetadata;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
@@ -17,7 +19,10 @@ import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CaseEventMessageNotFoun
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
+import static java.lang.Boolean.TRUE;
 import static java.lang.String.format;
 import static net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils.isNotBlank;
 import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.DLQ_DB_INSERT;
@@ -26,6 +31,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag
 @Slf4j
 @Service
 @Transactional
+@SuppressWarnings("PMD.TooManyMethods")
 public class EventMessageReceiverService {
     protected static final String MESSAGE_PROPERTIES = "MessageProperties";
     private static final String USER_ID = "UserId";
@@ -81,20 +87,41 @@ public class EventMessageReceiverService {
         return mapper.mapToCaseEventMessage(messageEntity);
     }
 
-    private CaseEventMessage handleMessage(String messageId,
-                                           String message,
-                                           boolean fromDlq) {
+    public CaseEventMessage upsertMessage(String messageId, String message, Boolean fromDlq) {
+
+        List<CaseEventMessageEntity> byMessageId = repository.findByMessageId(messageId);
+        if (byMessageId != null) {
+            Optional<CaseEventMessageEntity> messageEntityOptional = byMessageId.stream().findFirst();
+            if (messageEntityOptional.isPresent()) {
+
+                try {
+                    CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId, message, fromDlq);
+                    messageEntityOptional.ifPresent(eventMessageEntity -> messageEntity
+                        .setSequence(eventMessageEntity.getSequence()));
+                    repository.save(messageEntity);
+
+                    log.info("Message with id '{}' successfully updated and saved into DB", messageId);
+
+                    return mapper.mapToCaseEventMessage(messageEntity);
+                } catch (JsonProcessingException e) {
+                    log.error("Could not parse the message with id '{}'", messageId);
+
+                    boolean isDlq = TRUE.equals(fromDlq);
+                    CaseEventMessageEntity messageEntity = build(messageId, message, isDlq, MessageState.UNPROCESSABLE);
+                    repository.save(messageEntity);
+
+                    return mapper.mapToCaseEventMessage(messageEntity);
+                }
+            }
+        }
+
+        return handleMessage(messageId, message, fromDlq);
+    }
+
+    private CaseEventMessage handleMessage(String messageId, String message, Boolean fromDlq) {
 
         try {
-            EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
-
-            boolean isValid = validate(messageId, eventInformation);
-            CaseEventMessageEntity messageEntity;
-            if (isValid) {
-                messageEntity = build(messageId, message, fromDlq, eventInformation, MessageState.NEW);
-            } else {
-                messageEntity = build(messageId, message, fromDlq, MessageState.UNPROCESSABLE);
-            }
+            CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId, message, fromDlq);
             repository.save(messageEntity);
 
             log.info("Message with id '{}' successfully stored into the DB", messageId);
@@ -103,7 +130,8 @@ public class EventMessageReceiverService {
         } catch (JsonProcessingException e) {
             log.error("Could not parse the message with id '{}'", messageId);
 
-            CaseEventMessageEntity messageEntity = build(messageId, message, fromDlq, MessageState.UNPROCESSABLE);
+            boolean isDlq = TRUE.equals(fromDlq);
+            CaseEventMessageEntity messageEntity = build(messageId, message, isDlq, MessageState.UNPROCESSABLE);
             repository.save(messageEntity);
 
             return mapper.mapToCaseEventMessage(messageEntity);
@@ -113,18 +141,56 @@ public class EventMessageReceiverService {
         }
     }
 
+    private CaseEventMessageEntity buildCaseEventMessageEntity(String messageId,
+                                                               String message,
+                                                               Boolean fromDlq)
+        throws JsonProcessingException {
+
+        EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
+        boolean isValid = validate(messageId, eventInformation, fromDlq);
+
+        CaseEventMessageEntity messageEntity;
+        if (isValid) {
+            messageEntity = build(messageId, message, fromDlq, eventInformation, MessageState.NEW);
+        } else {
+            messageEntity = build(messageId, message, fromDlq, eventInformation, MessageState.UNPROCESSABLE);
+        }
+
+        EventInformationRequest eventInformationRequest = objectMapper.readValue(
+            message,
+            EventInformationRequest.class
+        );
+        EventInformationMetadata eventInformationMetadata = eventInformationRequest.getEventInformationMetadata();
+        updateMessageEntity(messageEntity, eventInformationMetadata);
+
+        return messageEntity;
+    }
+
+    private void updateMessageEntity(CaseEventMessageEntity messageEntity,
+                                     EventInformationMetadata eventInformationMetadata) throws JsonProcessingException {
+        JsonNode actualObj = convertMapToJsonNode(eventInformationMetadata);
+        messageEntity.setMessageProperties(actualObj);
+        messageEntity.setHoldUntil(eventInformationMetadata.getHoldUntil());
+    }
+
+    private JsonNode convertMapToJsonNode(EventInformationMetadata eventInformationMetadata)
+        throws JsonProcessingException {
+
+        String json = objectMapper.writeValueAsString(eventInformationMetadata.getMessageProperties());
+        return objectMapper.readTree(json);
+    }
+
     private CaseEventMessageEntity build(String messageId,
                                          String message,
-                                         boolean fromDlq,
+                                         Boolean fromDlq,
                                          EventInformation eventInformation,
-                                         MessageState state) throws JsonProcessingException {
+                                         MessageState state) {
         CaseEventMessageEntity caseEventMessageEntity = new CaseEventMessageEntity();
         caseEventMessageEntity.setMessageId(messageId);
         caseEventMessageEntity.setCaseId(eventInformation.getCaseId());
         caseEventMessageEntity.setEventTimestamp(eventInformation.getEventTimeStamp());
         caseEventMessageEntity.setFromDlq(fromDlq);
         caseEventMessageEntity.setState(state);
-        caseEventMessageEntity.setMessageProperties(getMessageProperties(message));
         caseEventMessageEntity.setMessageContent(message);
         caseEventMessageEntity.setReceived(LocalDateTime.now());
         caseEventMessageEntity.setDeliveryCount(0);
@@ -149,15 +215,14 @@ public class EventMessageReceiverService {
         return caseEventMessageEntity;
     }
 
-    private JsonNode getMessageProperties(String message) throws JsonProcessingException {
-        JsonNode messageAsJson = objectMapper.readTree(message);
-        return messageAsJson.findPath(MESSAGE_PROPERTIES);
-    }
+    private boolean validate(String messageId, EventInformation eventInformation, Boolean fromDlq) {
 
-    private boolean validate(String messageId, EventInformation eventInformation) {
-        // check all required fields
         log.info("Validating message with id '{}'", messageId);
-        return isNotBlank(eventInformation.getCaseId());
+        return isNotBlank(eventInformation.getCaseId())
+            && isNotBlank(messageId)
+            && eventInformation.getEventTimeStamp() != null
+            && isNotBlank(eventInformation.getEventTimeStamp().toString())
+            && fromDlq != null;
     }
 
     private String getUserId(String message) {
