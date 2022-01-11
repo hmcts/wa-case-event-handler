@@ -19,6 +19,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationMetadata;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
@@ -29,6 +31,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageReposit
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -96,17 +99,6 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void should_handle_message_event_information_when_parsing_failed() throws JsonProcessingException {
-        when(objectMapper.readValue(MESSAGE, EventInformation.class)).thenThrow(jsonProcessingException);
-
-        eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
-
-        assertLogMessageEquals(String.format("Could not parse the message with id '%s'",  MESSAGE_ID), 1);
-
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
-    }
-
-    @Test
     void should_handle_message_when_valid_message_received() throws JsonProcessingException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
@@ -125,11 +117,36 @@ class EventMessageReceiverServiceTest {
         assertNotNull(result.getEventTimestamp());
         assertEquals(false, result.getFromDlq());
         assertEquals(MessageState.NEW, result.getState());
-        assertEquals(getMessagesPropertyAsJson().findPath(MESSAGE_PROPERTIES), result.getMessageProperties());
+        assertEquals(getMessagesPropertyAsJson(), result.getMessageProperties());
         assertEquals(MESSAGE, result.getMessageContent());
         assertNotNull(result.getReceived());
         assertEquals(0, result.getDeliveryCount());
         assertEquals(0, result.getRetryCount());
+    }
+
+    @Test
+    void should_handle_message_event_information_when_parsing_failed() throws JsonProcessingException {
+        when(objectMapper.readValue(MESSAGE, EventInformation.class)).thenThrow(jsonProcessingException);
+
+        eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
+
+        assertLogMessageEquals(String.format("Could not parse the message with id '%s'",  MESSAGE_ID), 1);
+
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+    }
+
+    @Test
+    void handle_message_event_message_properties_parsing_failed() throws JsonProcessingException {
+
+        when(objectMapper.readValue(MESSAGE, EventInformation.class))
+            .thenReturn(getEventInformation());
+        mockParsingExceptionWhenRetrievingMessageProperties();
+
+        eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
+
+        assertLogMessageEquals(String.format("Could not parse the message with id '%s'",  MESSAGE_ID), 2);
+
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
     }
 
     @Test
@@ -159,11 +176,159 @@ class EventMessageReceiverServiceTest {
                             .jurisdictionId(JURISDICTION)
                             .caseTypeId(CASE_TYPE_ID)
                             .build());
+        mockMessageProperties();
 
         eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
 
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
         assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
+    }
+
+    @Test
+    void should_upsert_valid_dlq_message() throws JsonProcessingException {
+        CaseEventMessageEntity entity = new CaseEventMessageEntity();
+        when(caseEventMessageRepository.findByMessageId(MESSAGE_ID)).thenReturn(List.of(entity));
+
+        when(objectMapper.readValue(MESSAGE, EventInformation.class))
+            .thenReturn(getEventInformation());
+        mockMessageProperties();
+
+        CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, true);
+
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
+
+        assertEquals(MessageState.NEW, caseEventMessageEntityCaptor.getValue().getState());
+        assertEquals(MESSAGE_ID, result.getMessageId());
+        assertEquals(CASE_ID, result.getCaseId());
+        assertEquals(true, result.getFromDlq());
+    }
+
+    @Test
+    void should_upsert_invalid_dlq_message_with_missing_EventTimestamp() throws JsonProcessingException {
+        CaseEventMessageEntity entity = new CaseEventMessageEntity();
+        when(caseEventMessageRepository.findByMessageId(MESSAGE_ID)).thenReturn(List.of(entity));
+
+        when(objectMapper.readValue(MESSAGE, EventInformation.class))
+            .thenReturn(getEventInformationWithMissingEventTimeStamp());
+        mockMessageProperties();
+
+        CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, true);
+
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
+
+        assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
+        assertEquals(MESSAGE_ID, result.getMessageId());
+        assertEquals(CASE_ID, result.getCaseId());
+        assertEquals(true, result.getFromDlq());
+        assertNull(result.getEventTimestamp());
+    }
+
+    @Test
+    void should_upsert_invalid_dlq_message_with_missing_CaseId() throws JsonProcessingException {
+        CaseEventMessageEntity entity = new CaseEventMessageEntity();
+        when(caseEventMessageRepository.findByMessageId(MESSAGE_ID)).thenReturn(List.of(entity));
+
+        when(objectMapper.readValue(MESSAGE, EventInformation.class))
+            .thenReturn(getEventInformationWithMissingCaseId());
+        mockMessageProperties();
+
+        CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, true);
+
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
+
+        assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
+        assertEquals(MESSAGE_ID, result.getMessageId());
+        assertNotNull(result.getEventTimestamp());
+        assertEquals(true, result.getFromDlq());
+        assertNull(result.getCaseId());
+    }
+
+    @Test
+    void should_upsert_invalid_dlq_message_with_missing_messageId() throws JsonProcessingException {
+        when(caseEventMessageRepository.findByMessageId(null)).thenReturn(List.of());
+
+        when(objectMapper.readValue(MESSAGE, EventInformation.class))
+            .thenReturn(getEventInformation());
+        mockMessageProperties();
+
+        CaseEventMessage result = eventMessageReceiverService.upsertMessage(null, MESSAGE, true);
+
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
+
+        assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
+        assertNull(result.getMessageId());
+        assertEquals(CASE_ID, result.getCaseId());
+        assertNotNull(result.getEventTimestamp());
+        assertEquals(true, result.getFromDlq());
+    }
+
+    @Test
+    void should_upsert_invalid_dlq_message_with_missing_fromDlq() throws JsonProcessingException {
+        CaseEventMessageEntity entity = new CaseEventMessageEntity();
+        when(caseEventMessageRepository.findByMessageId(MESSAGE_ID)).thenReturn(List.of(entity));
+
+        when(objectMapper.readValue(MESSAGE, EventInformation.class))
+            .thenReturn(getEventInformation());
+        mockMessageProperties();
+
+        CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, null);
+
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
+
+        assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
+        assertEquals(MESSAGE_ID, result.getMessageId());
+        assertEquals(CASE_ID, result.getCaseId());
+        assertNotNull(result.getEventTimestamp());
+        assertNull(result.getFromDlq());
+    }
+
+    @Test
+    void should_upsert_invalid_dlq_message() throws JsonProcessingException {
+
+        CaseEventMessageEntity entity = new CaseEventMessageEntity();
+        when(caseEventMessageRepository.findByMessageId(MESSAGE_ID)).thenReturn(List.of(entity));
+        when(objectMapper.readValue(MESSAGE, EventInformation.class))
+            .thenThrow(jsonProcessingException);
+
+        CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, false);
+
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
+
+        assertEquals(MESSAGE_ID, result.getMessageId());
+        assertNull(result.getCaseId());
+        assertNull(result.getEventTimestamp());
+        assertEquals(false, result.getFromDlq());
+        assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
+        assertNull(result.getMessageProperties());
+        assertEquals(MESSAGE, result.getMessageContent());
+        assertNotNull(result.getReceived());
+        assertEquals(0, result.getDeliveryCount());
+        assertEquals(0, result.getRetryCount());
+    }
+
+    @Test
+    void should_upsert_valid_dlq_message_when_no_message_id_present() throws JsonProcessingException {
+        when(caseEventMessageRepository.findByMessageId(MESSAGE_ID)).thenReturn(List.of());
+
+        when(objectMapper.readValue(MESSAGE, EventInformation.class))
+            .thenReturn(getEventInformation());
+        mockMessageProperties();
+
+        CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, true);
+
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
+
+        assertEquals(MessageState.NEW, caseEventMessageEntityCaptor.getValue().getState());
+        assertEquals(MESSAGE_ID, result.getMessageId());
+        assertEquals(CASE_ID, result.getCaseId());
+        assertEquals(true, result.getFromDlq());
     }
 
     @Test
@@ -215,6 +380,7 @@ class EventMessageReceiverServiceTest {
 
         when(caseEventMessageRepository.save(any(CaseEventMessageEntity.class)))
             .thenThrow(new DataIntegrityViolationException("Exception message"));
+        mockMessageProperties();
 
         final CaseEventMessageDuplicateMessageIdException caseEventMessageDuplicateMessageIdException =
             assertThrows(CaseEventMessageDuplicateMessageIdException.class,
@@ -279,6 +445,7 @@ class EventMessageReceiverServiceTest {
 
         when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(TRUE);
 
+        mockMessageProperties();
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
                 .thenReturn(EventInformation
                         .builder()
@@ -306,6 +473,7 @@ class EventMessageReceiverServiceTest {
 
         when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(TRUE);
 
+        mockMessageProperties();
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
                 .thenReturn(EventInformation
                         .builder()
@@ -426,7 +594,26 @@ class EventMessageReceiverServiceTest {
     }
 
     private void mockMessageProperties() throws JsonProcessingException {
-        when(objectMapper.readTree(any(String.class))).thenReturn(getMessagesPropertyAsJson());
+        Map<String, String> messageProperties = Map.of(
+            "messageProperty1", "value1",
+            "messageProperty2", "value2"
+        );
+        when(objectMapper.readValue(MESSAGE, EventInformationRequest.class))
+            .thenReturn(new EventInformationRequest(null,
+                                                    new EventInformationMetadata(messageProperties, null)));
+        when(objectMapper.writeValueAsString(messageProperties)).thenReturn("jsonMessageProperties");
+        when(objectMapper.readTree("jsonMessageProperties")).thenReturn(getMessagesPropertyAsJson());
+    }
+
+    private void mockParsingExceptionWhenRetrievingMessageProperties() throws JsonProcessingException {
+        Map<String, String> messageProperties = Map.of(
+            "messageProperty1", "value1",
+            "messageProperty2", "value2"
+        );
+        when(objectMapper.readValue(MESSAGE, EventInformationRequest.class))
+            .thenReturn(new EventInformationRequest(null,
+                                                    new EventInformationMetadata(messageProperties, null)));
+        when(objectMapper.writeValueAsString(messageProperties)).thenThrow(jsonProcessingException);
     }
 
     private JsonNode getMessagesPropertyAsJson() throws JsonProcessingException {
@@ -439,6 +626,26 @@ class EventMessageReceiverServiceTest {
             .jurisdictionId(JURISDICTION)
             .caseTypeId(CASE_TYPE_ID)
             .caseId(CASE_ID)
+            .eventTimeStamp(LocalDateTime.now())
+            .build();
+    }
+
+    private EventInformation getEventInformationWithMissingEventTimeStamp() {
+        return EventInformation.builder()
+            .userId(USER_ID)
+            .jurisdictionId(JURISDICTION)
+            .caseTypeId(CASE_TYPE_ID)
+            .caseId(CASE_ID)
+            .eventTimeStamp(null)
+            .build();
+    }
+
+    private EventInformation getEventInformationWithMissingCaseId() {
+        return EventInformation.builder()
+            .userId(USER_ID)
+            .jurisdictionId(JURISDICTION)
+            .caseTypeId(CASE_TYPE_ID)
+            .caseId(null)
             .eventTimeStamp(LocalDateTime.now())
             .build();
     }

@@ -66,6 +66,8 @@ azure:
     enableASB: ${AZURE_SERVICE_BUS_FEATURE_TOGGLE:false}
     retry-attempts: ${AZURE_SERVICE_BUS_RETRY_ATTEMPTS:3}
 
+environment: ${ENVIRONMENT:local}
+
 logging:
   level:
     root: INFO
