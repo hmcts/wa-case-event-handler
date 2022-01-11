@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.ServiceBusConfiguration;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageReceiverService;
 
 @Slf4j
 @Component
@@ -16,9 +17,12 @@ import uk.gov.hmcts.reform.wacaseeventhandler.config.ServiceBusConfiguration;
 public class CcdCaseEventsDeadLetterQueueConsumer implements Runnable {
 
     private final ServiceBusConfiguration serviceBusConfiguration;
+    private final EventMessageReceiverService eventMessageReceiverService;
 
-    public CcdCaseEventsDeadLetterQueueConsumer(ServiceBusConfiguration serviceBusConfiguration) {
+    public CcdCaseEventsDeadLetterQueueConsumer(ServiceBusConfiguration serviceBusConfiguration,
+                                                EventMessageReceiverService eventMessageReceiverService) {
         this.serviceBusConfiguration = serviceBusConfiguration;
+        this.eventMessageReceiverService = eventMessageReceiverService;
     }
 
     @Override
@@ -38,17 +42,20 @@ public class CcdCaseEventsDeadLetterQueueConsumer implements Runnable {
             receiver.receiveMessages(1)
                 .forEach(
                     message -> {
+                        final String messageId = message.getMessageId();
                         try {
-                            log.info("Received CCD Case Event Dead Letter Queue message with id '{}'",
-                                    message.getMessageId());
+                            log.info("Received CCD Case Event Dead Letter Queue message with id '{}'", messageId);
+
+                            eventMessageReceiverService.handleDlqMessage(messageId,
+                                    new String(message.getBody().toBytes()));
 
                             receiver.complete(message);
 
                             log.info("CCD Case Event Dead Letter Queue message with id '{}' handled successfully",
-                                    message.getMessageId());
+                                    messageId);
                         } catch (Exception ex) {
                             log.error("Error processing CCD Case Event Dead Letter Queue message with id '{}' - "
-                                    + "will continue to complete message", message.getMessageId());
+                                    + "will continue to complete message", messageId);
                             receiver.complete(message);
                         }
                     });

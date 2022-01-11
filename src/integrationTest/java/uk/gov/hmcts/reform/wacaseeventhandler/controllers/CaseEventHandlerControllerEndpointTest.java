@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -19,6 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClient;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.request.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.CancellationEvaluateResponse;
@@ -37,6 +39,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -66,11 +69,15 @@ class CaseEventHandlerControllerEndpointTest {
 
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
+
     @MockBean
     private WorkflowApiClient workflowApiClient;
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockBean
+    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @BeforeEach
     void setUp() {
@@ -196,6 +203,7 @@ class CaseEventHandlerControllerEndpointTest {
         @Test
         void dlq_case_event_message_should_be_stored_and_return_200_ok() throws Exception {
 
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
             String messageId = randomMessageId();
 
             MvcResult result = postMessage(messageId, status().isCreated(), true);
@@ -224,8 +232,22 @@ class CaseEventHandlerControllerEndpointTest {
         }
 
         @Test
-        void should_store_no_caseId_unprocessable_message_and_return_200_ok() throws Exception {
+        void dlq_case_event_message_should_not_be_stored_and_return_200_ok_when_feature_flag_disabled()
+                throws Exception {
 
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(false);
+            String messageId = randomMessageId();
+
+            MvcResult result = postMessage(messageId, status().isCreated(), true);
+
+            String content = result.getResponse().getContentAsString();
+            assertEquals(201, result.getResponse().getStatus(), content);
+            assertTrue(StringUtils.isEmpty(content));
+        }
+
+        @Test
+        void should_store_no_caseId_unprocessable_message_and_return_200_ok() throws Exception {
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
             String messageId = randomMessageId();
             String unprocessableMessage = getCaseEventMessage(null);
 
@@ -252,7 +274,7 @@ class CaseEventHandlerControllerEndpointTest {
 
         @Test
         void should_store_parsing_error_unprocessable_message_and_return_200_ok() throws Exception {
-
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
             String messageId = randomMessageId();
             String unprocessableMessage = getUnprocessableCaseEventMessage();
 
