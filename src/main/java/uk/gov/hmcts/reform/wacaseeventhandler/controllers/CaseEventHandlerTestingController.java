@@ -16,8 +16,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CaseEventMessageNoAllowedRequestException;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageQueryService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageReceiverService;
 
 import javax.validation.Valid;
@@ -26,12 +28,15 @@ import javax.validation.Valid;
 @Slf4j
 public class CaseEventHandlerTestingController {
     private final EventMessageReceiverService eventMessageReceiverService;
+    private final EventMessageQueryService eventMessageQueryService;
 
     @Value("${environment}")
     private String environment;
 
-    public CaseEventHandlerTestingController(EventMessageReceiverService eventMessageReceiverService) {
+    public CaseEventHandlerTestingController(EventMessageReceiverService eventMessageReceiverService,
+                                             EventMessageQueryService eventMessageQueryService) {
         this.eventMessageReceiverService = eventMessageReceiverService;
+        this.eventMessageQueryService = eventMessageQueryService;
     }
 
     @ApiOperation("Handles the CCD case event message")
@@ -92,6 +97,27 @@ public class CaseEventHandlerTestingController {
     public CaseEventMessage getMessagesByMessageId(@PathVariable("message_id") final String messageId) {
         if (isNonProdEnvironment()) {
             return eventMessageReceiverService.getMessage(messageId);
+        } else {
+            throw new CaseEventMessageNoAllowedRequestException();
+        }
+    }
+
+    @ApiOperation("Gets the case event message by messageId")
+    @ApiResponses({
+        @ApiResponse(
+            code = 200,
+            message = "Messages returned successfully",
+            response = CaseEventMessageEntity.class)
+    })
+    @GetMapping("/messages/query")
+    public EventMessageQueryResponse getMessagesByQueryParameters(
+        @RequestParam(value = "states", required = false) final String states,
+        @RequestParam(value = "case_id", required = false) final String caseId,
+        @RequestParam(value = "event_timestamp", required = false) final String eventTimestamp,
+        @RequestParam(value = "from_dlq", required = false) final String fromDlq) {
+
+        if (isNonProdEnvironment()) {
+            return eventMessageQueryService.getMessages(states, caseId, eventTimestamp, fromDlq);
         } else {
             throw new CaseEventMessageNoAllowedRequestException();
         }

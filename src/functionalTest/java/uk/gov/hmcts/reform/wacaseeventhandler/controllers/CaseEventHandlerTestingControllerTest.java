@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.client.utils.URIBuilder;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,6 +14,8 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformatio
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
@@ -179,6 +182,59 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
             .body("messageProperty2", equalTo("value2"));
     }
 
+    /**
+     * TODO:
+     * /messages/query?case_id=1234567890123456&states=NEW&from_dlq=true&event_timestamp=2020-12-07T17:39:22.932622
+     * /messages/query?case_id=1234567890123456
+     * /messages/query?states=NEW
+     * /messages/query?from_dlq=true&event_timestamp=2020-12-07T17:39:22.932622
+     * /messages/query?case_id=1234567890123456&states=NEW,READY
+     *
+     * AC 1
+     * Given there are some messages in the case event messages database
+     * When I call GET /messages/query **
+     * And there are messages matching my query
+     * Then the API will return all the messages matching my query
+     *
+     * AC 2
+     * Given there are some messages in the case event messages database
+     * When I call GET /messages/query **
+     * And there are messages matching my query
+     * Then the API will return as part of the answer payload the number of messages that match the query
+     *
+     * AC 3
+     * Given there are some messages in the case event messages database
+     * When I call GET /messages/query **
+     * And there are no messages matching my query
+     * Then the API will return an error message saying that no records matching the query
+     *
+     * AC 4
+     * Given there are no messages in the case event messages database
+     * When I call GET /messages/query **
+     * Then the API will return an error message saying that there are no records in the database
+     */
+
+    @Test
+    public void should_query_messages() {
+        // TODO
+    }
+
+    @Test
+    public void should_query_messages_when_there_is_no_messages_in_database() throws Exception {
+        getMessagesToRestEndpoint("NEW,UNPROCESSABLE",
+                                  "1111-2222-3333-4444",
+                                  eventTimeStamp.toString(),
+                                  "false",
+                                  s2sToken)
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .assertThat()
+            .body("message", equalTo("There are no records in the database"))
+            .body("totalNumberOfMessagesInTheDB", equalTo(0))
+            .body("numberOfMessagesMatchingTheQuery", equalTo(0))
+            .body("caseEventMessages.size()", equalTo(0));
+    }
+
     private EventInformation buildEventInformation(String eventInstanceId, String caseIdForTask) {
         return EventInformation.builder()
             .eventInstanceId(eventInstanceId)
@@ -212,6 +268,24 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
         return "" + ThreadLocalRandom.current().nextLong(1000000);
     }
 
+    private Response getMessagesToRestEndpoint(String states,
+                                               String caseId,
+                                               String eventTimestamp,
+                                               String fromDlq,
+                                               String s2sToken) throws URISyntaxException {
+        URI uri = new URIBuilder("")
+            .addParameter("states", states)
+            .addParameter("caseID", caseId)
+            .addParameter("eventTimestamp", eventTimestamp)
+            .addParameter("fromDlq", fromDlq)
+            .build();
+
+        return given()
+            .contentType(APPLICATION_JSON_VALUE)
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .when()
+            .get("/messages/query" + uri.toString());
+    }
     private Response getEventToRestEndpoint(String messageId,
                                             String s2sToken) {
         return given()

@@ -8,8 +8,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CaseEventMessageNoAllowedRequestException;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageQueryService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageReceiverService;
+
+import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -21,12 +25,22 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 class CaseEventHandlerTestingControllerTest {
     public static final String JSON_MESSAGE = "{\"jsonMessage\":\"anything\"}";
     public static final String MESSAGE_ID = "123";
+    public static final String STATES = "NEW,UNPROCESSABLE";
+    public static final String CASE_ID = "123";
+    public static final String EVENT_TIMESTAMP = LocalDateTime.now().toString();
+    public static final String FROM_DLQ = "true";
 
     @Mock
     private EventMessageReceiverService eventMessageReceiverService;
 
     @Mock
+    private EventMessageQueryService eventMessageQueryService;
+
+    @Mock
     CaseEventMessage responseMessage;
+
+    @Mock
+    EventMessageQueryResponse eventMessageQueryResponse;
 
     @InjectMocks
     CaseEventHandlerTestingController controller;
@@ -124,6 +138,28 @@ class CaseEventHandlerTestingControllerTest {
 
         assertThatThrownBy(() -> controller.getMessagesByMessageId(
             MESSAGE_ID
+        )).isInstanceOf(CaseEventMessageNoAllowedRequestException.class);
+    }
+
+    @Test
+    void should_delegate_to_eventMessageReceiverService_when_getMessagesByQueryParameters_called() {
+        doReturn(eventMessageQueryResponse).when(eventMessageQueryService)
+            .getMessages(STATES, CASE_ID, EVENT_TIMESTAMP, FROM_DLQ);
+
+        EventMessageQueryResponse response = controller
+            .getMessagesByQueryParameters(STATES, CASE_ID, EVENT_TIMESTAMP, FROM_DLQ);
+
+        assertThat(response).isEqualTo(eventMessageQueryResponse);
+
+        verify(eventMessageQueryService).getMessages(STATES, CASE_ID, EVENT_TIMESTAMP, FROM_DLQ);
+    }
+
+    @Test
+    void should_throw_CaseEventMessageNoAllowedRequestException_when_getMessagesByQueryParameters_called_in_prod() {
+        ReflectionTestUtils.setField(controller, "environment", "prod");
+
+        assertThatThrownBy(() -> controller.getMessagesByQueryParameters(
+            STATES, CASE_ID, EVENT_TIMESTAMP, FROM_DLQ
         )).isInstanceOf(CaseEventMessageNoAllowedRequestException.class);
     }
 }
