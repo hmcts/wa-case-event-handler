@@ -17,6 +17,8 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.DLQ_DB_INSERT;
+
 @Slf4j
 @Component
 @SuppressWarnings("PMD.DoNotUseThreads")
@@ -25,15 +27,18 @@ public class DatabaseMessageConsumer implements Runnable {
     private final CaseEventMessageRepository caseEventMessageRepository;
     private final CaseEventMessageMapper caseEventMessageMapper;
     private final CcdEventProcessor ccdEventProcessor;
+    private final LaunchDarklyFeatureFlagProvider flagProvider;
     protected static final Map<Integer, Integer> RETRY_COUNT_TO_DELAY_MAP = new ConcurrentHashMap<>();
 
 
     public DatabaseMessageConsumer(CaseEventMessageRepository caseEventMessageRepository,
                                    CaseEventMessageMapper caseEventMessageMapper,
-                                   CcdEventProcessor ccdEventProcessor) {
+                                   CcdEventProcessor ccdEventProcessor,
+                                   LaunchDarklyFeatureFlagProvider flagProvider) {
         this.caseEventMessageRepository = caseEventMessageRepository;
         this.caseEventMessageMapper = caseEventMessageMapper;
         this.ccdEventProcessor = ccdEventProcessor;
+        this.flagProvider = flagProvider;
     }
 
     static {
@@ -51,8 +56,13 @@ public class DatabaseMessageConsumer implements Runnable {
     @SuppressWarnings("squid:S2189")
     @Transactional
     public void run() {
-        CaseEventMessage caseEventMessage = selectNextMessage();
-        processMessage(caseEventMessage);
+        if (flagProvider.getBooleanValue(DLQ_DB_INSERT)) {
+            CaseEventMessage caseEventMessage = selectNextMessage();
+            processMessage(caseEventMessage);
+        } else {
+            log.info("Feature flag '{}' evaluated to false. Did not start message processor thread",
+                    DLQ_DB_INSERT.getKey());
+        }
     }
 
     private CaseEventMessage selectNextMessage() {
@@ -69,7 +79,7 @@ public class DatabaseMessageConsumer implements Runnable {
             log.info("No message to process");
         } else {
             final String caseEventMessageId = caseEventMessage.getMessageId();
-            log.info("processing message with id {} from the database", caseEventMessageId);
+            log.info("Processing message with id {} from the database", caseEventMessageId);
             try {
                 ccdEventProcessor.processMessage(caseEventMessage);
                 caseEventMessageRepository.updateMessageState(MessageState.PROCESSED, caseEventMessageId);

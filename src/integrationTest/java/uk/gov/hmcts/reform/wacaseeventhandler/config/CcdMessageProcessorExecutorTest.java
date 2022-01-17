@@ -1,56 +1,85 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.config;
 
-import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
-import org.junit.jupiter.api.Order;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.runner.RunWith;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.DatabaseMessageConsumer;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag;
+import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
+import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
-@RunWith(SpringRunner.class)
 @ActiveProfiles("db")
-@TestMethodOrder(OrderAnnotation.class)
 class CcdMessageProcessorExecutorTest {
-    @SpyBean
-    private DatabaseMessageConsumer databaseMessageConsumer;
 
-    @TestConfiguration
-    public static class LaunchDarklyConfig {
+    private static final String MESSAGE_ID = "message id";
 
-        @Bean
-        @Primary
-        public LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider() {
-            LaunchDarklyFeatureFlagProvider flagProvider = mock(LaunchDarklyFeatureFlagProvider.class);
-            when(flagProvider.getBooleanValue(any())).thenReturn(true, false);
-            return flagProvider;
+    private static final String SELECT_LOG_MESSAGE = "Selecting next message for processing from the database";
+
+    private static final String PROCESS_LOG_MESSAGE = "Processing message with id " + MESSAGE_ID + " from the database";
+
+    private ListAppender<ILoggingEvent> listAppender;
+
+    @MockBean
+    private CaseEventMessageRepository caseEventMessageRepository;
+
+    @MockBean
+    private LaunchDarklyFeatureFlagProvider featureFlagProvider;
+
+    @BeforeEach
+    void setup() {
+        Logger logger = (Logger) LoggerFactory.getLogger(DatabaseMessageConsumer.class);
+
+        listAppender = new ListAppender<>();
+        listAppender.start();
+
+        logger.addAppender(listAppender);
+
+        CaseEventMessageEntity caseEventMessageEntity = new CaseEventMessageEntity();
+        caseEventMessageEntity.setMessageId(MESSAGE_ID);
+        when(caseEventMessageRepository.getNextAvailableMessageReadyToProcess()).thenReturn(caseEventMessageEntity);
+        when(featureFlagProvider.getBooleanValue(FeatureFlag.DLQ_DB_INSERT)).thenReturn(true);
+    }
+
+    @Test
+    void test_create_database_message_consumer_triggers_database_message_consumer() {
+        await().until(
+            () -> assertLogMessageEquals(SELECT_LOG_MESSAGE, 0) && assertLogMessageEquals(PROCESS_LOG_MESSAGE, 1)
+        );
+    }
+
+    @Test
+    void test_create_database_message_consumer_triggers_database_message_consumer_repeatedly() {
+        await().atMost(11, TimeUnit.SECONDS).until(
+            () -> getLogMessageOccurrenceCount(SELECT_LOG_MESSAGE) >= 3L
+                    && getLogMessageOccurrenceCount(PROCESS_LOG_MESSAGE) >= 3L
+        );
+    }
+
+    private boolean assertLogMessageEquals(String expectedMessage, int messageNumber)  {
+        List<ILoggingEvent> logsList = listAppender.list;
+        if (logsList != null && !logsList.isEmpty()) {
+            return expectedMessage.equals(logsList.get(messageNumber).getFormattedMessage());
         }
+        return false;
     }
 
-    @Test
-    @Order(1)
-    void should_create_database_message_consumer_when_launch_darkly_flag_enabled() throws InterruptedException {
-        verify(databaseMessageConsumer, atLeast(1)).run();
+    private long getLogMessageOccurrenceCount(String expectedMessage)  {
+        List<ILoggingEvent> logsList = listAppender.list;
+        return logsList.stream().filter(x -> x.getFormattedMessage().equals(expectedMessage)).count();
     }
 
-    @Test
-    @Order(2)
-    void should_not_create_database_message_consumer_when_launch_darkly_flag_disabled() {
-        verify(databaseMessageConsumer, never()).run();
-    }
 }

@@ -1,7 +1,9 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import feign.FeignException;
 import feign.Request;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -13,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
@@ -30,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -47,6 +51,9 @@ class DatabaseMessageConsumerTest {
     @Mock
     private CcdEventProcessor ccdEventProcessor;
 
+    @Mock
+    private LaunchDarklyFeatureFlagProvider featureFlagProvider;
+
     @InjectMocks
     private DatabaseMessageConsumer databaseMessageConsumer;
 
@@ -55,6 +62,20 @@ class DatabaseMessageConsumerTest {
 
     @Captor
     private ArgumentCaptor<Integer> retryCountCaptor;
+
+    @BeforeEach
+    public void setup() {
+        when(featureFlagProvider.getBooleanValue(FeatureFlag.DLQ_DB_INSERT)).thenReturn(true);
+    }
+
+    @Test
+    void should_not_process_message_if_launch_darkly_flag_disabled() throws JsonProcessingException {
+        when(featureFlagProvider.getBooleanValue(FeatureFlag.DLQ_DB_INSERT)).thenReturn(false);
+        databaseMessageConsumer.run();
+        verify(caseEventMessageMapper, never()).mapToCaseEventMessage(any());
+        verify(caseEventMessageRepository, never()).getNextAvailableMessageReadyToProcess();
+        verify(ccdEventProcessor, never()).processMessage(any(CaseEventMessage.class));
+    }
 
     @Test
     void should_not_process_message_if_null_message_selected() {
