@@ -8,6 +8,7 @@ import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -25,7 +26,8 @@ import javax.persistence.Table;
 @ToString
 @TypeDef(name = "json", typeClass = JsonType.class)
 @TypeDef(name = "pgsql_enum", typeClass = PostgreSQLEnumType.class)
-public class CaseEventMessageEntity {
+public class CaseEventMessageEntity implements Serializable {
+
     private static final String MESSAGE_ID = "message_id";
     private static final String CASE_ID = "case_id";
     private static final String EVENT_TIMESTAMP = "event_timestamp";
@@ -35,6 +37,8 @@ public class CaseEventMessageEntity {
     private static final String DELIVERY_COUNT = "delivery_count";
     private static final String HOLD_UNTIL = "hold_until";
     private static final String RETRY_COUNT = "retry_count";
+    private static final long serialVersionUID = 6682644496535002875L;
+
 
     @Column(name = MESSAGE_ID, nullable = false)
     private String messageId;

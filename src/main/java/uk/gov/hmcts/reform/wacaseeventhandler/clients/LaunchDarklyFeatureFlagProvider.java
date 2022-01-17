@@ -12,17 +12,33 @@ import static java.util.Objects.requireNonNull;
 @Service
 public class LaunchDarklyFeatureFlagProvider {
     private final LDClientInterface ldClient;
+    private static final String KEY = "wa-case-event-handler";
+    private static final String FIRST_NAME = "Work Allocation";
+    private static final String LAST_NAME = "Case Event Handler";
 
     public LaunchDarklyFeatureFlagProvider(LDClientInterface ldClient) {
         this.ldClient = ldClient;
     }
 
     private LDUser createLaunchDarklyUser(String userId) {
-        return new LDUser.Builder("wa-case-event-handler")
+        return new LDUser.Builder(KEY)
             .name(userId)
-            .firstName("Work Allocation")
-            .lastName("Case Event Handler")
+            .firstName(FIRST_NAME)
+            .lastName(LAST_NAME)
             .build();
+    }
+
+    private LDUser createLaunchDarklyUser() {
+        return new LDUser.Builder(KEY)
+                .firstName(FIRST_NAME)
+                .lastName(LAST_NAME)
+                .build();
+    }
+
+    public boolean getBooleanValue(FeatureFlag featureFlag) {
+        requireNonNull(featureFlag, "featureFlag is null");
+        log.info("Attempting to retrieve feature flag '{}' as Boolean", featureFlag.getKey());
+        return ldClient.boolVariation(featureFlag.getKey(), createLaunchDarklyUser(), false);
     }
 
     public boolean getBooleanValue(FeatureFlag featureFlag, String userId) {
