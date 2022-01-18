@@ -65,8 +65,8 @@ public class EventMessageQueryService {
         List<CaseEventMessage> messages = messageEntities.stream()
             .map(mapper::mapToCaseEventMessage).collect(Collectors.toList());
 
-        String message = !messages.isEmpty() ? format(FOUND_MESSAGES, messages.size())
-            : NO_MATCHING_RECORDS_FOR_THE_QUERY;
+        String message = messages.isEmpty() ? NO_MATCHING_RECORDS_FOR_THE_QUERY
+            : format(FOUND_MESSAGES, messages.size());
         return new EventMessageQueryResponse(message, numberOfAllMessages, messages.size(), messages);
     }
 

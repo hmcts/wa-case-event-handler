@@ -28,10 +28,10 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageQueryS
 @ExtendWith({MockitoExtension.class})
 class EventMessageQueryServiceTest {
 
-    List<MessageState> STATES = List.of(MessageState.NEW);
-    String CASE_ID = "1111222233334444";
-    LocalDateTime EVENT_TIMESTAMP = LocalDateTime.parse("2020-03-27T12:56:10.403975");
-    Boolean NOT_FROM_DLQ = Boolean.FALSE;
+    private static final List<MessageState> STATES = List.of(MessageState.NEW);
+    private static final String CASE_ID = "1111222233334444";
+    private static final LocalDateTime EVENT_TIMESTAMP = LocalDateTime.parse("2020-03-27T12:56:10.403975");
+    private static final Boolean NOT_FROM_DLQ = Boolean.FALSE;
 
     @Mock
     private CaseEventMessageCustomCriteriaRepository repository;
@@ -56,7 +56,8 @@ class EventMessageQueryServiceTest {
         List<CaseEventMessageEntity> queryMessages = List.of(entity1, entity2);
         given(repository.getMessages(List.of(), CASE_ID, EVENT_TIMESTAMP, NOT_FROM_DLQ)).willReturn(queryMessages);
 
-        EventMessageQueryResponse result = underTest.getMessages("", CASE_ID, EVENT_TIMESTAMP.toString(), NOT_FROM_DLQ.toString());
+        EventMessageQueryResponse result = underTest.getMessages("", CASE_ID, EVENT_TIMESTAMP.toString(),
+                                                                 NOT_FROM_DLQ.toString());
 
         assertEquals(result.getMessage(), String.format(FOUND_MESSAGES, 2));
         assertEquals(result.getNumberOfMessagesFound(), 2);
@@ -73,7 +74,8 @@ class EventMessageQueryServiceTest {
         List<CaseEventMessageEntity> queryMessages = List.of();
         given(repository.getMessages(STATES, CASE_ID, EVENT_TIMESTAMP, NOT_FROM_DLQ)).willReturn(queryMessages);
 
-        EventMessageQueryResponse result = underTest.getMessages("NEW", CASE_ID, EVENT_TIMESTAMP.toString(), NOT_FROM_DLQ.toString());
+        EventMessageQueryResponse result = underTest.getMessages("NEW", CASE_ID, EVENT_TIMESTAMP.toString(),
+                                                                 NOT_FROM_DLQ.toString());
 
         assertEquals(result.getMessage(), NO_MATCHING_RECORDS_FOR_THE_QUERY);
         assertEquals(result.getNumberOfMessagesFound(), 0);
