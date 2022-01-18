@@ -7,6 +7,8 @@ import java.io.Serializable;
 import java.util.List;
 
 public class EventMessageQueryResponse implements Serializable {
+    private static final long serialVersionUID = -4503912338669550168L;
+
     @JsonProperty("message")
     private final String message;
     @JsonProperty("totalNumberOfMessagesInTheDB")

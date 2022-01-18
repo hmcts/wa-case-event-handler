@@ -110,6 +110,7 @@ public class CaseEventHandlerTestingController {
             response = CaseEventMessageEntity.class)
     })
     @GetMapping("/messages/query")
+    @SuppressWarnings("PMD.UseObjectForClearerAPI")
     public EventMessageQueryResponse getMessagesByQueryParameters(
         @RequestParam(value = "states", required = false) final String states,
         @RequestParam(value = "case_id", required = false) final String caseId,

@@ -11,4 +11,8 @@ public class InvalidRequestParametersException extends RuntimeException {
     public InvalidRequestParametersException(String message) {
         super(message);
     }
+
+    public InvalidRequestParametersException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

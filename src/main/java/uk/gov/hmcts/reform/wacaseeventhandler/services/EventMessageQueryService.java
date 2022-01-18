@@ -26,8 +26,13 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @Slf4j
 @Service
 @Transactional
-@SuppressWarnings("PMD.TooManyMethods")
+@SuppressWarnings("PMD.UseObjectForClearerAPI")
 public class EventMessageQueryService {
+
+    public static final String NO_RECORDS_IN_THE_DATABASE = "There are no records in the database";
+    public static final String NO_QUERY_PARAMETERS_SPECIFIED = "No query parameters specified";
+    public static final String FOUND_MESSAGES = "Found %s messages";
+    public static final String NO_MATCHING_RECORDS_FOR_THE_QUERY = "No records matching the query";
 
     private final CaseEventMessageCustomCriteriaRepository customCriteriaRepository;
     private final CaseEventMessageMapper mapper;
@@ -42,25 +47,35 @@ public class EventMessageQueryService {
 
         long numberOfAllMessages = customCriteriaRepository.countAll();
         if (numberOfAllMessages == 0) {
-            return new EventMessageQueryResponse("There are no records in the database", 0, 0, emptyList());
+            return new EventMessageQueryResponse(NO_RECORDS_IN_THE_DATABASE, 0, 0, emptyList());
         }
         if (states.isEmpty() && isBlank(caseId) && isBlank(eventTimestamp) && isBlank(fromDlq)) {
-            return new EventMessageQueryResponse("No query parameters specified", numberOfAllMessages, 0, emptyList());
+            return new EventMessageQueryResponse(NO_QUERY_PARAMETERS_SPECIFIED, numberOfAllMessages, 0, emptyList());
         }
 
-        validateGetMessagesParameters(states, caseId, eventTimestamp, fromDlq);
+        String decodedStates = decode(states);
+        validateGetMessagesParameters(decodedStates, caseId, eventTimestamp, fromDlq);
 
         List<CaseEventMessageEntity> messageEntities = customCriteriaRepository.getMessages(
-            messageStates(splitStates(states)),
+            messageStates(splitStates(decodedStates)),
             caseId,
-            eventTimestamp == null ? null : LocalDateTime.parse(eventTimestamp),
-            fromDlq == null ? null : Boolean.valueOf(fromDlq)
+            isBlank(eventTimestamp) ? null : LocalDateTime.parse(eventTimestamp),
+            isBlank(fromDlq) ? null : Boolean.valueOf(fromDlq)
         );
         List<CaseEventMessage> messages = messageEntities.stream()
             .map(mapper::mapToCaseEventMessage).collect(Collectors.toList());
 
-        String message = messages.size() > 0 ? "Found " + messages.size() + " messages" : "No messages found";
+        String message = !messages.isEmpty() ? format(FOUND_MESSAGES, messages.size())
+            : NO_MATCHING_RECORDS_FOR_THE_QUERY;
         return new EventMessageQueryResponse(message, numberOfAllMessages, messages.size(), messages);
+    }
+
+    private String decode(String states) {
+        if (isBlank(states)) {
+            return states;
+        } else {
+            return states.replace("%2C", ",");
+        }
     }
 
     private void validateGetMessagesParameters(String states, String caseId, String eventTimestamp, String fromDlq) {
@@ -71,20 +86,18 @@ public class EventMessageQueryService {
     }
 
     private void validateFromDlq(String fromDlq) {
-        if (fromDlq != null) {
-            if (!"true".equalsIgnoreCase(fromDlq) && !"false".equalsIgnoreCase(fromDlq)) {
-                throw new InvalidRequestParametersException(format("Invalid from_dlq format: '%s'", fromDlq));
-            }
+        if (isNotBlank(fromDlq) && !"true".equalsIgnoreCase(fromDlq) && !"false".equalsIgnoreCase(fromDlq)) {
+            throw new InvalidRequestParametersException(format("Invalid from_dlq format: '%s'", fromDlq));
         }
     }
 
     private void validateEventTimestamp(String eventTimestamp) {
-        if (eventTimestamp != null) {
+        if (isNotBlank(eventTimestamp)) {
             try {
                 LocalDateTime.parse(eventTimestamp);
             } catch (DateTimeParseException e) {
                 throw new InvalidRequestParametersException(
-                    format("Invalid event_timestamp format: '%s'", eventTimestamp));
+                    format("Invalid event_timestamp format: '%s'", eventTimestamp), e);
             }
         }
     }
@@ -102,7 +115,7 @@ public class EventMessageQueryService {
                 try {
                     MessageState.valueOf(state);
                 } catch (IllegalArgumentException e) {
-                    throw new InvalidRequestParametersException(format("Invalid states format: '%s'", states));
+                    throw new InvalidRequestParametersException(format("Invalid states format: '%s'", states), e);
                 }
             });
         }

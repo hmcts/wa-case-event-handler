@@ -17,6 +17,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 @Repository
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class CaseEventMessageCustomCriteriaRepository {
 
     @PersistenceContext
