@@ -45,18 +45,23 @@ public class CaseEventMessageCustomCriteriaRepository {
             mainAndOperatorPredicates.add(predicateForCaseId);
         }
 
-        if (!states.isEmpty()) {
+        if (states != null && !states.isEmpty()) {
             Predicate[] statesPredicateArray = states.stream()
                 .map(state -> criteriaBuilder.equal(itemRoot.get("state"), state)).toArray(Predicate[]::new);
 
             mainAndOperatorPredicates.add(criteriaBuilder.or(statesPredicateArray));
         }
 
+        // we search with a second precision
         if (eventTimestamp != null) {
             Predicate predicateForEventTimestamp
                 = criteriaBuilder.between(itemRoot.get("eventTimestamp"),
-                                          eventTimestamp.minus(1, ChronoUnit.MILLIS),
-                                          eventTimestamp.plus(1, ChronoUnit.MILLIS));
+                                          eventTimestamp
+                                              .minus(eventTimestamp.getNano(), ChronoUnit.NANOS)
+                                              .minus(1, ChronoUnit.MILLIS),
+                                          eventTimestamp
+                                              .minus(eventTimestamp.getNano(), ChronoUnit.NANOS)
+                                              .plus(1, ChronoUnit.SECONDS));
             mainAndOperatorPredicates.add(predicateForEventTimestamp);
         }
 

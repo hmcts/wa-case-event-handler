@@ -29,10 +29,10 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @SuppressWarnings("PMD.UseObjectForClearerAPI")
 public class EventMessageQueryService {
 
-    public static final String NO_RECORDS_IN_THE_DATABASE = "There are no records in the database";
-    public static final String NO_QUERY_PARAMETERS_SPECIFIED = "No query parameters specified";
-    public static final String FOUND_MESSAGES = "Found %s messages";
-    public static final String NO_MATCHING_RECORDS_FOR_THE_QUERY = "No records matching the query";
+    protected static final String NO_RECORDS_IN_THE_DATABASE = "There are no records in the database";
+    protected static final String NO_QUERY_PARAMETERS_SPECIFIED = "No query parameters specified";
+    protected static final String FOUND_MESSAGES = "Found %s messages";
+    protected static final String NO_MATCHING_RECORDS_FOR_THE_QUERY = "No records matching the query";
 
     private final CaseEventMessageCustomCriteriaRepository customCriteriaRepository;
     private final CaseEventMessageMapper mapper;
@@ -49,7 +49,7 @@ public class EventMessageQueryService {
         if (numberOfAllMessages == 0) {
             return new EventMessageQueryResponse(NO_RECORDS_IN_THE_DATABASE, 0, 0, emptyList());
         }
-        if (states.isEmpty() && isBlank(caseId) && isBlank(eventTimestamp) && isBlank(fromDlq)) {
+        if (isBlank(states) && isBlank(caseId) && isBlank(eventTimestamp) && isBlank(fromDlq)) {
             return new EventMessageQueryResponse(NO_QUERY_PARAMETERS_SPECIFIED, numberOfAllMessages, 0, emptyList());
         }
 
