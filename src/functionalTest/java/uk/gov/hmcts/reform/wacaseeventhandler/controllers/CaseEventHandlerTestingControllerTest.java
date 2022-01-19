@@ -7,7 +7,6 @@ import org.apache.http.client.utils.URIBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
@@ -25,6 +24,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -166,7 +166,6 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
     }
 
     @Test
-    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, statements = "DELETE FROM wa_case_event_messages")
     public void should_query_messages() throws Exception {
         String caseId1 = RandomStringUtils.randomNumeric(16);
         String caseId2 = RandomStringUtils.randomNumeric(16);
@@ -180,7 +179,7 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
             .assertThat()
             .body("message", containsString("Found"))
             .body("message", containsString("messages"))
-            .body("totalNumberOfMessagesInTheDB", equalTo(3))
+            .body("totalNumberOfMessagesInTheDB", greaterThan(2))
             .body("numberOfMessagesMatchingTheQuery", equalTo(2))
             .body("caseEventMessages.size()", equalTo(2))
             .body("caseEventMessages.MessageId", hasItem(equalTo(messageId1)))
@@ -188,7 +187,6 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
     }
 
     @Test
-    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, statements = "DELETE FROM wa_case_event_messages")
     public void should_return_error_when_no_query_parameters_specified() throws Exception {
         createMessage(eventTimestamp1, RandomStringUtils.randomNumeric(16), NOT_FROM_DLQ);
 
@@ -197,13 +195,12 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
             .statusCode(HttpStatus.OK.value())
             .assertThat()
             .body("message", equalTo("No query parameters specified"))
-            .body("totalNumberOfMessagesInTheDB", equalTo(1))
+            .body("totalNumberOfMessagesInTheDB", greaterThan(0))
             .body("numberOfMessagesMatchingTheQuery", equalTo(0))
             .body("caseEventMessages.size()", equalTo(0));
     }
 
     @Test
-    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, statements = "DELETE FROM wa_case_event_messages")
     public void should_query_messages_when_there_are_no_messages_matching_my_query() throws Exception {
         createMessage(eventTimestamp1, RandomStringUtils.randomNumeric(16), NOT_FROM_DLQ);
 
@@ -212,24 +209,7 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
             .statusCode(HttpStatus.OK.value())
             .assertThat()
             .body("message", equalTo("No records matching the query"))
-            .body("totalNumberOfMessagesInTheDB", equalTo(1))
-            .body("numberOfMessagesMatchingTheQuery", equalTo(0))
-            .body("caseEventMessages.size()", equalTo(0));
-    }
-
-    @Test
-    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD, statements = "DELETE FROM wa_case_event_messages")
-    public void should_query_messages_when_there_are_no_messages_in_database() throws Exception {
-        getMessagesToRestEndpoint("NEW,UNPROCESSABLE",
-                                  "1111-2222-3333-4444",
-                                  eventTimestamp1.toString(),
-                                  "false",
-                                  s2sToken)
-            .then()
-            .statusCode(HttpStatus.OK.value())
-            .assertThat()
-            .body("message", equalTo("There are no records in the database"))
-            .body("totalNumberOfMessagesInTheDB", equalTo(0))
+            .body("totalNumberOfMessagesInTheDB", greaterThan(0))
             .body("numberOfMessagesMatchingTheQuery", equalTo(0))
             .body("caseEventMessages.size()", equalTo(0));
     }
