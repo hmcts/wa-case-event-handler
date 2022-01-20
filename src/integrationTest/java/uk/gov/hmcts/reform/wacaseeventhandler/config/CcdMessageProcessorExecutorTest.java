@@ -57,7 +57,8 @@ class CcdMessageProcessorExecutorTest {
     @Test
     void test_create_database_message_consumer_triggers_database_message_consumer() {
         await().until(
-            () -> assertLogMessageEquals(SELECT_LOG_MESSAGE, 0) && assertLogMessageEquals(PROCESS_LOG_MESSAGE, 1)
+            () -> getLogMessageOccurrenceCount(SELECT_LOG_MESSAGE) > 1
+                    && getLogMessageOccurrenceCount(PROCESS_LOG_MESSAGE) > 1
         );
     }
 
@@ -67,14 +68,6 @@ class CcdMessageProcessorExecutorTest {
             () -> getLogMessageOccurrenceCount(SELECT_LOG_MESSAGE) >= 3L
                     && getLogMessageOccurrenceCount(PROCESS_LOG_MESSAGE) >= 3L
         );
-    }
-
-    private boolean assertLogMessageEquals(String expectedMessage, int messageNumber)  {
-        List<ILoggingEvent> logsList = listAppender.list;
-        if (logsList != null && !logsList.isEmpty()) {
-            return expectedMessage.equals(logsList.get(messageNumber).getFormattedMessage());
-        }
-        return false;
     }
 
     private long getLogMessageOccurrenceCount(String expectedMessage)  {
