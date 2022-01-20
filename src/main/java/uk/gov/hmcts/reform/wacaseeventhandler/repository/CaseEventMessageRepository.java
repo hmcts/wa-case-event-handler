@@ -38,10 +38,10 @@ public interface CaseEventMessageRepository extends CrudRepository<CaseEventMess
                     + "              and not d.from_dlq "
                     + "              and d.state = 'READY') "
                     + "      or exists (select 1 from wa_case_event_messages d "
-                    + "                 where d.event_timestamp > msg.event_timestamp + interval '1 minutes' "
+                    + "                 where d.event_timestamp > msg.event_timestamp + interval '30 minutes' "
                     + "                 and not d.from_dlq "
                     + "                 and d.state in ('READY', 'PROCESSED'))))) "
-                    + "and event_timestamp > hold_until "
+                    + "and (event_timestamp > hold_until or hold_until is null)"
                     + "for update skip locked "
                     + "limit 1 ";
 

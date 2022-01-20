@@ -191,10 +191,66 @@ class CaseEventMessageRepositoryTest {
     @Transactional
     void should_not_update_case_event_message_with_retry_details_that_does_not_exist() {
 
+        System.out.println("HERE");
         final int rowsAffected = caseEventMessageRepository.updateMessageWithRetryDetails(10,
                 LocalDateTime.now().plusHours(2),
                 NON_EXISTENT_MESSAGE_ID);
 
         assertEquals(0, rowsAffected);
+    }
+
+    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+            scripts = {"classpath:sql/insert_case_event_messages_from_dlq.sql"})
+    @Test
+    void should_select_dlq_message_where_other_processed_or_ready_messages_exist_with_timestamp_later_than_30mins() {
+        final CaseEventMessageEntity retrievedCaseEventMessageEntity =
+                caseEventMessageRepository.getNextAvailableMessageReadyToProcess();
+
+        assertNotNull(retrievedCaseEventMessageEntity);
+        assertEquals("MessageId_bc8299fc-5d31-45c7-b847-c2622014a85a", retrievedCaseEventMessageEntity.getMessageId());
+    }
+
+    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+            scripts = {"classpath:sql/insert_case_event_messages_from_dlq.sql"})
+    @Test
+    void should_return_null_where_other_processed_or_ready_messages_exist_with_timestamp_earlier_than_30mins() {
+        final List<CaseEventMessageEntity> caseEventMessageEntities =
+                caseEventMessageRepository.findByMessageId("MessageId_37f7a172-79e6-11ec-90d6-0242ac120003");
+
+        assertEquals(1, caseEventMessageEntities.size());
+        final CaseEventMessageEntity caseEventMessageEntity = caseEventMessageEntities.get(0);
+
+        final LocalDateTime eventTimestamp = caseEventMessageEntity.getEventTimestamp();
+        caseEventMessageEntity.setEventTimestamp(eventTimestamp.minusHours(3).minusMinutes(40));
+        caseEventMessageRepository.save(caseEventMessageEntity);
+
+        final CaseEventMessageEntity retrievedCaseEventMessageEntity =
+                caseEventMessageRepository.getNextAvailableMessageReadyToProcess();
+
+        assertNull(retrievedCaseEventMessageEntity);
+    }
+
+    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+            scripts = {"classpath:sql/insert_case_event_messages_from_dlq.sql"})
+    @Test
+    void should_return_null_where_no_messages_from_dlq_with_same_case_id_exist() {
+        changeCaseIdAndSetFromDlq("MessageId_6cecf982-6b9e-4cc3-a8f5-d04b1385c258", "unknownCase");
+        changeCaseIdAndSetFromDlq("MessageId_37f7a172-79e6-11ec-90d6-0242ac120003", "unknownCase1");
+        final CaseEventMessageEntity retrievedCaseEventMessageEntity =
+                caseEventMessageRepository.getNextAvailableMessageReadyToProcess();
+
+        assertNull(retrievedCaseEventMessageEntity);
+    }
+
+    private void changeCaseIdAndSetFromDlq(String caseEventMessageId, String newCaseIdValue) {
+        final List<CaseEventMessageEntity> caseEventMessageEntities =
+                caseEventMessageRepository.findByMessageId(caseEventMessageId);
+
+        assertEquals(1, caseEventMessageEntities.size());
+        final CaseEventMessageEntity caseEventMessageEntity = caseEventMessageEntities.get(0);
+
+        caseEventMessageEntity.setCaseId(newCaseIdValue);
+        caseEventMessageEntity.setFromDlq(true);
+        caseEventMessageRepository.save(caseEventMessageEntity);
     }
 }
