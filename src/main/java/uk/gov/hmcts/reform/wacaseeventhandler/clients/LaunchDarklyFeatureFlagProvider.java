@@ -37,21 +37,21 @@ public class LaunchDarklyFeatureFlagProvider {
 
     public boolean getBooleanValue(FeatureFlag featureFlag) {
         requireNonNull(featureFlag, "featureFlag is null");
-        log.info("Attempting to retrieve feature flag '{}' as Boolean", featureFlag.getKey());
+        log.trace("Attempting to retrieve feature flag '{}' as Boolean", featureFlag.getKey());
         return ldClient.boolVariation(featureFlag.getKey(), createLaunchDarklyUser(), false);
     }
 
     public boolean getBooleanValue(FeatureFlag featureFlag, String userId) {
         requireNonNull(featureFlag, "featureFlag is null");
         requireNonNull(userId, "userId is null");
-        log.info("Attempting to retrieve feature flag '{}' as Boolean", featureFlag.getKey());
+        log.trace("Attempting to retrieve feature flag '{}' as Boolean", featureFlag.getKey());
         return ldClient.boolVariation(featureFlag.getKey(), createLaunchDarklyUser(userId), false);
     }
 
     public String getStringValue(FeatureFlag featureFlag, String userId) {
         requireNonNull(featureFlag, "featureFlag is null");
         requireNonNull(userId, "userId is null");
-        log.debug("Attempting to retrieve feature flag '{}' as String", featureFlag.getKey());
+        log.trace("Attempting to retrieve feature flag '{}' as String", featureFlag.getKey());
         return ldClient.stringVariation(featureFlag.getKey(), createLaunchDarklyUser(userId), "");
     }
 }

@@ -60,13 +60,13 @@ public class DatabaseMessageConsumer implements Runnable {
             CaseEventMessage caseEventMessage = selectNextMessage();
             processMessage(caseEventMessage);
         } else {
-            log.info("Feature flag '{}' evaluated to false. Did not start message processor thread",
+            log.trace("Feature flag '{}' evaluated to false. Did not start message processor thread",
                     DLQ_DB_INSERT.getKey());
         }
     }
 
     private CaseEventMessage selectNextMessage() {
-        log.info("Selecting next message for processing from the database");
+        log.trace("Selecting next message for processing from the database");
 
         final CaseEventMessageEntity nextAvailableMessageReadyToProcess =
                 caseEventMessageRepository.getNextAvailableMessageReadyToProcess();
