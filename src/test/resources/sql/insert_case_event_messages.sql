@@ -42,7 +42,7 @@ VALUES
    false,
    'READY',
    'null',
-   '{"EventInstanceId":"77838838-2369-443d-a076-9c80bcda17d5","EventTimeStamp":[2022,1,14,12,45,54,887100000],"CaseId":"293e1db4-dfd7-433d-902c-39470386a32c","JurisdictionId":"jurisdictionid","CaseTypeId":"casetypeid","EventId":"dummyEvent","PreviousStateId":"","NewStateId":"","UserId":"some user Id","AdditionalData":{"Data":{"lastModifiedDirection":{"dateDue":"","uniqueId":"","directionType":""},"appealType":"protection"},"Definition":null}}', '2022-01-05 12:45:58.350754',
+   '{"EventInstanceId":"77838838-2369-443d-a076-9c80bcda17d5","EventTimeStamp":[2022,1,14,12,45,54,887100000],"CaseId":"9140-9312-3701-4412","JurisdictionId":"jurisdictionid","CaseTypeId":"casetypeid","EventId":"dummyEvent","PreviousStateId":"","NewStateId":"","UserId":"some user Id","AdditionalData":{"Data":{"lastModifiedDirection":{"dateDue":"","uniqueId":"","directionType":""},"appealType":"protection"},"Definition":null}}', '2022-01-05 12:45:58.350754',
    0,
    '2022-01-04 12:45:54.887100',
    0);
