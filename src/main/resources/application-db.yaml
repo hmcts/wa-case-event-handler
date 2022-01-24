@@ -2,3 +2,11 @@ spring:
   datasource:
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
     url: jdbc:tc:postgresql:11:///databasename
+  main:
+    allow-bean-definition-overriding: true
+
+messageProcessing:
+  pollIntervalSeconds: 3
+
+logging.level.uk.gov.hmcts.reform.wacaseeventhandler.clients.*: TRACE
+logging.level.uk.gov.hmcts.reform: TRACE
