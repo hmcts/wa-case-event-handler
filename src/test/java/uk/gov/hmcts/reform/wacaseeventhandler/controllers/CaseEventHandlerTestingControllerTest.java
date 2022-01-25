@@ -162,4 +162,20 @@ class CaseEventHandlerTestingControllerTest {
             STATES, CASE_ID, EVENT_TIMESTAMP, FROM_DLQ
         )).isInstanceOf(CaseEventMessageNoAllowedRequestException.class);
     }
+
+    @Test
+    void delete_message_should_delegate_to_eventMessageReceiverService() {
+        controller.deleteMessageByMessageId(MESSAGE_ID);
+
+        verify(eventMessageReceiverService).deleteMessage(MESSAGE_ID);
+        verifyNoMoreInteractions(eventMessageReceiverService);
+    }
+
+    @Test
+    void delete_message_should_throw_CaseEventMessageNoAllowedRequestException_when_in_prod_environment() {
+        ReflectionTestUtils.setField(controller, "environment", "prod");
+
+        assertThatThrownBy(() -> controller.deleteMessageByMessageId(MESSAGE_ID))
+            .isInstanceOf(CaseEventMessageNoAllowedRequestException.class);
+    }
 }

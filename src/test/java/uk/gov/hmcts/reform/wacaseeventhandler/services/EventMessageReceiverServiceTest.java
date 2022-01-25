@@ -42,6 +42,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -642,6 +644,28 @@ class EventMessageReceiverServiceTest {
         CaseEventMessageNotFoundException caseEventMessageNotFoundException =
             assertThrows(CaseEventMessageNotFoundException.class,
                 () -> eventMessageReceiverService.getMessage(MESSAGE_ID));
+        assertEquals(String.format("Could not find a message with message id: %s", MESSAGE_ID),
+                     caseEventMessageNotFoundException.getMessage());
+    }
+
+    @Test
+    void should_delete_message_by_message_id_when_message_found() {
+        CaseEventMessageEntity entity = mock(CaseEventMessageEntity.class);
+        given(entity.getSequence()).willReturn(5L);
+        when(caseEventMessageRepository.findByMessageId(MESSAGE_ID)).thenReturn(List.of(entity));
+
+        eventMessageReceiverService.deleteMessage(MESSAGE_ID);
+
+        verify(caseEventMessageRepository).deleteById(5L);
+    }
+
+    @Test
+    void should_not_delete_message_by_message_id_when_message_not_found() {
+        when(caseEventMessageRepository.findByMessageId(MESSAGE_ID)).thenReturn(List.of());
+
+        CaseEventMessageNotFoundException caseEventMessageNotFoundException =
+            assertThrows(CaseEventMessageNotFoundException.class,
+                         () -> eventMessageReceiverService.deleteMessage(MESSAGE_ID));
         assertEquals(String.format("Could not find a message with message id: %s", MESSAGE_ID),
                      caseEventMessageNotFoundException.getMessage());
     }
