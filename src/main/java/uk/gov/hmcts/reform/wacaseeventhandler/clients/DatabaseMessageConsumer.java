@@ -14,6 +14,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -82,7 +83,7 @@ public class DatabaseMessageConsumer implements Runnable {
             log.info("Processing message with id {} from the database", caseEventMessageId);
             try {
                 ccdEventProcessor.processMessage(caseEventMessage);
-                caseEventMessageRepository.updateMessageState(MessageState.PROCESSED, caseEventMessageId);
+                caseEventMessageRepository.updateMessageState(MessageState.PROCESSED, List.of(caseEventMessageId));
             } catch (FeignException fe) {
                 processException(fe, caseEventMessage);
             } catch (Exception ex) {
@@ -130,6 +131,6 @@ public class DatabaseMessageConsumer implements Runnable {
         String caseEventMessageId = caseEventMessage.getMessageId();
         log.info("Could not process message with id {}, setting state to Unprocessable",
                 caseEventMessage.getMessageId());
-        caseEventMessageRepository.updateMessageState(MessageState.UNPROCESSABLE, caseEventMessageId);
+        caseEventMessageRepository.updateMessageState(MessageState.UNPROCESSABLE, List.of(caseEventMessageId));
     }
 }

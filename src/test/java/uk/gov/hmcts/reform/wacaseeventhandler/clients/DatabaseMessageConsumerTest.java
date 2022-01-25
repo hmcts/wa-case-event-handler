@@ -115,7 +115,7 @@ class DatabaseMessageConsumerTest {
         verify(caseEventMessageMapper).mapToCaseEventMessage(caseEventMessageEntity);
         verify(ccdEventProcessor).processMessage(caseEventMessage);
         verify(caseEventMessageRepository).updateMessageState(MessageState.UNPROCESSABLE,
-                caseEventMessage.getMessageId());
+                List.of(caseEventMessage.getMessageId()));
     }
 
     @Test
@@ -135,7 +135,7 @@ class DatabaseMessageConsumerTest {
         verify(caseEventMessageMapper).mapToCaseEventMessage(caseEventMessageEntity);
         verify(ccdEventProcessor).processMessage(caseEventMessage);
         verify(caseEventMessageRepository).updateMessageState(MessageState.UNPROCESSABLE,
-                caseEventMessage.getMessageId());
+                List.of(caseEventMessage.getMessageId()));
     }
 
     private static List<Arguments> getRetryableTestParameters() {
@@ -186,6 +186,7 @@ class DatabaseMessageConsumerTest {
 
         verify(caseEventMessageMapper).mapToCaseEventMessage(caseEventMessageEntity);
         verify(ccdEventProcessor).processMessage(caseEventMessage);
-        verify(caseEventMessageRepository).updateMessageState(MessageState.PROCESSED, caseEventMessage.getMessageId());
+        verify(caseEventMessageRepository).updateMessageState(MessageState.PROCESSED,
+                List.of(caseEventMessage.getMessageId()));
     }
 }
