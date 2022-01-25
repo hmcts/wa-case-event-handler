@@ -5,8 +5,11 @@ spring:
   main:
     allow-bean-definition-overriding: true
 
-messageProcessing:
-  pollIntervalSeconds: 3
+scheduledExecutors:
+  messageProcessing:
+    pollIntervalSeconds: 3
+  messageReadiness:
+    pollIntervalSeconds: 3
 
 logging.level.uk.gov.hmcts.reform.wacaseeventhandler.clients.*: TRACE
 logging.level.uk.gov.hmcts.reform: TRACE
