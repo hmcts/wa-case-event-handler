@@ -43,24 +43,24 @@ public class EventMessageQueryService {
         this.mapper = caseEventMessageMapper;
     }
 
-    public EventMessageQueryResponse getMessages(String states, String caseId, String eventTimestamp, String fromDlq) {
+    public EventMessageQueryResponse getMessages(String states, String caseId, String eventTimestamp, Boolean fromDlq) {
 
         long numberOfAllMessages = customCriteriaRepository.countAll();
         if (numberOfAllMessages == 0) {
             return new EventMessageQueryResponse(NO_RECORDS_IN_THE_DATABASE, 0, 0, emptyList());
         }
-        if (isBlank(states) && isBlank(caseId) && isBlank(eventTimestamp) && isBlank(fromDlq)) {
+        if (isBlank(states) && isBlank(caseId) && isBlank(eventTimestamp) && fromDlq == null) {
             return new EventMessageQueryResponse(NO_QUERY_PARAMETERS_SPECIFIED, numberOfAllMessages, 0, emptyList());
         }
 
         String decodedStates = decode(states);
-        validateGetMessagesParameters(decodedStates, caseId, eventTimestamp, fromDlq);
+        validateGetMessagesParameters(decodedStates, caseId, eventTimestamp);
 
         List<CaseEventMessageEntity> messageEntities = customCriteriaRepository.getMessages(
             messageStates(splitStates(decodedStates)),
             caseId,
             isBlank(eventTimestamp) ? null : LocalDateTime.parse(eventTimestamp),
-            isBlank(fromDlq) ? null : Boolean.valueOf(fromDlq)
+            fromDlq
         );
         List<CaseEventMessage> messages = messageEntities.stream()
             .map(mapper::mapToCaseEventMessage).collect(Collectors.toList());
@@ -78,17 +78,10 @@ public class EventMessageQueryService {
         }
     }
 
-    private void validateGetMessagesParameters(String states, String caseId, String eventTimestamp, String fromDlq) {
+    private void validateGetMessagesParameters(String states, String caseId, String eventTimestamp) {
         validateStates(states);
         validateCaseId(caseId);
         validateEventTimestamp(eventTimestamp);
-        validateFromDlq(fromDlq);
-    }
-
-    private void validateFromDlq(String fromDlq) {
-        if (isNotBlank(fromDlq) && !"true".equalsIgnoreCase(fromDlq) && !"false".equalsIgnoreCase(fromDlq)) {
-            throw new InvalidRequestParametersException(format("Invalid from_dlq format: '%s'", fromDlq));
-        }
     }
 
     private void validateEventTimestamp(String eventTimestamp) {

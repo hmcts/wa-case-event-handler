@@ -76,8 +76,7 @@ public class CaseEventHandlerTestingController {
     @ResponseStatus(HttpStatus.CREATED)
     public CaseEventMessage putCaseEventHandlerMessage(@Valid @RequestBody String message,
                                                        @PathVariable("message_id") final String messageId,
-                                                       @RequestParam(value = "from_dlq", required = false)
-                                                           final Boolean fromDlq) {
+                                                       @RequestParam("from_dlq") final Boolean fromDlq) {
         if (isNonProdEnvironment()) {
             log.info("Processing '{}' in '{}' environment ", messageId, environment);
             return eventMessageReceiverService.upsertMessage(messageId, message, fromDlq);
@@ -115,7 +114,7 @@ public class CaseEventHandlerTestingController {
         @RequestParam(value = "states", required = false) final String states,
         @RequestParam(value = "case_id", required = false) final String caseId,
         @RequestParam(value = "event_timestamp", required = false) final String eventTimestamp,
-        @RequestParam(value = "from_dlq", required = false) final String fromDlq) {
+        @RequestParam(value = "from_dlq", required = false) final Boolean fromDlq) {
 
         if (isNonProdEnvironment()) {
             return eventMessageQueryService.getMessages(states, caseId, eventTimestamp, fromDlq);

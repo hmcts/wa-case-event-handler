@@ -57,7 +57,7 @@ class EventMessageQueryServiceTest {
         given(repository.getMessages(List.of(), CASE_ID, EVENT_TIMESTAMP, NOT_FROM_DLQ)).willReturn(queryMessages);
 
         EventMessageQueryResponse result = underTest.getMessages("", CASE_ID, EVENT_TIMESTAMP.toString(),
-                                                                 NOT_FROM_DLQ.toString());
+                                                                 NOT_FROM_DLQ);
 
         assertEquals(result.getMessage(), String.format(FOUND_MESSAGES, 2));
         assertEquals(result.getNumberOfMessagesFound(), 2);
@@ -75,7 +75,7 @@ class EventMessageQueryServiceTest {
         given(repository.getMessages(STATES, CASE_ID, EVENT_TIMESTAMP, NOT_FROM_DLQ)).willReturn(queryMessages);
 
         EventMessageQueryResponse result = underTest.getMessages("NEW", CASE_ID, EVENT_TIMESTAMP.toString(),
-                                                                 NOT_FROM_DLQ.toString());
+                                                                 NOT_FROM_DLQ);
 
         assertEquals(result.getMessage(), NO_MATCHING_RECORDS_FOR_THE_QUERY);
         assertEquals(result.getNumberOfMessagesFound(), 0);
@@ -87,7 +87,7 @@ class EventMessageQueryServiceTest {
     public void shouldGetMessagesWhenNoMessagesInDb() {
         given(repository.countAll()).willReturn(0L);
 
-        EventMessageQueryResponse result = underTest.getMessages("", CASE_ID, null, "false");
+        EventMessageQueryResponse result = underTest.getMessages("", CASE_ID, null, null);
 
         assertEquals(result.getMessage(), NO_RECORDS_IN_THE_DATABASE);
         assertEquals(result.getNumberOfMessagesFound(), 0);
@@ -111,7 +111,7 @@ class EventMessageQueryServiceTest {
     public void shouldGetMessagesWhenEmptyParametersProvided() {
         given(repository.countAll()).willReturn(9L);
 
-        EventMessageQueryResponse result = underTest.getMessages("", "", "", "");
+        EventMessageQueryResponse result = underTest.getMessages("", "", "", null);
 
         assertEquals(result.getMessage(), NO_QUERY_PARAMETERS_SPECIFIED);
         assertEquals(result.getNumberOfMessagesFound(), 0);
@@ -124,7 +124,7 @@ class EventMessageQueryServiceTest {
         given(repository.countAll()).willReturn(2L);
 
         assertThatThrownBy(
-            () -> underTest.getMessages("Invalid", CASE_ID, EVENT_TIMESTAMP.toString(), NOT_FROM_DLQ.toString()))
+            () -> underTest.getMessages("Invalid", CASE_ID, EVENT_TIMESTAMP.toString(), NOT_FROM_DLQ))
             .isInstanceOf(InvalidRequestParametersException.class)
             .hasMessage("Invalid states format: 'Invalid'");
     }
@@ -134,7 +134,7 @@ class EventMessageQueryServiceTest {
         given(repository.countAll()).willReturn(2L);
 
         assertThatThrownBy(
-            () -> underTest.getMessages("NEW", "Invalid", EVENT_TIMESTAMP.toString(), NOT_FROM_DLQ.toString()))
+            () -> underTest.getMessages("NEW", "Invalid", EVENT_TIMESTAMP.toString(), NOT_FROM_DLQ))
             .isInstanceOf(InvalidRequestParametersException.class)
             .hasMessage("Invalid case_id format: 'Invalid'");
     }
@@ -144,20 +144,8 @@ class EventMessageQueryServiceTest {
         given(repository.countAll()).willReturn(2L);
 
         assertThatThrownBy(
-            () -> underTest.getMessages("NEW", CASE_ID, "Invalid", NOT_FROM_DLQ.toString()))
+            () -> underTest.getMessages("NEW", CASE_ID, "Invalid", NOT_FROM_DLQ))
             .isInstanceOf(InvalidRequestParametersException.class)
             .hasMessage("Invalid event_timestamp format: 'Invalid'");
     }
-
-    @Test
-    public void shouldThrowInvalidRequestParametersExceptionWhenFromDlqParameterInvalid() {
-        given(repository.countAll()).willReturn(2L);
-
-        assertThatThrownBy(
-            () -> underTest.getMessages("NEW", CASE_ID, EVENT_TIMESTAMP.toString(), "Invalid"))
-            .isInstanceOf(InvalidRequestParametersException.class)
-            .hasMessage("Invalid from_dlq format: 'Invalid'");
-
-    }
-
 }

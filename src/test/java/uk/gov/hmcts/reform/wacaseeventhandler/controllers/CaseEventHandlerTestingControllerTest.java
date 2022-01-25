@@ -28,7 +28,7 @@ class CaseEventHandlerTestingControllerTest {
     public static final String STATES = "NEW,UNPROCESSABLE";
     public static final String CASE_ID = "123";
     public static final String EVENT_TIMESTAMP = LocalDateTime.now().toString();
-    public static final String FROM_DLQ = "true";
+    public static final Boolean FROM_DLQ = Boolean.TRUE;
 
     @Mock
     private EventMessageReceiverService eventMessageReceiverService;

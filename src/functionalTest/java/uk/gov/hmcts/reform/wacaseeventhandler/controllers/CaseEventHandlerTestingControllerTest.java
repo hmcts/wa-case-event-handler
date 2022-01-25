@@ -94,19 +94,11 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
             .extract()
             .path("Sequence");
 
-        EventInformationRequest updateRequest = createRequestWithAdditionalMetadata(
-            EventInformation.builder()
-                .eventInstanceId(eventInstanceId)
-                .eventTimeStamp(updatedEventTimestamp)
-                .caseId(caseIdForTask)
-                .jurisdictionId("IA")
-                .caseTypeId("Asylum")
-                .eventId("sendDirection")
-                .newStateId(null)
-                .previousStateId(null)
-                .userId("some user Id")
-                .additionalData(additionalData())
-                .build());
+        EventInformationRequest updateRequest = createEventInformationRequest(
+            caseIdForTask,
+            eventInstanceId,
+            updatedEventTimestamp
+        );
 
         putEventToRestEndpoint(messageId, s2sToken, updateRequest, true)
             .then()
@@ -127,6 +119,29 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
             .rootPath("MessageProperties")
             .body("messageProperty1", equalTo("value1"))
             .body("messageProperty2", equalTo("value2"));
+    }
+
+    @Test
+    public void should_update_ccd_event_using_test_rest_endpoints_when_from_dlq_not_specified() {
+        String messageId = randomMessageId();
+        String caseIdForTask = RandomStringUtils.randomNumeric(16);
+        String eventInstanceId = UUID.randomUUID().toString();
+        LocalDateTime updatedEventTimestamp = eventTimestamp1.minusDays(10);
+
+        EventInformationRequest updateRequest = createEventInformationRequest(
+            caseIdForTask,
+            eventInstanceId,
+            updatedEventTimestamp
+        );
+
+        given()
+            .contentType(APPLICATION_JSON_VALUE)
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .body(asJsonString(updateRequest))
+            .when()
+            .put("/messages/" + messageId)
+            .then()
+            .statusCode(HttpStatus.BAD_REQUEST.value()); // defaults
     }
 
     @Test
@@ -226,11 +241,23 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
             .then()
             .statusCode(HttpStatus.CREATED.value());
 
-        EventInformationRequest updateRequest = createRequestWithAdditionalMetadata(
+        EventInformationRequest updateRequest = createEventInformationRequest(caseId, eventInstanceId, eventTimestamp);
+
+        // update message with eventTimestamp, caseId and fromDlq
+        putEventToRestEndpoint(messageId, s2sToken, updateRequest, fromDlq)
+            .then()
+            .statusCode(HttpStatus.CREATED.value());
+
+        return messageId;
+    }
+
+    private EventInformationRequest createEventInformationRequest(String caseIdForTask, String eventInstanceId,
+                                                                  LocalDateTime updatedEventTimestamp) {
+        return createRequestWithAdditionalMetadata(
             EventInformation.builder()
                 .eventInstanceId(eventInstanceId)
-                .eventTimeStamp(eventTimestamp)
-                .caseId(caseId)
+                .eventTimeStamp(updatedEventTimestamp)
+                .caseId(caseIdForTask)
                 .jurisdictionId("IA")
                 .caseTypeId("Asylum")
                 .eventId("sendDirection")
@@ -239,13 +266,6 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
                 .userId("some user Id")
                 .additionalData(additionalData())
                 .build());
-
-        // update message with eventTimestamp, caseId and fromDlq
-        putEventToRestEndpoint(messageId, s2sToken, updateRequest, fromDlq)
-            .then()
-            .statusCode(HttpStatus.CREATED.value());
-
-        return messageId;
     }
 
     private EventInformationRequest createRequestWithAdditionalMetadata(EventInformation eventInformation) {
