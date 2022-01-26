@@ -6,9 +6,9 @@ import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
 import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -22,6 +22,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
 import java.io.IOException;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -43,15 +44,8 @@ class CcdEventConsumerTest {
     @Mock
     private CcdEventErrorHandler ccdEventErrorHandler;
 
+    @InjectMocks
     private CcdEventConsumer underTest;
-
-    @BeforeEach
-    void setUp() {
-        underTest = new CcdEventConsumer(serviceBusConfiguration, processor,
-            ccdEventErrorHandler
-        );
-
-    }
 
     @Test
     void given_session_is_accepted_when_receiver_throws_error() throws IOException {
@@ -69,7 +63,7 @@ class CcdEventConsumerTest {
     void given_session_is_accepted_when_message_is_consumed() throws IOException {
         publishMessageToReceiver();
 
-        doNothing().when(processor).processMessage(any());
+        doNothing().when(processor).processMessage(anyString());
 
         doNothing().when(receiverClient).complete(receivedMessage);
 
@@ -83,7 +77,7 @@ class CcdEventConsumerTest {
     void given_session_is_accepted_when_invalid_message_consumed() throws IOException {
         publishMessageToReceiver();
 
-        doThrow(JsonProcessingException.class).when(processor).processMessage(any());
+        doThrow(JsonProcessingException.class).when(processor).processMessage(anyString());
 
         doNothing().when(ccdEventErrorHandler).handleJsonError(any(), any(), any());
         underTest.consumeMessage(sessionReceiverClient);
@@ -101,7 +95,7 @@ class CcdEventConsumerTest {
     void given_session_is_accepted_when_exception_thrown_from_downstream() throws IOException {
         publishMessageToReceiver();
 
-        doThrow(RestClientException.class).when(processor).processMessage(any());
+        doThrow(RestClientException.class).when(processor).processMessage(anyString());
 
         underTest.consumeMessage(sessionReceiverClient);
 
@@ -118,7 +112,7 @@ class CcdEventConsumerTest {
     void given_session_is_accepted_when_unknown_exception_thrown_from_application() throws IOException {
         publishMessageToReceiver();
 
-        doThrow(NullPointerException.class).when(processor).processMessage(any());
+        doThrow(NullPointerException.class).when(processor).processMessage(anyString());
 
         underTest.consumeMessage(sessionReceiverClient);
 

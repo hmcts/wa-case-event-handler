@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CaseEventHandler;
 
 import java.util.List;
@@ -30,48 +31,53 @@ public class CcdEventProcessor {
         this.featureFlagProvider = featureFlagProvider;
     }
 
-    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+
     public void processMessage(String message) throws JsonProcessingException {
         EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
+        processMessage(eventInformation);
+    }
 
+    public void processMessage(CaseEventMessage caseEventMessage) throws JsonProcessingException {
+        EventInformation eventInformation =
+                objectMapper.readValue(caseEventMessage.getMessageContent(), EventInformation.class);
+        processMessage(eventInformation);
+    }
+
+    @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
+    private void processMessage(EventInformation eventInformation) {
         log.info(
-            "Case details:\n"
-                + "Case id: '{}'\n"
-                + "Event id: '{}'\n"
-                + "New state id: '{}'\n"
-                + "Previous state id: '{}'\n"
-                + "Jurisdiction id: '{}'\n"
-                + "Case type id: '{}'",
-            eventInformation.getCaseId(),
-            eventInformation.getEventId(),
-            eventInformation.getNewStateId(),
-            eventInformation.getPreviousStateId(),
-            eventInformation.getJurisdictionId(),
-            eventInformation.getCaseTypeId()
+                "Case details:\n"
+                        + "Case id: '{}'\n"
+                        + "Event id: '{}'\n"
+                        + "New state id: '{}'\n"
+                        + "Previous state id: '{}'\n"
+                        + "Jurisdiction id: '{}'\n"
+                        + "Case type id: '{}'",
+                eventInformation.getCaseId(),
+                eventInformation.getEventId(),
+                eventInformation.getNewStateId(),
+                eventInformation.getPreviousStateId(),
+                eventInformation.getJurisdictionId(),
+                eventInformation.getCaseTypeId()
         );
 
-        boolean isTaskInitiationEnabled = featureFlagProvider.getBooleanValue(
-            TASK_INITIATION_FEATURE,
-            eventInformation.getUserId()
+        boolean isTaskInitiationEnabled =
+                featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE, eventInformation.getUserId()
         );
 
         if (isTaskInitiationEnabled) {
             handlerServices.forEach(handler -> {
                 List<? extends EvaluateResponse> results = handler.evaluateDmn(eventInformation);
                 if (results.isEmpty()) {
-                    log.info(
-                        "No results returned when evaluating {}", handler.getClass().getName()
-                    );
+                    log.info("No results returned when evaluating {}", handler.getClass().getName());
                 } else {
                     handler.handle(results, eventInformation);
                 }
             });
         } else {
-            log.info(
-                "Feature flag '{}' evaluated to false. Message consumed but not being processed",
-                TASK_INITIATION_FEATURE
+            log.info("Feature flag '{}' evaluated to false. Message consumed but not being processed",
+                    TASK_INITIATION_FEATURE
             );
-
         }
     }
 
