@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -107,7 +108,7 @@ class EventMessageReceiverServiceTest {
 
         CaseEventMessage result = eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
 
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
         verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
 
         assertFalse(caseEventMessageEntityCaptor.getValue().getFromDlq());
@@ -132,7 +133,7 @@ class EventMessageReceiverServiceTest {
 
         assertLogMessageEquals(String.format("Could not parse the message with id '%s'",  MESSAGE_ID), 1);
 
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
     }
 
     @Test
@@ -146,7 +147,7 @@ class EventMessageReceiverServiceTest {
 
         assertLogMessageEquals(String.format("Could not parse the message with id '%s'",  MESSAGE_ID), 2);
 
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
     }
 
     @Test
@@ -162,7 +163,7 @@ class EventMessageReceiverServiceTest {
 
         eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
 
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
         assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
     }
 
@@ -177,7 +178,7 @@ class EventMessageReceiverServiceTest {
 
         CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, true);
 
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
         verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
 
         assertEquals(MessageState.NEW, caseEventMessageEntityCaptor.getValue().getState());
@@ -197,7 +198,7 @@ class EventMessageReceiverServiceTest {
 
         CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, true);
 
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
         verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
 
         assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
@@ -218,7 +219,7 @@ class EventMessageReceiverServiceTest {
 
         CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, true);
 
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
         verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
 
         assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
@@ -238,7 +239,7 @@ class EventMessageReceiverServiceTest {
 
         CaseEventMessage result = eventMessageReceiverService.upsertMessage(null, MESSAGE, true);
 
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
         verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
 
         assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
@@ -259,7 +260,7 @@ class EventMessageReceiverServiceTest {
 
         CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, null);
 
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
         verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
 
         assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
@@ -279,7 +280,7 @@ class EventMessageReceiverServiceTest {
 
         CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, false);
 
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
         verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
 
         assertEquals(MESSAGE_ID, result.getMessageId());
@@ -304,7 +305,7 @@ class EventMessageReceiverServiceTest {
 
         CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, true);
 
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
         verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
 
         assertEquals(MessageState.NEW, caseEventMessageEntityCaptor.getValue().getState());
@@ -320,7 +321,7 @@ class EventMessageReceiverServiceTest {
             .thenThrow(jsonProcessingException);
         CaseEventMessage result = eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
 
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
         verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
 
         assertEquals(MESSAGE_ID, result.getMessageId());
@@ -346,7 +347,7 @@ class EventMessageReceiverServiceTest {
         assertLogMessageEquals(
             String.format("Could not parse the message with id '%s'", MESSAGE_ID), 1);
 
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
         assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
     }
 
@@ -360,15 +361,15 @@ class EventMessageReceiverServiceTest {
                             .caseTypeId(CASE_TYPE_ID)
                             .build());
 
-        when(caseEventMessageRepository.save(any(CaseEventMessageEntity.class)))
-            .thenThrow(new DataIntegrityViolationException("Exception message"));
+        doThrow(new DataIntegrityViolationException("Exception message"))
+                .when(caseEventMessageRepository).insertCaseEventMessage(any(CaseEventMessageEntity.class));
         mockMessageProperties();
 
         final CaseEventMessageDuplicateMessageIdException caseEventMessageDuplicateMessageIdException =
             assertThrows(CaseEventMessageDuplicateMessageIdException.class,
                 () -> eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE));
 
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
         assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
 
         assertEquals(String.format("Trying to save a message with a duplicate messageId: %s", MESSAGE_ID),
@@ -420,7 +421,7 @@ class EventMessageReceiverServiceTest {
 
         eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, MESSAGE);
 
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
         assertEquals(MessageState.NEW, caseEventMessageEntityCaptor.getValue().getState());
         assertTrue(caseEventMessageEntityCaptor.getValue().getFromDlq());
     }
@@ -446,7 +447,7 @@ class EventMessageReceiverServiceTest {
         mockMessageProperties();
         eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, MESSAGE);
 
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
         assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
     }
 
@@ -532,7 +533,7 @@ class EventMessageReceiverServiceTest {
 
         eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, MESSAGE);
 
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
         assertEquals(MessageState.NEW, caseEventMessageEntityCaptor.getValue().getState());
     }
 
@@ -558,7 +559,7 @@ class EventMessageReceiverServiceTest {
 
         eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, MESSAGE);
 
-        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
         assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
     }
 

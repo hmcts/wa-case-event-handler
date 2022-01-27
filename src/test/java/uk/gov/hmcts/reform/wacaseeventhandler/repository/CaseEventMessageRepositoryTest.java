@@ -1,7 +1,9 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.repository;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.After;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,12 +11,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
+import uk.gov.hmcts.reform.wacaseeventhandler.util.TestFixtures;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.IntStream;
 import javax.sql.DataSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,8 +37,18 @@ class CaseEventMessageRepositoryTest {
     @Autowired
     protected DataSource db;
 
+    @Autowired
+    PlatformTransactionManager transactionManager;
+
+    private TransactionTemplate transactionTemplate;
+
     private static final String MESSAGE_ID = "MessageId_30915063-ec4b-4272-933d-91087b486195";
     private static final String NON_EXISTENT_MESSAGE_ID = "12345";
+
+    @BeforeEach
+    void setUp() {
+        transactionTemplate = new TransactionTemplate(transactionManager);
+    }
 
     @After
     @AfterEach
@@ -240,6 +256,64 @@ class CaseEventMessageRepositoryTest {
                 caseEventMessageRepository.getNextAvailableMessageReadyToProcess();
 
         assertNull(retrievedCaseEventMessageEntity);
+    }
+
+    @Test
+    void should_insert_case_message() throws JsonProcessingException {
+        CaseEventMessageEntity caseEventMessageEntity = TestFixtures.createCaseEventMessageEntity();
+
+        insertCaseEventMessage(caseEventMessageEntity);
+
+        final List<CaseEventMessageEntity> byMessageId =
+                caseEventMessageRepository.findByMessageId(caseEventMessageEntity.getMessageId());
+
+        assertNotNull(byMessageId);
+        assertEquals(1, byMessageId.size());
+        assertEquals(0, byMessageId.get(0).getDeliveryCount());
+    }
+
+    @Test
+    void should_insert_case_message_check_sequence() throws JsonProcessingException {
+        CaseEventMessageEntity caseEventMessageEntity1 = TestFixtures.createCaseEventMessageEntity();
+        caseEventMessageEntity1.setMessageId("messageId1");
+
+        insertCaseEventMessage(caseEventMessageEntity1);
+
+        CaseEventMessageEntity caseEventMessageEntity2 = TestFixtures.createCaseEventMessageEntity();
+        caseEventMessageEntity2.setMessageId("messageId2");
+        insertCaseEventMessage(caseEventMessageEntity2);
+
+        final List<CaseEventMessageEntity> byMessageId =
+                caseEventMessageRepository.findByMessageId("messageId2");
+
+        assertNotNull(byMessageId);
+        assertEquals(1, byMessageId.size());
+        assertEquals(2, byMessageId.get(0).getSequence());
+    }
+
+    @Test
+    void should_update_delivery_count_when_inserting_case_message_with_message_id_that_already_exists()
+            throws JsonProcessingException {
+        CaseEventMessageEntity caseEventMessageEntity = TestFixtures.createCaseEventMessageEntity();
+
+        IntStream.range(0, 3).forEach(x ->
+                    insertCaseEventMessage(caseEventMessageEntity)
+        );
+
+        final List<CaseEventMessageEntity> byMessageId =
+                caseEventMessageRepository.findByMessageId(caseEventMessageEntity.getMessageId());
+
+        assertNotNull(byMessageId);
+        assertEquals(1, byMessageId.size());
+        assertEquals(2, byMessageId.get(0).getDeliveryCount());
+        assertEquals(1, byMessageId.get(0).getSequence());
+    }
+
+    private void insertCaseEventMessage(CaseEventMessageEntity caseEventMessageEntity) {
+        transactionTemplate.execute(status -> {
+            caseEventMessageRepository.insertCaseEventMessage(caseEventMessageEntity);
+            return true;
+        });
     }
 
     private void changeCaseIdAndSetFromDlq(String caseEventMessageId, String newCaseIdValue) {
