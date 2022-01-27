@@ -12,7 +12,7 @@ import static java.util.Objects.requireNonNull;
 @Service
 public class LaunchDarklyFeatureFlagProvider {
     private final LDClientInterface ldClient;
-    private static final String KEY = "wa-case-event-handler";
+    private static final String APPLICATION_NAME = "wa-case-event-handler";
     private static final String FIRST_NAME = "Work Allocation";
     private static final String LAST_NAME = "Case Event Handler";
 
@@ -21,7 +21,7 @@ public class LaunchDarklyFeatureFlagProvider {
     }
 
     private LDUser createLaunchDarklyUser(String userId) {
-        return new LDUser.Builder(KEY)
+        return new LDUser.Builder(APPLICATION_NAME)
             .name(userId)
             .firstName(FIRST_NAME)
             .lastName(LAST_NAME)
@@ -29,7 +29,7 @@ public class LaunchDarklyFeatureFlagProvider {
     }
 
     private LDUser createLaunchDarklyUser() {
-        return new LDUser.Builder(KEY)
+        return new LDUser.Builder(APPLICATION_NAME)
                 .firstName(FIRST_NAME)
                 .lastName(LAST_NAME)
                 .build();
