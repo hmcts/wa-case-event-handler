@@ -98,7 +98,7 @@ public class EventMessageReceiverService {
                     CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId, message, fromDlq);
                     messageEntityOptional.ifPresent(eventMessageEntity -> messageEntity
                         .setSequence(eventMessageEntity.getSequence()));
-                    repository.insertCaseEventMessage(messageEntity);
+                    repository.save(messageEntity);
 
                     log.info("Message with id '{}' successfully updated and saved into DB", messageId);
 
@@ -108,7 +108,7 @@ public class EventMessageReceiverService {
 
                     boolean isDlq = TRUE.equals(fromDlq);
                     CaseEventMessageEntity messageEntity = build(messageId, message, isDlq, MessageState.UNPROCESSABLE);
-                    repository.insertCaseEventMessage(messageEntity);
+                    repository.save(messageEntity);
 
                     return mapper.mapToCaseEventMessage(messageEntity);
                 }

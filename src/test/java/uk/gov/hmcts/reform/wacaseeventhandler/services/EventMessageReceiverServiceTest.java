@@ -178,13 +178,14 @@ class EventMessageReceiverServiceTest {
 
         CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, true);
 
-        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
         verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
 
         assertEquals(MessageState.NEW, caseEventMessageEntityCaptor.getValue().getState());
         assertEquals(MESSAGE_ID, result.getMessageId());
         assertEquals(CASE_ID, result.getCaseId());
         assertEquals(true, result.getFromDlq());
+        assertEquals(entity.getSequence(), caseEventMessageEntityCaptor.getValue().getSequence());
     }
 
     @Test
@@ -198,7 +199,7 @@ class EventMessageReceiverServiceTest {
 
         CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, true);
 
-        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
         verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
 
         assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
@@ -206,6 +207,7 @@ class EventMessageReceiverServiceTest {
         assertEquals(CASE_ID, result.getCaseId());
         assertEquals(true, result.getFromDlq());
         assertNull(result.getEventTimestamp());
+        assertEquals(entity.getSequence(), caseEventMessageEntityCaptor.getValue().getSequence());
     }
 
     @Test
@@ -219,7 +221,7 @@ class EventMessageReceiverServiceTest {
 
         CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, true);
 
-        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
         verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
 
         assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
@@ -227,6 +229,7 @@ class EventMessageReceiverServiceTest {
         assertNotNull(result.getEventTimestamp());
         assertEquals(true, result.getFromDlq());
         assertNull(result.getCaseId());
+        assertEquals(entity.getSequence(), caseEventMessageEntityCaptor.getValue().getSequence());
     }
 
     @Test
@@ -260,7 +263,7 @@ class EventMessageReceiverServiceTest {
 
         CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, null);
 
-        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
         verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
 
         assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
@@ -268,6 +271,7 @@ class EventMessageReceiverServiceTest {
         assertEquals(CASE_ID, result.getCaseId());
         assertNotNull(result.getEventTimestamp());
         assertNull(result.getFromDlq());
+        assertEquals(entity.getSequence(), caseEventMessageEntityCaptor.getValue().getSequence());
     }
 
     @Test
@@ -280,7 +284,7 @@ class EventMessageReceiverServiceTest {
 
         CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, false);
 
-        verify(caseEventMessageRepository).insertCaseEventMessage(caseEventMessageEntityCaptor.capture());
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
         verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
 
         assertEquals(MESSAGE_ID, result.getMessageId());
@@ -293,6 +297,7 @@ class EventMessageReceiverServiceTest {
         assertNotNull(result.getReceived());
         assertEquals(0, result.getDeliveryCount());
         assertEquals(0, result.getRetryCount());
+        assertEquals(entity.getSequence(), result.getSequence());
     }
 
     @Test
