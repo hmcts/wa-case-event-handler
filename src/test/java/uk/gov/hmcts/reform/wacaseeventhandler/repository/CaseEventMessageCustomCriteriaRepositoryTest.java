@@ -1,8 +1,11 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.repository;
 
+import org.junit.After;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
@@ -24,6 +27,20 @@ class CaseEventMessageCustomCriteriaRepositoryTest {
 
     @Autowired
     protected DataSource db;
+
+    @After
+    @AfterEach
+    public void clearDownData() {
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(db);
+
+        String truncateTablesQuery =
+            "START TRANSACTION;\n"
+                + "TRUNCATE TABLE WA_CASE_EVENT_MESSAGES CASCADE;"
+                + "\nCOMMIT;";
+        jdbcTemplate.execute(truncateTablesQuery);
+
+        jdbcTemplate.execute("ALTER SEQUENCE WA_CASE_EVENT_MESSAGES_SEQUENCE_SEQ RESTART WITH 1");
+    }
 
     @Test
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
