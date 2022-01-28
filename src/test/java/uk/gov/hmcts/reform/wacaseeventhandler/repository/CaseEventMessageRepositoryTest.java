@@ -20,7 +20,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.util.TestFixtures;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.IntStream;
 import javax.sql.DataSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -262,7 +261,7 @@ class CaseEventMessageRepositoryTest {
     void should_insert_case_message() throws JsonProcessingException {
         CaseEventMessageEntity caseEventMessageEntity = TestFixtures.createCaseEventMessageEntity();
 
-        insertCaseEventMessage(caseEventMessageEntity);
+        caseEventMessageRepository.save(caseEventMessageEntity);
 
         final List<CaseEventMessageEntity> byMessageId =
                 caseEventMessageRepository.findByMessageId(caseEventMessageEntity.getMessageId());
@@ -270,6 +269,7 @@ class CaseEventMessageRepositoryTest {
         assertNotNull(byMessageId);
         assertEquals(1, byMessageId.size());
         assertEquals(0, byMessageId.get(0).getDeliveryCount());
+        assertEquals(caseEventMessageEntity.getMessageProperties(), byMessageId.get(0).getMessageProperties());
     }
 
     @Test
@@ -277,11 +277,11 @@ class CaseEventMessageRepositoryTest {
         CaseEventMessageEntity caseEventMessageEntity1 = TestFixtures.createCaseEventMessageEntity();
         caseEventMessageEntity1.setMessageId("messageId1");
 
-        insertCaseEventMessage(caseEventMessageEntity1);
+        caseEventMessageRepository.save(caseEventMessageEntity1);
 
         CaseEventMessageEntity caseEventMessageEntity2 = TestFixtures.createCaseEventMessageEntity();
         caseEventMessageEntity2.setMessageId("messageId2");
-        insertCaseEventMessage(caseEventMessageEntity2);
+        caseEventMessageRepository.save(caseEventMessageEntity2);
 
         final List<CaseEventMessageEntity> byMessageId =
                 caseEventMessageRepository.findByMessageId("messageId2");
@@ -289,31 +289,6 @@ class CaseEventMessageRepositoryTest {
         assertNotNull(byMessageId);
         assertEquals(1, byMessageId.size());
         assertEquals(2, byMessageId.get(0).getSequence());
-    }
-
-    @Test
-    void should_update_delivery_count_when_inserting_case_message_with_message_id_that_already_exists()
-            throws JsonProcessingException {
-        CaseEventMessageEntity caseEventMessageEntity = TestFixtures.createCaseEventMessageEntity();
-
-        IntStream.range(0, 3).forEach(x ->
-                    insertCaseEventMessage(caseEventMessageEntity)
-        );
-
-        final List<CaseEventMessageEntity> byMessageId =
-                caseEventMessageRepository.findByMessageId(caseEventMessageEntity.getMessageId());
-
-        assertNotNull(byMessageId);
-        assertEquals(1, byMessageId.size());
-        assertEquals(2, byMessageId.get(0).getDeliveryCount());
-        assertEquals(1, byMessageId.get(0).getSequence());
-    }
-
-    private void insertCaseEventMessage(CaseEventMessageEntity caseEventMessageEntity) {
-        transactionTemplate.execute(status -> {
-            caseEventMessageRepository.insertCaseEventMessage(caseEventMessageEntity);
-            return true;
-        });
     }
 
     private void changeCaseIdAndSetFromDlq(String caseEventMessageId, String newCaseIdValue) {

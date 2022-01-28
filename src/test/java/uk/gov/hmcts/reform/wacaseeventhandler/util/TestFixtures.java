@@ -53,7 +53,7 @@ public final class TestFixtures {
         caseEventMessageEntity.setDeliveryCount(0);
         caseEventMessageEntity.setRetryCount(0);
         caseEventMessageEntity.setMessageContent(String.format("{\"UserId\": \"%s\"}", USER_ID));
-        caseEventMessageEntity.setMessageProperties(new ObjectMapper().readTree("{}"));
+        caseEventMessageEntity.setMessageProperties(new ObjectMapper().readTree("{\"property1\":\"test1\"}"));
         caseEventMessageEntity.setHoldUntil(LocalDateTime.now());
         caseEventMessageEntity.setSequence(10L);
         return caseEventMessageEntity;

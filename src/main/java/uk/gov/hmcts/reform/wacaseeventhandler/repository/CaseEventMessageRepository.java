@@ -50,32 +50,6 @@ public interface CaseEventMessageRepository extends CrudRepository<CaseEventMess
             + " SET state = cast(:#{#messageState.toString()} as message_state_enum)"
             + " WHERE message_id = :messageId";
 
-    String INSERT_CASE_MESSAGE =
-            "INSERT into public.wa_case_event_messages as msg (message_id,"
-                    + "case_id,"
-                    + "event_timestamp,"
-                    + "from_dlq,"
-                    + "state,"
-                    + "message_properties,"
-                    + "message_content,"
-                    + "received,"
-                    + "delivery_count,"
-                    + "hold_until,"
-                    + "retry_count) "
-            + "values (:#{#caseEventMessage.getMessageId()},"
-                    + ":#{#caseEventMessage.getCaseId()},"
-                    + ":#{#caseEventMessage.getEventTimestamp()},"
-                    + ":#{#caseEventMessage.getFromDlq()},"
-                    + "cast(:#{#caseEventMessage.getState().toString()} as message_state_enum),"
-                    + "to_jsonb(:#{#caseEventMessage.getMessageProperties()}),"
-                    + ":#{#caseEventMessage.getMessageContent()},"
-                    + ":#{#caseEventMessage.getReceived()},"
-                    + ":#{#caseEventMessage.getDeliveryCount()},"
-                    + ":#{#caseEventMessage.getHoldUntil()},"
-                    + ":#{#caseEventMessage.getRetryCount()}) "
-                    + "on conflict (message_id) "
-                    + "do update set delivery_count = msg.delivery_count + 1";
-
     @Query("FROM CaseEventMessageEntity cem WHERE cem.messageId=:messageId")
     List<CaseEventMessageEntity> findByMessageId(String messageId);
 
@@ -92,9 +66,4 @@ public interface CaseEventMessageRepository extends CrudRepository<CaseEventMess
     int updateMessageWithRetryDetails(@Param("retryCount") int retryCount,
                                       @Param("holdUntil") LocalDateTime holdUntil,
                                       @Param("messageId") String messageId);
-
-    @Modifying
-    @Query(value = INSERT_CASE_MESSAGE, nativeQuery = true)
-    void insertCaseEventMessage(@Param("caseEventMessage") CaseEventMessageEntity caseEventMessage);
-
 }
