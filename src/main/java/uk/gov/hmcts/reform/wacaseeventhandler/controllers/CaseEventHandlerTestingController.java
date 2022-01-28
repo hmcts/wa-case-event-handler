@@ -27,6 +27,7 @@ import javax.validation.Valid;
 
 @RestController
 @Slf4j
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 public class CaseEventHandlerTestingController {
     private final EventMessageReceiverService eventMessageReceiverService;
     private final EventMessageQueryService eventMessageQueryService;

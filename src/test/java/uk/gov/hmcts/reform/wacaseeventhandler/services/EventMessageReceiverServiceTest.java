@@ -665,7 +665,7 @@ class EventMessageReceiverServiceTest {
 
         CaseEventMessageNotFoundException caseEventMessageNotFoundException =
             assertThrows(CaseEventMessageNotFoundException.class,
-                         () -> eventMessageReceiverService.deleteMessage(MESSAGE_ID));
+                () -> eventMessageReceiverService.deleteMessage(MESSAGE_ID));
         assertEquals(String.format("Could not find a message with message id: %s", MESSAGE_ID),
                      caseEventMessageNotFoundException.getMessage());
     }
