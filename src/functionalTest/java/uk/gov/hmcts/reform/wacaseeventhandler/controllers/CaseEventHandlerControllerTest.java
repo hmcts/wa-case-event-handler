@@ -482,7 +482,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         );
 
         // Then cancel the task1
-        sendMessage(caseIdForTask1, "submitCase", "caseBuilding", "", false, "IA", "Asylum");
+        sendMessage(caseIdForTask1, "buildCase", "caseBuilding", "", false, "IA", "Asylum");
 
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
         assertTaskDeleteReason(task1Id, "deleted");
