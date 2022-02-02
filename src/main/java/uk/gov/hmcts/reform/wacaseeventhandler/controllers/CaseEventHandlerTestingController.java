@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
-import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CaseEventMessageNoAllowedRequestException;
+import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CaseEventMessageNotAllowedRequestException;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageQueryService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageReceiverService;
 
@@ -62,7 +62,7 @@ public class CaseEventHandlerTestingController {
                 return eventMessageReceiverService.handleAsbMessage(messageId, message);
             }
         } else {
-            throw new CaseEventMessageNoAllowedRequestException();
+            throw new CaseEventMessageNotAllowedRequestException();
         }
     }
 
@@ -83,7 +83,7 @@ public class CaseEventHandlerTestingController {
             log.info("Processing '{}' in '{}' environment ", messageId, environment);
             return eventMessageReceiverService.upsertMessage(messageId, message, fromDlq);
         } else {
-            throw new CaseEventMessageNoAllowedRequestException();
+            throw new CaseEventMessageNotAllowedRequestException();
         }
     }
 
@@ -99,7 +99,7 @@ public class CaseEventHandlerTestingController {
         if (isNonProdEnvironment()) {
             return eventMessageReceiverService.getMessage(messageId);
         } else {
-            throw new CaseEventMessageNoAllowedRequestException();
+            throw new CaseEventMessageNotAllowedRequestException();
         }
     }
 
@@ -121,7 +121,7 @@ public class CaseEventHandlerTestingController {
         if (isNonProdEnvironment()) {
             return eventMessageQueryService.getMessages(states, caseId, eventTimestamp, fromDlq);
         } else {
-            throw new CaseEventMessageNoAllowedRequestException();
+            throw new CaseEventMessageNotAllowedRequestException();
         }
     }
 
@@ -136,7 +136,7 @@ public class CaseEventHandlerTestingController {
         if (isNonProdEnvironment()) {
             eventMessageReceiverService.deleteMessage(messageId);
         } else {
-            throw new CaseEventMessageNoAllowedRequestException();
+            throw new CaseEventMessageNotAllowedRequestException();
         }
     }
 
