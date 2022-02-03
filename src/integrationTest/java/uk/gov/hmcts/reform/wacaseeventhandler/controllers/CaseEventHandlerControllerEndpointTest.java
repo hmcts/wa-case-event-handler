@@ -88,6 +88,11 @@ class CaseEventHandlerControllerEndpointTest {
     @Nested
     class CaseEventHandlerControllerPostMessageEndpointTest {
 
+        @BeforeEach
+        public void setup() {
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
+        }
+
         @Test
         void case_event_message_should_be_stored_and_return_200_ok() throws Exception {
 
