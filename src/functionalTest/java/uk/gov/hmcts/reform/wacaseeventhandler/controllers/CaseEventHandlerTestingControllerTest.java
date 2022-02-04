@@ -229,6 +229,36 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
             .body("caseEventMessages.size()", equalTo(0));
     }
 
+    @Test
+    public void should_delete_message() throws Exception {
+        String caseId1 = RandomStringUtils.randomNumeric(16);
+        String messageId1 = createMessage(eventTimestamp1, caseId1, FROM_DLQ);
+        String messageId2 = createMessage(eventTimestamp2, caseId1, FROM_DLQ);
+
+        deleteEventToRestEndpoint(messageId1,  s2sToken)
+            .then()
+            .statusCode(HttpStatus.OK.value());
+
+        getMessagesToRestEndpoint("NEW,UNPROCESSABLE", caseId1, null, "true", s2sToken)
+            .then()
+            .statusCode(HttpStatus.OK.value())
+            .assertThat()
+            .body("message", containsString("Found"))
+            .body("message", containsString("messages"))
+            .body("numberOfMessagesMatchingTheQuery", equalTo(1))
+            .body("caseEventMessages.size()", equalTo(1))
+            .body("caseEventMessages.MessageId", hasItem(equalTo(messageId2)));
+    }
+
+    @Test
+    public void should_delete_message_and_get_404_if_not_found() throws Exception {
+        String messageId1 = RandomStringUtils.randomNumeric(16);
+
+        deleteEventToRestEndpoint(messageId1,  s2sToken)
+            .then()
+            .statusCode(HttpStatus.NOT_FOUND.value());
+    }
+
     private String createMessage(LocalDateTime eventTimestamp, String caseId, Boolean fromDlq) {
         String messageId = randomMessageId();
         String eventInstanceId = UUID.randomUUID().toString();
@@ -361,5 +391,13 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
             .body(asJsonString(request))
             .when()
             .put("/messages/" + messageId + (fromDlq ? "?from_dlq=true" : "?from_dlq=false"));
+    }
+
+    private Response deleteEventToRestEndpoint(String messageId, String s2sToken) {
+        return given()
+            .contentType(APPLICATION_JSON_VALUE)
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .when()
+            .delete("/messages/" + messageId);
     }
 }
