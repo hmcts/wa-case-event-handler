@@ -5,6 +5,7 @@ import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
@@ -16,6 +17,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
 @Component
 @Scope("prototype")
 @ConditionalOnProperty("azure.servicebus.enableASB")
+@Profile("!functional & !local")
 @SuppressWarnings("PMD.DoNotUseThreads")
 public class CcdEventConsumer implements Runnable {
 
