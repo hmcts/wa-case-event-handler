@@ -113,7 +113,7 @@ task tests {
   dependsOn test, integration, functional
 }
 
-task fortifyScan(type: JavaExec)  {
+task fortifyScan(type: JavaExec) {
   main = "uk.gov.hmcts.fortifyclient.FortifyClientMainApp"
   classpath += sourceSets.test.runtimeClasspath
   jvmArgs = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED']
@@ -175,7 +175,7 @@ sonarqube {
     property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/config/**," +
       "src/testUtils/java/uk/gov/hmcts/reform/wacaseeventhandler/**," +
       "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/Application.java," +
-      "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/clients/*Consumer.java,"
+      "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/clients/*Consumer.java," +
       "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/entity/CaseEventMessageEntity.java"
   }
 }
@@ -268,7 +268,7 @@ dependencies {
   implementation group: 'com.github.hmcts.java-logging', name: 'java-logging-appinsights', version: versions.reformLogging
   implementation group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.0'
   implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '3.1.2'
-
+  implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.7.5'
   implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.4.2'
 
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.15.0'
@@ -301,7 +301,7 @@ dependencies {
   testImplementation 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.6.0'
   testImplementation 'org.codehaus.sonar-plugins:sonar-pitest-plugin:0.5'
   testCompile 'com.github.hmcts:fortify-client:1.2.1:all'
-
+  testCompile group: 'com.github.hmcts', name: 'document-management-client', version: '7.0.0'
 
   testUtilsImplementation sourceSets.main.runtimeClasspath
   testUtilsImplementation sourceSets.test.runtimeClasspath

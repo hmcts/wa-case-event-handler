@@ -12,3 +12,32 @@ azure:
     threads: ${AZURE_SERVICE_BUS_CONCURRENT_SESSIONS:1}
     enableASB: ${AZURE_SERVICE_BUS_FEATURE_TOGGLE:false}
     retry-attempts: ${AZURE_SERVICE_BUS_RETRY_ATTEMPTS:0}
+
+idam:
+  api:
+    baseUrl: ${IDAM_URL:http://sidam-api}
+  redirectUrl: ${IA_IDAM_REDIRECT_URI:http://xui-webapp/oauth2/callback}
+  scope: "openid profile roles"
+  test:
+    userCleanupEnabled: ${ENABLE_TEST_USER_DELETION:false}
+    username: ${TEST_WA_LAW_FIRM_USERNAME:some_user@hmcts.net}
+    password: ${TEST_WA_LAW_FIRM_PASSWORD:password}
+
+document_management:
+  url: ${DM_STORE_URL:http://local-dm-store}
+
+core_case_data:
+  api:
+    url: ${CCD_URL:http://ccd-data-store-api}
+
+role-assignment-service:
+  url: ${ROLE_ASSIGNMENT_URL:http://role-assignment}
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          oidc:
+            client-id: ${WA_IDAM_CLIENT_ID:wa}
+            client-secret: ${WA_IDAM_CLIENT_SECRET:something}

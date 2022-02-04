@@ -32,3 +32,5 @@ java:
     AZURE_SERVICE_BUS_CCD_CASE_EVENTS_SUBSCRIPTION_NAME: "wa-ccd-case-events-sub-{{ .Values.global.environment }}"
     POSTGRES_CONNECTION_OPTIONS: "?stringtype=unspecified&gssEncMode=disable"
     ENVIRONMENT: "{{ .Values.global.environment }}"
+    IDAM_URL: "https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net"
+    ROLE_ASSIGNMENT_URL: "http://am-role-assignment-service-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
