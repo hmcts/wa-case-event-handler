@@ -29,7 +29,7 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
     public void should_store_dlq_messages_in_database()  {
         List<String> messageIds = List.of(randomMessageId(), randomMessageId(), randomMessageId());
 
-        var caseId = "1111222233334444";
+        var caseId = randomCaseId();
 
         final EventInformation eventInformation = EventInformation.builder()
                 .eventInstanceId(UUID.randomUUID().toString())
@@ -67,7 +67,7 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
     @Test
     public void should_store_dlq_messages_missing_mandatory_fields_in_database_as_unprocessable()  {
 
-        var caseId = "5555666677778888";
+        var caseId = randomCaseId();
 
         final EventInformation eventInformation = EventInformation.builder()
                 .eventInstanceId(UUID.randomUUID().toString())
