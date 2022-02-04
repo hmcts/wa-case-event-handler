@@ -17,35 +17,51 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.DocumentManagementFiles;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.GivensBuilder;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.RestApiActions;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.AuthorizationProvider;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.IdamService;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wacaseeventhandler.utils.Common;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+
+import static com.fasterxml.jackson.databind.PropertyNamingStrategy.LOWER_CAMEL_CASE;
+import static com.fasterxml.jackson.databind.PropertyNamingStrategy.SNAKE_CASE;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
 @ActiveProfiles(profiles = {"local", "functional"})
 public abstract class SpringBootFunctionalBaseTest {
 
+    //todo: check here
     public static final String SERVICE_AUTHORIZATION = "ServiceAuthorization";
-
-
-    @Value("${targets.instance}")
-    protected String testUrl;
-
-    @Value("${targets.camunda}")
-    public String camundaUrl;
-
-    @Autowired
-    public AuthTokenGenerator authTokenGenerator;
-
-    @Autowired
-    private ApplicationContext applicationContext;
+    public static final String AUTHORIZATION = "Authorization";
+    public static final String CAMUNDA_DATE_REQUEST_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS+0000";
+    @Value("${targets.instance}") protected String testUrl;
+    @Value("${targets.camunda}") public String camundaUrl;
+    @Value("${targets.task-management.url}") private String taskManagementUrl;
 
     public ServiceBusSenderClient publisher;
-
     public String s2sToken;
+    protected GivensBuilder given;
+    protected Common common;
+    protected RestApiActions camundaApiActions;
+    protected RestApiActions taskManagementApiActions;
+
+    @Autowired protected AuthorizationProvider authorizationProvider;
+    @Autowired protected CoreCaseDataApi coreCaseDataApi;
+    @Autowired protected DocumentManagementFiles documentManagementFiles;
+    @Autowired protected IdamService idamService;
+    @Autowired protected RoleAssignmentServiceApi roleAssignmentServiceApi;
+    @Autowired private AuthTokenGenerator authTokenGenerator;
+    @Autowired private ApplicationContext applicationContext;
 
     @Before
-    public void setUp() {
+    public void setUp() throws IOException {
         RestAssured.config = RestAssuredConfig.config()
             .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
                 (type, s) -> {
@@ -62,6 +78,27 @@ public abstract class SpringBootFunctionalBaseTest {
         if (applicationContext.containsBean("serviceBusSenderClient")) {
             publisher = (ServiceBusSenderClient) applicationContext.getBean("serviceBusSenderClient");
         }
+
+        camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
+        taskManagementApiActions = new RestApiActions(taskManagementUrl, SNAKE_CASE).setUp();
+
+        documentManagementFiles.prepare();
+
+        given = new GivensBuilder(
+            camundaApiActions,
+            authorizationProvider,
+            coreCaseDataApi,
+            documentManagementFiles
+        );
+
+        common = new Common(
+            given,
+            camundaApiActions,
+            authorizationProvider,
+            idamService,
+            roleAssignmentServiceApi,
+            taskManagementApiActions
+        );
     }
 
     public void waitSeconds(int seconds) {

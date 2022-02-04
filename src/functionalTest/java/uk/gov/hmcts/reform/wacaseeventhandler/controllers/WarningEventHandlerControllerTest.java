@@ -5,8 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.WarningValues;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -94,7 +92,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         assertTaskHasMultipleWarnings(caseIdForTask1, task2Id, new WarningValues(warningsAsJson));
 
         // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
+        ////tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
     }
 
     /**
@@ -149,7 +147,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         assertTaskHasMultipleWarnings(caseIdForTask1, task1Id, new WarningValues(warningsAsJson));
 
         // tear down all tasks
-        tearDownMultipleTasks(List.of(task1Id), "completed");
+        //tearDownMultipleTasks(List.of(task1Id), "completed");
     }
 
 
@@ -252,7 +250,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         assertTaskWithoutWarnings(caseIdForTask1, task3Id, false);
 
         // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id, task3Id), "completed");
+        //tearDownMultipleTasks(Arrays.asList(task1Id, task2Id, task3Id), "completed");
     }
 
     /**
@@ -321,7 +319,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         assertTaskHasMultipleWarnings(caseId2, caseId2Task1Id, new WarningValues(warningsAsJson));
 
         // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(caseId1Task1Id, caseId2Task1Id), "completed");
+        //tearDownMultipleTasks(Arrays.asList(caseId1Task1Id, caseId2Task1Id), "completed");
     }
 
     /**
@@ -370,7 +368,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         assertTaskHasMultipleWarnings(caseIdForTask1, task1Id, warningValues);
 
         // tear down all tasks
-        tearDownMultipleTasks(List.of(task1Id), "completed");
+        //tearDownMultipleTasks(List.of(task1Id), "completed");
     }
 
     /**
@@ -444,7 +442,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         assertTaskHasMultipleWarnings(caseIdForTask1, task2Id, new WarningValues(singleWarning));
 
         // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
+        //tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
     }
 
     /**
@@ -515,7 +513,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         assertTaskWithoutWarnings(caseIdForTask1, task2Id, true);
 
         // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
+        //tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
     }
 
     /**
@@ -564,7 +562,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         assertTaskWithoutWarnings(caseIdForTask1, task1Id, true);
 
         // tear down all tasks
-        tearDownMultipleTasks(List.of(task1Id), "completed");
+        //tearDownMultipleTasks(List.of(task1Id), "completed");
     }
 
     /**
@@ -623,7 +621,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         assertTaskHasMultipleWarnings(caseIdForTask1, task1Id, new WarningValues(singleWarning));
 
         // tear down all tasks
-        tearDownMultipleTasks(List.of(task1Id), "completed");
+        //tearDownMultipleTasks(List.of(task1Id), "completed");
     }
 
     /**
@@ -668,7 +666,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         assertTaskWithoutWarnings(caseIdForTask1, task1Id, true);
 
         // tear down all tasks
-        tearDownMultipleTasks(List.of(task1Id), "completed");
+        //tearDownMultipleTasks(List.of(task1Id), "completed");
     }
 
     public void assertTaskHasMultipleWarnings(String caseId, String taskId,
