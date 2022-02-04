@@ -48,7 +48,11 @@ public interface CaseEventMessageRepository extends CrudRepository<CaseEventMess
     String UPDATE_CASE_MESSAGE_STATE =
             "UPDATE public.wa_case_event_messages"
             + " SET state = cast(:#{#messageState.toString()} as message_state_enum)"
-            + " WHERE message_id = :messageId";
+            + " WHERE message_id in (:messageIds)";
+
+    String SELECT_NEW_MESSAGES =
+            "SELECT * from public.wa_case_event_messages msg where msg.state = 'NEW' "
+            + "order by sequence DESC for update skip locked";
 
     @Query("FROM CaseEventMessageEntity cem WHERE cem.messageId=:messageId")
     List<CaseEventMessageEntity> findByMessageId(String messageId);
@@ -58,7 +62,8 @@ public interface CaseEventMessageRepository extends CrudRepository<CaseEventMess
 
     @Modifying
     @Query(value = UPDATE_CASE_MESSAGE_STATE, nativeQuery = true)
-    int updateMessageState(@Param("messageState") MessageState messageState, @Param("messageId") String messageId);
+    int updateMessageState(@Param("messageState") MessageState messageState,
+                           @Param("messageIds") List<String> messageIds);
 
     @Modifying
     @Query(value = "UPDATE public.wa_case_event_messages SET retry_count = :retryCount, "
@@ -66,4 +71,7 @@ public interface CaseEventMessageRepository extends CrudRepository<CaseEventMess
     int updateMessageWithRetryDetails(@Param("retryCount") int retryCount,
                                       @Param("holdUntil") LocalDateTime holdUntil,
                                       @Param("messageId") String messageId);
+
+    @Query(value = SELECT_NEW_MESSAGES, nativeQuery = true)
+    List<CaseEventMessageEntity> getAllMessagesInNewState();
 }

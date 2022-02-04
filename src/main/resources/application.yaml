@@ -90,5 +90,8 @@ feign:
 logbook:
   include: /workflow/**
 
-messageProcessing:
-  pollIntervalSeconds: ${MESSAGE_PROCESSING_POLL_INTERVAL_SECONDS:30}
+scheduledExecutors:
+  messageProcessing:
+    pollIntervalSeconds: ${MESSAGE_PROCESSING_POLL_INTERVAL_SECONDS:30}
+  messageReadiness:
+    pollIntervalSeconds: ${MESSAGE_READINESS_POLL_INTERVAL_SECONDS:30}

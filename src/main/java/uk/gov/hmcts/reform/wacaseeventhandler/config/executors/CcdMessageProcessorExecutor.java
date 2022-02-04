@@ -1,4 +1,4 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.config;
+package uk.gov.hmcts.reform.wacaseeventhandler.config.executors;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class CcdMessageProcessorExecutor {
 
-    @Value("${messageProcessing.pollIntervalSeconds}")
+    @Value("${scheduledExecutors.messageProcessing.pollIntervalSeconds}")
     private int pollInterval;
 
     @Autowired

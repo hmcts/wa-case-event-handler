@@ -32,6 +32,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -56,6 +57,7 @@ class EventMessageReceiverServiceTest {
     private static final String USER_ID = "123";
     private static final String MESSAGE_ID = "messageId";
     private static final String MESSAGE = messageAsString();
+    private static final String MESSAGE_WITHOUT_USER = messageNoUserAsString();
     private static final String JURISDICTION = "JUR";
     private static final String CASE_TYPE_ID = "CASETYPEID";
     private static final String CASE_ID = "12345";
@@ -132,7 +134,7 @@ class EventMessageReceiverServiceTest {
 
         eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
 
-        assertLogMessageEquals(String.format("Could not parse the message with id '%s'",  MESSAGE_ID), 1);
+        assertLogMessageContains(String.format("Could not parse the message with id '%s'",  MESSAGE_ID));
 
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
     }
@@ -146,7 +148,7 @@ class EventMessageReceiverServiceTest {
 
         eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
 
-        assertLogMessageEquals(String.format("Could not parse the message with id '%s'",  MESSAGE_ID), 2);
+        assertLogMessageContains(String.format("Could not parse the message with id '%s'",  MESSAGE_ID));
 
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
     }
@@ -345,8 +347,8 @@ class EventMessageReceiverServiceTest {
 
         eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
 
-        assertLogMessageEquals(
-            String.format("Could not parse the message with id '%s'", MESSAGE_ID), 1);
+        assertLogMessageContains(
+            String.format("Could not parse the message with id '%s'", MESSAGE_ID));
 
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
         assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
@@ -378,36 +380,22 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void should_handle_dlq_message_when_feature_flag_disabled() throws JsonProcessingException {
+    void should_handle_dlq_message_when_feature_flag_disabled() {
         when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(FALSE);
-
-        String userIdJson = "{"
-                + "\"UserId\": \"" + USER_ID + "\"}";
-
-        final JsonNode jsonNode = new ObjectMapper().readTree(userIdJson);
-        when(objectMapper.readTree(MESSAGE))
-                .thenReturn(jsonNode);
 
         eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, MESSAGE);
 
         verifyNoInteractions(caseEventMessageRepository);
-        assertLogMessageEquals(String.format("Received Case Event Dead Letter Queue message with id '%s'", MESSAGE_ID),
-                0);
-        assertLogMessageEquals(
+        assertLogMessageContains(String.format("Received Case Event Dead Letter Queue message with id '%s'",
+                MESSAGE_ID));
+        assertLogMessageContains(
                 String.format("Feature flag '%s' evaluated to false. Message not inserted into database",
-                        DLQ_DB_INSERT.getKey()), 2);
+                        DLQ_DB_INSERT.getKey()));
     }
 
     @Test
     void should_handle_dlq_message_when_feature_flag_enabled_and_valid_message_received()
             throws JsonProcessingException {
-        String userIdJson = "{"
-                + "\"UserId\": \"" + USER_ID + "\"}";
-
-        final JsonNode jsonNode = new ObjectMapper().readTree(userIdJson);
-        when(objectMapper.readTree(MESSAGE))
-                .thenReturn(jsonNode);
-
         when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(TRUE);
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
@@ -430,12 +418,6 @@ class EventMessageReceiverServiceTest {
     @Test
     void should_handle_dlq_case_event_asb_message_when_feature_flag_enabled_and_invalid_message_received()
             throws JsonProcessingException {
-        String userIdJson = "{"
-                + "\"UserId\": \"" + USER_ID + "\"}";
-
-        final JsonNode jsonNode = new ObjectMapper().readTree(userIdJson);
-        when(objectMapper.readTree(MESSAGE)).thenReturn(jsonNode);
-
         when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(TRUE);
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
@@ -455,69 +437,45 @@ class EventMessageReceiverServiceTest {
     @Test
     void should_handle_dlq_message_when_error_parsing_user_id()
             throws JsonProcessingException {
-        when(objectMapper.readTree(MESSAGE)).thenThrow(jsonProcessingException);
-
         when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, null))
                 .thenCallRealMethod();
 
         final NullPointerException nullPointerException = assertThrows(NullPointerException.class, () ->
-                eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, MESSAGE));
+                eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, MESSAGE_WITHOUT_USER));
 
         assertEquals("userId is null", nullPointerException.getMessage());
         verifyNoInteractions(caseEventMessageRepository);
     }
 
     @Test
-    void should_handle_dlq_message_when_missing_user_id()
-            throws JsonProcessingException {
+    void should_handle_dlq_message_when_missing_user_id() {
 
         when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, null))
                 .thenCallRealMethod();
 
-        String noUserIdJson = "{"
-                + "\"IdOfUser\": \"" + USER_ID + "\""
-                + "}";
-
-        final JsonNode jsonNode = new ObjectMapper().readTree(noUserIdJson);
-
-        when(objectMapper.readTree(MESSAGE)).thenReturn(jsonNode);
-
         final NullPointerException nullPointerException = assertThrows(NullPointerException.class, () ->
-                eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, MESSAGE));
+                eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, MESSAGE_WITHOUT_USER));
 
         assertEquals("userId is null", nullPointerException.getMessage());
         verifyNoInteractions(caseEventMessageRepository);
     }
 
     @Test
-    void should_handle_ccd_case_event_asb_message_when_feature_flag_disabled() throws JsonProcessingException {
+    void should_handle_ccd_case_event_asb_message_when_feature_flag_disabled() {
         when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(FALSE);
-
-        String userIdJson = "{"
-                + "\"UserId\": \"" + USER_ID + "\"}";
-
-        final JsonNode jsonNode = new ObjectMapper().readTree(userIdJson);
-        when(objectMapper.readTree(MESSAGE))
-                .thenReturn(jsonNode);
 
         eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, MESSAGE);
 
         verifyNoInteractions(caseEventMessageRepository);
-        assertLogMessageEquals(String.format("Received CCD Case Events ASB message with id '%s'", MESSAGE_ID), 0);
-        assertLogMessageEquals(
+        assertLogMessageContains(String.format("Received CCD Case Events ASB message with id '%s'", MESSAGE_ID));
+        assertLogMessageContains(
                 String.format("Feature flag '%s' evaluated to false. Message not inserted into database",
-                        DLQ_DB_INSERT.getKey()), 2);
+                        DLQ_DB_INSERT.getKey()));
     }
 
     @Test
     void should_handle_ccd_case_event_asb_message_when_feature_flag_enabled_and_valid_message_received()
-            throws JsonProcessingException {
-        String userIdJson = "{"
-                + "\"UserId\": \"" + USER_ID + "\"}";
-
-        final JsonNode jsonNode = new ObjectMapper().readTree(userIdJson);
-        when(objectMapper.readTree(MESSAGE))
-                .thenReturn(jsonNode);
+        throws JsonProcessingException {
 
         when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(TRUE);
 
@@ -541,12 +499,6 @@ class EventMessageReceiverServiceTest {
     @Test
     void should_handle_ccd_case_event_asb_message_when_feature_flag_enabled_and_invalid_message_received()
             throws JsonProcessingException {
-        String userIdJson = "{"
-                + "\"UserId\": \"" + USER_ID + "\"}";
-
-        final JsonNode jsonNode = new ObjectMapper().readTree(userIdJson);
-        when(objectMapper.readTree(MESSAGE)).thenReturn(jsonNode);
-
         when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(TRUE);
 
         mockMessageProperties();
@@ -565,37 +517,25 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void should_handle_ccd_case_event_asb_message_when_error_parsing_user_id()
-            throws JsonProcessingException {
-        when(objectMapper.readTree(MESSAGE)).thenThrow(jsonProcessingException);
+    void should_handle_ccd_case_event_asb_message_when_error_parsing_user_id() {
 
         when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, null))
                 .thenCallRealMethod();
 
         final NullPointerException nullPointerException = assertThrows(NullPointerException.class, () ->
-                eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, MESSAGE));
+                eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, MESSAGE_WITHOUT_USER));
 
         assertEquals("userId is null", nullPointerException.getMessage());
         verifyNoInteractions(caseEventMessageRepository);
     }
 
     @Test
-    void should_handle_ccd_case_event_asb_message_when_missing_user_id()
-            throws JsonProcessingException {
+    void should_handle_ccd_case_event_asb_message_when_missing_user_id() {
 
-        when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, null))
-                .thenCallRealMethod();
-
-        String noUserIdJson = "{"
-                + "\"IdOfUser\": \"" + USER_ID + "\""
-                + "}";
-
-        final JsonNode jsonNode = new ObjectMapper().readTree(noUserIdJson);
-
-        when(objectMapper.readTree(MESSAGE)).thenReturn(jsonNode);
+        when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, null)).thenCallRealMethod();
 
         final NullPointerException nullPointerException = assertThrows(NullPointerException.class, () ->
-                eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, MESSAGE));
+                eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, MESSAGE_WITHOUT_USER));
 
         assertEquals("userId is null", nullPointerException.getMessage());
         verifyNoInteractions(caseEventMessageRepository);
@@ -670,9 +610,12 @@ class EventMessageReceiverServiceTest {
                      caseEventMessageNotFoundException.getMessage());
     }
 
-    private void assertLogMessageEquals(String expectedMessage, int messageNumber)  {
+    private void assertLogMessageContains(String expectedMessage)  {
         List<ILoggingEvent> logsList = listAppender.list;
-        assertEquals(expectedMessage, logsList.get(messageNumber).getFormattedMessage());
+        assertTrue(logsList.stream()
+                .map(ILoggingEvent::getFormattedMessage)
+                .collect(Collectors.toList())
+                .contains(expectedMessage));
     }
 
     private static String messageAsString() {
@@ -684,11 +627,23 @@ class EventMessageReceiverServiceTest {
             + "  \"CaseTypeId\" : \"asylum\",\n"
             + "  \"EventId\" : \"some event Id\",\n"
             + "  \"NewStateId\" : \"some new state Id\",\n"
-            + "  \"UserId\" : \"some user Id\",\n"
+            + "  \"UserId\" : \"" + USER_ID + "\",\n"
             + "  \"MessageProperties\" : {\n"
             + "      \"property1\" : \"test1\"\n"
             + "  }\n"
             + "}";
+    }
+
+    private static String messageNoUserAsString() {
+        return "{\n"
+                + "  \"EventInstanceId\" : \"some event instance Id\",\n"
+                + "  \"EventTimeStamp\" : \"2020-12-07T17:39:22.232622\",\n"
+                + "  \"CaseId\" : \"12345\",\n"
+                + "  \"JurisdictionId\" : \"ia\",\n"
+                + "  \"CaseTypeId\" : \"asylum\",\n"
+                + "  \"EventId\" : \"some event Id\",\n"
+                + "  \"NewStateId\" : \"some new state Id\",\n"
+                + "}";
     }
 
     private void mockMessageProperties() throws JsonProcessingException {
