@@ -49,7 +49,6 @@ public class Common {
     private final GivensBuilder given;
     private final RestApiActions camundaApiActions;
     private final AuthorizationProvider authorizationProvider;
-    private final RestApiActions taskManagementApiActions;
     private final IdamService idamService;
     private final RoleAssignmentServiceApi roleAssignmentServiceApi;
 
@@ -59,14 +58,12 @@ public class Common {
                   RestApiActions camundaApiActions,
                   AuthorizationProvider authorizationProvider,
                   IdamService idamService,
-                  RoleAssignmentServiceApi roleAssignmentServiceApi,
-                  RestApiActions taskManagementApiActions) {
+                  RoleAssignmentServiceApi roleAssignmentServiceApi) {
         this.given = given;
         this.camundaApiActions = camundaApiActions;
         this.authorizationProvider = authorizationProvider;
         this.idamService = idamService;
         this.roleAssignmentServiceApi = roleAssignmentServiceApi;
-        this.taskManagementApiActions = taskManagementApiActions;
     }
 
 
@@ -122,6 +119,7 @@ public class Common {
 
     }
 
+    //todo: check here
     private void clearAllRoleAssignmentsForUser(String userId, Headers headers) {
         String userToken = headers.getValue(AUTHORIZATION);
         String serviceToken = headers.getValue(SERVICE_AUTHORIZATION);

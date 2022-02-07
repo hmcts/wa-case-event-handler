@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import static com.fasterxml.jackson.databind.PropertyNamingStrategy.LOWER_CAMEL_CASE;
-import static com.fasterxml.jackson.databind.PropertyNamingStrategy.SNAKE_CASE;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
@@ -43,14 +42,12 @@ public abstract class SpringBootFunctionalBaseTest {
     public static final String CAMUNDA_DATE_REQUEST_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS+0000";
     @Value("${targets.instance}") protected String testUrl;
     @Value("${targets.camunda}") public String camundaUrl;
-    @Value("${targets.task-management.url}") private String taskManagementUrl;
 
     public ServiceBusSenderClient publisher;
     public String s2sToken;
     protected GivensBuilder given;
     protected Common common;
     protected RestApiActions camundaApiActions;
-    protected RestApiActions taskManagementApiActions;
 
     @Autowired protected AuthorizationProvider authorizationProvider;
     @Autowired protected CoreCaseDataApi coreCaseDataApi;
@@ -80,7 +77,6 @@ public abstract class SpringBootFunctionalBaseTest {
         }
 
         camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
-        taskManagementApiActions = new RestApiActions(taskManagementUrl, SNAKE_CASE).setUp();
 
         documentManagementFiles.prepare();
 
@@ -96,8 +92,7 @@ public abstract class SpringBootFunctionalBaseTest {
             camundaApiActions,
             authorizationProvider,
             idamService,
-            roleAssignmentServiceApi,
-            taskManagementApiActions
+            roleAssignmentServiceApi
         );
     }
 

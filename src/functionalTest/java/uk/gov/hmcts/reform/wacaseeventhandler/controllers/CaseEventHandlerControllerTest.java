@@ -44,10 +44,10 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonS
 public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest {
 
     private LocalDateTime eventTimeStamp;
-    private List<String> caseIds;
-    private List<String> taskIds;
-    private String taskCompletionStatus;
-    private TestAuthenticationCredentials caseworkerCredentials;
+    protected List<String> caseIds;
+    protected List<String> taskIds;
+    protected String taskCompletionStatus;
+    protected TestAuthenticationCredentials caseworkerCredentials;
 
     @Autowired
     private DueDateService dueDateService;
@@ -98,10 +98,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", is("asylum"))
-            .body("jurisdiction.value", is("ia"))
+            .body("caseTypeId.value", is("Asylum"))
+            .body("jurisdiction.value", is("IA"))
             .body("dueDate.value", notNullValue())
-            .body("taskState.value", is("unconfigured"))
+            .body("taskState.value", is("unassigned"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseId))
             .body("name.value", is("Process Application"))
@@ -144,11 +144,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", is("asylum"))
+            .body("caseTypeId.value", is("Asylum"))
             .body("idempotencyKey.value", notNullValue())
-            .body("jurisdiction.value", is("ia"))
+            .body("jurisdiction.value", is("IA"))
             .body("dueDate.value", notNullValue())
-            .body("taskState.value", is("unconfigured"))
+            .body("taskState.value", is("unassigned"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseId))
             .body("name.value", is("Review the appeal"))
@@ -560,8 +560,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         );
 
         // Then cancel the task1
-        sendMessage(caseIdForTask1, "submitCase",
-            "caseBuilding", "", false, "IA", "Asylum");
+        sendMessage(caseIdForTask1, "buildCase", "caseBuilding", "", false, "IA", "Asylum");
 
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
         assertTaskDeleteReason(task1Id, "deleted");
@@ -1307,7 +1306,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         return response.get();
     }
 
-    private void completeTask(String taskId, String status) {
+    public void completeTask(String taskId, String status) {
         log.info(String.format("Completing task : %s", taskId));
         given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
