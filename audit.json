@@ -27,16 +27,22 @@
   "10010_Cookie No HttpOnly Flag_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id_GET": "ignore",
   "10010_Cookie No HttpOnly Flag_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id?from_dlq=true_POST": "ignore",
   "10010_Cookie No HttpOnly Flag_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id?from_dlq=true_PUT": "ignore",
+  "10010_Cookie No HttpOnly Flag_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/query?case_id=case_id&event_timestamp=event_timestamp&from_dlq=true&states=states_GET": "ignore",
   "10054_Cookie without SameSite Attribute_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id?from_dlq=true_PUT": "ignore",
   "10054_Cookie without SameSite Attribute_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id_GET": "ignore",
   "10054_Cookie without SameSite Attribute_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id?from_dlq=true_POST": "ignore",
+  "10054_Cookie without SameSite Attribute_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/query?case_id=case_id&event_timestamp=event_timestamp&from_dlq=true&states=states_GET": "ignore",
   "10096_Timestamp Disclosure - Unix_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id_GET": "ignore",
   "10096_Timestamp Disclosure - Unix_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id?from_dlq=true_POST": "ignore",
   "10096_Timestamp Disclosure - Unix_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id?from_dlq=true_PUT": "ignore",
+  "10096_Timestamp Disclosure - Unix_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/query?case_id=case_id&event_timestamp=event_timestamp&from_dlq=true&states=states_GET": "ignore",
   "100000_A Client Error response code was returned by the server_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id_GET": "ignore",
   "100000_A Client Error response code was returned by the server_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id?from_dlq=true_POST": "ignore",
   "100000_A Client Error response code was returned by the server_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id?from_dlq=true_PUT": "ignore",
+  "100000_A Client Error response code was returned by the server_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/query?case_id=case_id&event_timestamp=event_timestamp&from_dlq=true&states=states_GET": "ignore",
+  "100000_A Client Error response code was returned by the server_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id_DELETE": "ignore",
   "90033_Loosely Scoped Cookie_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id?from_dlq=true_PUT": "ignore",
   "90033_Loosely Scoped Cookie_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id_GET": "ignore",
-  "90033_Loosely Scoped Cookie_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id?from_dlq=true_POST": "ignore"
+  "90033_Loosely Scoped Cookie_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id?from_dlq=true_POST": "ignore",
+  "90033_Loosely Scoped Cookie_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/query?case_id=case_id&event_timestamp=event_timestamp&from_dlq=true&states=states_GET": "ignore"
 }

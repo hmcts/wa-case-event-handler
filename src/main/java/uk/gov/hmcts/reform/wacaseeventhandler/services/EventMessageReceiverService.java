@@ -101,6 +101,14 @@ public class EventMessageReceiverService {
         }
     }
 
+    public void deleteMessage(String messageId) {
+        CaseEventMessageEntity entity = repository.findByMessageId(messageId).stream().findFirst()
+            .orElseThrow(() -> new CaseEventMessageNotFoundException(
+                format("Could not find a message with message id: %s", messageId)));
+
+        repository.deleteById(entity.getSequence());
+    }
+
     public CaseEventMessage upsertMessage(String messageId, String message, Boolean fromDlq) {
 
         List<CaseEventMessageEntity> byMessageId = repository.findByMessageId(messageId);
