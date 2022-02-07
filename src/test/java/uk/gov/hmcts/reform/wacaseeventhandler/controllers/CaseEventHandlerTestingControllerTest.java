@@ -9,7 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CaseEventMessageNoAllowedRequestException;
+import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CaseEventMessageNotAllowedRequestException;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageQueryService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageReceiverService;
 
@@ -91,7 +91,7 @@ class CaseEventHandlerTestingControllerTest {
             JSON_MESSAGE,
             MESSAGE_ID,
             true
-        )).isInstanceOf(CaseEventMessageNoAllowedRequestException.class);
+        )).isInstanceOf(CaseEventMessageNotAllowedRequestException.class);
     }
 
     @Test
@@ -118,7 +118,7 @@ class CaseEventHandlerTestingControllerTest {
             JSON_MESSAGE,
             MESSAGE_ID,
             true
-        )).isInstanceOf(CaseEventMessageNoAllowedRequestException.class);
+        )).isInstanceOf(CaseEventMessageNotAllowedRequestException.class);
     }
 
     @Test
@@ -139,7 +139,7 @@ class CaseEventHandlerTestingControllerTest {
 
         assertThatThrownBy(() -> controller.getMessagesByMessageId(
             MESSAGE_ID
-        )).isInstanceOf(CaseEventMessageNoAllowedRequestException.class);
+        )).isInstanceOf(CaseEventMessageNotAllowedRequestException.class);
     }
 
     @Test
@@ -161,6 +161,22 @@ class CaseEventHandlerTestingControllerTest {
 
         assertThatThrownBy(() -> controller.getMessagesByQueryParameters(
             STATES, CASE_ID, EVENT_TIMESTAMP, FROM_DLQ
-        )).isInstanceOf(CaseEventMessageNoAllowedRequestException.class);
+        )).isInstanceOf(CaseEventMessageNotAllowedRequestException.class);
+    }
+
+    @Test
+    void delete_message_should_delegate_to_eventMessageReceiverService() {
+        controller.deleteMessageByMessageId(MESSAGE_ID);
+
+        verify(eventMessageReceiverService).deleteMessage(MESSAGE_ID);
+        verifyNoMoreInteractions(eventMessageReceiverService);
+    }
+
+    @Test
+    void delete_message_should_throw_CaseEventMessageNoAllowedRequestException_when_in_prod_environment() {
+        ReflectionTestUtils.setField(controller, "environment", "prod");
+
+        assertThatThrownBy(() -> controller.deleteMessageByMessageId(MESSAGE_ID))
+            .isInstanceOf(CaseEventMessageNotAllowedRequestException.class);
     }
 }
