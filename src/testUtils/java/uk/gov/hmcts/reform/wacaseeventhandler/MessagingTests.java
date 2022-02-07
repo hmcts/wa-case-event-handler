@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -53,17 +54,22 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
         );
     }
 
-    protected void deleteMessagesFromDatabase(List<CaseEventMessage> caseEventMessages) {
-        caseEventMessages.stream()
+    protected void deleteCaseEventMessagesFromDatabase(List<CaseEventMessage> caseEventMessages) {
+        final List<String> msgIds = caseEventMessages.stream()
                 .map(CaseEventMessage::getMessageId)
+                .collect(Collectors.toList());
+        deleteCaseEventMessagesFromDatabaseById(msgIds);
+    }
+
+    protected void deleteCaseEventMessagesFromDatabaseById(List<String> messageIds) {
+        messageIds.stream()
                 .forEach(msgId -> given()
-                                    .contentType(APPLICATION_JSON_VALUE)
-                                    .header(SERVICE_AUTHORIZATION, s2sToken)
-                                    .when()
-                                    .delete("/messages/" + msgId)
-                                    .then()
-                                    .statusCode(HttpStatus.OK.value())
-            );
+                        .contentType(APPLICATION_JSON_VALUE)
+                        .header(SERVICE_AUTHORIZATION, s2sToken)
+                        .when()
+                        .delete("/messages/" + msgId)
+                        .then()
+                        .statusCode(HttpStatus.OK.value()));
     }
 
     protected void sendMessageToDlq(String messageId, EventInformation eventInformation) {

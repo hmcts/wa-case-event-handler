@@ -56,7 +56,7 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
 
                         assertEquals(messageIds.size(), caseEventMessages.size());
 
-                        deleteMessagesFromDatabase(caseEventMessages);
+                        deleteCaseEventMessagesFromDatabase(caseEventMessages);
                         return true;
                     } else {
                         return false;
@@ -91,7 +91,7 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
 
                         assertEquals(1, caseEventMessages.size());
                         assertEquals(MessageState.UNPROCESSABLE, caseEventMessages.get(0).getState());
-                        deleteMessagesFromDatabase(caseEventMessages);
+                        deleteCaseEventMessagesFromDatabase(caseEventMessages);
                         return true;
                     } else {
                         return false;

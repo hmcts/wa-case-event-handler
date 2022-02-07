@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
@@ -16,7 +15,6 @@ import java.util.List;
 @Slf4j
 @Component
 @SuppressWarnings("PMD.DoNotUseThreads")
-@ConditionalOnProperty("azure.servicebus.enableASB")
 public class MessageReadinessConsumer implements Runnable {
 
     private final DeadLetterQueuePeekService deadLetterQueuePeekService;

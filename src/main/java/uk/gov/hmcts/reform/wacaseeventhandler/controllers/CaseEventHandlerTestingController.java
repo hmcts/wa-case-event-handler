@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CaseEventMessageNotAllowedRequestException;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.DeadLetterQueuePeekService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageQueryService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageReceiverService;
 
@@ -31,14 +32,17 @@ import javax.validation.Valid;
 public class CaseEventHandlerTestingController {
     private final EventMessageReceiverService eventMessageReceiverService;
     private final EventMessageQueryService eventMessageQueryService;
+    private final DeadLetterQueuePeekService deadLetterQueuePeekService;
 
     @Value("${environment}")
     private String environment;
 
     public CaseEventHandlerTestingController(EventMessageReceiverService eventMessageReceiverService,
-                                             EventMessageQueryService eventMessageQueryService) {
+                                             EventMessageQueryService eventMessageQueryService,
+                                             DeadLetterQueuePeekService deadLetterQueuePeekService) {
         this.eventMessageReceiverService = eventMessageReceiverService;
         this.eventMessageQueryService = eventMessageQueryService;
+        this.deadLetterQueuePeekService = deadLetterQueuePeekService;
     }
 
     @ApiOperation("Handles the CCD case event message")
@@ -135,6 +139,21 @@ public class CaseEventHandlerTestingController {
     public void deleteMessageByMessageId(@PathVariable("message_id") final String messageId) {
         if (isNonProdEnvironment()) {
             eventMessageReceiverService.deleteMessage(messageId);
+        } else {
+            throw new CaseEventMessageNotAllowedRequestException();
+        }
+    }
+
+    @ApiOperation("Sets the DLQ peek response ")
+    @ApiResponses({
+            @ApiResponse(
+                    code = 200,
+                    message = "DLQ response set successfully")
+    })
+    @PostMapping("/messages/dlqPeekResponse/{dlqPeekResponse}")
+    public void setDlqPeekResponse(@PathVariable("dlqPeekResponse") final boolean dlqPeekResponse) {
+        if (isNonProdEnvironment()) {
+            deadLetterQueuePeekService.setResponse(dlqPeekResponse);
         } else {
             throw new CaseEventMessageNotAllowedRequestException();
         }

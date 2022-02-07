@@ -2,8 +2,8 @@ package uk.gov.hmcts.reform.wacaseeventhandler.config;
 
 import com.azure.core.amqp.AmqpRetryOptions;
 import com.azure.messaging.servicebus.ServiceBusClientBuilder;
-import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 import com.azure.messaging.servicebus.ServiceBusReceiverAsyncClient;
+import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
 import com.azure.messaging.servicebus.models.SubQueue;
 import lombok.extern.slf4j.Slf4j;
