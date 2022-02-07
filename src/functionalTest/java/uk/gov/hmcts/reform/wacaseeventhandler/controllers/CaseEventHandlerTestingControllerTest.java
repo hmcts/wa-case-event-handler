@@ -318,7 +318,7 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
             .eventId("sendDirection")
             .newStateId(null)
             .previousStateId(null)
-            .userId("some user Id")
+            .userId("insert_true")
             .additionalData(additionalData())
             .build();
     }
