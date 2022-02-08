@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.config;
 
 import com.azure.core.amqp.AmqpRetryOptions;
 import com.azure.messaging.servicebus.ServiceBusClientBuilder;
+import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
 import com.azure.messaging.servicebus.models.SubQueue;
 import lombok.extern.slf4j.Slf4j;
@@ -57,12 +58,12 @@ public class ServiceBusConfiguration {
         return client;
     }
 
-    public ServiceBusSessionReceiverClient createCcdCaseEventsDeadLetterQueueSessionReceiver() {
+    public ServiceBusReceiverClient createCcdCaseEventsDeadLetterQueueSessionReceiver() {
         log.info("Creating CCD Case Events Dead Letter Queue Session receiver");
-        ServiceBusSessionReceiverClient client = new ServiceBusClientBuilder()
+        ServiceBusReceiverClient client = new ServiceBusClientBuilder()
                 .connectionString(connectionString)
                 .retryOptions(retryOptions())
-                .sessionReceiver()
+                .receiver()
                 .topicName(topicName)
                 .subQueue(SubQueue.DEAD_LETTER_QUEUE)
                 .subscriptionName(ccdCaseEventsSubscriptionName)
@@ -75,7 +76,6 @@ public class ServiceBusConfiguration {
     private AmqpRetryOptions retryOptions() {
         AmqpRetryOptions retryOptions = new AmqpRetryOptions();
         retryOptions.setTryTimeout(Duration.ofSeconds(Integer.valueOf(retryTime)));
-
         return retryOptions;
     }
 
