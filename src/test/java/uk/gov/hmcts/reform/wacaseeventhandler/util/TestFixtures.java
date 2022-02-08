@@ -48,16 +48,20 @@ public final class TestFixtures {
                 NullNode.getInstance(), messageContent, LocalDateTime.now(), 0, LocalDateTime.now(), retryCount);
     }
 
-    public static CaseEventMessageEntity createCaseEventMessageEntity() {
+    public static CaseEventMessageEntity createCaseEventMessageEntity() throws JsonProcessingException {
         CaseEventMessageEntity caseEventMessageEntity = new CaseEventMessageEntity();
         caseEventMessageEntity.setMessageId(UUID.randomUUID().toString());
         caseEventMessageEntity.setCaseId(UUID.randomUUID().toString());
+        caseEventMessageEntity.setEventTimestamp(LocalDateTime.now());
         caseEventMessageEntity.setFromDlq(false);
         caseEventMessageEntity.setState(MessageState.NEW);
         caseEventMessageEntity.setReceived(LocalDateTime.now());
         caseEventMessageEntity.setDeliveryCount(0);
         caseEventMessageEntity.setRetryCount(0);
         caseEventMessageEntity.setMessageContent(String.format("{\"UserId\": \"%s\"}", USER_ID));
+        caseEventMessageEntity.setMessageProperties(new ObjectMapper().readTree("{\"property1\":\"test1\"}"));
+        caseEventMessageEntity.setHoldUntil(LocalDateTime.now());
+        caseEventMessageEntity.setSequence(10L);
         return caseEventMessageEntity;
     }
 }
