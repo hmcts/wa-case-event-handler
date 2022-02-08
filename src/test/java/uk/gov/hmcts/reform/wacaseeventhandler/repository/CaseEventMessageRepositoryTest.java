@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.repository;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.After;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -291,6 +292,40 @@ class CaseEventMessageRepositoryTest {
                 caseEventMessageRepository.getNextAvailableMessageReadyToProcess();
 
         assertNull(retrievedCaseEventMessageEntity);
+    }
+
+    @Test
+    void should_insert_case_message() throws JsonProcessingException {
+        CaseEventMessageEntity caseEventMessageEntity = TestFixtures.createCaseEventMessageEntity();
+
+        caseEventMessageRepository.save(caseEventMessageEntity);
+
+        final List<CaseEventMessageEntity> byMessageId =
+                caseEventMessageRepository.findByMessageId(caseEventMessageEntity.getMessageId());
+
+        assertNotNull(byMessageId);
+        assertEquals(1, byMessageId.size());
+        assertEquals(0, byMessageId.get(0).getDeliveryCount());
+        assertEquals(caseEventMessageEntity.getMessageProperties(), byMessageId.get(0).getMessageProperties());
+    }
+
+    @Test
+    void should_insert_case_message_check_sequence() throws JsonProcessingException {
+        CaseEventMessageEntity caseEventMessageEntity1 = TestFixtures.createCaseEventMessageEntity();
+        caseEventMessageEntity1.setMessageId("messageId1");
+
+        caseEventMessageRepository.save(caseEventMessageEntity1);
+
+        CaseEventMessageEntity caseEventMessageEntity2 = TestFixtures.createCaseEventMessageEntity();
+        caseEventMessageEntity2.setMessageId("messageId2");
+        caseEventMessageRepository.save(caseEventMessageEntity2);
+
+        final List<CaseEventMessageEntity> byMessageId =
+                caseEventMessageRepository.findByMessageId("messageId2");
+
+        assertNotNull(byMessageId);
+        assertEquals(1, byMessageId.size());
+        assertEquals(2, byMessageId.get(0).getSequence());
     }
 
     private void changeCaseIdAndSetFromDlq(String caseEventMessageId, String newCaseIdValue) {
