@@ -87,6 +87,20 @@ public class EventMessageReceiverService {
         return mapper.mapToCaseEventMessage(messageEntity);
     }
 
+    private CaseEventMessageEntity insertMessage(CaseEventMessageEntity caseEventMessageEntity) {
+
+        final List<CaseEventMessageEntity> existingMessages =
+                repository.findByMessageId(caseEventMessageEntity.getMessageId());
+        if (existingMessages.isEmpty()) {
+            return repository.save(caseEventMessageEntity);
+        } else {
+            CaseEventMessageEntity found = existingMessages.get(0);
+
+            found.setDeliveryCount(found.getDeliveryCount() + 1);
+            return repository.save(found);
+        }
+    }
+
     public void deleteMessage(String messageId) {
         CaseEventMessageEntity entity = repository.findByMessageId(messageId).stream().findFirst()
             .orElseThrow(() -> new CaseEventMessageNotFoundException(
@@ -101,7 +115,6 @@ public class EventMessageReceiverService {
         if (byMessageId != null) {
             Optional<CaseEventMessageEntity> messageEntityOptional = byMessageId.stream().findFirst();
             if (messageEntityOptional.isPresent()) {
-
                 try {
                     CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId, message, fromDlq);
                     messageEntityOptional.ifPresent(eventMessageEntity -> messageEntity
@@ -130,19 +143,20 @@ public class EventMessageReceiverService {
 
         try {
             CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId, message, fromDlq);
-            repository.save(messageEntity);
+            CaseEventMessageEntity savedEntity = insertMessage(messageEntity);
 
             log.info("Message with id '{}' successfully stored into the DB", messageId);
 
-            return mapper.mapToCaseEventMessage(messageEntity);
+            return mapper.mapToCaseEventMessage(savedEntity);
         } catch (JsonProcessingException e) {
             log.error("Could not parse the message with id '{}'", messageId);
 
             boolean isDlq = TRUE.equals(fromDlq);
             CaseEventMessageEntity messageEntity = build(messageId, message, isDlq, MessageState.UNPROCESSABLE);
-            repository.save(messageEntity);
+            CaseEventMessageEntity savedEntity = insertMessage(messageEntity);
 
-            return mapper.mapToCaseEventMessage(messageEntity);
+
+            return mapper.mapToCaseEventMessage(savedEntity);
         } catch (DataIntegrityViolationException e) {
             throw new CaseEventMessageDuplicateMessageIdException(
                 format("Trying to save a message with a duplicate messageId: %s", messageId), e);
