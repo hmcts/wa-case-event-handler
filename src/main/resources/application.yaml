@@ -12,13 +12,13 @@ management:
         include: health, info, prometheus
 
 idam:
+  url: ${OPEN_ID_IDAM_URL:http://sidam-api}
   s2s-auth:
     url: ${S2S_URL:http://service-auth-provider-api}
     secret: ${S2S_SECRET_CASE_EVENT_HANDLER:AAAAAAAAAAAAAAAA}
     name: ${S2S_NAME_CASE_EVENT_HANDLER:wa_case_event_handler}
   s2s-authorised:
     services: ${WA_S2S_AUTHORIZED_SERVICES:wa_case_event_handler,wa_task_monitor}
-  url: ${OPEN_ID_IDAM_URL:http://sidam-api}
   system:
     username: ${WA_SYSTEM_USERNAME:some_user@hmcts.net}
     password: ${WA_SYSTEM_PASSWORD:password}
@@ -46,6 +46,19 @@ spring:
     username: ${POSTGRES_USERNAME:ccd}
     password: ${POSTGRES_PASSWORD:ccd}
     type: com.zaxxer.hikari.HikariDataSource
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${OPEN_ID_IDAM_URL:http://sidam-api}/o/jwks
+      client:
+        provider:
+          oidc:
+            issuer-uri: ${OPEN_ID_IDAM_URL:http://sidam-api}/o
+        registration:
+          oidc:
+            client-id: ${WA_IDAM_CLIENT_ID:wa}
+            client-secret: ${WA_IDAM_CLIENT_SECRET:something}
 
 security:
   anonymousPaths:
@@ -101,3 +114,11 @@ logbook:
 
 messageProcessing:
   pollIntervalSeconds: ${MESSAGE_PROCESSING_POLL_INTERVAL_SECONDS:30}
+
+role-assignment-service:
+  url: ${ROLE_ASSIGNMENT_URL:http://role-assignment}
+
+core_case_data:
+  api:
+    search.url: ${CCD_SEARCH_URL:http://wiremock}
+    url: ${CCD_URL:http://ccd-data-store-api}

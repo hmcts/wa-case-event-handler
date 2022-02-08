@@ -119,7 +119,6 @@ public class Common {
 
     }
 
-    //todo: check here
     private void clearAllRoleAssignmentsForUser(String userId, Headers headers) {
         String userToken = headers.getValue(AUTHORIZATION);
         String serviceToken = headers.getValue(SERVICE_AUTHORIZATION);

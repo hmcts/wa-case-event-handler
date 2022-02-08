@@ -36,7 +36,6 @@ import static com.fasterxml.jackson.databind.PropertyNamingStrategy.LOWER_CAMEL_
 @ActiveProfiles(profiles = {"local", "functional"})
 public abstract class SpringBootFunctionalBaseTest {
 
-    //todo: check here
     public static final String SERVICE_AUTHORIZATION = "ServiceAuthorization";
     public static final String AUTHORIZATION = "Authorization";
     public static final String CAMUNDA_DATE_REQUEST_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS+0000";

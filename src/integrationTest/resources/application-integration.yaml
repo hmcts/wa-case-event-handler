@@ -1,0 +1,15 @@
+idam:
+  test:
+    username: ${TEST_WA_LAW_FIRM_USERNAME:some_user@hmcts.net}
+    password: ${TEST_WA_LAW_FIRM_PASSWORD:password}
+  api:
+    baseUrl: ${IDAM_URL:http://sidam-api}
+
+role-assignment-service:
+  url: http://localhost:8888
+
+document_management:
+  url: ${DM_STORE_URL:http://local-dm-store}
+
+ccd_gateway:
+  url: ${CCD_GW_URL:http://ccd-api-gateway}

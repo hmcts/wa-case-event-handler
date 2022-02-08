@@ -9,3 +9,8 @@ feign:
 
 
 spring.jackson.serialization.indent_output: true
+
+idam:
+  test:
+    username: ${TEST_WA_LAW_FIRM_USERNAME:some_user@hmcts.net}
+    password: ${TEST_WA_LAW_FIRM_PASSWORD:password}

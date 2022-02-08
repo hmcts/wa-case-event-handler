@@ -22,7 +22,7 @@ import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
-@ActiveProfiles("db")
+@ActiveProfiles(profiles = {"db", "integration"})
 class CcdMessageProcessorExecutorTest {
 
     private static final String MESSAGE_ID = "message id";
@@ -58,7 +58,7 @@ class CcdMessageProcessorExecutorTest {
     void test_create_database_message_consumer_triggers_database_message_consumer() {
         await().until(
             () -> getLogMessageOccurrenceCount(SELECT_LOG_MESSAGE) > 1
-                    && getLogMessageOccurrenceCount(PROCESS_LOG_MESSAGE) > 1
+                  && getLogMessageOccurrenceCount(PROCESS_LOG_MESSAGE) > 1
         );
     }
 
@@ -66,11 +66,11 @@ class CcdMessageProcessorExecutorTest {
     void test_create_database_message_consumer_triggers_database_message_consumer_repeatedly() {
         await().atMost(11, TimeUnit.SECONDS).until(
             () -> getLogMessageOccurrenceCount(SELECT_LOG_MESSAGE) >= 3L
-                    && getLogMessageOccurrenceCount(PROCESS_LOG_MESSAGE) >= 3L
+                  && getLogMessageOccurrenceCount(PROCESS_LOG_MESSAGE) >= 3L
         );
     }
 
-    private long getLogMessageOccurrenceCount(String expectedMessage)  {
+    private long getLogMessageOccurrenceCount(String expectedMessage) {
         List<ILoggingEvent> logsList = listAppender.list;
         return logsList.stream().filter(x -> x.getFormattedMessage().equals(expectedMessage)).count();
     }

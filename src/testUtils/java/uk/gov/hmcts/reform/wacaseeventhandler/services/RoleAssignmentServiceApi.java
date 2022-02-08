@@ -16,8 +16,6 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTes
 @FeignClient(
     name = "role-assignment-api",
     url = "${role-assignment-service.url}"
-    //todo: check here
-    //configuration = CamelCaseFeignConfiguration.class
 )
 @SuppressWarnings("checkstyle:LineLength")
 public interface RoleAssignmentServiceApi {
