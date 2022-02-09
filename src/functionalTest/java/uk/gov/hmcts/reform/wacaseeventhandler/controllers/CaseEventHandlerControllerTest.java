@@ -49,6 +49,13 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     protected String taskCompletionStatus;
     protected TestAuthenticationCredentials caseworkerCredentials;
 
+
+    private String caseId1Task1Id;
+    private String caseId1Task2Id;
+    private String caseId2Task1Id;
+    private String caseId2Task2Id;
+
+
     @Autowired
     private DueDateService dueDateService;
 
@@ -58,6 +65,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
         caseIds = new ArrayList<>();
         taskIds = new ArrayList<>();
+        caseId1Task1Id = "";
+        caseId1Task2Id = "";
+        caseId2Task1Id = "";
+        caseId2Task2Id = "";
     }
 
     @After
@@ -87,13 +98,13 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
-        String taskId = taskFound
+        caseId1Task1Id = taskFound
             .then().assertThat()
             .body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
 
-        Response response = findTaskDetailsForGivenTaskId(taskId);
+        Response response = findTaskDetailsForGivenTaskId(caseId1Task1Id);
 
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
@@ -112,7 +123,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("warningList.value", is("[]"));
 
         taskCompletionStatus = "completed";
-        taskIds.add(taskId);
+        taskIds.add(caseId1Task1Id);
     }
 
     @Test
@@ -133,13 +144,13 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
-        String taskId = taskFound
+        caseId1Task1Id = taskFound
             .then().assertThat()
             .body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
 
-        Response response = findTaskDetailsForGivenTaskId(taskId);
+        Response response = findTaskDetailsForGivenTaskId(caseId1Task1Id);
 
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
@@ -162,7 +173,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("warningList.value", is("[]"));
 
         taskCompletionStatus = "completed";
-        taskIds.add(taskId);
+        taskIds.add(caseId1Task1Id);
     }
 
     @Test
@@ -184,13 +195,13 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
-        String taskId = taskFound
+        caseId1Task1Id = taskFound
             .then().assertThat()
             .body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
 
-        Response response = findTaskDetailsForGivenTaskId(taskId);
+        Response response = findTaskDetailsForGivenTaskId(caseId1Task1Id);
 
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
@@ -214,7 +225,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("warningList.value", is("[]"));
 
         taskCompletionStatus = "completed";
-        taskIds.add(taskId);
+        taskIds.add(caseId1Task1Id);
     }
 
     @Test
@@ -236,7 +247,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
-        String taskId = taskFound
+        caseId1Task1Id = taskFound
             .then().assertThat()
             .body("[0].id", notNullValue())
             .extract()
@@ -252,7 +263,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // Assert the task was deleted
         assertTaskDoesNotExist(caseId, "testTaskIdForMultipleCategories");
-        assertTaskDeleteReason(taskId, "deleted");
+        assertTaskDeleteReason(caseId1Task1Id, "deleted");
     }
 
     @Test
@@ -274,7 +285,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
-        String taskId = taskFound
+        caseId1Task1Id = taskFound
             .then().assertThat()
             .body("[0].id", notNullValue())
             .extract()
@@ -289,10 +300,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         );
 
         // Assert the task warning was set
-        assertTaskHasWarnings(caseId, taskId, true);
+        assertTaskHasWarnings(caseId, caseId1Task1Id, true);
 
         taskCompletionStatus = "completed";
-        taskIds.add(taskId);
+        taskIds.add(caseId1Task1Id);
 
     }
 
@@ -322,26 +333,26 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         Response taskFound = findTasksByCaseId(caseId, 2);
 
-        String taskId1 = taskFound
+        caseId1Task1Id = taskFound
             .then().assertThat()
             .body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
 
-        Response response = findTaskDetailsForGivenTaskId(taskId1);
+        Response response = findTaskDetailsForGivenTaskId(caseId1Task1Id);
 
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .body("taskId.value", is("checkFeeStatus"));
 
-        String taskId2 = taskFound
+        caseId1Task2Id = taskFound
             .then().assertThat()
             .body("[1].id", notNullValue())
             .extract()
             .path("[1].id");
 
-        response = findTaskDetailsForGivenTaskId(taskId2);
+        response = findTaskDetailsForGivenTaskId(caseId1Task2Id);
 
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
@@ -349,7 +360,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("taskId.value", is("reviewTheAppeal"));
 
         taskCompletionStatus = "completed";
-        taskIds = List.of(taskId1, taskId2);
+        taskIds = List.of(caseId1Task1Id, caseId1Task2Id);
     }
 
     @Test
@@ -367,7 +378,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String caseIdForTask1 = taskVariables.getCaseId();
 
         String taskIdDmnColumn = "decideOnTimeExtension";
-        String task1Id = createTaskWithId(
+        caseId1Task1Id = createTaskWithId(
             caseIdForTask1,
             "submitTimeExtension",
             "", "",
@@ -376,7 +387,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         );
 
         // test for workingDaysAllowed  = 2
-        Response responseTaskDetails = findTaskDetailsForGivenTaskId(task1Id);
+        Response responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task1Id);
         assertDelayDuration(responseTaskDetails);
 
         // create task2
@@ -385,7 +396,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertNotNull(taskVariables.getCaseId());
         caseIds.add(taskVariables.getCaseId());
         String caseIdForTask2 = taskVariables.getCaseId();
-        String task2Id = createTaskWithId(
+        caseId1Task2Id = createTaskWithId(
             caseIdForTask2,
             "submitTimeExtension",
             "", "", false,
@@ -393,7 +404,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         );
 
         // test for workingDaysAllowed  = 2
-        responseTaskDetails = findTaskDetailsForGivenTaskId(task2Id);
+        responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task2Id);
         assertDelayDuration(responseTaskDetails);
 
         // Then cancel the task1
@@ -405,11 +416,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // Assert the task1 is deleted
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-        assertTaskDeleteReason(task1Id, "deleted");
+        assertTaskDeleteReason(caseId1Task1Id, "deleted");
 
         // tear down task2
         taskCompletionStatus = "completed";
-        taskIds.add(task2Id);
+        taskIds = List.of(caseId1Task1Id, caseId1Task2Id);
     }
 
     @Test
@@ -424,7 +435,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         caseIds.add(taskVariables.getCaseId());
         String caseIdForTask1 = taskVariables.getCaseId();
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
-        String task1Id = createTaskWithId(
+        caseId1Task1Id = createTaskWithId(
             caseIdForTask1,
             "requestRespondentEvidence",
             "", "awaitingRespondentEvidence", false,
@@ -439,7 +450,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // Assert the task1 is deleted
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-        assertTaskDeleteReason(task1Id, "deleted");
+        assertTaskDeleteReason(caseId1Task1Id, "deleted");
+        taskCompletionStatus = "deleted";
+        taskIds.add(caseId1Task1Id);
     }
 
     @Test
@@ -457,7 +470,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
 
         // task1
-        String task1Id = createTaskWithId(
+        caseId1Task1Id = createTaskWithId(
             caseIdForTask1,
             "requestRespondentEvidence",
             "", "awaitingRespondentEvidence", false,
@@ -472,11 +485,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         waitSeconds(5);
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
 
-        assertTaskDeleteReason(task1Id, "deleted");
+        assertTaskDeleteReason(caseId1Task1Id, "deleted");
 
         // add tasks to tear down.
         taskCompletionStatus = "deleted";
-        taskIds = List.of(task1Id);
+        taskIds = List.of(caseId1Task1Id);
     }
 
     @Test
@@ -490,7 +503,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String task1IdDmnColumn = "reviewTheAppeal";
 
         // task1 with category Case progression
-        String task1Id = createTaskWithId(
+        caseId1Task1Id = createTaskWithId(
             caseIdForTask1,
             "submitAppeal",
             "", "appealSubmitted", false,
@@ -499,7 +512,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // task2 with category Time Extension
         String task2IdDmnColumn = "decideOnTimeExtension";
-        String task2Id = createTaskWithId(
+        caseId1Task2Id = createTaskWithId(
             caseIdForTask1,
             "submitTimeExtension",
             "", "", false,
@@ -515,12 +528,12 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertTaskDoesNotExist(caseIdForTask1, task1IdDmnColumn);
         assertTaskDoesNotExist(caseIdForTask1, task2IdDmnColumn);
 
-        assertTaskDeleteReason(task1Id, "deleted");
-        assertTaskDeleteReason(task2Id, "deleted");
+        assertTaskDeleteReason(caseId1Task1Id, "deleted");
+        assertTaskDeleteReason(caseId1Task2Id, "deleted");
 
         // add tasks to tear down.
         taskCompletionStatus = "deleted";
-        taskIds = List.of(task1Id, task2Id);
+        taskIds = List.of(caseId1Task1Id, caseId1Task2Id);
     }
 
     @Test
@@ -531,7 +544,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         caseIds.add(taskVariables.getCaseId());
         String caseIdForTask1 = taskVariables.getCaseId();
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
-        final String task1Id = createTaskWithId(caseIdForTask1, "requestRespondentEvidence",
+        caseId1Task1Id = createTaskWithId(caseIdForTask1, "requestRespondentEvidence",
             "", "awaitingRespondentEvidence",
             false, taskIdDmnColumn, "IA", "Asylum"
         );
@@ -542,7 +555,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
 
-        assertTaskDeleteReason(task1Id, "deleted");
+        assertTaskDeleteReason(caseId1Task1Id, "deleted");
     }
 
     @Test
@@ -554,7 +567,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         caseIds.add(taskVariables.getCaseId());
         String caseIdForTask1 = taskVariables.getCaseId();
         String taskIdDmnColumn = "followUpOverdueCaseBuilding";
-        final String task1Id = createTaskWithId(caseIdForTask1, "requestCaseBuilding",
+        caseId1Task1Id = createTaskWithId(caseIdForTask1, "requestCaseBuilding",
             "", "caseBuilding",
             true, taskIdDmnColumn, "IA", "Asylum"
         );
@@ -563,7 +576,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         sendMessage(caseIdForTask1, "buildCase", "caseBuilding", "", false, "IA", "Asylum");
 
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-        assertTaskDeleteReason(task1Id, "deleted");
+        assertTaskDeleteReason(caseId1Task1Id, "deleted");
     }
 
     @Test
@@ -574,7 +587,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertNotNull(taskVariables.getCaseId());
         caseIds.add(taskVariables.getCaseId());
         String caseIdForTask1 = taskVariables.getCaseId();
-        String task1Id = createTaskWithId(
+        caseId1Task1Id = createTaskWithId(
             caseIdForTask1,
             "requestCaseBuilding",
             "", "caseBuilding", false,
@@ -595,10 +608,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .extract()
             .path("[1].id");
 
-        assertTaskHasWarnings(caseIdForTask1, task1Id, true);
+        assertTaskHasWarnings(caseIdForTask1, caseId1Task1Id, true);
 
         taskCompletionStatus = "completed";
-        taskIds = List.of(task1Id, taskId2);
+        taskIds = List.of(caseId1Task1Id, taskId2);
     }
 
     @Test
@@ -614,10 +627,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             "caseUnderReview", false, "IA", "Asylum"
         );
 
-        Response response = findTasksByCaseId(
-            caseIdForTask1, 1);
+        Response response = findTasksByCaseId(caseIdForTask1, 1);
 
-        String task1Id = response
+        caseId1Task1Id = response
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())
@@ -625,7 +637,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .path("[0].id");
 
         // test for workingDaysAllowed  = 5
-        Response responseTaskDetails = findTaskDetailsForGivenTaskId(task1Id);
+        Response responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task1Id);
         assertDelayDuration(responseTaskDetails);
 
         // initiate task2, category (Case progression)
@@ -633,10 +645,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             "caseUnderReview", false, "IA", "Asylum"
         );
 
-        response = findTasksByCaseId(
-            caseIdForTask1, 2);
+        response = findTasksByCaseId(caseIdForTask1, 2);
 
-        final String task2Id = response
+        final String caseId1Task2Id = response
             .then()
             .body("size()", is(2))
             .assertThat().body("[1].id", notNullValue())
@@ -651,19 +662,19 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         response = findTasksByCaseId(
             caseIdForTask1, 3);
 
-        final String task3Id = response
+        final String caseId1Task3Id = response
             .then()
             .body("size()", is(3))
             .assertThat().body("[2].id", notNullValue())
             .extract()
             .path("[2].id");
         // check for warnings flag on both the tasks
-        assertTaskHasWarnings(caseIdForTask1, task1Id, true);
-        assertTaskHasWarnings(caseIdForTask1, task2Id, true);
+        assertTaskHasWarnings(caseIdForTask1, caseId1Task1Id, true);
+        assertTaskHasWarnings(caseIdForTask1, caseId1Task2Id, true);
 
         // tear down all tasks
         taskCompletionStatus = "completed";
-        taskIds = List.of(task1Id, task2Id, task3Id);
+        taskIds = List.of(caseId1Task1Id, caseId1Task2Id, caseId1Task3Id);
     }
 
     @Test
@@ -683,7 +694,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
 
-        String task1Id = response
+        caseId1Task1Id = response
             .then()
             .assertThat().body("[0].id", notNullValue())
             .extract()
@@ -697,7 +708,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         response = findTasksByCaseId(
             caseIdForTask1, 2);
 
-        String task2Id = response
+        caseId1Task2Id = response
             .then()
             .body("size()", is(2))
             .assertThat().body("[1].id", notNullValue())
@@ -713,18 +724,18 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         response = findTasksByCaseId(caseIdForTask1, 3);
 
-        String task3Id = response
+        String caseId1Task3Id = response
             .then().assertThat()
             .body("[2].id", notNullValue())
             .extract()
             .path("[2].id");
         // check for warnings flag on both the tasks
-        assertTaskHasWarnings(caseIdForTask1, task1Id, true);
-        assertTaskHasWarnings(caseIdForTask1, task2Id, true);
+        assertTaskHasWarnings(caseIdForTask1, caseId1Task1Id, true);
+        assertTaskHasWarnings(caseIdForTask1, caseId1Task2Id, true);
 
         // tear down all tasks
         taskCompletionStatus = "completed";
-        taskIds = List.of(task1Id, task2Id, task3Id);
+        taskIds = List.of(caseId1Task1Id, caseId1Task2Id, caseId1Task3Id);
     }
 
     @Test
@@ -734,7 +745,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertNotNull(taskVariables.getCaseId());
         caseIds.add(taskVariables.getCaseId());
         String caseId = taskVariables.getCaseId();
-        final String taskId = createTaskWithId(
+        caseId1Task1Id = createTaskWithId(
             caseId,
             "makeAnApplication",
             "",
@@ -745,7 +756,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // add tasks to tear down.
         taskCompletionStatus = "completed";
-        taskIds.add(taskId);
+        taskIds.add(caseId1Task1Id);
     }
 
     @Test
@@ -755,14 +766,14 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertNotNull(taskVariables.getCaseId());
         caseIds.add(taskVariables.getCaseId());
         String caseId = taskVariables.getCaseId();
-        final String taskId = createTaskWithId(caseId, "submitAppeal",
+        caseId1Task1Id = createTaskWithId(caseId, "submitAppeal",
             "", "appealSubmitted",
             false, "reviewTheAppeal", "IA", "Asylum"
         );
 
         // add tasks to tear down.
         taskCompletionStatus = "completed";
-        taskIds.add(taskId);
+        taskIds.add(caseId1Task1Id);
     }
 
     @Test
@@ -775,13 +786,13 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertNotNull(taskVariables.getCaseId());
         caseIds.add(taskVariables.getCaseId());
         String caseIdForTask1 = taskVariables.getCaseId();
-        final String taskId = createTaskWithId(caseIdForTask1, "submitAppeal",
+        caseId1Task1Id = createTaskWithId(caseIdForTask1, "submitAppeal",
             "", "appealSubmitted",
             false, "reviewTheAppeal", "IA", "Asylum"
         );
 
         // test for workingDaysAllowed  = 2
-        Response responseTaskDetails = findTaskDetailsForGivenTaskId(taskId);
+        Response responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task1Id);
         assertDelayDuration(responseTaskDetails);
 
         taskVariables = common.createCase();
@@ -789,14 +800,14 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertNotNull(taskVariables.getCaseId());
         caseIds.add(taskVariables.getCaseId());
         String caseIdForTask2 = taskVariables.getCaseId();
-        final String task2Id = createTaskWithId(caseIdForTask2, "submitAppeal",
+        caseId1Task2Id = createTaskWithId(caseIdForTask2, "submitAppeal",
             "", "appealSubmitted",
             false, "reviewTheAppeal", "IA", "Asylum"
         );
 
         // add tasks to tear down.
         taskCompletionStatus = "completed";
-        taskIds = List.of(taskId, task2Id);
+        taskIds = List.of(caseId1Task1Id, caseId1Task2Id);
     }
 
     @Test
@@ -810,7 +821,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // caseId1 with category Followup overdue
         // task1
-        final String caseId1Task1Id = createTaskWithId(
+        caseId1Task1Id = createTaskWithId(
             caseId1,
             "requestRespondentEvidence",
             "", "awaitingRespondentEvidence", false,
@@ -818,13 +829,13 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         );
 
         // caseId2 with category Case progression
-        String taskId2DmnColumn = "reviewAppealSkeletonArgument";
         taskVariables = common.createCase();
         assertNotNull(taskVariables);
         assertNotNull(taskVariables.getCaseId());
         caseIds.add(taskVariables.getCaseId());
         String caseId2 = taskVariables.getCaseId();
-        final String caseId2Task1Id = createTaskWithId(caseId2, "submitCase",
+        String taskId2DmnColumn = "reviewAppealSkeletonArgument";
+        caseId2Task1Id = createTaskWithId(caseId2, "submitCase",
             "", "caseUnderReview",
             false, taskId2DmnColumn, "IA", "Asylum"
         );
@@ -857,7 +868,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         caseIds.add(taskVariables.getCaseId());
         String caseId1 = taskVariables.getCaseId();
         String taskIdDmnColumn = "attendCma";
-        final String caseId1Task1Id = createTaskWithId(
+        caseId1Task1Id = createTaskWithId(
             caseId1,
             "listCma",
             "", "cmaListed", false,
@@ -865,13 +876,13 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         );
 
         //caseId1 with category Case progression
-        String taskId2DmnColumn = "reviewRespondentResponse";
         taskVariables = common.createCase();
         assertNotNull(taskVariables);
         assertNotNull(taskVariables.getCaseId());
         caseIds.add(taskVariables.getCaseId());
         String caseId2 = taskVariables.getCaseId();
-        final String caseId2Task1Id = createTaskWithId(caseId2, "uploadHomeOfficeAppealResponse",
+        String taskId2DmnColumn = "reviewRespondentResponse";
+        caseId2Task1Id = createTaskWithId(caseId2, "uploadHomeOfficeAppealResponse",
             "", "respondentReview",
             false, taskId2DmnColumn, "IA", "Asylum"
         );
@@ -883,12 +894,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         Response taskFound = findTasksByCaseId(caseId1, 2);
 
-        String caseId1Task2Id = taskFound
+        caseId1Task2Id = taskFound
             .then().assertThat()
             .body("[1].id", notNullValue())
             .extract()
             .path("[1].id");
-
 
         sendMessage(caseId2, "makeAnApplication",
             "", "", false, "IA", "Asylum"
@@ -897,7 +907,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         taskFound = findTasksByCaseId(caseId2, 2);
 
-        String caseId2Task2Id = taskFound
+        caseId2Task2Id = taskFound
             .then().assertThat()
             .body("[1].id", notNullValue())
             .extract()
@@ -914,6 +924,12 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     @Test
     public void given_an_event_when_directionDueDate_is_empty_then_task_should_start_without_delay() {
 
+        TestVariables taskVariables = common.createCase();
+        assertNotNull(taskVariables);
+        assertNotNull(taskVariables.getCaseId());
+        caseIds.add(taskVariables.getCaseId());
+        String caseIdForTask = taskVariables.getCaseId();
+
         Map<String, Object> dataMap = Map.of(
             "lastModifiedDirection", Map.of("dateDue", ""),
             "appealType", "protection"
@@ -922,12 +938,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         AdditionalData additionalData = AdditionalData.builder()
             .data(dataMap)
             .build();
-
-        TestVariables taskVariables = common.createCase();
-        assertNotNull(taskVariables);
-        assertNotNull(taskVariables.getCaseId());
-        caseIds.add(taskVariables.getCaseId());
-        String caseIdForTask = taskVariables.getCaseId();
+        
         EventInformation eventInformation = EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
             .eventTimeStamp(LocalDateTime.now().minusDays(1))
@@ -943,14 +954,14 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         callRestEndpoint(s2sToken, eventInformation);
 
-        final String taskId = findTaskForGivenCaseId(
+        caseId1Task1Id = findTaskForGivenCaseId(
             caseIdForTask,
             "followUpOverdueCaseBuilding"
         );
 
         // add tasks to tear down.
         taskCompletionStatus = "completed";
-        taskIds.add(taskId);
+        taskIds.add(caseId1Task1Id);
     }
 
     @Test
@@ -985,14 +996,14 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         callRestEndpoint(s2sToken, eventInformation);
 
-        final String taskId = findTaskForGivenCaseId(
+        caseId1Task1Id = findTaskForGivenCaseId(
             caseIdForTask,
             "followUpNonStandardDirection"
         );
 
         // add tasks to tear down.
         taskCompletionStatus = "completed";
-        taskIds.add(taskId);
+        taskIds.add(caseId1Task1Id);
     }
 
     @Test
@@ -1006,7 +1017,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         // caseId1 with category Followup overdue
         // task1
-        final String caseId1Task1Id = createTaskWithId(
+        caseId1Task1Id = createTaskWithId(
             caseId1,
             "requestCaseBuilding",
             "", "caseBuilding", false,
@@ -1029,14 +1040,14 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertNotNull(taskVariables.getCaseId());
         caseIds.add(taskVariables.getCaseId());
         String caseId1 = taskVariables.getCaseId();
-        final String taskId = createTaskWithId(caseId1, "requestHearingRequirementsFeature",
+        caseId1Task1Id = createTaskWithId(caseId1, "requestHearingRequirementsFeature",
             "", "submitHearingRequirements",
             false, "followUpOverdueHearingRequirements", "IA", "Asylum"
         );
 
         // add tasks to tear down.
         taskCompletionStatus = "completed";
-        taskIds.add(taskId);
+        taskIds.add(caseId1Task1Id);
     }
 
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {

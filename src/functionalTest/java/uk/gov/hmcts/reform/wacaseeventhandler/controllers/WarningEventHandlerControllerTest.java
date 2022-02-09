@@ -291,12 +291,12 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         );
 
         //caseId1 with category Case progression
-        String taskId2DmnColumn = "reviewRespondentResponse";
         taskVariables = common.createCase();
         assertNotNull(taskVariables);
         assertNotNull(taskVariables.getCaseId());
         caseIds.add(taskVariables.getCaseId());
         String caseId2 = taskVariables.getCaseId();
+        String taskId2DmnColumn = "reviewRespondentResponse";
         final String caseId2Task1Id = createTaskWithId(
             caseId2,
             "uploadHomeOfficeAppealResponse",
