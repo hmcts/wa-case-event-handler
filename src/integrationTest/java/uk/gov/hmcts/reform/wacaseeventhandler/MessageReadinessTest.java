@@ -35,7 +35,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("db")
-@TestPropertySource(properties = {"azure.servicebus.enableASB=true"})
+@TestPropertySource(properties = {"azure.servicebus.enableASB=true",
+        "azure.servicebus.connection-string="
+                + "Endpoint=sb://REPLACE_ME/;SharedAccessKeyName=REPLACE_ME;SharedAccessKey=REPLACE_ME",
+        "azure.servicebus.topic-name=test",
+        "azure.servicebus.subscription-name=test",
+        "azure.servicebus.ccd-case-events-subscription-name=test",
+        "azure.servicebus.retry-duration=2"})
 public class MessageReadinessTest {
 
     private static final boolean DLQ_EMPTY = true;
@@ -101,7 +107,7 @@ public class MessageReadinessTest {
 
         await().pollInterval(500, MILLISECONDS)
                 .atMost(45, SECONDS)
-                .untilAsserted(() ->  checkMessagesInState(List.of(messageId, messageId2), expectedState));
+                .untilAsserted(() -> checkMessagesInState(List.of(messageId, messageId2), expectedState));
     }
 
 
