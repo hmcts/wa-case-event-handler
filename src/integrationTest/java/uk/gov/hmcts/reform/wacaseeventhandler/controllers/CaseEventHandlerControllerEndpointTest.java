@@ -191,13 +191,23 @@ class CaseEventHandlerControllerEndpointTest {
         }
 
         @Test
-        void post_case_event_message_should_return_400_when_messageId_has_been_stored_already() throws Exception {
+        void post_case_event_message_should_update_delivery_count_when_messageId_already_stored() throws Exception {
 
             String messageId1 = randomMessageId();
 
             postMessage(messageId1, status().isCreated(), false);
 
-            postMessage(messageId1, status().isBadRequest(), false);
+            final MvcResult mvcResult = postMessage(messageId1, status().isCreated(), false);
+
+            CaseEventMessage response =
+                    OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(), CaseEventMessage.class);
+            assertEquals(1, response.getDeliveryCount());
+
+            final MvcResult mvcResult2 = postMessage(messageId1, status().isCreated(), false);
+
+            CaseEventMessage response2 =
+                    OBJECT_MAPPER.readValue(mvcResult2.getResponse().getContentAsString(), CaseEventMessage.class);
+            assertEquals(2, response2.getDeliveryCount());
         }
 
         @Test
