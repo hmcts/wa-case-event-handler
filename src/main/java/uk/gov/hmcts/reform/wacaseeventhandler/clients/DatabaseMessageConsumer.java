@@ -12,13 +12,14 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
+import uk.gov.hmcts.reform.wacaseeventhandler.util.UserIdParser;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.DLQ_DB_INSERT;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.DLQ_DB_PROCESS;
 
 @Slf4j
 @Component
@@ -57,22 +58,31 @@ public class DatabaseMessageConsumer implements Runnable {
     @SuppressWarnings("squid:S2189")
     @Transactional
     public void run() {
-        if (flagProvider.getBooleanValue(DLQ_DB_INSERT)) {
-            CaseEventMessage caseEventMessage = selectNextMessage();
+        CaseEventMessageEntity caseEventMessageEntity = selectNextMessage();
+        if (caseEventMessageEntity != null
+                && flagProvider.getBooleanValue(DLQ_DB_PROCESS, getUserId(caseEventMessageEntity))) {
+            final CaseEventMessage caseEventMessage = caseEventMessageMapper
+                    .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
             processMessage(caseEventMessage);
         } else {
             log.trace("Feature flag '{}' evaluated to false. Did not start message processor thread",
-                    DLQ_DB_INSERT.getKey());
+                    DLQ_DB_PROCESS.getKey());
         }
     }
 
-    private CaseEventMessage selectNextMessage() {
+    private String getUserId(CaseEventMessageEntity caseEventMessageEntity) {
+        final String messageContent = caseEventMessageEntity.getMessageContent();
+        if (messageContent != null) {
+            return UserIdParser.getUserId(messageContent);
+        }
+
+        return null;
+    }
+
+    private CaseEventMessageEntity selectNextMessage() {
         log.trace("Selecting next message for processing from the database");
 
-        final CaseEventMessageEntity nextAvailableMessageReadyToProcess =
-                caseEventMessageRepository.getNextAvailableMessageReadyToProcess();
-        return caseEventMessageMapper
-                .mapToCaseEventMessage(SerializationUtils.clone(nextAvailableMessageReadyToProcess));
+        return caseEventMessageRepository.getNextAvailableMessageReadyToProcess();
     }
 
     private void processMessage(CaseEventMessage caseEventMessage) {

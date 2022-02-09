@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.repository;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.After;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
-import uk.gov.hmcts.reform.wacaseeventhandler.util.TestFixtures;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -31,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.fail;
+import static uk.gov.hmcts.reform.wacaseeventhandler.util.TestFixtures.createCaseEventMessageEntity;
 
 @SpringBootTest
 @ActiveProfiles("db")
@@ -177,7 +176,7 @@ class CaseEventMessageRepositoryTest {
     @DisplayName("Should update specified message state")
     void should_update_multiple_case_event_message_states() {
 
-        final CaseEventMessageEntity caseEventMessageEntity = TestFixtures.createCaseEventMessageEntity();
+        final CaseEventMessageEntity caseEventMessageEntity = createCaseEventMessageEntity();
         caseEventMessageRepository.save(caseEventMessageEntity);
 
         final List<CaseEventMessageEntity> allMessagesInNewState =
@@ -295,8 +294,8 @@ class CaseEventMessageRepositoryTest {
     }
 
     @Test
-    void should_insert_case_message() throws JsonProcessingException {
-        CaseEventMessageEntity caseEventMessageEntity = TestFixtures.createCaseEventMessageEntity();
+    void should_insert_case_message() {
+        CaseEventMessageEntity caseEventMessageEntity = createCaseEventMessageEntity();
 
         caseEventMessageRepository.save(caseEventMessageEntity);
 
@@ -310,13 +309,13 @@ class CaseEventMessageRepositoryTest {
     }
 
     @Test
-    void should_insert_case_message_check_sequence() throws JsonProcessingException {
-        CaseEventMessageEntity caseEventMessageEntity1 = TestFixtures.createCaseEventMessageEntity();
+    void should_insert_case_message_check_sequence() {
+        CaseEventMessageEntity caseEventMessageEntity1 = createCaseEventMessageEntity();
         caseEventMessageEntity1.setMessageId("messageId1");
 
         caseEventMessageRepository.save(caseEventMessageEntity1);
 
-        CaseEventMessageEntity caseEventMessageEntity2 = TestFixtures.createCaseEventMessageEntity();
+        CaseEventMessageEntity caseEventMessageEntity2 = createCaseEventMessageEntity();
         caseEventMessageEntity2.setMessageId("messageId2");
         caseEventMessageRepository.save(caseEventMessageEntity2);
 
@@ -343,7 +342,7 @@ class CaseEventMessageRepositoryTest {
     @Test
     @DisplayName("Should select all message with NEW state, in 'sequence' order")
     @Transactional
-    void should_select_new_case_event_messages_in_sequence_order_2() {
+    void should_select_new_case_event_messages_in_sequence_order() {
 
         List<Long> expectedSequenceOrder =  new ArrayList<>();
         List<CaseEventMessageEntity> collect = IntStream.range(0, 10)
@@ -351,7 +350,7 @@ class CaseEventMessageRepositoryTest {
                 .sorted(Collections.reverseOrder())
                 .map(num ->  {
                     expectedSequenceOrder.add(valueOf(num + 1));
-                    return TestFixtures.createCaseEventMessageEntity();
+                    return createCaseEventMessageEntity();
                 })
                 .collect(Collectors.toList());
 

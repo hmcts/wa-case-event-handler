@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
+import lombok.extern.slf4j.Slf4j;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
@@ -11,6 +12,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Slf4j
 public final class TestFixtures {
 
     private static final String MESSAGE_ID = UUID.randomUUID().toString();
@@ -48,7 +50,7 @@ public final class TestFixtures {
                 NullNode.getInstance(), messageContent, LocalDateTime.now(), 0, LocalDateTime.now(), retryCount);
     }
 
-    public static CaseEventMessageEntity createCaseEventMessageEntity() throws JsonProcessingException {
+    public static CaseEventMessageEntity createCaseEventMessageEntity() {
         CaseEventMessageEntity caseEventMessageEntity = new CaseEventMessageEntity();
         caseEventMessageEntity.setMessageId(UUID.randomUUID().toString());
         caseEventMessageEntity.setCaseId(UUID.randomUUID().toString());
@@ -59,7 +61,12 @@ public final class TestFixtures {
         caseEventMessageEntity.setDeliveryCount(0);
         caseEventMessageEntity.setRetryCount(0);
         caseEventMessageEntity.setMessageContent(String.format("{\"UserId\": \"%s\"}", USER_ID));
-        caseEventMessageEntity.setMessageProperties(new ObjectMapper().readTree("{\"property1\":\"test1\"}"));
+        try {
+            caseEventMessageEntity.setMessageProperties(new ObjectMapper().readTree("{\"property1\":\"test1\"}"));
+        } catch (JsonProcessingException e) {
+            log.error("failed to set message properties on CaseEventMessageEntity");
+        }
+
         caseEventMessageEntity.setHoldUntil(LocalDateTime.now());
         caseEventMessageEntity.setSequence(10L);
         return caseEventMessageEntity;

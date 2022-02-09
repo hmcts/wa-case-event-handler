@@ -8,10 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class UserIdParserTest {
 
     @Test
-    void should_get_user_id_from_message_sting() {
-    }
-
-    @Test
     void should_return_null_when_message_is_null() {
         assertNull(UserIdParser.getUserId(null));
     }

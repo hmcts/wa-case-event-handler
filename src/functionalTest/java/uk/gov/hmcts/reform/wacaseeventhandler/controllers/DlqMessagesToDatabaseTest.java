@@ -108,7 +108,6 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
                 .when()
                 .queryParam("case_id", caseId)
                 .queryParam("from_dlq", true)
-                .queryParam("state", MessageState.NEW.name())
                 .get("/messages/query");
 
         return response.body().as(EventMessageQueryResponse.class);
