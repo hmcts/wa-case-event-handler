@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -51,7 +52,7 @@ class CcdMessageProcessorExecutorTest {
         CaseEventMessageEntity caseEventMessageEntity = new CaseEventMessageEntity();
         caseEventMessageEntity.setMessageId(MESSAGE_ID);
         when(caseEventMessageRepository.getNextAvailableMessageReadyToProcess()).thenReturn(caseEventMessageEntity);
-        when(featureFlagProvider.getBooleanValue(FeatureFlag.DLQ_DB_INSERT)).thenReturn(true);
+        when(featureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
     }
 
     @Test
