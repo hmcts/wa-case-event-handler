@@ -50,6 +50,7 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
     @Test
     public void should_save_ccd_event_using_test_rest_endpoints() {
         String messageId = randomMessageId();
+        //todo: add create case here
         String caseIdForTask = RandomStringUtils.randomNumeric(16);
         String eventInstanceId = UUID.randomUUID().toString();
 
@@ -235,7 +236,7 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
         String messageId1 = createMessage(eventTimestamp1, caseId1, FROM_DLQ);
         String messageId2 = createMessage(eventTimestamp2, caseId1, FROM_DLQ);
 
-        deleteEventToRestEndpoint(messageId1,  s2sToken)
+        deleteEventToRestEndpoint(messageId1, s2sToken)
             .then()
             .statusCode(HttpStatus.OK.value());
 
@@ -254,7 +255,7 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
     public void should_delete_message_and_get_404_if_not_found() throws Exception {
         String messageId1 = RandomStringUtils.randomNumeric(16);
 
-        deleteEventToRestEndpoint(messageId1,  s2sToken)
+        deleteEventToRestEndpoint(messageId1, s2sToken)
             .then()
             .statusCode(HttpStatus.NOT_FOUND.value());
     }
@@ -334,9 +335,9 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
 
     private Map<String, Object> dataAsMap() {
         return Map.of(
-                "lastModifiedDirection", Map.of("dateDue", ""),
-                "appealType", "protection"
-            );
+            "lastModifiedDirection", Map.of("dateDue", ""),
+            "appealType", "protection"
+        );
     }
 
     private String randomMessageId() {

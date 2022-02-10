@@ -35,39 +35,40 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
         return "" + ThreadLocalRandom.current().nextLong(1000000);
     }
 
+    //todo: add create case
     protected String randomCaseId() {
         return RandomStringUtils.randomNumeric(16);
     }
 
     private AdditionalData additionalData() {
         return AdditionalData.builder()
-                .data(dataAsMap())
-                .build();
+            .data(dataAsMap())
+            .build();
     }
 
     @NotNull
     private Map<String, Object> dataAsMap() {
         return Map.of(
-                "lastModifiedDirection", Map.of("dateDue", ""),
-                "appealType", "protection"
+            "lastModifiedDirection", Map.of("dateDue", ""),
+            "appealType", "protection"
         );
     }
 
     protected void deleteMessagesFromDatabase(List<CaseEventMessage> caseEventMessages) {
         caseEventMessages.stream()
-                .map(CaseEventMessage::getMessageId)
-                .forEach(msgId -> given()
-                                    .contentType(APPLICATION_JSON_VALUE)
-                                    .header(SERVICE_AUTHORIZATION, s2sToken)
-                                    .when()
-                                    .delete("/messages/" + msgId)
-                                    .then()
-                                    .statusCode(HttpStatus.OK.value())
+            .map(CaseEventMessage::getMessageId)
+            .forEach(msgId -> given()
+                .contentType(APPLICATION_JSON_VALUE)
+                .header(SERVICE_AUTHORIZATION, s2sToken)
+                .when()
+                .delete("/messages/" + msgId)
+                .then()
+                .statusCode(HttpStatus.OK.value())
             );
     }
 
     protected void sendMessageToDlq(String messageId, EventInformation eventInformation) {
-        sendMessage(messageId,eventInformation, true);
+        sendMessage(messageId, eventInformation, true);
     }
 
     private void callRestEndpoint(String s2sToken,
@@ -75,16 +76,16 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
                                   boolean sendDirectlyToDlq,
                                   String messageId) {
         given()
-                .log()
-                .all()
-                .contentType(APPLICATION_JSON_VALUE)
-                .header(SERVICE_AUTHORIZATION, s2sToken)
-                .body(asJsonString(eventInformation))
-                .when()
-                .queryParam("from_dlq", sendDirectlyToDlq)
-                .post("/messages/" + messageId)
-                .then()
-                .statusCode(HttpStatus.CREATED.value());
+            .log()
+            .all()
+            .contentType(APPLICATION_JSON_VALUE)
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .body(asJsonString(eventInformation))
+            .when()
+            .queryParam("from_dlq", sendDirectlyToDlq)
+            .post("/messages/" + messageId)
+            .then()
+            .statusCode(HttpStatus.CREATED.value());
     }
 
     protected void sendMessage(String messageId,
