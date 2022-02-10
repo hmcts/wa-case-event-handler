@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.http.client.utils.URIBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -14,8 +13,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformatio
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
@@ -321,7 +318,7 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
             .eventId("sendDirection")
             .newStateId(null)
             .previousStateId(null)
-            .userId("some user Id")
+            .userId("insert_true")
             .additionalData(additionalData())
             .build();
     }
@@ -347,19 +344,16 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
                                                String caseId,
                                                String eventTimestamp,
                                                String fromDlq,
-                                               String s2sToken) throws URISyntaxException {
-        URI uri = new URIBuilder("")
-            .addParameter("states", states)
-            .addParameter("case_id", caseId)
-            .addParameter("event_timestamp", eventTimestamp)
-            .addParameter("from_dlq", fromDlq)
-            .build();
-
+                                               String s2sToken) {
         return given()
             .contentType(APPLICATION_JSON_VALUE)
             .header(SERVICE_AUTHORIZATION, s2sToken)
+            .param("states", states).and()
+            .param("case_id", caseId).and()
+            .param("event_timestamp", eventTimestamp).and()
+            .param("from_dlq", fromDlq)
             .when()
-            .get("/messages/query" + uri.toString());
+            .get("/messages/query");
     }
 
     private Response getEventToRestEndpoint(String messageId,
