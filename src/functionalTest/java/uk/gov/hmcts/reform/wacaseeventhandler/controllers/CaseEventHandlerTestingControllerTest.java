@@ -50,7 +50,6 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
     @Test
     public void should_save_ccd_event_using_test_rest_endpoints() {
         String messageId = randomMessageId();
-        //todo: add create case here
         String caseIdForTask = RandomStringUtils.randomNumeric(16);
         String eventInstanceId = UUID.randomUUID().toString();
 

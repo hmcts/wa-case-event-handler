@@ -35,7 +35,6 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
         return "" + ThreadLocalRandom.current().nextLong(1000000);
     }
 
-    //todo: add create case
     protected String randomCaseId() {
         return RandomStringUtils.randomNumeric(16);
     }

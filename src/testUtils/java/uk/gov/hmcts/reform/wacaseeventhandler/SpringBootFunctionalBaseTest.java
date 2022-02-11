@@ -21,15 +21,19 @@ import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.DocumentManagementFiles;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.GivensBuilder;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.RestApiActions;
+import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.IdamService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wacaseeventhandler.utils.Common;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static com.fasterxml.jackson.databind.PropertyNamingStrategy.LOWER_CAMEL_CASE;
+import static java.util.Objects.requireNonNull;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
@@ -55,6 +59,8 @@ public abstract class SpringBootFunctionalBaseTest {
     @Autowired protected RoleAssignmentServiceApi roleAssignmentServiceApi;
     @Autowired private AuthTokenGenerator authTokenGenerator;
     @Autowired private ApplicationContext applicationContext;
+
+    protected List<String> caseIds;
 
     @Before
     public void setUp() throws IOException {
@@ -93,6 +99,8 @@ public abstract class SpringBootFunctionalBaseTest {
             idamService,
             roleAssignmentServiceApi
         );
+
+        caseIds = new ArrayList<>();
     }
 
     public void waitSeconds(int seconds) {
@@ -101,5 +109,14 @@ public abstract class SpringBootFunctionalBaseTest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    public String getCaseId() {
+        TestVariables taskVariables = common.createCase();
+        requireNonNull(taskVariables, "taskVariables is null");
+        requireNonNull(taskVariables.getCaseId(), "case id is null");
+        caseIds.add(taskVariables.getCaseId());
+        return taskVariables.getCaseId();
+
     }
 }

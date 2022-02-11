@@ -67,7 +67,6 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
     @Test
     public void should_store_dlq_messages_missing_mandatory_fields_in_database_as_unprocessable() {
 
-        //todo: check
         var caseId = randomCaseId();
 
         final EventInformation eventInformation = EventInformation.builder()
