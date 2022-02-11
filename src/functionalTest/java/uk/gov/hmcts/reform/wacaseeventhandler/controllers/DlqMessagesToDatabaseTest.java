@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
-import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.springframework.test.context.ActiveProfiles;
@@ -16,10 +15,9 @@ import java.util.UUID;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static junit.framework.TestCase.assertEquals;
-import static net.serenitybdd.rest.SerenityRest.given;
 import static org.awaitility.Awaitility.await;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @Slf4j
 @ActiveProfiles(profiles = {"local", "functional"})
@@ -50,11 +48,12 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
             .atMost(30, SECONDS)
             .until(
                 () -> {
-                    final EventMessageQueryResponse dlqMessagesFromDb = getDlqMessagesFromDb(caseId);
+                    final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
                     if (dlqMessagesFromDb != null) {
                         final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
                         assertEquals(messageIds.size(), caseEventMessages.size());
+                        assertTrue(caseEventMessages.stream().allMatch(CaseEventMessage::getFromDlq));
 
                         deleteMessagesFromDatabase(caseEventMessages);
                         return true;
@@ -84,7 +83,7 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
                 .pollInterval(500, MILLISECONDS)
                 .atMost(30, SECONDS)
                 .until(() -> {
-                    final EventMessageQueryResponse dlqMessagesFromDb = getDlqMessagesFromDb(caseId);
+                    final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
                     if (dlqMessagesFromDb != null) {
                         final List<CaseEventMessage> caseEventMessages
                                 = dlqMessagesFromDb.getCaseEventMessages();
@@ -99,17 +98,4 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
                 });
     }
 
-    private EventMessageQueryResponse getDlqMessagesFromDb(String caseId) {
-        final Response response = given()
-                .log()
-                .all()
-                .contentType(APPLICATION_JSON_VALUE)
-                .header(SERVICE_AUTHORIZATION, s2sToken)
-                .when()
-                .queryParam("case_id", caseId)
-                .queryParam("from_dlq", true)
-                .get("/messages/query");
-
-        return response.body().as(EventMessageQueryResponse.class);
-    }
 }

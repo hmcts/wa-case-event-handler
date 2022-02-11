@@ -88,6 +88,11 @@ class CaseEventHandlerControllerEndpointTest {
     @Nested
     class CaseEventHandlerControllerPostMessageEndpointTest {
 
+        @BeforeEach
+        public void setup() {
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
+        }
+
         @Test
         void case_event_message_should_be_stored_and_return_200_ok() throws Exception {
 
@@ -317,7 +322,7 @@ class CaseEventHandlerControllerEndpointTest {
 
         @NotNull
         private MvcResult postMessage(String messageId, ResultMatcher created, boolean fromDlq) throws Exception {
-            return mockMvc.perform(post("/messages/" + messageId + (fromDlq ? "?from_dlq=true" : ""))
+            return mockMvc.perform(post("/messages/" + messageId + (fromDlq ? "?from_dlq=true" : "?from_dlq=false"))
                                        .contentType(MediaType.APPLICATION_JSON)
                                        .content(getCaseEventMessage(CASE_REFERENCE)))
                 .andExpect(created)
