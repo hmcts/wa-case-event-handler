@@ -1,9 +1,6 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
+package uk.gov.hmcts.reform.wacaseeventhandler;
 
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.reform.wacaseeventhandler.MessagingTests;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResponse;
@@ -19,15 +16,13 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-@Slf4j
-@ActiveProfiles(profiles = {"local", "functional"})
-public class DlqMessagesToDatabaseTest extends MessagingTests {
+public class AsbMessagesToDatabaseTest extends MessagingTests {
 
     @Test
-    public void should_store_dlq_messages_in_database() {
+    public void should_store_messages_in_database() {
         List<String> messageIds = List.of(randomMessageId(), randomMessageId(), randomMessageId());
 
-        var caseId = randomCaseId();
+        String caseId = randomCaseId();
 
         final EventInformation eventInformation = EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
@@ -39,21 +34,21 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
             .caseTypeId("caseTypeId")
             .build();
 
-        messageIds.forEach(msgId ->
-            sendMessageToDlq(msgId, eventInformation)
-        );
+        messageIds.forEach(msgId -> sendMessageToTopic(msgId, eventInformation));
 
         await().ignoreException(AssertionError.class)
             .pollInterval(500, MILLISECONDS)
             .atMost(30, SECONDS)
             .until(
                 () -> {
-                    final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
+                    final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, false);
                     if (dlqMessagesFromDb != null) {
                         final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
                         assertEquals(messageIds.size(), caseEventMessages.size());
-                        assertTrue(caseEventMessages.stream().allMatch(CaseEventMessage::getFromDlq));
+                        assertTrue(caseEventMessages.stream().map(CaseEventMessage::getState)
+                                       .allMatch(e -> MessageState.NEW == e));
+                        assertTrue(caseEventMessages.stream().noneMatch(CaseEventMessage::getFromDlq));
 
                         deleteMessagesFromDatabase(caseEventMessages);
                         return true;
@@ -64,8 +59,7 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
     }
 
     @Test
-    public void should_store_dlq_messages_missing_mandatory_fields_in_database_as_unprocessable() {
-
+    public void should_store_messages_missing_mandatory_fields_in_database_as_unprocessable() {
         var caseId = randomCaseId();
 
         final EventInformation eventInformation = EventInformation.builder()
@@ -77,16 +71,15 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
             .caseTypeId("caseTypeId")
             .build();
 
-        sendMessageToDlq(randomMessageId(), eventInformation);
+        sendMessageToTopic(randomMessageId(), eventInformation);
 
         await().ignoreException(AssertionError.class)
             .pollInterval(500, MILLISECONDS)
             .atMost(30, SECONDS)
             .until(() -> {
-                final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
+                final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, false);
                 if (dlqMessagesFromDb != null) {
-                    final List<CaseEventMessage> caseEventMessages
-                        = dlqMessagesFromDb.getCaseEventMessages();
+                    final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
                     assertEquals(1, caseEventMessages.size());
                     assertEquals(MessageState.UNPROCESSABLE, caseEventMessages.get(0).getState());
@@ -97,5 +90,4 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
                 }
             });
     }
-
 }

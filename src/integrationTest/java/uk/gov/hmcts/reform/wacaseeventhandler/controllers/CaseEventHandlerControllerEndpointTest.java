@@ -59,7 +59,7 @@ class CaseEventHandlerControllerEndpointTest {
         .setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE)
         .registerModule(new JavaTimeModule())
         .registerModule(new Jdk8Module());
-
+    
     public static final String S2S_TOKEN = "Bearer s2s token";
     public static final String TENANT_ID = "ia";
     public static final String INITIATE_DMN_TABLE = "wa-task-initiation-ia-asylum";
@@ -87,6 +87,11 @@ class CaseEventHandlerControllerEndpointTest {
 
     @Nested
     class CaseEventHandlerControllerPostMessageEndpointTest {
+
+        @BeforeEach
+        public void setup() {
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
+        }
 
         @Test
         void case_event_message_should_be_stored_and_return_200_ok() throws Exception {
@@ -200,13 +205,13 @@ class CaseEventHandlerControllerEndpointTest {
             final MvcResult mvcResult = postMessage(messageId1, status().isCreated(), false);
 
             CaseEventMessage response =
-                    OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(), CaseEventMessage.class);
+                OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(), CaseEventMessage.class);
             assertEquals(1, response.getDeliveryCount());
 
             final MvcResult mvcResult2 = postMessage(messageId1, status().isCreated(), false);
 
             CaseEventMessage response2 =
-                    OBJECT_MAPPER.readValue(mvcResult2.getResponse().getContentAsString(), CaseEventMessage.class);
+                OBJECT_MAPPER.readValue(mvcResult2.getResponse().getContentAsString(), CaseEventMessage.class);
             assertEquals(2, response2.getDeliveryCount());
         }
 
@@ -317,7 +322,7 @@ class CaseEventHandlerControllerEndpointTest {
 
         @NotNull
         private MvcResult postMessage(String messageId, ResultMatcher created, boolean fromDlq) throws Exception {
-            return mockMvc.perform(post("/messages/" + messageId + (fromDlq ? "?from_dlq=true" : ""))
+            return mockMvc.perform(post("/messages/" + messageId + (fromDlq ? "?from_dlq=true" : "?from_dlq=false"))
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(getCaseEventMessage(CASE_REFERENCE)))
                 .andExpect(created)
