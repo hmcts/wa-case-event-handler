@@ -111,11 +111,6 @@ public class DatabaseMessageConsumer implements Runnable {
                     caseEventMessage.getMessageId());
             processRetryableError(caseEventMessage);
         } else {
-            // TODO - alternative...Also think about transactions
-            // CaseEventMessageEntity caseEventMessageEntity
-            //      = caseEventMessageMapper.mapToCaseEventMessageEntity(caseEventMessage);
-            // caseEventMessageEntity.setState(MessageState.UNPROCESSABLE);
-            // caseEventMessageRepository.save(caseEventMessageEntity);
             processError(caseEventMessage);
         }
     }
