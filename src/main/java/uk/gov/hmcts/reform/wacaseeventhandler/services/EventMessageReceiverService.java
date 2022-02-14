@@ -22,9 +22,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import static com.microsoft.applicationinsights.boot.dependencies.apachecommons.lang3.StringUtils.isNotBlank;
 import static java.lang.Boolean.TRUE;
 import static java.lang.String.format;
-import static net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils.isNotBlank;
 import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.DLQ_DB_INSERT;
 
 
