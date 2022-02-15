@@ -8,10 +8,8 @@ import lombok.ToString;
 
 import java.util.List;
 
-@Builder
 @EqualsAndHashCode
 @ToString
-@AllArgsConstructor
 public class UserInfo {
 
     @JsonProperty("sub")
