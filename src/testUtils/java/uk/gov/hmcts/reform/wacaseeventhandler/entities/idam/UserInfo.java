@@ -1,9 +1,9 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.entities.idam;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.ToString;
 
 import java.util.List;
@@ -11,7 +11,7 @@ import java.util.List;
 @Builder
 @EqualsAndHashCode
 @ToString
-@Getter
+@AllArgsConstructor
 public class UserInfo {
 
     @JsonProperty("sub")
@@ -25,14 +25,29 @@ public class UserInfo {
     public UserInfo() {
         //No-op constructor for deserialization
     }
+    
+    public String getEmail() {
+        return email;
+    }
 
-    public UserInfo(String email, String uid, List<String> roles, String name, String givenName, String familyName) {
-        this.email = email;
-        this.uid = uid;
-        this.roles = roles;
-        this.name = name;
-        this.givenName = givenName;
-        this.familyName = familyName;
+    public String getUid() {
+        return uid;
+    }
+
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getGivenName() {
+        return givenName;
+    }
+
+    public String getFamilyName() {
+        return familyName;
     }
 
 }

@@ -54,19 +54,21 @@ public class DocumentManagementFiles {
 
             String contentType;
 
-            if (filename.endsWith(".PDF")) {
-                contentType = "application/pdf";
-
-            } else if (filename.endsWith(".DOC")) {
-                contentType = "application/msword";
-
-            } else if (filename.endsWith(".DOCX")) {
-                contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-
-            } else {
-                throw new RuntimeException("Missing content type mapping for document: " + filename);
+            String extension = filename.substring(filename.length() - 4);
+            switch (extension) {
+                case ".PDF":
+                    contentType = "application/pdf";
+                    break;
+                case ".DOC":
+                    contentType = "application/msword";
+                    break;
+                case "DOCX":
+                    contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+                    break;
+                default:
+                    throw new RuntimeException("Missing content type mapping for document: " + filename);
             }
-
+            
             String userToken = credentials.getHeaders().getValue(AUTHORIZATION);
             String serviceToken = credentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
             UserInfo userInfo = authorizationProvider.getUserInfo(userToken);

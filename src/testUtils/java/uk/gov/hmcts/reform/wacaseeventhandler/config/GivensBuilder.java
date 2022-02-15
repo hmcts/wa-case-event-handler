@@ -292,7 +292,6 @@ public class GivensBuilder {
             .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("workingDaysAllowed", "2")
             .withProcessVariableBoolean("hasWarnings", false)
-            //.withProcessVariable("warningList", (new WarningValues()).toString())
             .withProcessVariable("caseManagementCategory", "Protection")
             .withProcessVariable("description", "aDescription")
             .build();
@@ -325,7 +324,6 @@ public class GivensBuilder {
             .withProcessVariable("delayUntil", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
             .withProcessVariable("workingDaysAllowed", "2")
             .withProcessVariableBoolean("hasWarnings", false)
-            //.withProcessVariable("warningList", (new WarningValues()).toString())
             .withProcessVariable("caseManagementCategory", "Protection")
             .withProcessVariable("description", "aDescription")
             .build();

@@ -2,13 +2,11 @@ package uk.gov.hmcts.reform.wacaseeventhandler.entities.idam;
 
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.ToString;
 
 @EqualsAndHashCode
 @ToString
 @Builder
-@Getter
 public class UserIdamTokenGeneratorInfo {
 
     private final String userName;
@@ -17,5 +15,29 @@ public class UserIdamTokenGeneratorInfo {
     private final String idamScope;
     private final String idamClientId;
     private final String idamClientSecret;
+    
+    public String getUserName() {
+        return userName;
+    }
+
+    public String getUserPassword() {
+        return userPassword;
+    }
+
+    public String getIdamRedirectUrl() {
+        return idamRedirectUrl;
+    }
+
+    public String getIdamScope() {
+        return idamScope;
+    }
+
+    public String getIdamClientId() {
+        return idamClientId;
+    }
+
+    public String getIdamClientSecret() {
+        return idamClientSecret;
+    }
 
 }
