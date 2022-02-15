@@ -240,7 +240,7 @@ def versions = [
   serenity        : '2.2.12',
   pitest          : '1.5.2',
   logbook         : '2.6.2',
-  tomcat          : '9.0.54'
+  tomcat          : '9.0.58'
 ]
 
 ext.libraries = [
