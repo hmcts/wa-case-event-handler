@@ -240,7 +240,8 @@ def versions = [
   serenity        : '2.2.12',
   pitest          : '1.5.2',
   logbook         : '2.6.2',
-  tomcat          : '9.0.58'
+  tomcat          : '9.0.58',
+  log4j           : '2.17.1'
 ]
 
 ext.libraries = [
@@ -278,10 +279,12 @@ dependencies {
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.7.5'
   implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.4.2'
 
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.17.1'
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: '2.17.1'
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: versions.log4j
+  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: versions.log4j
+
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: versions.tomcat
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: versions.tomcat
+
   implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
 
   implementation 'org.camunda.bpm:camunda-external-task-client:7.15.0'
