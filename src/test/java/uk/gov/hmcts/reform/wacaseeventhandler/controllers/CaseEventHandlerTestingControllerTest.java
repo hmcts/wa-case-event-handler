@@ -52,7 +52,8 @@ class CaseEventHandlerTestingControllerTest {
 
     @Test
     void post_messages_should_delegate_to_eventMessageReceiverService() {
-        doReturn(responseMessage).when(eventMessageReceiverService).handleAsbMessage(MESSAGE_ID, JSON_MESSAGE);
+        doReturn(responseMessage).when(eventMessageReceiverService)
+            .handleCcdCaseEventAsbMessage(MESSAGE_ID, JSON_MESSAGE);
 
         CaseEventMessage response = controller.postCaseEventHandlerMessage(
             JSON_MESSAGE,
@@ -62,7 +63,7 @@ class CaseEventHandlerTestingControllerTest {
 
         assertThat(response).isEqualTo(responseMessage);
 
-        verify(eventMessageReceiverService).handleAsbMessage(MESSAGE_ID, JSON_MESSAGE);
+        verify(eventMessageReceiverService).handleCcdCaseEventAsbMessage(MESSAGE_ID, JSON_MESSAGE);
         verifyNoMoreInteractions(eventMessageReceiverService);
     }
 

@@ -36,8 +36,6 @@ public class MessageReadinessConsumer implements Runnable {
     public void run() {
         final List<CaseEventMessageEntity> allMessageInNewState = caseEventMessageRepository.getAllMessagesInNewState();
 
-        // TODO Alternatively could get a list of message Ids of messages containing userId and pass
-        // that to bulk update method
         allMessageInNewState.stream()
                 .filter(msg -> launchDarklyFeatureFlagProvider
                         .getBooleanValue(FeatureFlag.DLQ_DB_PROCESS, getUserId(msg)))

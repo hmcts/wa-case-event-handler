@@ -1,16 +1,16 @@
 package uk.gov.hmcts.reform.wacaseeventhandler;
 
 import com.azure.messaging.servicebus.ServiceBusMessage;
+import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.junit.Before;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResponse;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -21,15 +21,6 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonS
 
 @Slf4j
 public class MessagingTests extends SpringBootFunctionalBaseTest {
-
-    private LocalDateTime eventTimeStamp;
-    private LocalDateTime holdUntilTimeStamp;
-
-    @Before
-    public void setup() {
-        eventTimeStamp = LocalDateTime.parse("2020-03-27T12:56:10.403975").minusDays(1);
-        holdUntilTimeStamp = LocalDateTime.parse("2020-03-27T12:56:10.403975").plusDays(10);
-    }
 
     protected String randomMessageId() {
         return "" + ThreadLocalRandom.current().nextLong(1000000);
@@ -67,7 +58,11 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
     }
 
     protected void sendMessageToDlq(String messageId, EventInformation eventInformation) {
-        sendMessage(messageId,eventInformation, true);
+        sendMessage(messageId, eventInformation, true);
+    }
+
+    protected void sendMessageToTopic(String messageId, EventInformation eventInformation) {
+        sendMessage(messageId, eventInformation, false);
     }
 
     private void callRestEndpoint(String s2sToken,
@@ -109,5 +104,19 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
         publisher.sendMessage(message);
 
         waitSeconds(10);
+    }
+
+    protected EventMessageQueryResponse getMessagesFromDb(String caseId, boolean fromDlq) {
+        final Response response = given()
+            .log()
+            .all()
+            .contentType(APPLICATION_JSON_VALUE)
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .when()
+            .queryParam("case_id", caseId)
+            .queryParam("from_dlq", fromDlq)
+            .get("/messages/query");
+
+        return response.body().as(EventMessageQueryResponse.class);
     }
 }

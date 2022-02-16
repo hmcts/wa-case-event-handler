@@ -77,7 +77,7 @@ class MessageReadinessConsumerTest {
     }
 
     @Test
-    void should_modify_message_state_launch_darkly_feature_flag_enabled_messages_returned_from_db_and_dlq_empty() {
+    void should_modify_message_state_feature_flag_enabled_messages_returned_from_db_and_dlq_empty() {
         final CaseEventMessageEntity caseEventMessageEntity = TestFixtures.createCaseEventMessageEntity();
         when(launchDarklyFeatureFlagProvider
                 .getBooleanValue(FeatureFlag.DLQ_DB_PROCESS, TestFixtures.USER_ID))
@@ -89,5 +89,19 @@ class MessageReadinessConsumerTest {
 
         verify(caseEventMessageRepository)
                 .updateMessageState(MessageState.READY, List.of(caseEventMessageEntity.getMessageId()));
+    }
+
+    @Test
+    void should_not_modify_message_state_feature_flag_enabled_messages_returned_from_db_and_dlq_not_empty() {
+        final CaseEventMessageEntity caseEventMessageEntity = TestFixtures.createCaseEventMessageEntity();
+        when(launchDarklyFeatureFlagProvider
+                .getBooleanValue(FeatureFlag.DLQ_DB_PROCESS, TestFixtures.USER_ID))
+                .thenReturn(true);
+        when(caseEventMessageRepository.getAllMessagesInNewState()).thenReturn(List.of(caseEventMessageEntity));
+        when(deadLetterQueuePeekService.isDeadLetterQueueEmpty()).thenReturn(false);
+
+        messageReadinessConsumer.run();
+
+        verify(caseEventMessageRepository, never()).updateMessageState(any(), any());
     }
 }
