@@ -11,7 +11,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.DatabaseMessageConsumer;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
@@ -19,6 +18,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -51,7 +51,7 @@ class CcdMessageProcessorExecutorTest {
         CaseEventMessageEntity caseEventMessageEntity = new CaseEventMessageEntity();
         caseEventMessageEntity.setMessageId(MESSAGE_ID);
         when(caseEventMessageRepository.getNextAvailableMessageReadyToProcess()).thenReturn(caseEventMessageEntity);
-        when(featureFlagProvider.getBooleanValue(FeatureFlag.DLQ_DB_INSERT)).thenReturn(true);
+        when(featureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
     }
 
     @Test

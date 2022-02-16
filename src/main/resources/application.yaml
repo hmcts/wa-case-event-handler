@@ -122,3 +122,9 @@ core_case_data:
   api:
     search.url: ${CCD_SEARCH_URL:http://wiremock}
     url: ${CCD_URL:http://ccd-data-store-api}
+
+scheduledExecutors:
+  messageProcessing:
+    pollIntervalSeconds: ${MESSAGE_PROCESSING_POLL_INTERVAL_SECONDS:30}
+  messageReadiness:
+    pollIntervalSeconds: ${MESSAGE_READINESS_POLL_INTERVAL_SECONDS:30}

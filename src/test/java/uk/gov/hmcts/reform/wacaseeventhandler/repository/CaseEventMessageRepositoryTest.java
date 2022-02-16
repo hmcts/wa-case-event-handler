@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.repository;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.junit.After;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,15 +15,21 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
-import uk.gov.hmcts.reform.wacaseeventhandler.util.TestFixtures;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.sql.DataSource;
 
+import static java.lang.Long.valueOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
+import static uk.gov.hmcts.reform.wacaseeventhandler.util.TestFixtures.createCaseEventMessageEntity;
 
 @SpringBootTest
 @ActiveProfiles("db")
@@ -154,7 +159,8 @@ class CaseEventMessageRepositoryTest {
     @Transactional
     void should_update_case_event_message_state_when_message_exists() {
 
-        final int rowsAffected = caseEventMessageRepository.updateMessageState(MessageState.PROCESSED, MESSAGE_ID);
+        final int rowsAffected =
+                caseEventMessageRepository.updateMessageState(MessageState.PROCESSED, List.of(MESSAGE_ID));
 
         assertEquals(1, rowsAffected);
 
@@ -164,6 +170,37 @@ class CaseEventMessageRepositoryTest {
         assertEquals(MessageState.PROCESSED, caseEventMessageEntities.get(0).getState());
     }
 
+    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+            scripts = {"classpath:sql/insert_case_event_messages.sql"})
+    @Test
+    @DisplayName("Should update specified message state")
+    void should_update_multiple_case_event_message_states() {
+
+        final CaseEventMessageEntity caseEventMessageEntity = createCaseEventMessageEntity();
+        caseEventMessageRepository.save(caseEventMessageEntity);
+
+        final List<CaseEventMessageEntity> allMessagesInNewState =
+                caseEventMessageRepository.getAllMessagesInNewState();
+
+        List<String> messageIds = allMessagesInNewState.stream()
+                .map(CaseEventMessageEntity::getMessageId)
+                .collect(Collectors.toList());
+
+        transactionTemplate.execute(status -> caseEventMessageRepository.updateMessageState(MessageState.PROCESSED,
+                messageIds));
+
+        messageIds.forEach(msgId -> assertMessageState(msgId, MessageState.PROCESSED));
+    }
+
+    private void assertMessageState(String messageId, MessageState messageState) {
+        caseEventMessageRepository.findByMessageId(messageId)
+            .stream()
+            .findFirst()
+            .ifPresentOrElse(
+                msg -> assertEquals(messageState, msg.getState()),
+                () -> fail("Did not receive message with id " + messageId)
+            );
+    }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
             scripts = {"classpath:sql/insert_case_event_messages.sql"})
@@ -173,7 +210,7 @@ class CaseEventMessageRepositoryTest {
     void should_not_update_case_event_message_that_does_not_exist() {
 
         final int rowsAffected =
-                caseEventMessageRepository.updateMessageState(MessageState.PROCESSED, NON_EXISTENT_MESSAGE_ID);
+                caseEventMessageRepository.updateMessageState(MessageState.PROCESSED, List.of(NON_EXISTENT_MESSAGE_ID));
 
         assertEquals(0, rowsAffected);
     }
@@ -206,7 +243,6 @@ class CaseEventMessageRepositoryTest {
     @Transactional
     void should_not_update_case_event_message_with_retry_details_that_does_not_exist() {
 
-        System.out.println("HERE");
         final int rowsAffected = caseEventMessageRepository.updateMessageWithRetryDetails(10,
                 LocalDateTime.now().plusHours(2),
                 NON_EXISTENT_MESSAGE_ID);
@@ -258,8 +294,8 @@ class CaseEventMessageRepositoryTest {
     }
 
     @Test
-    void should_insert_case_message() throws JsonProcessingException {
-        CaseEventMessageEntity caseEventMessageEntity = TestFixtures.createCaseEventMessageEntity();
+    void should_insert_case_message() {
+        CaseEventMessageEntity caseEventMessageEntity = createCaseEventMessageEntity();
 
         caseEventMessageRepository.save(caseEventMessageEntity);
 
@@ -273,13 +309,13 @@ class CaseEventMessageRepositoryTest {
     }
 
     @Test
-    void should_insert_case_message_check_sequence() throws JsonProcessingException {
-        CaseEventMessageEntity caseEventMessageEntity1 = TestFixtures.createCaseEventMessageEntity();
+    void should_insert_case_message_check_sequence() {
+        CaseEventMessageEntity caseEventMessageEntity1 = createCaseEventMessageEntity();
         caseEventMessageEntity1.setMessageId("messageId1");
 
         caseEventMessageRepository.save(caseEventMessageEntity1);
 
-        CaseEventMessageEntity caseEventMessageEntity2 = TestFixtures.createCaseEventMessageEntity();
+        CaseEventMessageEntity caseEventMessageEntity2 = createCaseEventMessageEntity();
         caseEventMessageEntity2.setMessageId("messageId2");
         caseEventMessageRepository.save(caseEventMessageEntity2);
 
@@ -301,5 +337,31 @@ class CaseEventMessageRepositoryTest {
         caseEventMessageEntity.setCaseId(newCaseIdValue);
         caseEventMessageEntity.setFromDlq(true);
         caseEventMessageRepository.save(caseEventMessageEntity);
+    }
+
+    @Test
+    @DisplayName("Should select all message with NEW state, in 'sequence' order")
+    @Transactional
+    void should_select_new_case_event_messages_in_sequence_order() {
+
+        List<Long> expectedSequenceOrder =  new ArrayList<>();
+        List<CaseEventMessageEntity> collect = IntStream.range(0, 10)
+                .boxed()
+                .sorted(Collections.reverseOrder())
+                .map(num ->  {
+                    expectedSequenceOrder.add(valueOf(num + 1));
+                    return createCaseEventMessageEntity();
+                })
+                .collect(Collectors.toList());
+
+        caseEventMessageRepository.saveAll(collect);
+
+        List<CaseEventMessageEntity> caseEventMessageEntities = caseEventMessageRepository.getAllMessagesInNewState();
+
+        assertEquals(10, caseEventMessageEntities.size());
+        assertEquals(expectedSequenceOrder,
+                caseEventMessageEntities.stream()
+                        .map(CaseEventMessageEntity::getSequence)
+                        .collect(Collectors.toList()));
     }
 }
