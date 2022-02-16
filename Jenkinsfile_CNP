@@ -16,10 +16,6 @@ def secrets = [
     secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
     secret('idam-secret', 'IA_IDAM_SECRET'),
     secret('wa-idam-client-secret', 'WA_IDAM_CLIENT_SECRET'),
-    secret('wa-test-law-firm-a-username', 'TEST_WA_LAW_FIRM_USERNAME'),
-    secret('wa-test-law-firm-a-password', 'TEST_WA_LAW_FIRM_PASSWORD'),
-    secret('wa-system-username', 'WA_SYSTEM_USERNAME'),
-    secret('wa-system-password', 'WA_SYSTEM_PASSWORD'),
   ],
   's2s-${env}': [
     secret('microservicekey-wa-case-event-handler', 'S2S_SECRET_CASE_EVENT_HANDLER')
@@ -46,7 +42,7 @@ withPipeline(type, product, component) {
   env.IDAM_URL = "https://idam-api.aat.platform.hmcts.net"
   env.ROLE_ASSIGNMENT_URL = "http://am-role-assignment-service-aat.service.core-compute-aat.internal"
   env.CCD_URL = "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
-  
+
   loadVaultSecrets(secrets)
 
   after('test') {

@@ -24,10 +24,6 @@ java:
           alias: POSTGRES_PORT
         - name: wa-case-event-handler-POSTGRES-DATABASE
           alias: POSTGRES_NAME
-        - name: wa-system-username
-          alias: WA_SYSTEM_USERNAME
-        - name: wa-system-password
-          alias: WA_SYSTEM_PASSWORD
         - name: wa-idam-client-secret
           alias: WA_IDAM_CLIENT_SECRET
 

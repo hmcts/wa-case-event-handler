@@ -19,9 +19,6 @@ idam:
     name: ${S2S_NAME_CASE_EVENT_HANDLER:wa_case_event_handler}
   s2s-authorised:
     services: ${WA_S2S_AUTHORIZED_SERVICES:wa_case_event_handler,wa_task_monitor}
-  system:
-    username: ${WA_SYSTEM_USERNAME:some_user@hmcts.net}
-    password: ${WA_SYSTEM_PASSWORD:password}
   redirectUrl: ${IA_IDAM_REDIRECT_URI:http://xui-webapp/oauth2/callback}
   scope: "openid profile roles"
   api:
