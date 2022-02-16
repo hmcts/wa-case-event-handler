@@ -1,8 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.entities.idam;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -23,7 +21,7 @@ public class UserInfo {
     public UserInfo() {
         //No-op constructor for deserialization
     }
-    
+
     public String getEmail() {
         return email;
     }
