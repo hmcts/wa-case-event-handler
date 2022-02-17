@@ -59,7 +59,7 @@ public class CaseEventHandlerTestingController {
             if (fromDlq != null && fromDlq) {
                 return eventMessageReceiverService.handleDlqMessage(messageId, message);
             } else {
-                return eventMessageReceiverService.handleAsbMessage(messageId, message);
+                return eventMessageReceiverService.handleCcdCaseEventAsbMessage(messageId, message);
             }
         } else {
             throw new CaseEventMessageNotAllowedRequestException();
