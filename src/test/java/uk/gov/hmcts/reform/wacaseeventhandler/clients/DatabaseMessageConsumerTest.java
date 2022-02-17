@@ -27,6 +27,8 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -124,7 +126,13 @@ class DatabaseMessageConsumerTest {
                 .thenReturn(caseEventMessage);
 
         final Request request = Mockito.mock(Request.class);
-        doThrow(new FeignException.InternalServerError("Error Message", request, new byte[]{}))
+        FeignException.InternalServerError internalServerError = new FeignException.InternalServerError(
+            "Error Message",
+            request,
+            new byte[]{}
+        );
+
+        doThrow(internalServerError)
                 .when(ccdEventProcessor).processMessage(caseEventMessage);
         databaseMessageConsumer.run();
 
