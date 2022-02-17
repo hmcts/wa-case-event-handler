@@ -1,6 +1,5 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
+package uk.gov.hmcts.reform.wacaseeventhandler.controllers.service;
 
-import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.springframework.test.context.ActiveProfiles;
