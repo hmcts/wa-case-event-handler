@@ -77,11 +77,15 @@ tasks.withType(JavaCompile) {
 
 tasks.withType(Test) {
   useJUnitPlatform()
-
   testLogging {
     exceptionFormat = 'full'
   }
 }
+
+tasks.withType(Copy) {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+  }
+
 
 test {
   failFast = true
