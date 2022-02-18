@@ -1,8 +1,10 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
 import feign.FeignException;
+import feign.RetryableException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +25,9 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag
 
 @Slf4j
 @Component
-@SuppressWarnings("PMD.DoNotUseThreads")
+@SuppressWarnings({"PMD.DoNotUseThreads", "PMD.DataflowAnomalyAnalysis"})
+@Transactional
+@Profile("!functional & !local")
 public class DatabaseMessageConsumer implements Runnable {
 
     private final CaseEventMessageRepository caseEventMessageRepository;
@@ -56,18 +60,22 @@ public class DatabaseMessageConsumer implements Runnable {
 
     @Override
     @SuppressWarnings("squid:S2189")
-    @Transactional
     public void run() {
         CaseEventMessageEntity caseEventMessageEntity = selectNextMessage();
-        if (caseEventMessageEntity != null
-                && flagProvider.getBooleanValue(DLQ_DB_PROCESS, getUserId(caseEventMessageEntity))) {
-            final CaseEventMessage caseEventMessage = caseEventMessageMapper
-                    .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
-            processMessage(caseEventMessage);
+        if (caseEventMessageEntity == null) {
+            log.info("No message returned from database for processing");
         } else {
-            log.trace("Feature flag '{}' evaluated to false. Did not start message processor thread",
-                    DLQ_DB_PROCESS.getKey());
+            log.info("Start message processing");
+            if (flagProvider.getBooleanValue(DLQ_DB_PROCESS, getUserId(caseEventMessageEntity))) {
+                final CaseEventMessage caseEventMessage = caseEventMessageMapper
+                        .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
+                processMessage(caseEventMessage);
+            } else {
+                log.trace("Feature flag '{}' evaluated to false. Did not start message processor thread",
+                        DLQ_DB_PROCESS.getKey());
+            }
         }
+
     }
 
     private String getUserId(CaseEventMessageEntity caseEventMessageEntity) {
@@ -93,6 +101,8 @@ public class DatabaseMessageConsumer implements Runnable {
             log.info("Processing message with id {} from the database", caseEventMessageId);
             try {
                 ccdEventProcessor.processMessage(caseEventMessage);
+                log.info("Message with id {} processed successfully, setting message state to PROCESSED",
+                        caseEventMessageId);
                 caseEventMessageRepository.updateMessageState(MessageState.PROCESSED, List.of(caseEventMessageId));
             } catch (FeignException fe) {
                 processException(fe, caseEventMessage);
@@ -103,8 +113,15 @@ public class DatabaseMessageConsumer implements Runnable {
     }
 
     private void processException(FeignException fce, CaseEventMessage caseEventMessage) {
-        final HttpStatus httpStatus = HttpStatus.valueOf(fce.status());
-        final boolean retryableError = RestExceptionCategory.isRetryableError(httpStatus);
+        boolean retryableError = false;
+        try {
+            final HttpStatus httpStatus = HttpStatus.valueOf(fce.status());
+            retryableError = RestExceptionCategory.isRetryableError(httpStatus);
+        } catch (IllegalArgumentException iae) {
+            if (fce instanceof RetryableException) {
+                retryableError = true;
+            }
+        }
 
         if (retryableError) {
             log.info("Retryable error occurred when processing message with caseId {}",
@@ -135,7 +152,9 @@ public class DatabaseMessageConsumer implements Runnable {
     private void processError(CaseEventMessage caseEventMessage) {
         String caseEventMessageId = caseEventMessage.getMessageId();
         log.info("Could not process message with id {}, setting state to Unprocessable",
-                caseEventMessage.getMessageId());
-        caseEventMessageRepository.updateMessageState(MessageState.UNPROCESSABLE, List.of(caseEventMessageId));
+                caseEventMessageId);
+
+        caseEventMessageRepository.updateMessageState(MessageState.UNPROCESSABLE,
+                    List.of(caseEventMessageId));
     }
 }

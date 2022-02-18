@@ -38,7 +38,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.
 @SuppressWarnings("unchecked")
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-@ActiveProfiles("db")
+@ActiveProfiles(profiles = {"db", "integration"})
 class CaseEventHandlerControllerBackwardsCompatibilityTest {
 
     public static final String S2S_TOKEN = "Bearer s2s token";
@@ -64,8 +64,8 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
         EventInformation validEventInformation = getBaseEventInformation(null);
 
         mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(validEventInformation)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(validEventInformation)))
             .andDo(print())
             .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
     }
@@ -84,8 +84,8 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
         EventInformation validEventInformation = getBaseEventInformation(additionalData);
 
         mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(validEventInformation)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(validEventInformation)))
             .andDo(print())
             .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
     }
@@ -104,8 +104,8 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
             .build();
 
         mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(partialEventInformation)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(partialEventInformation)))
             .andDo(print())
             .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
     }
@@ -124,8 +124,8 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
             .build();
 
         mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(emptyStringEventInformation)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(emptyStringEventInformation)))
             .andDo(print())
             .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
     }

@@ -1,14 +1,14 @@
-package uk.gov.hmcts.reform.wacaseeventhandler.services;
+package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.DeadLetterQueuePeekService;
 import uk.gov.hmcts.reform.wacaseeventhandler.util.UserIdParser;
 
 import java.util.List;
@@ -35,6 +35,8 @@ public class MessageReadinessConsumer implements Runnable {
     @Transactional
     public void run() {
         final List<CaseEventMessageEntity> allMessageInNewState = caseEventMessageRepository.getAllMessagesInNewState();
+
+        log.info("Number of messages to check the readiness {}", allMessageInNewState.size());
 
         allMessageInNewState.stream()
                 .filter(msg -> launchDarklyFeatureFlagProvider

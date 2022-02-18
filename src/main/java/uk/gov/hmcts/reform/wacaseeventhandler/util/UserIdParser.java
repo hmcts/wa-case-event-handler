@@ -19,7 +19,6 @@ public final class UserIdParser {
             final JsonNode userIdNode = messageAsJson.findPath(USER_ID);
             if (!userIdNode.isMissingNode()) {
                 String userIdTextValue = userIdNode.textValue();
-                log.info("Returning User Id {} found in message", userIdTextValue);
                 return userIdTextValue;
             }
         } catch (IllegalArgumentException | JsonProcessingException e) {
