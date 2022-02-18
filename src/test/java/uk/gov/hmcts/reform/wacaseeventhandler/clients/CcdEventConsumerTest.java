@@ -23,10 +23,12 @@ import java.io.IOException;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.DLQ_DB_PROCESS;
 
 @ExtendWith(MockitoExtension.class)
 class CcdEventConsumerTest {
@@ -43,6 +45,8 @@ class CcdEventConsumerTest {
     private ServiceBusReceivedMessage receivedMessage;
     @Mock
     private CcdEventErrorHandler ccdEventErrorHandler;
+    @Mock
+    private LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
     @InjectMocks
     private CcdEventConsumer underTest;
@@ -123,6 +127,18 @@ class CcdEventConsumerTest {
             .handleApplicationError(any(), any(), any());
         verify(ccdEventErrorHandler, Mockito.times(1))
             .handleGenericError(any(), any(), any());
+    }
+
+    @Test
+    void given_dlq_db_process_flag_is_true_and_session_is_accepted_when_message_is_consumed() throws IOException {
+        publishMessageToReceiver();
+
+        when(featureFlagProvider.getBooleanValue(eq(DLQ_DB_PROCESS), anyString())).thenReturn(false);
+        doNothing().when(processor).processMessage(anyString());
+
+        underTest.consumeMessage(sessionReceiverClient);
+
+        verify(processor, Mockito.times(0)).processMessage("testMessage");
     }
 
     private void publishMessageToReceiver() {
