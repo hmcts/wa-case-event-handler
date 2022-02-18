@@ -53,13 +53,13 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-@ActiveProfiles("db")
+@ActiveProfiles(profiles = {"db", "integration"})
 class CaseEventHandlerControllerEndpointTest {
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
         .setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE)
         .registerModule(new JavaTimeModule())
         .registerModule(new Jdk8Module());
-
+    
     public static final String S2S_TOKEN = "Bearer s2s token";
     public static final String TENANT_ID = "ia";
     public static final String INITIATE_DMN_TABLE = "wa-task-initiation-ia-asylum";
@@ -205,13 +205,13 @@ class CaseEventHandlerControllerEndpointTest {
             final MvcResult mvcResult = postMessage(messageId1, status().isCreated(), false);
 
             CaseEventMessage response =
-                    OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(), CaseEventMessage.class);
+                OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(), CaseEventMessage.class);
             assertEquals(1, response.getDeliveryCount());
 
             final MvcResult mvcResult2 = postMessage(messageId1, status().isCreated(), false);
 
             CaseEventMessage response2 =
-                    OBJECT_MAPPER.readValue(mvcResult2.getResponse().getContentAsString(), CaseEventMessage.class);
+                OBJECT_MAPPER.readValue(mvcResult2.getResponse().getContentAsString(), CaseEventMessage.class);
             assertEquals(2, response2.getDeliveryCount());
         }
 
@@ -248,7 +248,7 @@ class CaseEventHandlerControllerEndpointTest {
 
         @Test
         void dlq_case_event_message_should_not_be_stored_and_return_200_ok_when_feature_flag_disabled()
-                throws Exception {
+            throws Exception {
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(false);
             String messageId = randomMessageId();
@@ -267,8 +267,8 @@ class CaseEventHandlerControllerEndpointTest {
             String unprocessableMessage = getCaseEventMessage(null);
 
             MvcResult result = mockMvc.perform(post("/messages/" + messageId + "?from_dlq=true")
-                                                   .contentType(MediaType.APPLICATION_JSON)
-                                                   .content(unprocessableMessage))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(unprocessableMessage))
                 .andExpect(status().isCreated())
                 .andReturn();
 
@@ -294,8 +294,8 @@ class CaseEventHandlerControllerEndpointTest {
             String unprocessableMessage = getUnprocessableCaseEventMessage();
 
             MvcResult result = mockMvc.perform(post("/messages/" + messageId + "?from_dlq=true")
-                                                   .contentType(MediaType.APPLICATION_JSON)
-                                                   .content(unprocessableMessage))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(unprocessableMessage))
                 .andExpect(status().isCreated())
                 .andReturn();
 
@@ -323,8 +323,8 @@ class CaseEventHandlerControllerEndpointTest {
         @NotNull
         private MvcResult postMessage(String messageId, ResultMatcher created, boolean fromDlq) throws Exception {
             return mockMvc.perform(post("/messages/" + messageId + (fromDlq ? "?from_dlq=true" : "?from_dlq=false"))
-                                       .contentType(MediaType.APPLICATION_JSON)
-                                       .content(getCaseEventMessage(CASE_REFERENCE)))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(getCaseEventMessage(CASE_REFERENCE)))
                 .andExpect(created)
                 .andReturn();
         }
@@ -338,8 +338,8 @@ class CaseEventHandlerControllerEndpointTest {
 
 
         mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(validEventInformation)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(validEventInformation)))
             .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
     }
 
@@ -351,8 +351,8 @@ class CaseEventHandlerControllerEndpointTest {
 
 
         mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(validEventInformation)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(validEventInformation)))
             .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
     }
 
@@ -363,8 +363,8 @@ class CaseEventHandlerControllerEndpointTest {
         EventInformation validEventInformation = getBaseEventInformation(null);
 
         mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(validEventInformation)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(validEventInformation)))
 
             .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
     }
@@ -377,8 +377,8 @@ class CaseEventHandlerControllerEndpointTest {
 
 
         mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(validEventInformation)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(validEventInformation)))
             .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
     }
 
@@ -390,8 +390,8 @@ class CaseEventHandlerControllerEndpointTest {
 
 
         mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(validEventInformation)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(validEventInformation)))
             .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
     }
 
@@ -403,8 +403,8 @@ class CaseEventHandlerControllerEndpointTest {
         EventInformation validEventInformation = getBaseEventInformationWithAdditionalData();
 
         mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(validEventInformation)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(validEventInformation)))
             .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
     }
 
@@ -423,8 +423,8 @@ class CaseEventHandlerControllerEndpointTest {
 
 
         mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(partialEventInformation)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(partialEventInformation)))
 
             .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
     }
@@ -445,8 +445,8 @@ class CaseEventHandlerControllerEndpointTest {
 
 
         mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(emptyStringEventInformation)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(emptyStringEventInformation)))
 
             .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
     }
@@ -590,34 +590,34 @@ class CaseEventHandlerControllerEndpointTest {
 
     public static String getCaseEventMessage(String caseId) {
         return "{\n"
-            + "  \"EventInstanceId\" : \"some event instance Id\",\n"
-            + "  \"EventTimeStamp\" : \"" + EVENT_TIME_STAMP + "\",\n"
-            + (caseId != null ? "  \"CaseId\" : \"" + caseId + "\",\n" : "  \"CaseId\" : null,\n")
-            + "  \"JurisdictionId\" : \"ia\",\n"
-            + "  \"CaseTypeId\" : \"asylum\",\n"
-            + "  \"EventId\" : \"some event Id\",\n"
-            + "  \"NewStateId\" : \"some new state Id\",\n"
-            + "  \"UserId\" : \"some user Id\",\n"
-            + "  \"MessageProperties\" : {\n"
-            + "      \"property1\" : \"test1\"\n"
-            + "  }\n"
-            + "}";
+               + "  \"EventInstanceId\" : \"some event instance Id\",\n"
+               + "  \"EventTimeStamp\" : \"" + EVENT_TIME_STAMP + "\",\n"
+               + (caseId != null ? "  \"CaseId\" : \"" + caseId + "\",\n" : "  \"CaseId\" : null,\n")
+               + "  \"JurisdictionId\" : \"ia\",\n"
+               + "  \"CaseTypeId\" : \"asylum\",\n"
+               + "  \"EventId\" : \"some event Id\",\n"
+               + "  \"NewStateId\" : \"some new state Id\",\n"
+               + "  \"UserId\" : \"some user Id\",\n"
+               + "  \"MessageProperties\" : {\n"
+               + "      \"property1\" : \"test1\"\n"
+               + "  }\n"
+               + "}";
     }
 
     public static String getUnprocessableCaseEventMessage() {
         return "{\n"
-            + "  \"EventInstanceId\" : \"some event instance Id\",\n"
-            + "  \"EventTimeStamp\" : \"" + EVENT_TIME_STAMP + "\",\n"
-            + "  \"CaseId\" : null,\n"
-            + "  \"InvalidField\" : \"data\",\n"
-            + "  \"CaseTypeId\" : \"asylum\",\n"
-            + "  \"EventId\" : \"some event Id\",\n"
-            + "  \"NewStateId\" : \"some new state Id\",\n"
-            + "  \"UserId\" : \"some user Id\",\n"
-            + "  \"MessageProperties\" : {\n"
-            + "      \"property1\" : \"test1\"\n"
-            + "  }\n"
-            + "}";
+               + "  \"EventInstanceId\" : \"some event instance Id\",\n"
+               + "  \"EventTimeStamp\" : \"" + EVENT_TIME_STAMP + "\",\n"
+               + "  \"CaseId\" : null,\n"
+               + "  \"InvalidField\" : \"data\",\n"
+               + "  \"CaseTypeId\" : \"asylum\",\n"
+               + "  \"EventId\" : \"some event Id\",\n"
+               + "  \"NewStateId\" : \"some new state Id\",\n"
+               + "  \"UserId\" : \"some user Id\",\n"
+               + "  \"MessageProperties\" : {\n"
+               + "      \"property1\" : \"test1\"\n"
+               + "  }\n"
+               + "}";
     }
 }
 
