@@ -3,7 +3,7 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath("net.serenity-bdd:serenity-gradle-plugin:2.4.24")
+    classpath("net.serenity-bdd:serenity-gradle-plugin:3.2.0")
   }
 }
 
@@ -228,7 +228,16 @@ dependencyManagement {
       entry 'logback-core'
     }
 
-    dependency group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '4.1.1'
+    dependencySet(group: 'org.seleniumhq.selenium', version: '4.1.2'){
+      entry 'selenium-java'
+      entry 'selenium-remote-driver'
+      entry 'selenium-firefox-driver'
+      entry 'selenium-chrome-driver'
+      entry 'selenium-safari-driver'
+      entry 'selenium-edge-driver'
+      entry 'selenium-api'
+      entry 'selenium-support'
+    }
   }
 }
 
