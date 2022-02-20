@@ -24,6 +24,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 class SwaggerPublisherTest {
 
+    private static final String SWAGGER_DOCS_VERSION = "/v3/api-docs";
+
     @Autowired
     private MockMvc mvc;
 
@@ -31,7 +33,7 @@ class SwaggerPublisherTest {
     @Test
     @SuppressWarnings("PMD.JUnitTestsShouldIncludeAssert")
     void generateDocs() throws Exception {
-        byte[] specs = mvc.perform(get("/v2/api-docs"))
+        byte[] specs = mvc.perform(get(SWAGGER_DOCS_VERSION))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()

@@ -1,43 +1,40 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.config;
 
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.media.StringSchema;
+import io.swagger.v3.oas.models.parameters.Parameter;
+import org.springdoc.core.GroupedOpenApi;
+import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.bind.annotation.RestController;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.builders.RequestParameterBuilder;
-import springfox.documentation.service.ParameterType;
-import springfox.documentation.service.RequestParameter;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
-
-import static java.util.Collections.singletonList;
+import org.springframework.web.method.HandlerMethod;
 
 @Configuration
-@EnableSwagger2
 public class SwaggerConfiguration {
 
     @Bean
-    public Docket api() {
-        return new Docket(DocumentationType.SWAGGER_2)
-            .useDefaultResponseMessages(false)
-            .select()
-            .apis(RequestHandlerSelectors.withClassAnnotation(RestController.class))
-            .paths(PathSelectors.any())
-            .build()
-            .globalRequestParameters(singletonList(
-                headerServiceAuthorization()
-            ));
+    public GroupedOpenApi publicApi(OperationCustomizer customGlobalHeaders) {
+        return GroupedOpenApi.builder()
+            .group("case-event-handler-public")
+            .pathsToMatch("/**")
+            .addOperationCustomizer(customGlobalHeaders)
+            .build();
     }
 
-    private RequestParameter headerServiceAuthorization() {
-        return new RequestParameterBuilder()
-            .name("ServiceAuthorization")
-            .description("Keyword `Bearer` followed by a service-to-service token for a whitelisted micro-service")
-            .in(ParameterType.HEADER)
-            .required(true)
-            .build();
+    @Bean
+    public OperationCustomizer customGlobalHeaders() {
+        return (Operation customOperation, HandlerMethod handlerMethod) -> {
+            Parameter serviceAuthorizationHeader = new Parameter()
+                .in(ParameterIn.HEADER.toString())
+                .schema(new StringSchema())
+                .name("ServiceAuthorization")
+                .description("Keyword `Bearer` followed by a service-to-service token for a whitelisted micro-service")
+                .required(true);
+            customOperation.addParametersItem(serviceAuthorizationHeader);
+
+            return customOperation;
+        };
     }
 
 }
