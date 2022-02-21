@@ -133,13 +133,25 @@ class MessageProcessorTest {
         assertTrue(getMessagesInDbFromQuery(READY_STATE_QUERY).isEmpty());
     }
 
+    static class RetryableFeignException extends FeignException {
+        protected RetryableFeignException(int status, String message) {
+            super(status, message);
+        }
+    }
+
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
             scripts = {"classpath:sql/delete_from_case_event_messages.sql",
                     "classpath:sql/insert_case_event_messages_for_processing_ready_msgs.sql"})
     @Test
-    void should_update_hold_until_and_retry_count_for_ready_messages_when_retryable_exception_occurs() {
+    void should_update_hold_until_and_retry_count_for_ready_messages_when_retryable_exception_occurs()
+            throws JsonProcessingException {
         String caseId = "6761065058131570";
 
+        RetryableFeignException retryableFeignException = new RetryableFeignException(504, "Gateway Timeout");
+
+        doThrow(retryableFeignException)
+                .when(ccdEventProcessor)
+                .processMessage(any(CaseEventMessage.class));
         await()
                 .atMost(20, SECONDS)
                 .untilAsserted(() -> {
@@ -155,7 +167,7 @@ class MessageProcessorTest {
                     "classpath:sql/insert_case_event_messages_for_processing_ready_msgs.sql"})
     @Test
     void should_set_message_state_to_unprocessable_when_non_retryable_error_occurs() throws JsonProcessingException {
-        doThrow(FeignException.BadGateway.class).when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
+        doThrow(FeignException.NotFound.class).when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
         await()
                 .atMost(20, SECONDS)
                 .untilAsserted(() -> {
