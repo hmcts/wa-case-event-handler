@@ -98,7 +98,7 @@ public class DatabaseMessageConsumer implements Runnable {
             log.info("Processing message with id {} from the database", caseEventMessageId);
             try {
                 ccdEventProcessor.processMessage(caseEventMessage);
-                log.info("Message with id {} processed succesfully, setting message state to PROCESSED",
+                log.info("Message with id {} processed successfully, setting message state to PROCESSED",
                         caseEventMessageId);
                 caseEventMessageRepository.updateMessageState(MessageState.PROCESSED, List.of(caseEventMessageId));
             } catch (FeignException fe) {

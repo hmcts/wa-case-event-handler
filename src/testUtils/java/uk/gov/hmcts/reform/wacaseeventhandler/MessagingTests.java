@@ -10,7 +10,9 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -107,14 +109,26 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
     }
 
     protected EventMessageQueryResponse getMessagesFromDb(String caseId, boolean fromDlq) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("case_id", caseId);
+        params.put("from_dlq", fromDlq);
+        return getMessages(params);
+    }
+
+    protected EventMessageQueryResponse getMessagesFromDb(MessageState state) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("states", state.name());
+        return getMessages(params);
+    }
+
+    private EventMessageQueryResponse getMessages(Map<String, Object> queryParameters) {
         final Response response = given()
             .log()
             .all()
             .contentType(APPLICATION_JSON_VALUE)
             .header(SERVICE_AUTHORIZATION, s2sToken)
             .when()
-            .queryParam("case_id", caseId)
-            .queryParam("from_dlq", fromDlq)
+            .queryParams(queryParameters)
             .get("/messages/query");
 
         return response.body().as(EventMessageQueryResponse.class);
