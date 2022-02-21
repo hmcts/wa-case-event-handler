@@ -5,10 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.WarningValues;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
-
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
@@ -26,8 +22,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      */
     @Test
     public void given_caseId_with_multiple_tasks_and_same_category_when_warning_raised_then_mark_tasks_with_warnings() {
-        String caseIdForTask1 = UUID.randomUUID().toString();
 
+        String caseIdForTask1 = getCaseId();
         // Initiate task1
         sendMessage(
             caseIdForTask1,
@@ -42,14 +38,14 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
 
-        String task1Id = response
+        caseId1Task1Id = response
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
 
-        Response responseTaskDetails = findTaskDetailsForGivenTaskId(task1Id);
+        Response responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task1Id);
         assertDelayDuration(responseTaskDetails);
 
         // initiate task2 with same caseId
@@ -65,7 +61,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         response = findTasksByCaseId(caseIdForTask1, 2);
 
-        final String task2Id = response
+        caseId1Task2Id = response
             .then()
             .body("size()", is(2))
             .assertThat().body("[1].id", notNullValue())
@@ -90,11 +86,11 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
                                 + "\"warningText\":\"There is another task on this case that needs your attention\"}"
                                 + "]";
         // check for warnings flag on both the tasks
-        assertTaskHasMultipleWarnings(caseIdForTask1, task1Id, new WarningValues(warningsAsJson));
-        assertTaskHasMultipleWarnings(caseIdForTask1, task2Id, new WarningValues(warningsAsJson));
+        assertTaskHasMultipleWarnings(caseIdForTask1, caseId1Task1Id, new WarningValues(warningsAsJson));
+        assertTaskHasMultipleWarnings(caseIdForTask1, caseId1Task2Id, new WarningValues(warningsAsJson));
 
-        // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
+        taskIdStatusMap.put(caseId1Task2Id, "completed");
     }
 
     /**
@@ -102,7 +98,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      */
     @Test
     public void given_caseId_with_single_task_and_same_category_when_warning_raised_then_mark_tasks_with_warnings() {
-        String caseIdForTask1 = UUID.randomUUID().toString();
+
+        String caseIdForTask1 = getCaseId();
 
         // Initiate task1
         sendMessage(
@@ -117,7 +114,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         Response response = findTasksByCaseId(caseIdForTask1, 1);
 
-        String task1Id = response
+        caseId1Task1Id = response
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())
@@ -125,7 +122,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .path("[0].id");
 
         // test for workingDaysAllowed
-        Response responseTaskDetails = findTaskDetailsForGivenTaskId(task1Id);
+        Response responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task1Id);
         assertDelayDuration(responseTaskDetails);
 
         // send warning message
@@ -146,10 +143,9 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
                                 + "\"warningText\":\"There is another task on this case that needs your attention\"}"
                                 + "]";
         // check for warnings flag on both the tasks
-        assertTaskHasMultipleWarnings(caseIdForTask1, task1Id, new WarningValues(warningsAsJson));
+        assertTaskHasMultipleWarnings(caseIdForTask1, caseId1Task1Id, new WarningValues(warningsAsJson));
 
-        // tear down all tasks
-        tearDownMultipleTasks(List.of(task1Id), "completed");
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
     }
 
 
@@ -159,7 +155,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_caseId_and_multiple_tasks_and_different_ctg_when_warning_raised_then_mark_tasks_with_warnings() {
-        String caseIdForTask1 = UUID.randomUUID().toString();
+
+        String caseIdForTask1 = getCaseId();
 
         // Initiate task1 , category (timeExtension)
         sendMessage(
@@ -175,7 +172,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
 
-        String task1Id = response
+        caseId1Task1Id = response
             .then()
             .assertThat().body("[0].id", notNullValue())
             .extract()
@@ -195,7 +192,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         response = findTasksByCaseId(
             caseIdForTask1, 2);
 
-        String task2Id = response
+        caseId1Task2Id = response
             .then()
             .body("size()", is(2))
             .assertThat().body("[1].id", notNullValue())
@@ -216,7 +213,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         response = findTasksByCaseId(
             caseIdForTask1, 3);
 
-        String task3Id = response
+        String caseId1Task3Id = response
             .then()
             .body("size()", is(3))
             .assertThat().body("[2].id", notNullValue())
@@ -245,14 +242,16 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         WarningValues overdueWarningValues = new WarningValues(followUpOverdueWarning);
 
         // check for warnings flag on both the tasks
-        assertTaskHasMultipleWarnings(caseIdForTask1, task1Id, timeExtensionWarningValues);
-        assertTaskHasMultipleWarnings(caseIdForTask1, task2Id, overdueWarningValues);
+        assertTaskHasMultipleWarnings(caseIdForTask1, caseId1Task1Id, timeExtensionWarningValues);
+        assertTaskHasMultipleWarnings(caseIdForTask1, caseId1Task2Id, overdueWarningValues);
 
         // task3Id should not contain any warnings because the category is not correlated
-        assertTaskWithoutWarnings(caseIdForTask1, task3Id, false);
+        assertTaskWithoutWarnings(caseIdForTask1, caseId1Task3Id, false);
 
         // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id, task3Id), "completed");
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
+        taskIdStatusMap.put(caseId1Task2Id, "completed");
+        taskIdStatusMap.put(caseId1Task3Id, "completed");
     }
 
     /**
@@ -261,9 +260,10 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
     @Test
     public void given_multiple_caseIDs_when_actions_is_warn_then_mark_all_tasks_with_warnings() {
         //caseId1 with category Case progression
-        String caseId1 = UUID.randomUUID().toString();
+
+        String caseId1 = getCaseId();
         String taskIdDmnColumn = "attendCma";
-        final String caseId1Task1Id = createTaskWithId(
+        caseId1Task1Id = createTaskWithId(
             caseId1,
             "listCma",
             "",
@@ -275,9 +275,10 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         );
 
         //caseId1 with category Case progression
+
+        String caseId2 = getCaseId();
         String taskId2DmnColumn = "reviewRespondentResponse";
-        String caseId2 = UUID.randomUUID().toString();
-        final String caseId2Task1Id = createTaskWithId(
+        caseId1Task2Id = createTaskWithId(
             caseId2,
             "uploadHomeOfficeAppealResponse",
             "",
@@ -318,10 +319,11 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
                                 + "]";
         // check for warnings flag on both the tasks
         assertTaskHasMultipleWarnings(caseId1, caseId1Task1Id, new WarningValues(warningsAsJson));
-        assertTaskHasMultipleWarnings(caseId2, caseId2Task1Id, new WarningValues(warningsAsJson));
+        assertTaskHasMultipleWarnings(caseId2, caseId1Task2Id, new WarningValues(warningsAsJson));
 
         // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(caseId1Task1Id, caseId2Task1Id), "completed");
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
+        taskIdStatusMap.put(caseId1Task2Id, "completed");
     }
 
     /**
@@ -330,7 +332,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      */
     @Test
     public void given_caseID_when_action_is_warn_with_same_warnings_then_add_the_warning_only_once() {
-        String caseIdForTask1 = UUID.randomUUID().toString();
+
+        String caseIdForTask1 = getCaseId();
 
         sendMessage(
             caseIdForTask1,
@@ -344,7 +347,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         Response response = findTasksByCaseId(caseIdForTask1, 1);
 
-        String task1Id = response
+        caseId1Task1Id = response
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())
@@ -367,10 +370,10 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         WarningValues warningValues = new WarningValues(singleWarning);
 
         // check for warnings flag on both the tasks
-        assertTaskHasMultipleWarnings(caseIdForTask1, task1Id, warningValues);
+        assertTaskHasMultipleWarnings(caseIdForTask1, caseId1Task1Id, warningValues);
 
         // tear down all tasks
-        tearDownMultipleTasks(List.of(task1Id), "completed");
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
     }
 
     /**
@@ -378,7 +381,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      */
     @Test
     public void given_caseId_with_different_category_when_same_warning_raised_then_mark_tasks_with_warnings() {
-        String caseIdForTask1 = UUID.randomUUID().toString();
+
+        String caseIdForTask1 = getCaseId();
 
         // Initiate task1, category (timeExtension)
         sendMessage(
@@ -393,7 +397,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         Response response = findTasksByCaseId(caseIdForTask1, 1);
 
-        String task1Id = response
+        caseId1Task1Id = response
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())
@@ -401,7 +405,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .path("[0].id");
 
         // test for workingDaysAllowed  = 5
-        Response responseTaskDetails = findTaskDetailsForGivenTaskId(task1Id);
+        Response responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task1Id);
         assertDelayDuration(responseTaskDetails);
 
         // initiate task2, category (followUpOverdue)
@@ -418,7 +422,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         response = findTasksByCaseId(
             caseIdForTask1, 2);
 
-        final String task2Id = response
+        caseId1Task2Id = response
             .then()
             .body("size()", is(2))
             .assertThat().body("[1].id", notNullValue())
@@ -440,11 +444,12 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
                                + "\"warningText\":\"Warning Text 104\"}]";
 
         // check for warnings flag on both the tasks
-        assertTaskHasMultipleWarnings(caseIdForTask1, task1Id, new WarningValues(singleWarning));
-        assertTaskHasMultipleWarnings(caseIdForTask1, task2Id, new WarningValues(singleWarning));
+        assertTaskHasMultipleWarnings(caseIdForTask1, caseId1Task1Id, new WarningValues(singleWarning));
+        assertTaskHasMultipleWarnings(caseIdForTask1, caseId1Task2Id, new WarningValues(singleWarning));
 
         // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
+        taskIdStatusMap.put(caseId1Task2Id, "completed");
     }
 
     /**
@@ -452,7 +457,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      */
     @Test
     public void given_caseId_when_warning_raised_without_warning_attributes_mark_tasks_with_warnings() {
-        String caseIdForTask1 = UUID.randomUUID().toString();
+
+        String caseIdForTask1 = getCaseId();
 
         // Initiate task1, category (Case progression)
         sendMessage(
@@ -467,7 +473,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         Response response = findTasksByCaseId(caseIdForTask1, 1);
 
-        String task1Id = response
+        caseId1Task1Id = response
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())
@@ -475,7 +481,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .path("[0].id");
 
         // test for workingDaysAllowed  = 5
-        Response responseTaskDetails = findTaskDetailsForGivenTaskId(task1Id);
+        Response responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task1Id);
         assertDelayDuration(responseTaskDetails);
 
         // initiate task2, category (Case progression)
@@ -492,7 +498,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         response = findTasksByCaseId(
             caseIdForTask1, 2);
 
-        final String task2Id = response
+        caseId1Task2Id = response
             .then()
             .body("size()", is(2))
             .assertThat().body("[1].id", notNullValue())
@@ -511,11 +517,12 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         );
 
         // check for warnings flag on both the tasks
-        assertTaskWithoutWarnings(caseIdForTask1, task1Id, true);
-        assertTaskWithoutWarnings(caseIdForTask1, task2Id, true);
+        assertTaskWithoutWarnings(caseIdForTask1, caseId1Task1Id, true);
+        assertTaskWithoutWarnings(caseIdForTask1, caseId1Task2Id, true);
 
         // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
+        taskIdStatusMap.put(caseId1Task2Id, "completed");
     }
 
     /**
@@ -523,7 +530,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      */
     @Test
     public void given_caseId_with_category_when_warning_raised_without_warnings_then_mark_tasks_with_warning() {
-        String caseIdForTask1 = UUID.randomUUID().toString();
+
+        String caseIdForTask1 = getCaseId();
 
         // Initiate task1, category (Case progression)
         sendMessage(
@@ -538,7 +546,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         Response response = findTasksByCaseId(caseIdForTask1, 1);
 
-        String task1Id = response
+        caseId1Task1Id = response
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())
@@ -546,7 +554,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .path("[0].id");
 
         // test for workingDaysAllowed  = 5
-        Response responseTaskDetails = findTaskDetailsForGivenTaskId(task1Id);
+        Response responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task1Id);
         assertDelayDuration(responseTaskDetails);
 
         // send warning message
@@ -561,10 +569,10 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         );
 
         // check for warnings flag on both the tasks
-        assertTaskWithoutWarnings(caseIdForTask1, task1Id, true);
+        assertTaskWithoutWarnings(caseIdForTask1, caseId1Task1Id, true);
 
         // tear down all tasks
-        tearDownMultipleTasks(List.of(task1Id), "completed");
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
     }
 
     /**
@@ -572,7 +580,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      */
     @Test
     public void given_caseId_with_category_and_same_warnings_when_warnings_raised_then_mark_with_warnings() {
-        String caseIdForTask1 = UUID.randomUUID().toString();
+
+        String caseIdForTask1 = getCaseId();
 
         // Initiate task1, category (timeExtension)
         sendMessage(
@@ -587,7 +596,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         Response response = findTasksByCaseId(caseIdForTask1, 1);
 
-        final String task1Id = response
+        caseId1Task1Id = response
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())
@@ -620,10 +629,10 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
                                + "\"warningText\":\"Warning Text 105\"}]";
 
         // check for warnings flag on both the tasks
-        assertTaskHasMultipleWarnings(caseIdForTask1, task1Id, new WarningValues(singleWarning));
+        assertTaskHasMultipleWarnings(caseIdForTask1, caseId1Task1Id, new WarningValues(singleWarning));
 
         // tear down all tasks
-        tearDownMultipleTasks(List.of(task1Id), "completed");
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
     }
 
     /**
@@ -631,7 +640,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      */
     @Test
     public void given_caseId_with_without_warnings_when_warning_raised_then_mark_tasks_with_warnings() {
-        String caseIdForTask1 = UUID.randomUUID().toString();
+
+        String caseIdForTask1 = getCaseId();
 
         // Initiate task1, category (followUpOverdue)
         sendMessage(
@@ -646,7 +656,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         Response response = findTasksByCaseId(caseIdForTask1, 1);
 
-        String task1Id = response
+        caseId1Task1Id = response
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())
@@ -665,10 +675,10 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         );
 
         // check for warnings flag on both the tasks
-        assertTaskWithoutWarnings(caseIdForTask1, task1Id, true);
+        assertTaskWithoutWarnings(caseIdForTask1, caseId1Task1Id, true);
 
         // tear down all tasks
-        tearDownMultipleTasks(List.of(task1Id), "completed");
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
     }
 
     public void assertTaskHasMultipleWarnings(String caseId, String taskId,
