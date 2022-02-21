@@ -130,7 +130,7 @@ class CcdEventConsumerTest {
     }
 
     @Test
-    void given_dlq_db_process_flag_is_true_and_session_is_accepted_when_message_is_consumed() throws IOException {
+    void given_dlq_db_insert_flag_is_true_when_message_is_received_should_not_process_message() throws IOException {
         publishMessageToReceiver();
 
         when(featureFlagProvider.getBooleanValue(eq(DLQ_DB_INSERT), any())).thenReturn(true);
