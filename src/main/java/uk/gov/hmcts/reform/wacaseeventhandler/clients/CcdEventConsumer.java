@@ -14,7 +14,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventErrorHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
 import uk.gov.hmcts.reform.wacaseeventhandler.util.UserIdParser;
 
-import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.DLQ_DB_PROCESS;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.DLQ_DB_INSERT;
 
 @Slf4j
 @Component
@@ -60,10 +60,10 @@ public class CcdEventConsumer implements Runnable {
                         try {
                             log.info("Received message with id '{}'", message.getMessageId());
 
-                            if (featureFlagProvider.getBooleanValue(DLQ_DB_PROCESS,
+                            if (featureFlagProvider.getBooleanValue(DLQ_DB_INSERT,
                                                                      UserIdParser.getUserId(incomingMessage))) {
                                 log.info("Feature flag '{}' evaluated to true. Message is not processed",
-                                         DLQ_DB_PROCESS.getKey());
+                                         DLQ_DB_INSERT.getKey());
                             } else {
                                 ccdEventProcessor.processMessage(incomingMessage);
                             }

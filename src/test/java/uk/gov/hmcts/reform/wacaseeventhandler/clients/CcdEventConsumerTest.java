@@ -28,7 +28,7 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.DLQ_DB_PROCESS;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.DLQ_DB_INSERT;
 
 @ExtendWith(MockitoExtension.class)
 class CcdEventConsumerTest {
@@ -133,8 +133,7 @@ class CcdEventConsumerTest {
     void given_dlq_db_process_flag_is_true_and_session_is_accepted_when_message_is_consumed() throws IOException {
         publishMessageToReceiver();
 
-        when(featureFlagProvider.getBooleanValue(eq(DLQ_DB_PROCESS), anyString())).thenReturn(false);
-        doNothing().when(processor).processMessage(anyString());
+        when(featureFlagProvider.getBooleanValue(eq(DLQ_DB_INSERT), any())).thenReturn(true);
 
         underTest.consumeMessage(sessionReceiverClient);
 
