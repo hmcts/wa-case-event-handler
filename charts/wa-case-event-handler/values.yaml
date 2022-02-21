@@ -24,6 +24,9 @@ java:
           alias: POSTGRES_PORT
         - name: wa-case-event-handler-POSTGRES-DATABASE
           alias: POSTGRES_NAME
+        - name: wa-idam-client-secret
+          alias: WA_IDAM_CLIENT_SECRET
+
   environment:
     S2S_URL: "http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     WA_WORKFLOW_API_URL: "http://wa-workflow-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
@@ -32,3 +35,8 @@ java:
     AZURE_SERVICE_BUS_CCD_CASE_EVENTS_SUBSCRIPTION_NAME: "wa-ccd-case-events-sub-{{ .Values.global.environment }}"
     POSTGRES_CONNECTION_OPTIONS: "?stringtype=unspecified&gssEncMode=disable"
     ENVIRONMENT: "{{ .Values.global.environment }}"
+    OPEN_ID_IDAM_URL: "https://idam-web-public.{{ .Values.global.environment }}.platform.hmcts.net"
+    IDAM_URL: "https://idam-api.{{ .Values.global.environment }}.platform.hmcts.net"
+    ROLE_ASSIGNMENT_URL: "http://am-role-assignment-service-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
+    CAMUNDA_URL: "http://camunda-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal/engine-rest"
+    CCD_URL: "http://ccd-data-store-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
