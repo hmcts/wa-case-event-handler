@@ -89,20 +89,20 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 .pollInterval(3, SECONDS)
                 .atMost(120, SECONDS)
                 .until(
-                        () -> {
-                            final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
-                            if (dlqMessagesFromDb != null) {
-                                final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
+                    () -> {
+                        final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
+                        if (dlqMessagesFromDb != null) {
+                            final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
-                                assertTrue(caseEventMessages.stream()
-                                        .anyMatch(x -> x.getMessageId().equals(dlqMessageId)
-                                                && x.getState() == MessageState.PROCESSED));
-                                deleteMessagesFromDatabase(caseEventMessages);
-                                return true;
-                            } else {
-                                return false;
-                            }
-                        });
+                            assertTrue(caseEventMessages.stream()
+                                    .anyMatch(x -> x.getMessageId().equals(dlqMessageId)
+                                            && x.getState() == MessageState.PROCESSED));
+                            deleteMessagesFromDatabase(caseEventMessages);
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    });
     }
 
 
@@ -129,16 +129,17 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 .pollInterval(3, SECONDS)
                 .atMost(120, SECONDS)
                 .until(
-                        () -> {
-                            final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(MessageState.UNPROCESSABLE);
-                            if (dlqMessagesFromDb != null) {
-                                assertEquals(messageIds.size(), dlqMessagesFromDb.getNumberOfMessagesFound());
-                                deleteMessagesFromDatabase(dlqMessagesFromDb.getCaseEventMessages());
-                                return true;
-                            } else {
-                                return false;
-                            }
-                        });
+                    () -> {
+                        final EventMessageQueryResponse dlqMessagesFromDb
+                                = getMessagesFromDb(MessageState.UNPROCESSABLE);
+                        if (dlqMessagesFromDb != null) {
+                            assertEquals(messageIds.size(), dlqMessagesFromDb.getNumberOfMessagesFound());
+                            deleteMessagesFromDatabase(dlqMessagesFromDb.getCaseEventMessages());
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    });
     }
 
     @Test
@@ -165,17 +166,17 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 .pollInterval(3, SECONDS)
                 .atMost(45, SECONDS)
                 .until(
-                        () -> {
-                            final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(MessageState.READY);
-                            if (dlqMessagesFromDb != null) {
-                                assertEquals(1, dlqMessagesFromDb.getNumberOfMessagesFound());
-                                assertEquals(msgId, dlqMessagesFromDb.getCaseEventMessages().get(0).getMessageId());
-                                deleteMessagesFromDatabase(dlqMessagesFromDb.getCaseEventMessages());
-                                return true;
-                            } else {
-                                return false;
-                            }
-                        });
+                    () -> {
+                        final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(MessageState.READY);
+                        if (dlqMessagesFromDb != null) {
+                            assertEquals(1, dlqMessagesFromDb.getNumberOfMessagesFound());
+                            assertEquals(msgId, dlqMessagesFromDb.getCaseEventMessages().get(0).getMessageId());
+                            deleteMessagesFromDatabase(dlqMessagesFromDb.getCaseEventMessages());
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    });
     }
 
 }
