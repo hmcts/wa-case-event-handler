@@ -104,7 +104,7 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
     }
 
     private void publishMessageToTopic(String messageId, EventInformation eventInformation, boolean sendDirectlyToDlq) {
-        log.info("Publishing message to Topic with message ID "+ messageId);
+        log.info("Publishing message to Topic with message ID " + messageId);
         String jsonMessage = asJsonString(eventInformation);
         ServiceBusMessage message = new ServiceBusMessage(jsonMessage.getBytes());
         if (!sendDirectlyToDlq) {

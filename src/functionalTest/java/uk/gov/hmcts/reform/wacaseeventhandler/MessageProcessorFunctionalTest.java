@@ -176,7 +176,8 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 .build();
 
 
-        log.info("should_not_process_dlq_message_unless_other_messages_exist_with_same_case_id using dlq message id " + msgId);
+        log.info("should_not_process_dlq_message_unless_other_messages_exist_with_same_case_id using dlq message id "
+                + msgId);
         sendMessageToDlq(msgId, eventInformation);
         waitSeconds(3);
 
