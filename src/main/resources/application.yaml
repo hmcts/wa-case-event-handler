@@ -109,9 +109,6 @@ feign:
 logbook:
   include: /workflow/**
 
-messageProcessing:
-  pollIntervalSeconds: ${MESSAGE_PROCESSING_POLL_INTERVAL_SECONDS:30}
-
 role-assignment-service:
   url: ${ROLE_ASSIGNMENT_URL:http://role-assignment}
 

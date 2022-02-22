@@ -49,14 +49,22 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
     protected void deleteMessagesFromDatabase(List<CaseEventMessage> caseEventMessages) {
         caseEventMessages.stream()
             .map(CaseEventMessage::getMessageId)
-            .forEach(msgId -> given()
+            .forEach(this::deleteMessage);
+    }
+
+    protected void deleteMessagesFromDatabaseByMsgIds(List<String> messageIds) {
+        messageIds.forEach(this::deleteMessage);
+    }
+
+    private void deleteMessage(String msgId) {
+        log.info("Deleting case event messages from DB with message Id " + msgId);
+        given()
                 .contentType(APPLICATION_JSON_VALUE)
                 .header(SERVICE_AUTHORIZATION, s2sToken)
                 .when()
                 .delete("/messages/" + msgId)
                 .then()
-                .statusCode(HttpStatus.OK.value())
-            );
+                .statusCode(HttpStatus.OK.value());
     }
 
     protected void sendMessageToDlq(String messageId, EventInformation eventInformation) {
@@ -88,15 +96,15 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
                                EventInformation eventInformation,
                                boolean sendDirectlyToDlq) {
         if (publisher != null) {
-            publishMessageToTopic(eventInformation, sendDirectlyToDlq);
+            publishMessageToTopic(messageId, eventInformation, sendDirectlyToDlq);
             waitSeconds(2);
         } else {
             callRestEndpoint(s2sToken, eventInformation, sendDirectlyToDlq, messageId);
         }
     }
 
-    private void publishMessageToTopic(EventInformation eventInformation, boolean sendDirectlyToDlq) {
-        log.info("Publishing message to Topic ");
+    private void publishMessageToTopic(String messageId, EventInformation eventInformation, boolean sendDirectlyToDlq) {
+        log.info("Publishing message to Topic with message ID "+ messageId);
         String jsonMessage = asJsonString(eventInformation);
         ServiceBusMessage message = new ServiceBusMessage(jsonMessage.getBytes());
         if (!sendDirectlyToDlq) {
