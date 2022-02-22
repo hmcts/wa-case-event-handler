@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.HandlerMethod;
 
 @Configuration
-public class SwaggerConfiguration {
+public class OpenAPIConfiguration {
 
     @Bean
     public GroupedOpenApi publicApi(OperationCustomizer customGlobalHeaders) {
@@ -36,5 +36,4 @@ public class SwaggerConfiguration {
             return customOperation;
         };
     }
-
 }

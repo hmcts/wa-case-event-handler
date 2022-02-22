@@ -70,9 +70,7 @@ security:
     - "/swagger-resources/**"
     - "/swagger-ui/**"
     - "/swagger-ui/index.html"
-    - "/v2/api-docs"
-    - "/v3/api-docs/**"
-    - "/webjars/springfox-swagger-ui/**"
+    - "/v3/api-docs"
     - "/webjars/**"
     - "/favicon.ico"
 

@@ -275,8 +275,8 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
-  implementation('org.springframework.boot:spring-boot-starter-validation:2.5.3')
-  implementation 'org.springframework.boot:spring-boot-starter-security:2.5.3'
+  implementation('org.springframework.boot:spring-boot-starter-validation:2.6.3')
+  implementation 'org.springframework.boot:spring-boot-starter-security:2.6.3'
   implementation 'org.springframework.security:spring-security-test:5.5.1'
 
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.1.1'
