@@ -517,6 +517,70 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
+    void should_handle_ccd_case_event_asb_message_when_feature_flag_enabled_and_update_if_message_exist()
+        throws JsonProcessingException {
+
+        CaseEventMessageEntity entity = new CaseEventMessageEntity();
+        entity.setMessageId(MESSAGE_ID);
+        entity.setDeliveryCount(1);
+        entity.setState(MessageState.READY);
+
+        when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(TRUE);
+
+        mockMessageProperties();
+        when(objectMapper.readValue(MESSAGE, EventInformation.class))
+            .thenReturn(EventInformation
+                            .builder()
+                            .userId(USER_ID)
+                            .jurisdictionId(JURISDICTION)
+                            .caseTypeId("CASEID")
+                            .caseId("CASEID")
+                            .eventTimeStamp(LocalDateTime.now())
+                            .build());
+
+        when(caseEventMessageRepository.findByMessageId(MESSAGE_ID)).thenReturn(List.of(entity));
+
+        eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, MESSAGE);
+
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        assertEquals(MessageState.READY, caseEventMessageEntityCaptor.getValue().getState());
+        assertEquals(2, caseEventMessageEntityCaptor.getValue().getDeliveryCount());
+    }
+
+    @Test
+    void should_handle_ccd_case_event_asb_message_with_different_content_to_existing_message_and_update_delivery_count()
+        throws JsonProcessingException {
+
+        CaseEventMessageEntity entity = new CaseEventMessageEntity();
+        entity.setMessageId(MESSAGE_ID);
+        entity.setDeliveryCount(1);
+        entity.setState(MessageState.READY);
+        entity.setMessageContent("Existing_Message");
+
+        when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(TRUE);
+
+        mockMessageProperties();
+        when(objectMapper.readValue(MESSAGE, EventInformation.class))
+            .thenReturn(EventInformation
+                            .builder()
+                            .userId(USER_ID)
+                            .jurisdictionId(JURISDICTION)
+                            .caseTypeId("CASEID")
+                            .caseId("CASEID")
+                            .eventTimeStamp(LocalDateTime.now())
+                            .build());
+
+        when(caseEventMessageRepository.findByMessageId(MESSAGE_ID)).thenReturn(List.of(entity));
+
+        eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, MESSAGE);
+
+        verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
+        assertEquals(MessageState.READY, caseEventMessageEntityCaptor.getValue().getState());
+        assertEquals("Existing_Message", caseEventMessageEntityCaptor.getValue().getMessageContent());
+        assertEquals(2, caseEventMessageEntityCaptor.getValue().getDeliveryCount());
+    }
+
+    @Test
     void should_handle_ccd_case_event_asb_message_when_error_parsing_user_id() {
 
         when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, null))

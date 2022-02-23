@@ -54,8 +54,8 @@ public class CcdCaseEventsConsumer implements Runnable {
                         log.info("CCD Case Event message with id '{}' handled successfully", messageId);
                     } catch (Exception ex) {
                         log.error("Error processing CCD Case Event message with id '{}' - "
-                                + "will continue to complete message", message.getMessageId());
-                        receiver.complete(message);
+                                + "abandon the processing and ASB will re-deliver it", message.getMessageId());
+                        receiver.abandon(message);
                     }
                 });
         } catch (IllegalStateException ex) {

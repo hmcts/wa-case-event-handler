@@ -69,8 +69,8 @@ class CcdCaseEventConsumerTest {
 
         underTest.consumeMessage(sessionReceiverClient);
 
-        verify(receiverClient, Mockito.times(2)).complete(receivedMessage);
-        verify(receiverClient, Mockito.times(0)).abandon(any());
+        verify(receiverClient, Mockito.times(1)).complete(receivedMessage);
+        verify(receiverClient, Mockito.times(1)).abandon(receivedMessage);
         verify(receiverClient, Mockito.times(0)).deadLetter(any(), any());
     }
 
@@ -82,11 +82,29 @@ class CcdCaseEventConsumerTest {
 
         doThrow(new ServiceBusException(new Exception(), ServiceBusErrorSource.UNKNOWN))
                 .when(receiverClient).complete(receivedMessage);
+        doThrow(new ServiceBusException(new Exception(), ServiceBusErrorSource.UNKNOWN))
+            .when(receiverClient).abandon(receivedMessage);
+
 
         underTest.consumeMessage(sessionReceiverClient);
 
-        verify(receiverClient, Mockito.times(2)).complete(receivedMessage);
-        verify(receiverClient, Mockito.times(0)).abandon(any());
+        verify(receiverClient, Mockito.times(1)).complete(receivedMessage);
+        verify(receiverClient, Mockito.times(1)).abandon(receivedMessage);
+        verify(receiverClient, Mockito.times(0)).deadLetter(any(), any());
+    }
+
+    @Test
+    void given_session_is_accepted_when_handling_message_throws_error() {
+        when(receivedMessage.getBody()).thenReturn(BinaryData.fromString("TestMessage"));
+
+        publishMessageToReceiver();
+
+        doThrow(new RuntimeException()).when(eventMessageReceiverService).handleCcdCaseEventAsbMessage(any(), any());
+
+        underTest.consumeMessage(sessionReceiverClient);
+
+        verify(receiverClient, Mockito.times(1)).abandon(receivedMessage);
+        verify(receiverClient, Mockito.times(0)).complete(any());
         verify(receiverClient, Mockito.times(0)).deadLetter(any(), any());
     }
 
