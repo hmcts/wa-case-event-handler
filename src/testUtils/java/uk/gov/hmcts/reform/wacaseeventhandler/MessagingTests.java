@@ -56,6 +56,11 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
         messageIds.forEach(this::deleteMessage);
     }
 
+    protected void deleteMessagesFromDatabaseByMsgIds(String caseId) {
+        final List<CaseEventMessage> caseEventMessages = getMessagesFromDb(caseId).getCaseEventMessages();
+        deleteMessagesFromDatabase(caseEventMessages);
+    }
+
     private void deleteMessage(String msgId) {
         log.info("Deleting case event messages from DB with message Id " + msgId);
         given()
@@ -96,15 +101,14 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
                                EventInformation eventInformation,
                                boolean sendDirectlyToDlq) {
         if (publisher != null) {
-            publishMessageToTopic(messageId, eventInformation, sendDirectlyToDlq);
-            waitSeconds(2);
+            publishMessageToTopic(eventInformation, sendDirectlyToDlq);
+            waitSeconds(15);
         } else {
             callRestEndpoint(s2sToken, eventInformation, sendDirectlyToDlq, messageId);
         }
     }
 
-    private void publishMessageToTopic(String messageId, EventInformation eventInformation, boolean sendDirectlyToDlq) {
-        log.info("Publishing message to Topic with message ID " + messageId);
+    private void publishMessageToTopic(EventInformation eventInformation, boolean sendDirectlyToDlq) {
         String jsonMessage = asJsonString(eventInformation);
         ServiceBusMessage message = new ServiceBusMessage(jsonMessage.getBytes());
         if (!sendDirectlyToDlq) {
@@ -113,13 +117,19 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
 
         publisher.sendMessage(message);
 
-        waitSeconds(10);
+        waitSeconds(3);
     }
 
     protected EventMessageQueryResponse getMessagesFromDb(String caseId, boolean fromDlq) {
         Map<String, Object> params = new HashMap<>();
         params.put("case_id", caseId);
         params.put("from_dlq", fromDlq);
+        return getMessages(params);
+    }
+
+    protected EventMessageQueryResponse getMessagesFromDb(String caseId) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("case_id", caseId);
         return getMessages(params);
     }
 

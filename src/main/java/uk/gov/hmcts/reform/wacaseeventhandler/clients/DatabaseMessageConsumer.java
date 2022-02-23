@@ -4,6 +4,7 @@ import feign.FeignException;
 import feign.RetryableException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag
 @Component
 @SuppressWarnings({"PMD.DoNotUseThreads", "PMD.DataflowAnomalyAnalysis"})
 @Transactional
+@Profile("!functional & !local")
 public class DatabaseMessageConsumer implements Runnable {
 
     private final CaseEventMessageRepository caseEventMessageRepository;
