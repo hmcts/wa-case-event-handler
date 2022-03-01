@@ -68,7 +68,7 @@ functional tests
     - [ia_case_api](https://github.com/hmcts/ia_case_api)
     - [ia-case-notifications-api](https://github.com/hmcts/ia-case-notifications-api)
     
-Ensure the IU ccd case definitions are uploaded by installing yarn and running the script
+Ensure the IA ccd case definitions are uploaded by installing yarn and running the script
     - checkout the [ia-ccd-definitions](https://github.com/hmcts/ia-ccd-definitions) repository
     - `cd ia-ccd-definitions`
     - `brew install yarn`
