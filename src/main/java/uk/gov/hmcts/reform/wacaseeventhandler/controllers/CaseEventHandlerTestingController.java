@@ -1,8 +1,9 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -41,13 +42,12 @@ public class CaseEventHandlerTestingController {
         this.eventMessageQueryService = eventMessageQueryService;
     }
 
-    @ApiOperation("Handles the CCD case event message")
-    @ApiResponses({
-        @ApiResponse(
-            code = 201,
-            message = "Message processed successfully",
-            response = Object.class)
-    })
+    @Operation(summary = "Handles the CCD case event message")
+    @ApiResponse(
+        responseCode = "201",
+        description = "Message processed successfully",
+        content = @Content(schema = @Schema(implementation = Object.class))
+    )
     @PostMapping(path = "/messages/{message_id}", consumes = {MediaType.APPLICATION_JSON_VALUE})
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     @ResponseStatus(HttpStatus.CREATED)
@@ -66,13 +66,13 @@ public class CaseEventHandlerTestingController {
         }
     }
 
-    @ApiOperation("Handles the CCD case event message")
-    @ApiResponses({
-        @ApiResponse(
-            code = 201,
-            message = "Message processed successfully",
-            response = Object.class)
-    })
+
+    @Operation(summary = "Handles the CCD case event message")
+    @ApiResponse(
+        responseCode = "201",
+        description = "Message processed successfully",
+        content = @Content(schema = @Schema(implementation = Object.class))
+    )
     @PutMapping(path = "/messages/{message_id}", consumes = {MediaType.APPLICATION_JSON_VALUE})
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     @ResponseStatus(HttpStatus.CREATED)
@@ -87,13 +87,12 @@ public class CaseEventHandlerTestingController {
         }
     }
 
-    @ApiOperation("Gets the case event message by messageId")
-    @ApiResponses({
-        @ApiResponse(
-            code = 200,
-            message = "Messages returned successfully",
-            response = CaseEventMessageEntity.class)
-    })
+    @Operation(summary = "Gets the case event message by messageId")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Messages returned successfully",
+        content = @Content(schema = @Schema(implementation = CaseEventMessageEntity.class))
+    )
     @GetMapping("/messages/{message_id}")
     public CaseEventMessage getMessagesByMessageId(@PathVariable("message_id") final String messageId) {
         if (isNonProdEnvironment()) {
@@ -103,13 +102,11 @@ public class CaseEventHandlerTestingController {
         }
     }
 
-    @ApiOperation("Gets the case event message by messageId")
-    @ApiResponses({
-        @ApiResponse(
-            code = 200,
-            message = "Messages returned successfully",
-            response = CaseEventMessageEntity.class)
-    })
+    @Operation(summary = "Gets the case event message by messageId")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Messages returned successfully",
+        content = @Content(schema = @Schema(implementation = CaseEventMessageEntity.class)))
     @GetMapping("/messages/query")
     @SuppressWarnings("PMD.UseObjectForClearerAPI")
     public EventMessageQueryResponse getMessagesByQueryParameters(
@@ -125,12 +122,11 @@ public class CaseEventHandlerTestingController {
         }
     }
 
-    @ApiOperation("Deletes the case event message by messageId")
-    @ApiResponses({
-        @ApiResponse(
-            code = 200,
-            message = "Messages deleted successfully")
-    })
+    @Operation(summary = "Deletes the case event message by messageId")
+    @ApiResponse(
+        responseCode = "200",
+        description = "Messages deleted successfully"
+    )
     @DeleteMapping("/messages/{message_id}")
     public void deleteMessageByMessageId(@PathVariable("message_id") final String messageId) {
         if (isNonProdEnvironment()) {
