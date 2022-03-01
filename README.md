@@ -43,7 +43,16 @@ To build the project execute the following command:
       {"status":"UP","diskSpace":{"status":"UP","total":249644974080,"free":137188298752,"threshold":10485760}}
     ```
 
-### Running tests
+## Running tests
+
+### Integration tests
+
+There are no pre-requisitie steps to running junit and integration tests, they can be executed with the following command
+```
+   ./gradlew test integration
+``` 
+
+### Functional tests
 
 #### Pre-requisites
 
@@ -74,13 +83,13 @@ Ensure the BPMN and DMN are deployed onto Camunda locally
  - These environment variables will then be used to upload the BPMN and DMNs to Camunda locally when
 [setup.sh](https://github.com/hmcts/wa-kube-environment/blob/master/scripts/setup.sh) is run from `wa-kube-environment` repository
 
-###### Azure setup
+##### Azure setup
 
 Your functional tests will require a topic and 2 subscriptions specific to you, plus a connection string to point to 
 the azure asb instance on which these are hosted - you will need to create these resources
 through the  Azure UI.
 
-###### Run Case Event Handler locally
+##### Run Case Event Handler locally
 
 To run the case event handler locally for functional testing, the following Azure Asb environment variables are required.
 This will ensure that Case Event Handler receives all messages from Azure ASB 
@@ -94,7 +103,7 @@ command line used to run case event handler
  - `AZURE_SERVICE_BUS_SUBSCRIPTION_NAME=YOURNAME__dev_local`
  - `AZURE_SERVICE_BUS_FEATURE_TOGGLE=true` 
 
-###### Running functional tests
+#### Running functional tests
 
 Functional tests publish messages to the Azure Service bus topic, so the following Azure environment 
 variables are required    
@@ -114,6 +123,7 @@ Specific test classes (e.g `MessageProcessorFunctionalTest`) can be run using
 Specific tests within a class (e.g `MessageProcessorFunctionalTest.should_process_message_with_the_lowest_event_timestamp_for_that_case`) can be run using
 
 `./gradlew cleanFunctional functional --tests "uk.gov.hmcts.reform.wacaseeventhandler.MessageProcessorFunctionalTest.should_process_message_with_the_lowest_event_timestamp_for_that_case"`
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
