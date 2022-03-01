@@ -27,6 +27,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -68,8 +69,10 @@ class DatabaseMessageConsumerTest {
 
     @BeforeEach
     public void setup() {
-        lenient().when(featureFlagProvider.getBooleanValue(FeatureFlag.DLQ_DB_PROCESS,
-                "databaseMessageConsumerTestUserId")).thenReturn(true);
+        lenient().when(featureFlagProvider.getBooleanValue(
+            FeatureFlag.DLQ_DB_PROCESS,
+            "databaseMessageConsumerTestUserId"
+        )).thenReturn(true);
     }
 
     @NotNull
@@ -82,9 +85,11 @@ class DatabaseMessageConsumerTest {
     @Test
     void should_not_process_message_if_launch_darkly_flag_disabled() throws IOException {
         when(caseEventMessageRepository.getNextAvailableMessageReadyToProcess())
-                .thenReturn(createCaseEventMessageEntity());
-        when(featureFlagProvider.getBooleanValue(FeatureFlag.DLQ_DB_PROCESS,
-                "databaseMessageConsumerTestUserId")).thenReturn(false);
+            .thenReturn(createCaseEventMessageEntity());
+        when(featureFlagProvider.getBooleanValue(
+            FeatureFlag.DLQ_DB_PROCESS,
+            "databaseMessageConsumerTestUserId"
+        )).thenReturn(false);
 
         databaseMessageConsumer.run();
 
@@ -104,11 +109,11 @@ class DatabaseMessageConsumerTest {
     void should_process_message_if_message_selected() throws Exception {
         CaseEventMessageEntity caseEventMessageEntity = createCaseEventMessageEntity();
         when(caseEventMessageRepository.getNextAvailableMessageReadyToProcess())
-                .thenReturn(caseEventMessageEntity);
+            .thenReturn(caseEventMessageEntity);
 
         final CaseEventMessage caseEventMessage = createCaseEventMessage();
         when(caseEventMessageMapper.mapToCaseEventMessage(any(CaseEventMessageEntity.class)))
-                .thenReturn(caseEventMessage);
+            .thenReturn(caseEventMessage);
         databaseMessageConsumer.run();
         verify(caseEventMessageMapper).mapToCaseEventMessage(caseEventMessageEntity);
         verify(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
@@ -121,17 +126,26 @@ class DatabaseMessageConsumerTest {
 
         final CaseEventMessage caseEventMessage = createCaseEventMessage();
         when(caseEventMessageMapper.mapToCaseEventMessage(any(CaseEventMessageEntity.class)))
-                .thenReturn(caseEventMessage);
+            .thenReturn(caseEventMessage);
 
         final Request request = Mockito.mock(Request.class);
-        doThrow(new FeignException.InternalServerError("Error Message", request, new byte[]{}))
-                .when(ccdEventProcessor).processMessage(caseEventMessage);
+        FeignException.InternalServerError internalServerError = new FeignException.InternalServerError(
+            "Error Message",
+            request,
+            new byte[]{},
+            Collections.emptyMap()
+        );
+
+        doThrow(internalServerError)
+            .when(ccdEventProcessor).processMessage(caseEventMessage);
         databaseMessageConsumer.run();
 
         verify(caseEventMessageMapper).mapToCaseEventMessage(caseEventMessageEntity);
         verify(ccdEventProcessor).processMessage(caseEventMessage);
-        verify(caseEventMessageRepository).updateMessageState(MessageState.UNPROCESSABLE,
-                List.of(caseEventMessage.getMessageId()));
+        verify(caseEventMessageRepository).updateMessageState(
+            MessageState.UNPROCESSABLE,
+            List.of(caseEventMessage.getMessageId())
+        );
     }
 
     @Test
@@ -141,23 +155,25 @@ class DatabaseMessageConsumerTest {
 
         final CaseEventMessage caseEventMessage = createCaseEventMessage();
         when(caseEventMessageMapper.mapToCaseEventMessage(any(CaseEventMessageEntity.class)))
-                .thenReturn(caseEventMessage);
+            .thenReturn(caseEventMessage);
 
         final Request request = Mockito.mock(Request.class);
         doThrow(new NullPointerException())
-                .when(ccdEventProcessor).processMessage(caseEventMessage);
+            .when(ccdEventProcessor).processMessage(caseEventMessage);
         databaseMessageConsumer.run();
 
         verify(caseEventMessageMapper).mapToCaseEventMessage(caseEventMessageEntity);
         verify(ccdEventProcessor).processMessage(caseEventMessage);
-        verify(caseEventMessageRepository).updateMessageState(MessageState.UNPROCESSABLE,
-                List.of(caseEventMessage.getMessageId()));
+        verify(caseEventMessageRepository).updateMessageState(
+            MessageState.UNPROCESSABLE,
+            List.of(caseEventMessage.getMessageId())
+        );
     }
 
     private static List<Arguments> getRetryableTestParameters() {
         return DatabaseMessageConsumer.RETRY_COUNT_TO_DELAY_MAP.entrySet().stream()
-                .map(entrySet -> Arguments.of(entrySet.getKey(), entrySet.getValue()))
-                .collect(Collectors.toList());
+            .map(entrySet -> Arguments.of(entrySet.getKey(), entrySet.getValue()))
+            .collect(Collectors.toList());
     }
 
     @ParameterizedTest
@@ -166,25 +182,33 @@ class DatabaseMessageConsumerTest {
         int retryCount, int holdUntilIncrement) throws Exception {
 
         when(caseEventMessageRepository.getNextAvailableMessageReadyToProcess())
-                .thenReturn(createCaseEventMessageEntity());
+            .thenReturn(createCaseEventMessageEntity());
 
         final CaseEventMessage caseEventMessage = createCaseEventMessage(retryCount - 1);
         when(caseEventMessageMapper.mapToCaseEventMessage(any(CaseEventMessageEntity.class)))
-                .thenReturn(caseEventMessage);
+            .thenReturn(caseEventMessage);
 
         final Request request = Mockito.mock(Request.class);
-        doThrow(new FeignException.NotFound("Error Message", request, new byte[]{}))
-                .when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
+        FeignException.NotFound errorMessage = new FeignException.NotFound(
+            "Error Message",
+            request, new byte[]{},
+            Collections.emptyMap()
+        );
+
+        doThrow(errorMessage)
+            .when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
         LocalDateTime now = LocalDateTime.now();
 
         databaseMessageConsumer.run();
 
         verify(caseEventMessageRepository)
-                .updateMessageWithRetryDetails(retryCountCaptor.capture(), holdUntilCaptor.capture(), anyString());
+            .updateMessageWithRetryDetails(retryCountCaptor.capture(), holdUntilCaptor.capture(), anyString());
         LocalDateTime updatedHoldUntilValue = holdUntilCaptor.getValue();
         assertTrue(updatedHoldUntilValue.isAfter(now));
-        assertEquals(updatedHoldUntilValue.truncatedTo(ChronoUnit.SECONDS),
-                now.plusSeconds(holdUntilIncrement).truncatedTo(ChronoUnit.SECONDS));
+        assertEquals(
+            updatedHoldUntilValue.truncatedTo(ChronoUnit.SECONDS),
+            now.plusSeconds(holdUntilIncrement).truncatedTo(ChronoUnit.SECONDS)
+        );
 
         assertEquals(retryCount, retryCountCaptor.getValue());
     }
@@ -196,13 +220,15 @@ class DatabaseMessageConsumerTest {
 
         final CaseEventMessage caseEventMessage = createCaseEventMessage();
         when(caseEventMessageMapper.mapToCaseEventMessage(any(CaseEventMessageEntity.class)))
-                .thenReturn(caseEventMessage);
+            .thenReturn(caseEventMessage);
 
         databaseMessageConsumer.run();
 
         verify(caseEventMessageMapper).mapToCaseEventMessage(caseEventMessageEntity);
         verify(ccdEventProcessor).processMessage(caseEventMessage);
-        verify(caseEventMessageRepository).updateMessageState(MessageState.PROCESSED,
-                List.of(caseEventMessage.getMessageId()));
+        verify(caseEventMessageRepository).updateMessageState(
+            MessageState.PROCESSED,
+            List.of(caseEventMessage.getMessageId())
+        );
     }
 }
