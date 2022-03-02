@@ -240,6 +240,7 @@ class CaseEventHandlerControllerEndpointTest {
             assertEquals(2, response2.getDeliveryCount());
         }
 
+        @Test
         void post_case_event_message_on_dlq_should_update_delivery_count_when_messageId_already_stored()
             throws Exception {
 
@@ -260,7 +261,8 @@ class CaseEventHandlerControllerEndpointTest {
             assertEquals(2, response2.getDeliveryCount());
         }
 
-        void post_case_event_message_with_different_content_on_dlq_should_update_delivery_count_when_messageId_already_stored()
+        @Test
+        void post_case_event_duplicate_message_on_dlq_should_update_delivery_count_when_messageId_already_stored()
             throws Exception {
 
             String messageId1 = randomMessageId();
