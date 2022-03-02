@@ -1,8 +1,9 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -29,13 +30,11 @@ public class CaseEventHandlerController {
         this.handlerServices = handlerServices;
     }
 
-    @ApiOperation("Handles the CCD case event message")
-    @ApiResponses({
-        @ApiResponse(
-            code = 204,
-            message = "Message processed successfully",
-            response = Object.class)
-    })
+    @Operation(summary = "Handles the CCD case event message")
+    @ApiResponse(
+        responseCode = "204",
+        description = "Message processed successfully",
+        content = @Content(schema = @Schema(implementation = Object.class)))
     @PostMapping(path = "/messages", consumes = {MediaType.APPLICATION_JSON_VALUE})
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     @ResponseStatus(HttpStatus.NO_CONTENT)
