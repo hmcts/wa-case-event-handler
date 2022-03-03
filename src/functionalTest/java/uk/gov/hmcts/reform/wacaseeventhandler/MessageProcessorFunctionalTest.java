@@ -30,14 +30,14 @@ import static org.junit.Assert.assertTrue;
 @ActiveProfiles(profiles = {"local", "functional"})
 public class MessageProcessorFunctionalTest extends MessagingTests {
 
-    private String caseIdToDelete;
+    private List<String> caseIdToDelete = new ArrayList<>();
 
     @Test
     public void should_process_message_with_the_lowest_event_timestamp_for_that_case() {
         List<String> messageIds = List.of(randomMessageId(), randomMessageId(), randomMessageId());
 
         String caseId = randomCaseId();
-        caseIdToDelete = caseId;
+        caseIdToDelete.add(caseId);
 
         final EventInformation.EventInformationBuilder eventInformationBuilder = EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
@@ -78,13 +78,10 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
     @Test
     public void should_process_dlq_msg_if_processed_or_ready_messages_with_timestamp_later_than_thirty_mins_exist() {
-        String caseId = randomCaseId();
-
         final EventInformation.EventInformationBuilder eventInformationBuilder = EventInformation.builder()
                 .eventInstanceId(UUID.randomUUID().toString())
                 .jurisdictionId("IA")
                 .eventId("makeAnApplication")
-                .caseId(caseId)
                 .userId("wa-dlq-user@fake.hmcts.net")
                 .newStateId("appealSubmitted")
                 .caseTypeId("Asylum");
@@ -97,30 +94,83 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 + "using event timestamp from hour ago "
                 + messageIdFromHourAgo);
 
-        caseIdToDelete = caseId;
+        String dlqCaseId = randomCaseId();
+        caseIdToDelete.add(dlqCaseId);
 
-        sendMessageToDlq(dlqMessageId, eventInformationBuilder.eventTimeStamp(LocalDateTime.now()).build());
+        sendMessageToDlq(dlqMessageId, eventInformationBuilder
+            .caseId(dlqCaseId)
+            .eventTimeStamp(LocalDateTime.now())
+            .build());
 
+        String caseId = randomCaseId();
+        caseIdToDelete.add(caseId);
         sendMessageToTopic(messageIdFromHourAgo,
-                eventInformationBuilder.eventTimeStamp(LocalDateTime.now().plusHours(1)).build());
+                eventInformationBuilder.caseId(caseId).eventTimeStamp(LocalDateTime.now().plusHours(1)).build());
 
         await().ignoreException(AssertionError.class)
                 .pollInterval(3, SECONDS)
                 .atMost(120, SECONDS)
                 .until(
                     () -> {
-                        final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
+                        final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(dlqCaseId, true);
                         if (dlqMessagesFromDb != null) {
                             final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
                             assertTrue(caseEventMessages.stream()
-                                    .anyMatch(x -> x.getCaseId().equals(caseId)
+                                    .anyMatch(x -> x.getCaseId().equals(dlqCaseId)
                                             && x.getState() == MessageState.PROCESSED));
                             return true;
                         } else {
                             return false;
                         }
                     });
+    }
+
+    @Test
+    public void should_process_dlq_msg_if_processed_or_ready_messages_with_same_case_id_exist() {
+        String caseId = randomCaseId();
+
+        final EventInformation.EventInformationBuilder eventInformationBuilder = EventInformation.builder()
+            .eventInstanceId(UUID.randomUUID().toString())
+            .jurisdictionId("IA")
+            .eventId("makeAnApplication")
+            .caseId(caseId)
+            .userId("wa-dlq-user@fake.hmcts.net")
+            .newStateId("appealSubmitted")
+            .caseTypeId("Asylum");
+
+        String dlqMessageId = randomMessageId();
+        log.info("should_process_dlq_msg_if_processed_or_ready_messages_with_timestamp_later_than_thirty_mins_exist, "
+                     + "using message ID for DLQ message " + dlqMessageId);
+        String messageIdFromHourAgo =  randomMessageId();
+        log.info("should_process_dlq_msg_if_processed_or_ready_messages_with_timestamp_later_than_thirty_mins_exist, "
+                     + "using event timestamp from hour ago "
+                     + messageIdFromHourAgo);
+
+        caseIdToDelete.add(caseId);
+
+        sendMessageToDlq(dlqMessageId, eventInformationBuilder.eventTimeStamp(LocalDateTime.now()).build());
+
+        sendMessageToTopic(messageIdFromHourAgo,
+                           eventInformationBuilder.eventTimeStamp(LocalDateTime.now().plusMinutes(1)).build());
+
+        await().ignoreException(AssertionError.class)
+            .pollInterval(3, SECONDS)
+            .atMost(120, SECONDS)
+            .until(
+                () -> {
+                    final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
+                    if (dlqMessagesFromDb != null) {
+                        final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
+
+                        assertTrue(caseEventMessages.stream()
+                                       .anyMatch(x -> x.getCaseId().equals(caseId)
+                                           && x.getState() == MessageState.PROCESSED));
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
     }
 
     @Test
@@ -190,7 +240,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         String msgId = randomMessageId();
         String caseId = randomCaseId();
 
-        caseIdToDelete = caseId;
+        caseIdToDelete.add(caseId);
 
         final EventInformation eventInformation = EventInformation.builder()
                 .eventInstanceId(UUID.randomUUID().toString())
@@ -228,8 +278,8 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
     @After
     public void teardown() {
         if (caseIdToDelete != null) {
-            deleteMessagesFromDatabaseByMsgIds(caseIdToDelete);
-            caseIdToDelete = null;
+            caseIdToDelete.forEach(this::deleteMessagesFromDatabaseByMsgIds);
+            caseIdToDelete = new ArrayList<>();
         }
     }
 }

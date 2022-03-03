@@ -11,11 +11,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wacaseeventhandler.clients.MessageReadinessConsumer;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.executors.MessageReadinessExecutor;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DeadLetterQueuePeekService;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.MessageReadinessConsumer;
 
 import java.util.List;
 
