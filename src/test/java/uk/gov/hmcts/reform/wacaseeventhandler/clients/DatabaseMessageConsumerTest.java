@@ -157,7 +157,6 @@ class DatabaseMessageConsumerTest {
         when(caseEventMessageMapper.mapToCaseEventMessage(any(CaseEventMessageEntity.class)))
             .thenReturn(caseEventMessage);
 
-        final Request request = Mockito.mock(Request.class);
         doThrow(new NullPointerException())
             .when(ccdEventProcessor).processMessage(caseEventMessage);
         databaseMessageConsumer.run();
