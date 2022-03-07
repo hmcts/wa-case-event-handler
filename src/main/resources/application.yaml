@@ -57,6 +57,9 @@ spring:
             client-id: ${WA_IDAM_CLIENT_ID:wa}
             client-secret: ${WA_IDAM_CLIENT_SECRET:something}
 
+springdoc:
+  packagesToScan: uk.gov.hmcts.reform.wacaseeventhandler.controllers
+
 security:
   anonymousPaths:
     - "/"
@@ -67,8 +70,8 @@ security:
     - "/swagger-resources/**"
     - "/swagger-ui/**"
     - "/swagger-ui/index.html"
-    - "/v2/api-docs"
-    - "/webjars/springfox-swagger-ui/**"
+    - "/v3/api-docs"
+    - "/webjars/**"
     - "/favicon.ico"
 
 govUkHolidays:
