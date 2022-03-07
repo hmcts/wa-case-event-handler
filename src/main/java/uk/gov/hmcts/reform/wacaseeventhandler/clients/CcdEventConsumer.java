@@ -28,6 +28,7 @@ public class CcdEventConsumer implements Runnable {
     private final CcdEventProcessor ccdEventProcessor;
     private final CcdEventErrorHandler ccdEventErrorHandler;
     private final LaunchDarklyFeatureFlagProvider featureFlagProvider;
+    private boolean keepRun = true;
 
     public CcdEventConsumer(ServiceBusConfiguration serviceBusConfiguration,
                             CcdEventProcessor ccdEventProcessor,
@@ -43,7 +44,7 @@ public class CcdEventConsumer implements Runnable {
     @SuppressWarnings("squid:S2189")
     public void run() {
         try (ServiceBusSessionReceiverClient sessionReceiver = serviceBusConfiguration.createSessionReceiver()) {
-            while (true) {
+            while (keepRun) {
                 consumeMessage(sessionReceiver);
             }
         }
@@ -83,5 +84,9 @@ public class CcdEventConsumer implements Runnable {
         } catch (Exception ex) {
             log.error("Error occurred while closing the session", ex);
         }
+    }
+
+    public void stop() {
+        keepRun = false;
     }
 }
