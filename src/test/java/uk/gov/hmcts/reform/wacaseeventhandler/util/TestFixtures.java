@@ -50,6 +50,12 @@ public final class TestFixtures {
                 NullNode.getInstance(), messageContent, LocalDateTime.now(), 0, LocalDateTime.now(), retryCount);
     }
 
+    public static CaseEventMessageEntity createCaseEventMessageEntity(String userId) {
+        final CaseEventMessageEntity caseEventMessageEntity = createCaseEventMessageEntity();
+        caseEventMessageEntity.setMessageContent(String.format("{\"UserId\": \"%s\"}", userId));
+        return caseEventMessageEntity;
+    }
+
     public static CaseEventMessageEntity createCaseEventMessageEntity() {
         CaseEventMessageEntity caseEventMessageEntity = new CaseEventMessageEntity();
         caseEventMessageEntity.setMessageId(UUID.randomUUID().toString());
