@@ -59,7 +59,7 @@ class CaseEventHandlerControllerEndpointTest {
         .setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE)
         .registerModule(new JavaTimeModule())
         .registerModule(new Jdk8Module());
-
+    
     public static final String S2S_TOKEN = "Bearer s2s token";
     public static final String TENANT_ID = "ia";
     public static final String INITIATE_DMN_TABLE = "wa-task-initiation-ia-asylum";
