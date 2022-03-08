@@ -125,3 +125,8 @@ scheduledExecutors:
     pollIntervalSeconds: ${MESSAGE_PROCESSING_POLL_INTERVAL_SECONDS:30}
   messageReadiness:
     pollIntervalSeconds: ${MESSAGE_READINESS_POLL_INTERVAL_SECONDS:30}
+
+job:
+  problem-message:
+    #number of minutes
+    message-time-limit: ${PROLEM-MESSAGE_TIME_LIMIT:60}

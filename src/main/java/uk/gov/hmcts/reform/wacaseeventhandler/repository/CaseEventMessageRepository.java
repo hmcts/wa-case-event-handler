@@ -54,6 +54,28 @@ public interface CaseEventMessageRepository extends CrudRepository<CaseEventMess
             "SELECT * from public.wa_case_event_messages msg where msg.state = 'NEW' "
             + "order by sequence DESC for update skip locked";
 
+
+    String FIND_PROBLEM_MESSAGES = "SELECT message_id,\n"
+                                  + "sequence,\n"
+                                  + "case_id,\n"
+                                  + "event_timestamp,\n"
+                                  + "from_dlq,\n"
+                                  + "state,\n"
+                                  + "null as message_properties,\n"
+                                  + "null as message_content,\n"
+                                  + "received,\n"
+                                  + "delivery_count,\n"
+                                  + "hold_until,\n"
+                                  + "retry_count \n"
+                                  + "from wa_case_event_messages msg \n"
+                                  + "where msg.state IN ('UNPROCESSABLE', 'READY') \n"
+                                  + "and case when msg.state='READY' "
+                                  + "then ((current_timestamp - interval '" + " ?1 minutes')"
+                                  + " - msg.event_timestamp ) "
+                                  + "> interval '" + " ?1 minutes' "
+                                  + "else 1=1 end \n"
+                                  + "order by state;";
+
     @Query("FROM CaseEventMessageEntity cem WHERE cem.messageId=:messageId")
     List<CaseEventMessageEntity> findByMessageId(String messageId);
 
@@ -74,4 +96,7 @@ public interface CaseEventMessageRepository extends CrudRepository<CaseEventMess
 
     @Query(value = SELECT_NEW_MESSAGES, nativeQuery = true)
     List<CaseEventMessageEntity> getAllMessagesInNewState();
+
+    @Query(value = FIND_PROBLEM_MESSAGES, nativeQuery = true)
+    List<CaseEventMessageEntity> findProblemMessages(int messageTimeLimit);
 }

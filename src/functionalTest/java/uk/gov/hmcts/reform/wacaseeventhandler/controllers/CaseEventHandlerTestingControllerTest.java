@@ -263,7 +263,7 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
         EventInformationRequest createRequest = new EventInformationRequest(
             buildEventInformation(eventInstanceId, caseId), null);
 
-        // crete message
+        // create message
         postEventToRestEndpoint(messageId, s2sToken, createRequest)
             .then()
             .statusCode(HttpStatus.CREATED.value());
