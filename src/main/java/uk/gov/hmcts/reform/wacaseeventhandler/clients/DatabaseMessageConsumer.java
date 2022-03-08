@@ -65,6 +65,7 @@ public class DatabaseMessageConsumer implements Runnable {
         if (caseEventMessageEntity == null) {
             log.info("No message returned from database for processing");
         } else {
+            log.info("Start message processing");
             if (flagProvider.getBooleanValue(DLQ_DB_PROCESS, getUserId(caseEventMessageEntity))) {
                 final CaseEventMessage caseEventMessage = caseEventMessageMapper
                         .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));

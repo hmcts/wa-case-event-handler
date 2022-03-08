@@ -216,6 +216,31 @@ class CaseEventHandlerControllerEndpointTest {
         }
 
         @Test
+        void post_case_event_message_with_different_content_should_update_delivery_count_when_messageId_already_stored()
+            throws Exception {
+
+            String messageId1 = randomMessageId();
+
+            postMessage(messageId1, status().isCreated(), false);
+
+            final MvcResult mvcResult = postMessage(messageId1, status().isCreated(), false);
+
+            CaseEventMessage response =
+                OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(), CaseEventMessage.class);
+            assertEquals(1, response.getDeliveryCount());
+
+            final MvcResult mvcResult2 = mockMvc.perform(post("/messages/" + messageId1)
+                     .contentType(MediaType.APPLICATION_JSON)
+                     .content(getCaseEventMessageWithDifferentContent(CASE_REFERENCE)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+            CaseEventMessage response2 =
+                OBJECT_MAPPER.readValue(mvcResult2.getResponse().getContentAsString(), CaseEventMessage.class);
+            assertEquals(2, response2.getDeliveryCount());
+        }
+
+        @Test
         void dlq_case_event_message_should_be_stored_and_return_200_ok() throws Exception {
 
             when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
@@ -602,6 +627,22 @@ class CaseEventHandlerControllerEndpointTest {
                + "      \"property1\" : \"test1\"\n"
                + "  }\n"
                + "}";
+    }
+
+    public static String getCaseEventMessageWithDifferentContent(String caseId) {
+        return "{\n"
+            + "  \"EventInstanceId\" : \"another event instance Id\",\n"
+            + "  \"EventTimeStamp\" : \"" + EVENT_TIME_STAMP + "\",\n"
+            + (caseId != null ? "  \"CaseId\" : \"" + caseId + "\",\n" : "  \"CaseId\" : null,\n")
+            + "  \"JurisdictionId\" : \"ia\",\n"
+            + "  \"CaseTypeId\" : \"asylum\",\n"
+            + "  \"EventId\" : \"another event Id\",\n"
+            + "  \"NewStateId\" : \"another new state Id\",\n"
+            + "  \"UserId\" : \"another user Id\",\n"
+            + "  \"MessageProperties\" : {\n"
+            + "      \"property1\" : \"test1\"\n"
+            + "  }\n"
+            + "}";
     }
 
     public static String getUnprocessableCaseEventMessage() {
