@@ -39,24 +39,32 @@ public class CcdCaseEventsDeadLetterQueueConsumer implements Runnable {
 
     @SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
     protected void consumeMessage(ServiceBusReceiverClient receiver) {
-        receiver.receiveMessages(1).forEach(
-            message -> {
-                final String messageId = message.getMessageId();
-                try {
-                    log.info("Received CCD Case Event Dead Letter Queue message with id '{}'", messageId);
+        try {
+            receiver.receiveMessages(1).forEach(
+                message -> {
+                    final String messageId = message.getMessageId();
+                    try {
+                        log.info("Received CCD Case Event Dead Letter Queue message with id '{}'", messageId);
 
-                    eventMessageReceiverService.handleDlqMessage(messageId,
-                            new String(message.getBody().toBytes()));
+                        eventMessageReceiverService.handleDlqMessage(
+                            messageId,
+                            new String(message.getBody().toBytes())
+                        );
 
-                    receiver.complete(message);
+                        receiver.complete(message);
 
-                    log.info("CCD Case Event Dead Letter Queue message with id '{}' handled successfully",
-                            messageId);
-                } catch (Exception ex) {
-                    log.error("Error processing CCD Case Event Dead Letter Queue message with id '{}' - "
-                            + "will continue to complete message", messageId);
-                    receiver.complete(message);
-                }
-            });
+                        log.info(
+                            "CCD Case Event Dead Letter Queue message with id '{}' handled successfully",
+                            messageId
+                        );
+                    } catch (Exception ex) {
+                        log.error("Error processing CCD Case Event Dead Letter Queue message with id '{}' - "
+                                      + "abandon the processing and ASB will re-deliver it", messageId);
+                        receiver.abandon(message);
+                    }
+                });
+        } catch (Exception ex) {
+            log.error("Error occurred while completing the message processing", ex);
+        }
     }
 }

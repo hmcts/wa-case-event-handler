@@ -59,7 +59,7 @@ class CaseEventHandlerControllerEndpointTest {
         .setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE)
         .registerModule(new JavaTimeModule())
         .registerModule(new Jdk8Module());
-    
+
     public static final String S2S_TOKEN = "Bearer s2s token";
     public static final String TENANT_ID = "ia";
     public static final String INITIATE_DMN_TABLE = "wa-task-initiation-ia-asylum";
@@ -230,6 +230,52 @@ class CaseEventHandlerControllerEndpointTest {
             assertEquals(1, response.getDeliveryCount());
 
             final MvcResult mvcResult2 = mockMvc.perform(post("/messages/" + messageId1)
+                     .contentType(MediaType.APPLICATION_JSON)
+                     .content(getCaseEventMessageWithDifferentContent(CASE_REFERENCE)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+            CaseEventMessage response2 =
+                OBJECT_MAPPER.readValue(mvcResult2.getResponse().getContentAsString(), CaseEventMessage.class);
+            assertEquals(2, response2.getDeliveryCount());
+        }
+
+        @Test
+        void post_case_event_message_on_dlq_should_update_delivery_count_when_messageId_already_stored()
+            throws Exception {
+
+            String messageId1 = randomMessageId();
+
+            postMessage(messageId1, status().isCreated(), true);
+
+            final MvcResult mvcResult = postMessage(messageId1, status().isCreated(), true);
+
+            CaseEventMessage response =
+                OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(), CaseEventMessage.class);
+            assertEquals(1, response.getDeliveryCount());
+
+            final MvcResult mvcResult2 = postMessage(messageId1, status().isCreated(), true);
+
+            CaseEventMessage response2 =
+                OBJECT_MAPPER.readValue(mvcResult2.getResponse().getContentAsString(), CaseEventMessage.class);
+            assertEquals(2, response2.getDeliveryCount());
+        }
+
+        @Test
+        void post_case_event_duplicate_message_on_dlq_should_update_delivery_count_when_messageId_already_stored()
+            throws Exception {
+
+            String messageId1 = randomMessageId();
+
+            postMessage(messageId1, status().isCreated(), true);
+
+            final MvcResult mvcResult = postMessage(messageId1, status().isCreated(), true);
+
+            CaseEventMessage response =
+                OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(), CaseEventMessage.class);
+            assertEquals(1, response.getDeliveryCount());
+
+            final MvcResult mvcResult2 = mockMvc.perform(post("/messages/" + messageId1 + "?from_dlq=true")
                      .contentType(MediaType.APPLICATION_JSON)
                      .content(getCaseEventMessageWithDifferentContent(CASE_REFERENCE)))
                 .andExpect(status().isCreated())

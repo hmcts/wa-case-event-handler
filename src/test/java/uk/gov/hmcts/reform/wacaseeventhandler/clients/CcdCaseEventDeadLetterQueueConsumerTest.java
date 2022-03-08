@@ -55,13 +55,33 @@ class CcdCaseEventDeadLetterQueueConsumerTest {
 
         underTest.consumeMessage(receiverClient);
 
-        verify(receiverClient, Mockito.times(2)).complete(receivedMessage);
-        verify(receiverClient, Mockito.times(0)).abandon(any());
+        verify(receiverClient, Mockito.times(1)).complete(receivedMessage);
+        verify(receiverClient, Mockito.times(1)).abandon(receivedMessage);
+        verify(receiverClient, Mockito.times(0)).deadLetter(any(), any());
+    }
+
+    @Test
+    void given_session_is_accepted_when_receiver_complete_and_abandon_throws_error_on_both_calls() {
+        when(receivedMessage.getBody()).thenReturn(BinaryData.fromString("TestMessage"));
+
+        publishMessageToReceiver();
+
+        doThrow(new ServiceBusException(new Exception(), ServiceBusErrorSource.UNKNOWN)).doNothing()
+            .when(receiverClient).complete(receivedMessage);
+        doThrow(new ServiceBusException(new Exception(), ServiceBusErrorSource.UNKNOWN)).doNothing()
+            .when(receiverClient).abandon(receivedMessage);
+
+        underTest.consumeMessage(receiverClient);
+
+        verify(receiverClient, Mockito.times(1)).complete(receivedMessage);
+        verify(receiverClient, Mockito.times(1)).abandon(receivedMessage);
         verify(receiverClient, Mockito.times(0)).deadLetter(any(), any());
     }
 
     @Test
     void given_session_is_accepted_when_message_is_consumed() {
+        when(receivedMessage.getBody()).thenReturn(BinaryData.fromString("TestMessage"));
+
         publishMessageToReceiver();
 
         doNothing().when(receiverClient).complete(receivedMessage);
@@ -69,6 +89,21 @@ class CcdCaseEventDeadLetterQueueConsumerTest {
         underTest.consumeMessage(receiverClient);
 
         verify(receiverClient, Mockito.times(1)).complete(receivedMessage);
+    }
+
+    @Test
+    void given_session_is_accepted_when_handling_message_throws_error() {
+        when(receivedMessage.getBody()).thenReturn(BinaryData.fromString("TestMessage"));
+
+        publishMessageToReceiver();
+
+        doThrow(new RuntimeException()).when(eventMessageReceiverService).handleDlqMessage(any(), any());
+
+        underTest.consumeMessage(receiverClient);
+
+        verify(receiverClient, Mockito.times(1)).abandon(receivedMessage);
+        verify(receiverClient, Mockito.times(0)).complete(any());
+        verify(receiverClient, Mockito.times(0)).deadLetter(any(), any());
     }
 
     private void publishMessageToReceiver() {
