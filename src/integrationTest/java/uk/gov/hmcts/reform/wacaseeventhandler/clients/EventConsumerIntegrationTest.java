@@ -11,7 +11,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -23,11 +22,6 @@ import org.springframework.test.context.TestPropertySource;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.ServiceBusConfiguration;
-import uk.gov.hmcts.reform.wacaseeventhandler.config.executors.CcdCaseEventsDeadLetterQueueExecutor;
-import uk.gov.hmcts.reform.wacaseeventhandler.config.executors.CcdCaseEventsExecutor;
-import uk.gov.hmcts.reform.wacaseeventhandler.config.executors.CcdEventExecutor;
-import uk.gov.hmcts.reform.wacaseeventhandler.config.executors.CcdMessageProcessorExecutor;
-import uk.gov.hmcts.reform.wacaseeventhandler.config.executors.MessageReadinessExecutor;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
@@ -61,21 +55,6 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
     "azure.servicebus.retry-duration=2"})
 @DirtiesContext(classMode = AFTER_CLASS, hierarchyMode = EXHAUSTIVE)
 public class EventConsumerIntegrationTest {
-
-    @Autowired
-    private CcdCaseEventsExecutor ccdCaseEventsExecutor;
-
-    @Autowired
-    private CcdCaseEventsDeadLetterQueueExecutor ccdCaseEventsDeadLetterQueueExecutor;
-
-    @Autowired
-    private CcdEventExecutor ccdEventExecutor;
-
-    @Autowired
-    private CcdMessageProcessorExecutor ccdMessageProcessorExecutor;
-
-    @Autowired
-    private MessageReadinessExecutor messageReadinessExecutor;
 
     @Captor
     private ArgumentCaptor<ServiceBusReceivedMessage> messageArgumentCaptor;
@@ -155,9 +134,7 @@ public class EventConsumerIntegrationTest {
         messageList.add(message);
         await()
             .atMost(10, TimeUnit.SECONDS)
-            .untilAsserted(() -> {
-                verify(repository, times(1)).save(any(CaseEventMessageEntity.class));
-            });
+            .untilAsserted(() -> verify(repository, times(1)).save(any(CaseEventMessageEntity.class)));
 
         verify(ccdReceiverClient).complete(messageArgumentCaptor.capture());
         assertEquals(messageId, messageArgumentCaptor.getValue().getMessageId());
@@ -171,9 +148,7 @@ public class EventConsumerIntegrationTest {
         messageList.add(message);
         await()
             .atMost(10, TimeUnit.SECONDS)
-            .untilAsserted(() -> {
-                verify(repository, times(1)).findByMessageId(messageId);
-            });
+            .untilAsserted(() -> verify(repository, times(1)).findByMessageId(messageId));
 
         verify(ccdReceiverClient, atLeast(1)).abandon(messageArgumentCaptor.capture());
         assertEquals(messageId, messageArgumentCaptor.getValue().getMessageId());
@@ -187,9 +162,7 @@ public class EventConsumerIntegrationTest {
         messageList.add(message);
         await()
             .atMost(10, TimeUnit.SECONDS)
-            .untilAsserted(() -> {
-                verify(repository, times(1)).save(any(CaseEventMessageEntity.class));
-            });
+            .untilAsserted(() -> verify(repository, times(1)).save(any(CaseEventMessageEntity.class)));
 
         verify(ccdReceiverClient, atLeast(1)).abandon(messageArgumentCaptor.capture());
         assertEquals(messageId, messageArgumentCaptor.getValue().getMessageId());
@@ -202,9 +175,7 @@ public class EventConsumerIntegrationTest {
         dlqMessageList.add(message);
         await()
             .atMost(10, TimeUnit.SECONDS)
-            .untilAsserted(() -> {
-                verify(repository, times(1)).save(any(CaseEventMessageEntity.class));
-            });
+            .untilAsserted(() -> verify(repository, times(1)).save(any(CaseEventMessageEntity.class)));
 
         verify(dlqReceiverClient).complete(messageArgumentCaptor.capture());
         assertEquals(messageId, messageArgumentCaptor.getValue().getMessageId());
@@ -218,9 +189,7 @@ public class EventConsumerIntegrationTest {
         dlqMessageList.add(message);
         await()
             .atMost(10, TimeUnit.SECONDS)
-            .untilAsserted(() -> {
-                verify(repository, times(1)).findByMessageId(messageId);
-            });
+            .untilAsserted(() -> verify(repository, times(1)).findByMessageId(messageId));
 
         verify(dlqReceiverClient, atLeast(1)).abandon(messageArgumentCaptor.capture());
         assertEquals(messageId, messageArgumentCaptor.getValue().getMessageId());
@@ -234,9 +203,7 @@ public class EventConsumerIntegrationTest {
         dlqMessageList.add(message);
         await()
             .atMost(10, TimeUnit.SECONDS)
-            .untilAsserted(() -> {
-                verify(repository, times(1)).save(any(CaseEventMessageEntity.class));
-            });
+            .untilAsserted(() -> verify(repository, times(1)).save(any(CaseEventMessageEntity.class)));
 
         verify(dlqReceiverClient, atLeast(1)).abandon(messageArgumentCaptor.capture());
         assertEquals(messageId, messageArgumentCaptor.getValue().getMessageId());
