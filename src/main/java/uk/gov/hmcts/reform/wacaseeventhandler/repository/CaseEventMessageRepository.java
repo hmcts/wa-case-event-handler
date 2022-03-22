@@ -54,8 +54,15 @@ public interface CaseEventMessageRepository extends CrudRepository<CaseEventMess
             "SELECT * from public.wa_case_event_messages msg where msg.state = 'NEW' "
             + "order by sequence DESC for update skip locked";
 
+    String LOCK_AND_GET_MESSAGE_BY_ID_SQL =
+        "SELECT * from public.wa_case_event_messages msg where msg.message_id = (:messageId) "
+            + "for update skip locked";
+
     @Query("FROM CaseEventMessageEntity cem WHERE cem.messageId=:messageId")
     List<CaseEventMessageEntity> findByMessageId(String messageId);
+
+    @Query(value = LOCK_AND_GET_MESSAGE_BY_ID_SQL, nativeQuery = true)
+    List<CaseEventMessageEntity> findByMessageIdToUpdate(String messageId);
 
     @Query(value = LOCK_AND_GET_NEXT_MESSAGE_SQL, nativeQuery = true)
     CaseEventMessageEntity getNextAvailableMessageReadyToProcess();

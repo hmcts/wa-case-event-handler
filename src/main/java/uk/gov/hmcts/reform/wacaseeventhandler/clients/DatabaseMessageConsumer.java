@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageMapper;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.UpdateRecordErrorHandlingService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
 import uk.gov.hmcts.reform.wacaseeventhandler.util.UserIdParser;
 
@@ -34,17 +35,20 @@ public class DatabaseMessageConsumer implements Runnable {
     private final CaseEventMessageMapper caseEventMessageMapper;
     private final CcdEventProcessor ccdEventProcessor;
     private final LaunchDarklyFeatureFlagProvider flagProvider;
+    private final UpdateRecordErrorHandlingService updateRecordErrorHandlingService;
     protected static final Map<Integer, Integer> RETRY_COUNT_TO_DELAY_MAP = new ConcurrentHashMap<>();
 
 
     public DatabaseMessageConsumer(CaseEventMessageRepository caseEventMessageRepository,
                                    CaseEventMessageMapper caseEventMessageMapper,
                                    CcdEventProcessor ccdEventProcessor,
-                                   LaunchDarklyFeatureFlagProvider flagProvider) {
+                                   LaunchDarklyFeatureFlagProvider flagProvider,
+                                   UpdateRecordErrorHandlingService updateRecordErrorHandlingService) {
         this.caseEventMessageRepository = caseEventMessageRepository;
         this.caseEventMessageMapper = caseEventMessageMapper;
         this.ccdEventProcessor = ccdEventProcessor;
         this.flagProvider = flagProvider;
+        this.updateRecordErrorHandlingService = updateRecordErrorHandlingService;
     }
 
     static {
@@ -103,7 +107,7 @@ public class DatabaseMessageConsumer implements Runnable {
                 ccdEventProcessor.processMessage(caseEventMessage);
                 log.info("Message with id {} processed successfully, setting message state to PROCESSED",
                         caseEventMessageId);
-                caseEventMessageRepository.updateMessageState(MessageState.PROCESSED, List.of(caseEventMessageId));
+                updateMessageState(MessageState.PROCESSED, caseEventMessageId, 0, null);
             } catch (FeignException fe) {
                 processException(fe, caseEventMessage);
             } catch (Exception ex) {
@@ -143,18 +147,27 @@ public class DatabaseMessageConsumer implements Runnable {
                     retryCount,
                     newHoldUntil,
                     messageId);
-            caseEventMessageRepository.updateMessageWithRetryDetails(retryCount,
-                    newHoldUntil,
-                    messageId);
+            updateMessageState(null, messageId, retryCount, newHoldUntil);
         }
     }
 
     private void processError(CaseEventMessage caseEventMessage) {
         String caseEventMessageId = caseEventMessage.getMessageId();
-        log.info("Could not process message with id {}, setting state to Unprocessable",
-                caseEventMessageId);
+        log.info("Could not process message with id {}, setting state to Unprocessable", caseEventMessageId);
 
-        caseEventMessageRepository.updateMessageState(MessageState.UNPROCESSABLE,
-                    List.of(caseEventMessageId));
+        updateMessageState(MessageState.UNPROCESSABLE, caseEventMessageId, 0, null);
+    }
+
+    private void updateMessageState(MessageState state, String messageId, int retryCount, LocalDateTime holdUntil) {
+        try {
+            if(state != null) {
+                caseEventMessageRepository.updateMessageState(state, List.of(messageId));
+            } else {
+                caseEventMessageRepository.updateMessageWithRetryDetails(retryCount, holdUntil, messageId);
+            }
+        } catch (RuntimeException e) {
+            log.info("Error in updating message with id {}, retrying to update", messageId);
+            updateRecordErrorHandlingService.handleUpdateError(state, messageId, retryCount, holdUntil);
+        }
     }
 }
