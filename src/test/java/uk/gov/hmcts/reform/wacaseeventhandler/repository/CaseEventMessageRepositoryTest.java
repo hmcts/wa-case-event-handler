@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.repository;
 import org.junit.After;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +20,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.sql.DataSource;
@@ -35,7 +33,6 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.util.TestFixtures.createCas
 
 @SpringBootTest
 @ActiveProfiles("db")
-@Disabled("Disabled until springboot upgrade is complete, resolving critical CVEs")
 class CaseEventMessageRepositoryTest {
 
     @Autowired
@@ -366,28 +363,5 @@ class CaseEventMessageRepositoryTest {
                 caseEventMessageEntities.stream()
                         .map(CaseEventMessageEntity::getSequence)
                         .collect(Collectors.toList()));
-    }
-
-    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
-        scripts = {"classpath:sql/insert_case_event_messages.sql"})
-    @Test
-    @Transactional
-    void should_return_case_event_message_list_for_update_with_message_id() {
-        List<CaseEventMessageEntity> caseEventMessageEntity =
-            caseEventMessageRepository.findByMessageIdToUpdate("MessageId_bc8299fc-5d31-45c7-b847-c2622014a85a");
-        assertNotNull(caseEventMessageEntity);
-        assertEquals(1, caseEventMessageEntity.size());
-        assertEquals("MessageId_bc8299fc-5d31-45c7-b847-c2622014a85a", caseEventMessageEntity.get(0).getMessageId());
-
-        AtomicInteger rowsAffected = new AtomicInteger();
-        transactionTemplate.execute(status -> {
-            rowsAffected.set(caseEventMessageRepository.updateMessageState(MessageState.PROCESSED,
-                                                                           List.of(
-                                                                               "MessageId_bc8299fc-5d31-45c7-b847-c2622014a85a")
-            ));
-            return true;
-        });
-        assertEquals(1, rowsAffected.get());
-
     }
 }

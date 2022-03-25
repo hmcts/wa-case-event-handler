@@ -17,6 +17,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
@@ -35,13 +39,10 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 import static uk.gov.hmcts.reform.wacaseeventhandler.util.TestFixtures.createCaseEventMessage;
 
 @ExtendWith(MockitoExtension.class)
@@ -62,6 +63,15 @@ class DatabaseMessageConsumerTest {
     @Mock
     private UpdateRecordErrorHandlingService updateRecordErrorHandlingService;
 
+    @Mock
+    private TransactionTemplate transactionTemplate;
+
+    @Mock
+    private TransactionStatus transactionStatus;
+
+    @Mock
+    private PlatformTransactionManager platformTransactionManager;
+
     @InjectMocks
     private DatabaseMessageConsumer databaseMessageConsumer;
 
@@ -77,6 +87,8 @@ class DatabaseMessageConsumerTest {
             FeatureFlag.DLQ_DB_PROCESS,
             "databaseMessageConsumerTestUserId"
         )).thenReturn(true);
+
+        doNothing().when(transactionStatus).setRollbackOnly();
     }
 
     @NotNull
@@ -239,13 +251,13 @@ class DatabaseMessageConsumerTest {
     void should_retry_to_update_record_when_update_state_failed() {
         final CaseEventMessage caseEventMessage = createCaseEventMessage();
         CaseEventMessageEntity caseEventMessageEntity = createCaseEventMessageEntity();
-        String messageId = caseEventMessage.getMessageId();
 
         when(caseEventMessageRepository.getNextAvailableMessageReadyToProcess()).thenReturn(caseEventMessageEntity);
         when(caseEventMessageMapper.mapToCaseEventMessage(any(CaseEventMessageEntity.class)))
             .thenReturn(caseEventMessage);
+        String messageId = caseEventMessage.getMessageId();
         when(caseEventMessageRepository.updateMessageState(MessageState.PROCESSED,
-                                                           List.of(caseEventMessage.getMessageId())))
+                                                           List.of(messageId)))
             .thenThrow(new RuntimeException());
 
         databaseMessageConsumer.run();
@@ -265,6 +277,8 @@ class DatabaseMessageConsumerTest {
             .thenReturn(caseEventMessage);
         when(caseEventMessageRepository.updateMessageWithRetryDetails(eq(retryCount), any(), eq(messageId)))
             .thenThrow(new RuntimeException());
+
+        when(transactionTemplate.execute(any())).thenAnswer(invocation -> invocation.<TransactionCallback<Boolean>>getArgument(0).doInTransaction(transactionStatus));
 
         final Request request = Mockito.mock(Request.class);
         FeignException.NotFound errorMessage = new FeignException.NotFound(
