@@ -17,14 +17,9 @@ import reactor.core.scheduler.Schedulers;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.ServiceBusConfiguration;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageReceiverService;
 
-import java.util.concurrent.TimeUnit;
-
-import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -109,30 +104,6 @@ class CcdCaseEventDeadLetterQueueConsumerTest {
         verify(receiverClient, Mockito.times(1)).abandon(receivedMessage);
         verify(receiverClient, Mockito.times(0)).complete(any());
         verify(receiverClient, Mockito.times(0)).deadLetter(any(), any());
-    }
-
-
-    @Test
-    void should_start_consume_messages_when_consumer_start_is_called() {
-        when(serviceBusConfiguration.createCcdCaseEventsDeadLetterQueueSessionReceiver()).thenReturn(receiverClient);
-        when(receiverClient.receiveMessages(1)).thenReturn(new IterableStream<>(Flux.empty()));
-
-        Thread consumer = new Thread(underTest);
-        consumer.start();
-
-        await()
-            .atMost(1, TimeUnit.SECONDS)
-            .untilAsserted(() -> verify(receiverClient, atLeastOnce()).receiveMessages(1));
-        underTest.stop();
-    }
-
-    @Test
-    void should_stop_consume_messages_when_consumer_stop_is_called() {
-        underTest.stop();
-        Thread consumer = new Thread(underTest);
-        consumer.start();
-
-        verify(receiverClient, never()).receiveMessages(1);
     }
 
     private void publishMessageToReceiver() {
