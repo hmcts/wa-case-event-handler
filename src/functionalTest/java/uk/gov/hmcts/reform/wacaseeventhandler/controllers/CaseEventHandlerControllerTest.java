@@ -76,7 +76,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         sendMessage(
             caseId,
-            "makeAnApplication",
+            "changeDirectionDueDate",
             "",
             "",
             false,
@@ -105,11 +105,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("taskState.value", is("unassigned"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseId))
-            .body("name.value", is("Process Application"))
+            .body("name.value", is("Follow-up extended direction"))
             .body("workingDaysAllowed.value", is(2))
             .body("isDuplicate.value", is(false))
             .body("delayUntil.value", notNullValue())
-            .body("taskId.value", is("processApplication"))
+            .body("taskId.value", is("followUpExtendedDirection"))
             .body("warningList.value", is("[]"));
 
     }
@@ -121,9 +121,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         sendMessage(
             caseId,
-            "submitAppeal",
+            "uploadHomeOfficeBundle",
             "",
-            "appealSubmitted",
+            "awaitingRespondentEvidence",
             false, "IA", "Asylum"
         );
 
@@ -149,11 +149,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("taskState.value", is("unassigned"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseId))
-            .body("name.value", is("Review the appeal"))
+            .body("name.value", is("Review Respondent Evidence"))
             .body("workingDaysAllowed.value", is(2))
             .body("isDuplicate.value", is(false))
             .body("delayUntil.value", notNullValue())
-            .body("taskId.value", is("reviewTheAppeal"))
+            .body("taskId.value", is("reviewRespondentEvidence"))
             .body("caseId.value", is(caseId))
             .body("__processCategory__caseProgression.value", is(true))
             .body("hasWarnings.value", is(false))
@@ -293,15 +293,15 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
      */
     @Test
     @Ignore("CheckFeeStatus task cannot be retrieved")
-    public void given_event_submitAppeal_when_appealType_sent_as_json_then_initiate_task() {
+    public void given_event_uploadHomeOfficeBundle_when_sent_as_json_then_initiate_task() {
 
         String caseId = getCaseId();
 
         sendMessageWithAdditionalData(
             caseId,
-            "submitAppeal",
+            "uploadHomeOfficeBundle",
             "",
-            "appealSubmitted",
+            "awaitingRespondentEvidence",
             false
         );
 
@@ -335,7 +335,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("taskId.value", is("reviewTheAppeal"));
+            .body("taskId.value", is("reviewRespondentEvidence"));
 
     }
 
@@ -459,13 +459,13 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_initiate_tasks_with_different_categories_then_cancel_all_tasks() {
 
         String caseIdForTask1 = getCaseId();
-        String task1IdDmnColumn = "reviewTheAppeal";
+        String task1IdDmnColumn = "reviewRespondentEvidence";
 
         // task1 with category Case progression
         caseId1Task1Id = createTaskWithId(
             caseIdForTask1,
-            "submitAppeal",
-            "", "appealSubmitted", false,
+            "uploadHomeOfficeBundle",
+            "", "awaitingRespondentEvidence", false,
             task1IdDmnColumn, "IA", "Asylum"
         );
 
@@ -551,7 +551,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         taskIdStatusMap.put(caseId1Task1Id, "completed");
 
-        sendMessage(caseIdForTask1, "makeAnApplication",
+        sendMessage(caseIdForTask1, "submitTimeExtension",
             "", "", false, "IA", "Asylum"
         );
 
@@ -613,7 +613,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         taskIdStatusMap.put(caseId1Task2Id, "completed");
 
         // send warning message
-        sendMessage(caseIdForTask1, "makeAnApplication",
+        sendMessage(caseIdForTask1, "submitTimeExtension",
             "", "", false, "IA", "Asylum"
         );
 
@@ -675,8 +675,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         taskIdStatusMap.put(caseId1Task2Id, "completed");
 
         // send warning message
-        sendMessage(caseIdForTask1, "makeAnApplication",
-            "", "", false, "IA", "Asylum"
+        sendMessage(caseIdForTask1, "requestReasonsForAppeal",
+            "", "awaitingReasonsForAppeal", false, "IA", "Asylum"
         );
 
         waitSeconds(5);
@@ -703,11 +703,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String caseId = getCaseId();
         caseId1Task1Id = createTaskWithId(
             caseId,
-            "makeAnApplication",
+            "changeDirectionDueDate",
             "",
             "",
             true,
-            "processApplication", "IA", "Asylum"
+            "followUpExtendedDirection", "IA", "Asylum"
         );
 
         // add tasks to tear down.
@@ -718,9 +718,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_initiated_tasks_with_delayTimer_toCurrentTime_and_without_followup_overdue_then_complete_task() {
 
         String caseId = getCaseId();
-        caseId1Task1Id = createTaskWithId(caseId, "submitAppeal",
-            "", "appealSubmitted",
-            false, "reviewTheAppeal", "IA", "Asylum"
+        caseId1Task1Id = createTaskWithId(caseId, "uploadHomeOfficeBundle",
+            "", "awaitingRespondentEvidence",
+            false, "reviewRespondentEvidence", "IA", "Asylum"
         );
 
         // add tasks to tear down.
@@ -733,9 +733,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         eventTimeStamp = LocalDateTime.parse("2020-10-23T12:56:19.403975");
 
         String caseIdForTask1 = getCaseId();
-        caseId1Task1Id = createTaskWithId(caseIdForTask1, "submitAppeal",
-            "", "appealSubmitted",
-            false, "reviewTheAppeal", "IA", "Asylum"
+        caseId1Task1Id = createTaskWithId(caseIdForTask1, "uploadHomeOfficeBundle",
+            "", "awaitingRespondentEvidence",
+            false, "reviewRespondentEvidence", "IA", "Asylum"
         );
 
         taskIdStatusMap.put(caseId1Task1Id, "completed");
@@ -746,9 +746,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
 
         String caseIdForTask2 = getCaseId();
-        caseId1Task2Id = createTaskWithId(caseIdForTask2, "submitAppeal",
-            "", "appealSubmitted",
-            false, "reviewTheAppeal", "IA", "Asylum"
+        caseId1Task2Id = createTaskWithId(caseIdForTask2, "uploadHomeOfficeBundle",
+            "", "awaitingRespondentEvidence",
+            false, "reviewRespondentEvidence", "IA", "Asylum"
         );
 
         taskIdStatusMap.put(caseId1Task2Id, "completed");
@@ -802,11 +802,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_multiple_caseIDs_when_actions_is_warn_then_mark_all_tasks_with_warnings() {
         //caseId1 with category Case progression
         String caseId1 = getCaseId();
-        String taskIdDmnColumn = "attendCma";
+        String taskIdDmnColumn = "reviewRespondentEvidence";
         caseId1Task1Id = createTaskWithId(
             caseId1,
-            "listCma",
-            "", "cmaListed", false,
+            "uploadHomeOfficeBundle",
+            "", "awaitingRespondentEvidence", false,
             taskIdDmnColumn, "IA", "Asylum"
         );
 
@@ -823,7 +823,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         taskIdStatusMap.put(caseId2Task1Id, "completed");
 
         // Then cancel all tasks on both caseIDs
-        sendMessage(caseId1, "makeAnApplication",
+        sendMessage(caseId1, "changeDirectionDueDate",
             "", "", false, "IA", "Asylum"
         );
         waitSeconds(5);
@@ -838,7 +838,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         taskIdStatusMap.put(caseId1Task2Id, "completed");
 
-        sendMessage(caseId2, "makeAnApplication",
+        sendMessage(caseId2, "changeDirectionDueDate",
             "", "", false, "IA", "Asylum"
         );
         waitSeconds(5);

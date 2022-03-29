@@ -27,9 +27,9 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         // Initiate task1
         sendMessage(
             caseIdForTask1,
-            "submitCase",
+            "uploadHomeOfficeBundle",
             null,
-            "caseUnderReview",
+            "awaitingRespondentEvidence",
             false,
             "WA",
             "WaCaseType"

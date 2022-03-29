@@ -29,7 +29,7 @@ class DeadLetterServiceTest {
     private DeadLetterService deadLetterService;
 
     private final EventInformation eventInformation = EventInformation.builder()
-        .eventId("submitAppeal")
+        .eventId("uploadHomeOfficeBundle")
         .newStateId("")
         .jurisdictionId("ia")
         .caseTypeId("asylum")
