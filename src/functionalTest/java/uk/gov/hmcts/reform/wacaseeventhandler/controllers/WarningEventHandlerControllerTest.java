@@ -2,8 +2,13 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.WarningValues;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -15,7 +20,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
-public class WarningEventHandlerControllerTest extends CaseEventHandlerControllerTest {
+public class WarningEventHandlerControllerTest extends CaseEventHandlerControllerTestHelper {
+
+    @Before
+    public void setup() {
+        eventTimeStamp = LocalDateTime.now().minusDays(1);
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+
+        taskIdStatusMap = new HashMap<>();
+        caseId1Task1Id = "";
+        caseId1Task2Id = "";
+        caseId2Task1Id = "";
+        caseId2Task2Id = "";
+    }
+
+    @After
+    public void cleanUp() {
+        taskIdStatusMap.forEach((key, value) -> completeTask(key, value));
+        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
+        common.cleanUpTask(caseworkerCredentials.getHeaders(), caseIds);
+    }
 
     /**
      * Scenario: 1 event creates 2 different warnings on all tasks.
