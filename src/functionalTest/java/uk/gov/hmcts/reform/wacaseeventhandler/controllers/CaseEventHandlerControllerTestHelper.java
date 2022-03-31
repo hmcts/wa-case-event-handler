@@ -331,7 +331,9 @@ public class CaseEventHandlerControllerTestHelper extends SpringBootFunctionalBa
                 "uniqueId", "",
                 "directionType", ""
             ),
-            "appealType", "protection"
+            "appealType", "protection",
+            "lastModifiedApplication", Map.of("type", "Judge's review of application decision",
+                "decision", "")
         );
 
         return AdditionalData.builder()
