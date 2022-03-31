@@ -18,7 +18,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageReposit
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DeadLetterQueuePeekService;
 
 import java.util.List;
-import java.util.concurrent.Executors;
 
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
@@ -61,10 +60,7 @@ class MessageReadinessExecutorTest {
         MessageReadinessConsumer messageReadinessConsumer =
                 new MessageReadinessConsumer(deadLetterQueuePeekService, caseEventMessageRepository,
                         launchDarklyFeatureFlagProvider);
-        ReflectionTestUtils.setField(messageReadinessExecutor, "messageReadinessConsumer",
-                                     messageReadinessConsumer);
-        ReflectionTestUtils.setField(messageReadinessExecutor, "messageReadinessExecutorService",
-                                     Executors.newScheduledThreadPool(1));
+        ReflectionTestUtils.setField(messageReadinessExecutor, "messageReadinessConsumer", messageReadinessConsumer);
         ReflectionTestUtils.setField(messageReadinessExecutor, "pollInterval", 2);
 
         CaseEventMessageEntity caseEventMessageEntity = new CaseEventMessageEntity();
@@ -72,7 +68,7 @@ class MessageReadinessExecutorTest {
         when(caseEventMessageRepository.getAllMessagesInNewState()).thenReturn(List.of(caseEventMessageEntity));
         when(deadLetterQueuePeekService.isDeadLetterQueueEmpty()).thenReturn(true);
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
-        messageReadinessExecutor.start();
+        messageReadinessExecutor.createMessageReadinessConsumer();
 
         await().until(
             () -> getLogMessageOccurrenceCount(PROCESS_LOG_MESSAGE) > 2
