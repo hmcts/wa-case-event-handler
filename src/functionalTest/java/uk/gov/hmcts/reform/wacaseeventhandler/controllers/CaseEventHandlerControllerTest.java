@@ -650,7 +650,7 @@ public class CaseEventHandlerControllerTest extends CaseEventHandlerControllerTe
             "", "", false, "IA", "Asylum"
         );
 
-        waitSeconds(10);
+        waitSeconds(5);
 
         response = findTasksByCaseId(caseIdForTask1, 3);
 
@@ -797,7 +797,7 @@ public class CaseEventHandlerControllerTest extends CaseEventHandlerControllerTe
         sendMessage(caseId1, "makeAnApplication",
             "", "", false, "IA", "Asylum"
         );
-        waitSeconds(10);
+        waitSeconds(5);
 
         Response taskFound = findTasksByCaseId(caseId1, 2);
 
