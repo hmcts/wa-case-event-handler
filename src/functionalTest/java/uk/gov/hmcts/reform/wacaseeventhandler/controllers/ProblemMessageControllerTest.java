@@ -7,9 +7,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
@@ -39,7 +37,6 @@ public class ProblemMessageControllerTest extends SpringBootFunctionalBaseTest {
         .registerModule(new JavaTimeModule())
         .registerModule(new Jdk8Module());
 
-
     private LocalDateTime eventTimestamp1;
     private LocalDateTime holdUntilTimestamp;
 
@@ -47,39 +44,6 @@ public class ProblemMessageControllerTest extends SpringBootFunctionalBaseTest {
     public void setup() {
         eventTimestamp1 = LocalDateTime.parse("2020-03-27T12:56:10.403975").minusDays(1);
         holdUntilTimestamp = LocalDateTime.parse("2020-03-27T12:56:10.403975").plusDays(10);
-    }
-
-    @Ignore("Ignore until AZURE_SERVICE_BUS_FEATURE_TOGGLE is turned on")
-    @Test
-    public void should_check_for_ready_messages_using_job_request_endpoint() throws Exception {
-        String messageId = randomMessageId();
-        String caseIdForTask = RandomStringUtils.randomNumeric(16);
-        String eventInstanceId = UUID.randomUUID().toString();
-
-        EventInformation eventInformation = buildEventInformation(eventInstanceId, caseIdForTask);
-
-        EventInformationRequest createRequest = createRequestWithAdditionalMetadata(eventInformation);
-
-        postEventToRestEndpoint(messageId, s2sToken, createRequest)
-            .then()
-            .statusCode(HttpStatus.CREATED.value());
-
-
-        Response result = postJobMessageEndpoint(s2sToken, JobName.FIND_PROBLEM_MESSAGES.name())
-            .then()
-            .statusCode(HttpStatus.OK.value())
-            .extract()
-            .response();
-
-        List<CaseEventMessage> caseEventMessages = OBJECT_MAPPER.readValue(result.body().asString(),
-                                                                           new TypeReference<>() {});
-        List<String> messageIds = caseEventMessages
-            .stream()
-            .map(caseEventMessage -> caseEventMessage.getMessageId())
-            .collect(Collectors.toList());
-
-        assertThat(messageIds).asList()
-            .containsSubsequence(messageId);
     }
 
     @Test

@@ -70,9 +70,9 @@ public interface CaseEventMessageRepository extends CrudRepository<CaseEventMess
                                   + "from wa_case_event_messages msg \n"
                                   + "where msg.state IN ('UNPROCESSABLE', 'READY') \n"
                                   + "and case when msg.state='READY' "
-                                  + "then ((current_timestamp - interval '" + " ?1 minutes')"
-                                  + " - msg.event_timestamp ) "
-                                  + "> interval '" + " ?1 minutes' "
+                                  + "then EXTRACT(EPOCH FROM (((current_timestamp - interval '" + " ?1 minutes')"
+                                  + " - msg.event_timestamp )))/60 "
+                                  + "> ?1 "
                                   + "else 1=1 end \n"
                                   + "order by state;";
 

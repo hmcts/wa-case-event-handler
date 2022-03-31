@@ -34,6 +34,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -61,8 +62,10 @@ class ProblemMessageControllerTest {
 
     public static final String S2S_TOKEN = "Bearer s2s token";
     public static final String CASE_REFERENCE = "some case reference";
-    public static final LocalDateTime EVENT_TIME_STAMP = LocalDateTime.now();
-    public static final LocalDateTime OLD_EVENT_TIME_STAMP = LocalDateTime.now().minusHours(2);
+    public static final String MESSAGE = "Response should not be null";
+    public static final String MESSAGE_ENDPOINT = "/messages/";
+    public static final String ENDPOINT_UNDER_TEST = "/messages/jobs/";
+
 
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
@@ -87,20 +90,25 @@ class ProblemMessageControllerTest {
         return "messageId_" + ThreadLocalRandom.current().nextLong(1000000);
     }
 
+    @NotNull
+    private String randomCaseId() {
+        return "some case id" + ThreadLocalRandom.current().nextLong(1000000);
+    }
+
     @Test
-    void should_return_a_ready_message_when_ready_message_timestamp_is_old_than_one_hour() throws Exception {
+    void should_return_a_ready_message_when_ready_message_timestamp_is_older_than_one_hour() throws Exception {
 
         String messageId = randomMessageId();
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true).thenReturn(true);
 
         when(deadLetterQueuePeekService.isDeadLetterQueueEmpty()).thenReturn(true);
-
-        postAnOldMessage(messageId, status().isCreated(), false);
+        LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(65);
+        postMessage(messageId, status().isCreated(), false,localDateTime);
 
         await().pollInterval(600, MILLISECONDS)
             .atMost(45, SECONDS)
-            .untilAsserted(() -> checkMessagesInState(List.of(messageId), MessageState.READY));
+            .untilAsserted(() -> checkMessagesInState(List.of(messageId), MessageState.READY,localDateTime));
 
         MvcResult mvcResult = postAJobRequest(JobName.FIND_PROBLEM_MESSAGES.name());
         List<CaseEventMessage> response = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(),
@@ -108,16 +116,45 @@ class ProblemMessageControllerTest {
 
         List<MessageState> messageStates = response.stream().map(caseEventMessage1 -> caseEventMessage1.getState())
             .collect(Collectors.toList());
-        assertNotNull(mvcResult, "Response should not be null");
+        List<String> messageIds = response.stream().map(caseEventMessage1 -> caseEventMessage1.getMessageId())
+            .collect(Collectors.toList());
+
+        assertNotNull(mvcResult, MESSAGE);
         assertTrue(messageStates.contains(MessageState.READY));
+        assertTrue(messageIds.contains(messageId));
+
+    }
+
+    @Test
+    void should_not_return_ready_when_timestamp_is_less_than_one_hour() throws Exception {
+
+        String messageId = randomMessageId();
+
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true).thenReturn(true);
+
+        when(deadLetterQueuePeekService.isDeadLetterQueueEmpty()).thenReturn(true);
+        LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(30);
+        postMessage(messageId, status().isCreated(), false,localDateTime);
+
+        await().pollInterval(600, MILLISECONDS)
+            .atMost(45, SECONDS)
+            .untilAsserted(() -> checkMessagesInState(List.of(messageId), MessageState.READY, localDateTime));
+
+        MvcResult mvcResult = postAJobRequest(JobName.FIND_PROBLEM_MESSAGES.name());
+        List<CaseEventMessage> response = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(),
+                                                        new TypeReference<>() {});
+        List<String> messageIds = response.stream().map(caseEventMessage1 -> caseEventMessage1.getMessageId())
+            .collect(Collectors.toList());
+        assertFalse(messageIds.contains(messageId));
     }
 
     @Test
     void should_return_unprocessable_message_when_case_id_is_null() throws Exception {
         String messageId = randomMessageId();
-        String unprocessableMessage = getCaseEventMessage(null);
+        String unprocessableMessage = getCaseEventMessage(null, LocalDateTime.now());
 
-        MvcResult result = mockMvc.perform(post("/messages/" + messageId + "?from_dlq=true")
+
+        MvcResult result = mockMvc.perform(post(MESSAGE_ENDPOINT + messageId + "?from_dlq=true")
                                                .contentType(MediaType.APPLICATION_JSON)
                                                .content(unprocessableMessage))
             .andExpect(status().isCreated())
@@ -126,7 +163,7 @@ class ProblemMessageControllerTest {
 
         String content = result.getResponse().getContentAsString();
         assertEquals(201, result.getResponse().getStatus(), content);
-        assertNotNull(content, "Content Should not be null");
+        assertNotNull(content, MESSAGE);
 
         MvcResult mvcResult = postAJobRequest(JobName.FIND_PROBLEM_MESSAGES.name());
         List<CaseEventMessage> response = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(),
@@ -134,17 +171,44 @@ class ProblemMessageControllerTest {
         List<MessageState> messageStates = response.stream().map(caseEventMessage1 -> caseEventMessage1.getState())
             .collect(Collectors.toList());
 
-        assertNotNull(mvcResult, "Response should not be null");
+        assertNotNull(mvcResult, MESSAGE);
         assertTrue(messageStates.contains(MessageState.UNPROCESSABLE));
     }
 
+    @Test
+    void should_not_return_an_unprocessable_message_when_case_id_is_valid() throws Exception {
+        String messageId = randomMessageId();
+        String caseId = randomCaseId();
+        String unprocessableMessage = getCaseEventMessage(caseId, LocalDateTime.now());
 
-    private void checkMessagesInState(List<String> messageIds, MessageState messageState) {
+        MvcResult result = mockMvc.perform(post(MESSAGE_ENDPOINT + messageId + "?from_dlq=true")
+                                               .contentType(MediaType.APPLICATION_JSON)
+                                               .content(unprocessableMessage))
+            .andExpect(status().isCreated())
+            .andReturn();
+
+        String content = result.getResponse().getContentAsString();
+        assertEquals(201, result.getResponse().getStatus(), content);
+        assertNotNull(content, MESSAGE);
+
+        MvcResult mvcResult = postAJobRequest(JobName.FIND_PROBLEM_MESSAGES.name());
+        List<CaseEventMessage> response = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(),
+                                                        new TypeReference<>() {});
+        List<String> messageIds = response.stream()
+            .map(caseEventMessage1 -> caseEventMessage1.getMessageId())
+            .collect(Collectors.toList());
+
+        assertNotNull(mvcResult, MESSAGE);
+        assertFalse(messageIds.contains(caseId));
+    }
+
+
+    private void checkMessagesInState(List<String> messageIds, MessageState messageState,LocalDateTime eventTimestamp) {
         messageIds.forEach(msgId -> {
             try {
-                mockMvc.perform(get("/messages/" + msgId))
+                mockMvc.perform(get(MESSAGE_ENDPOINT + msgId))
                     .andExpect(status().isOk())
-                    .andExpect(content().json("{'EventTimestamp':'" + OLD_EVENT_TIME_STAMP + "'}"))
+                    .andExpect(content().json("{'EventTimestamp':'" + eventTimestamp + "'}"))
                     .andExpect(content().json("{'State':'" + messageState.name() + "'}"))
                     .andReturn();
             } catch (Exception e) {
@@ -153,26 +217,10 @@ class ProblemMessageControllerTest {
         });
     }
 
-    public static String getCaseEventMessage(String caseId) {
+    public static String getCaseEventMessage(String caseId,LocalDateTime eventTimestamp) {
         return "{\n"
                + "  \"EventInstanceId\" : \"some event instance Id\",\n"
-               + "  \"EventTimeStamp\" : \"" + EVENT_TIME_STAMP + "\",\n"
-               + (caseId != null ? "  \"CaseId\" : \"" + caseId + "\",\n" : "  \"CaseId\" : null,\n")
-               + "  \"JurisdictionId\" : \"ia\",\n"
-               + "  \"CaseTypeId\" : \"asylum\",\n"
-               + "  \"EventId\" : \"some event Id\",\n"
-               + "  \"NewStateId\" : \"some new state Id\",\n"
-               + "  \"UserId\" : \"some user Id\",\n"
-               + "  \"MessageProperties\" : {\n"
-               + "      \"property1\" : \"test1\"\n"
-               + "  }\n"
-               + "}";
-    }
-
-    public static String getOldCaseEventMessage(String caseId) {
-        return "{\n"
-               + "  \"EventInstanceId\" : \"some event instance Id\",\n"
-               + "  \"EventTimeStamp\" : \"" + OLD_EVENT_TIME_STAMP + "\",\n"
+               + "  \"EventTimeStamp\" : \"" + eventTimestamp + "\",\n"
                + (caseId != null ? "  \"CaseId\" : \"" + caseId + "\",\n" : "  \"CaseId\" : null,\n")
                + "  \"JurisdictionId\" : \"ia\",\n"
                + "  \"CaseTypeId\" : \"asylum\",\n"
@@ -186,17 +234,20 @@ class ProblemMessageControllerTest {
     }
 
     @NotNull
-    private MvcResult postAnOldMessage(String messageId, ResultMatcher created, boolean fromDlq) throws Exception {
-        return mockMvc.perform(post("/messages/" + messageId + (fromDlq ? "?from_dlq=true" : "?from_dlq=false"))
+    private MvcResult postMessage(String messageId, ResultMatcher created, boolean fromDlq,
+                                  LocalDateTime eventTimestamp) throws Exception {
+        return mockMvc.perform(post(MESSAGE_ENDPOINT
+                                    + messageId + (fromDlq ? "?from_dlq=true" : "?from_dlq=false"))
                                    .contentType(MediaType.APPLICATION_JSON)
-                                   .content(getOldCaseEventMessage(CASE_REFERENCE)))
+                                   .content(getCaseEventMessage(CASE_REFERENCE,eventTimestamp)))
             .andExpect(created)
             .andReturn();
     }
 
     @NotNull
     private MvcResult postAJobRequest(String jobName) throws Exception {
-        return mockMvc.perform(post("/messages/jobs/" + jobName)
+
+        return mockMvc.perform(post(ENDPOINT_UNDER_TEST + jobName)
                                    .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andReturn();

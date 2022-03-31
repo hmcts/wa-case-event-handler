@@ -18,7 +18,7 @@ idam:
     secret: ${S2S_SECRET_CASE_EVENT_HANDLER:AAAAAAAAAAAAAAAA}
     name: ${S2S_NAME_CASE_EVENT_HANDLER:wa_case_event_handler}
   s2s-authorised:
-    services: ${WA_S2S_AUTHORIZED_SERVICES:wa_case_event_handler,wa_task_monitor,wa_task_management_api}
+    services: ${WA_S2S_AUTHORIZED_SERVICES:wa_case_event_handler,wa_task_monitor,wa_task_management_api,wa_message_cron_service}
   redirectUrl: ${IA_IDAM_REDIRECT_URI:http://xui-webapp/oauth2/callback}
   scope: "openid profile roles"
   api:
