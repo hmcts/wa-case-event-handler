@@ -89,12 +89,13 @@ public class CaseEventHandlerControllerTest extends CaseEventHandlerControllerTe
 
         String caseId = getCaseId();
 
-        sendMessage(
+        sendMessageWithAdditionalData(
             caseId,
-            "uploadHomeOfficeBundle",
+            "submitAppeal",
             "",
-            "awaitingRespondentEvidence",
-            false, "IA", "Asylum"
+            "appealSubmitted",
+            false,
+            "revocationOfProtection"
         );
 
         Response taskFound = findTasksByCaseId(caseId, 1);
@@ -119,11 +120,11 @@ public class CaseEventHandlerControllerTest extends CaseEventHandlerControllerTe
             .body("taskState.value", is("unassigned"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseId))
-            .body("name.value", is("Review Respondent Evidence"))
+            .body("name.value", is("Review the appeal"))
             .body("workingDaysAllowed.value", is(2))
             .body("isDuplicate.value", is(false))
             .body("delayUntil.value", notNullValue())
-            .body("taskId.value", is("reviewRespondentEvidence"))
+            .body("taskId.value", is("reviewTheAppeal"))
             .body("caseId.value", is(caseId))
             .body("__processCategory__caseProgression.value", is(true))
             .body("hasWarnings.value", is(false))
@@ -272,7 +273,8 @@ public class CaseEventHandlerControllerTest extends CaseEventHandlerControllerTe
             "submitAppeal",
             "",
             "appealSubmitted",
-            false
+            false,
+            "revocationOfProtection"
         );
 
         Response taskFound = findTasksByCaseId(caseId, 2);

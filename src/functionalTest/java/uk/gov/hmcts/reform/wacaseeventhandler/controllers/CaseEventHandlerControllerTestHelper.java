@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 import com.azure.messaging.servicebus.ServiceBusMessage;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
@@ -136,13 +137,13 @@ public abstract class CaseEventHandlerControllerTestHelper extends SpringBootFun
     }
 
     protected void sendMessageWithAdditionalData(String caseId, String event, String previousStateId,
-                                                 String newStateId, boolean taskDelay) {
+                                                 String newStateId, boolean taskDelay, String appealType) {
 
         if (taskDelay) {
             eventTimeStamp = LocalDateTime.now().plusSeconds(2);
         }
         EventInformation eventInformation = getEventInformationWithAdditionalData(
-            caseId, event, previousStateId, newStateId, eventTimeStamp
+            caseId, event, previousStateId, newStateId, eventTimeStamp, appealType
         );
 
         if (publisher != null) {
@@ -168,14 +169,15 @@ public abstract class CaseEventHandlerControllerTestHelper extends SpringBootFun
             .eventId(event)
             .newStateId(newStateId)
             .previousStateId(previousStateId)
-            .additionalData(setAdditionalData())
+            .additionalData(setAdditionalData(""))
             .userId("some user Id")
             .build();
     }
 
     protected EventInformation getEventInformationWithAdditionalData(String caseId, String event,
                                                                      String previousStateId,
-                                                                     String newStateId, LocalDateTime localDateTime) {
+                                                                     String newStateId, LocalDateTime localDateTime,
+                                                                     String appealType) {
         return EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
             .eventTimeStamp(localDateTime)
@@ -185,7 +187,7 @@ public abstract class CaseEventHandlerControllerTestHelper extends SpringBootFun
             .eventId(event)
             .newStateId(newStateId)
             .previousStateId(previousStateId)
-            .additionalData(setAdditionalData())
+            .additionalData(setAdditionalData(appealType))
             .userId("some user Id")
             .build();
     }
@@ -324,14 +326,15 @@ public abstract class CaseEventHandlerControllerTestHelper extends SpringBootFun
         assertTaskDeleteReason(taskId, status);
     }
 
-    protected AdditionalData setAdditionalData() {
+    protected AdditionalData setAdditionalData(String appealType) {
+        String type = StringUtils.isNotBlank(appealType) ? appealType : "protection";
         Map<String, Object> dataMap = Map.of(
             "lastModifiedDirection", Map.of(
                 "dateDue", "",
                 "uniqueId", "",
                 "directionType", ""
             ),
-            "appealType", "protection",
+            "appealType", type,
             "lastModifiedApplication", Map.of("type", "Judge's review of application decision",
                 "decision", "")
         );
