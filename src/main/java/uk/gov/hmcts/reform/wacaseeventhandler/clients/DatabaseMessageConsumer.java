@@ -85,11 +85,11 @@ public class DatabaseMessageConsumer implements Runnable {
                 if (flagProvider.getBooleanValue(DLQ_DB_PROCESS, getUserId(caseEventMessageEntity))) {
                     final CaseEventMessage caseEventMessage = caseEventMessageMapper
                         .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
-                    Optional<MessageUpdateRetry> updateResult = processMessage(caseEventMessage);
+                    Optional<MessageUpdateRetry> updatable = processMessage(caseEventMessage);
 
                     //if record state update failed, Rollback the transaction
-                    updateResult.ifPresent(r -> status.setRollbackOnly());
-                    return updateResult;
+                    updatable.ifPresent(r -> status.setRollbackOnly());
+                    return updatable;
                 } else {
                     log.trace(
                         "Feature flag '{}' evaluated to false. Did not start message processor thread",
