@@ -77,6 +77,8 @@ class MessageReadinessExecutorTest {
         await().until(
             () -> getLogMessageOccurrenceCount(PROCESS_LOG_MESSAGE) > 2
         );
+
+        messageReadinessExecutor.cleanup();
     }
 
     private long getLogMessageOccurrenceCount(String expectedMessage)  {
