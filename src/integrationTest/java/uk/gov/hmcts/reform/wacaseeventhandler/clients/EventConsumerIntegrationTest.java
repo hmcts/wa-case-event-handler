@@ -5,8 +5,10 @@ import com.azure.core.util.IterableStream;
 import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
 import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
+import org.junit.FixMethodOrder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.runners.MethodSorters;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -28,7 +30,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageReposit
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,7 +41,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER_CLASS;
-import static org.springframework.test.annotation.DirtiesContext.HierarchyMode.EXHAUSTIVE;
+import static org.springframework.test.annotation.DirtiesContext.HierarchyMode.CURRENT_LEVEL;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
 @SpringBootTest
@@ -53,7 +54,8 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
     "azure.servicebus.subscription-name=test",
     "azure.servicebus.ccd-case-events-subscription-name=test",
     "azure.servicebus.retry-duration=2"})
-@DirtiesContext(classMode = AFTER_CLASS, hierarchyMode = EXHAUSTIVE)
+@DirtiesContext(classMode = AFTER_CLASS, hierarchyMode = CURRENT_LEVEL)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class EventConsumerIntegrationTest {
 
     @Captor
@@ -133,7 +135,6 @@ public class EventConsumerIntegrationTest {
         when(message.getMessageId()).thenReturn(messageId);
         messageList.add(message);
         await()
-            .atMost(10, TimeUnit.SECONDS)
             .untilAsserted(() -> verify(repository, times(1)).save(any(CaseEventMessageEntity.class)));
 
         verify(ccdReceiverClient).complete(messageArgumentCaptor.capture());
@@ -147,7 +148,6 @@ public class EventConsumerIntegrationTest {
         when(repository.findByMessageId(messageId)).thenThrow(new RuntimeException());
         messageList.add(message);
         await()
-            .atMost(10, TimeUnit.SECONDS)
             .untilAsserted(() -> verify(repository, times(1)).findByMessageId(messageId));
 
         verify(ccdReceiverClient, atLeast(1)).abandon(messageArgumentCaptor.capture());
@@ -161,7 +161,6 @@ public class EventConsumerIntegrationTest {
         when(repository.save(any(CaseEventMessageEntity.class))).thenThrow(new RuntimeException());
         messageList.add(message);
         await()
-            .atMost(10, TimeUnit.SECONDS)
             .untilAsserted(() -> verify(repository, times(1)).save(any(CaseEventMessageEntity.class)));
 
         verify(ccdReceiverClient, atLeast(1)).abandon(messageArgumentCaptor.capture());
@@ -174,7 +173,6 @@ public class EventConsumerIntegrationTest {
         when(message.getMessageId()).thenReturn(messageId);
         dlqMessageList.add(message);
         await()
-            .atMost(10, TimeUnit.SECONDS)
             .untilAsserted(() -> verify(repository, times(1)).save(any(CaseEventMessageEntity.class)));
 
         verify(dlqReceiverClient).complete(messageArgumentCaptor.capture());
@@ -188,7 +186,6 @@ public class EventConsumerIntegrationTest {
         when(repository.findByMessageId(messageId)).thenThrow(new RuntimeException());
         dlqMessageList.add(message);
         await()
-            .atMost(10, TimeUnit.SECONDS)
             .untilAsserted(() -> verify(repository, times(1)).findByMessageId(messageId));
 
         verify(dlqReceiverClient, atLeast(1)).abandon(messageArgumentCaptor.capture());
@@ -202,7 +199,6 @@ public class EventConsumerIntegrationTest {
         when(repository.save(any(CaseEventMessageEntity.class))).thenThrow(new RuntimeException());
         dlqMessageList.add(message);
         await()
-            .atMost(10, TimeUnit.SECONDS)
             .untilAsserted(() -> verify(repository, times(1)).save(any(CaseEventMessageEntity.class)));
 
         verify(dlqReceiverClient, atLeast(1)).abandon(messageArgumentCaptor.capture());
