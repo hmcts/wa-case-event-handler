@@ -35,11 +35,13 @@ public class ProblemMessageService {
     public List<CaseEventMessage> findProblemMessages(JobName jobName) {
         log.info("Retrieving problem messages for job name '{}' from case db", jobName.name());
         List<CaseEventMessageEntity> problemMessages = caseEventMessageRepository.findProblemMessages(messageTimeLimit);
-        log.info("Retrieved problem message '{}' from case db", problemMessages);
         List<CaseEventMessage> caseEventMessages = problemMessages.stream()
             .map(caseEventMessageEntity -> caseEventMessageMapper.mapToCaseEventMessage(caseEventMessageEntity))
             .collect(Collectors.toList());
-        LoggingUtility.logPrettyPrint(caseEventMessages);
+        log.info("{} Retrieved problem messages '{}'",
+                 jobName.name(),
+                 caseEventMessages.isEmpty()
+                 ? LoggingUtility.logPrettyPrint(caseEventMessages) : "no records match the query");
         return caseEventMessages;
     }
 }

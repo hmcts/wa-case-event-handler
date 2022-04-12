@@ -46,7 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-@ActiveProfiles(profiles = {"db", "integration"})
+@ActiveProfiles(profiles = {"integration","db"})
 @TestPropertySource(properties = {"azure.servicebus.enableASB=true",
     "azure.servicebus.connection-string="
     + "Endpoint=sb://REPLACE_ME/;SharedAccessKeyName=REPLACE_ME;SharedAccessKey=REPLACE_ME",
@@ -100,7 +100,7 @@ class ProblemMessageControllerTest {
 
         String messageId = randomMessageId();
 
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true).thenReturn(true);
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
 
         when(deadLetterQueuePeekService.isDeadLetterQueueEmpty()).thenReturn(true);
         LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(65);
@@ -108,7 +108,7 @@ class ProblemMessageControllerTest {
 
         await().pollInterval(600, MILLISECONDS)
             .atMost(45, SECONDS)
-            .untilAsserted(() -> checkMessagesInState(List.of(messageId), MessageState.READY,localDateTime));
+            .untilAsserted(() -> checkMessagesInState(List.of(messageId), MessageState.READY));
 
         MvcResult mvcResult = postAJobRequest(JobName.FIND_PROBLEM_MESSAGES.name());
         List<CaseEventMessage> response = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(),
@@ -130,7 +130,7 @@ class ProblemMessageControllerTest {
 
         String messageId = randomMessageId();
 
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true).thenReturn(true);
+        when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
 
         when(deadLetterQueuePeekService.isDeadLetterQueueEmpty()).thenReturn(true);
         LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(30);
@@ -138,7 +138,7 @@ class ProblemMessageControllerTest {
 
         await().pollInterval(600, MILLISECONDS)
             .atMost(45, SECONDS)
-            .untilAsserted(() -> checkMessagesInState(List.of(messageId), MessageState.READY, localDateTime));
+            .untilAsserted(() -> checkMessagesInState(List.of(messageId), MessageState.READY));
 
         MvcResult mvcResult = postAJobRequest(JobName.FIND_PROBLEM_MESSAGES.name());
         List<CaseEventMessage> response = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(),
@@ -203,12 +203,11 @@ class ProblemMessageControllerTest {
     }
 
 
-    private void checkMessagesInState(List<String> messageIds, MessageState messageState,LocalDateTime eventTimestamp) {
+    private void checkMessagesInState(List<String> messageIds, MessageState messageState) {
         messageIds.forEach(msgId -> {
             try {
                 mockMvc.perform(get(MESSAGE_ENDPOINT + msgId))
                     .andExpect(status().isOk())
-                    .andExpect(content().json("{'EventTimestamp':'" + eventTimestamp + "'}"))
                     .andExpect(content().json("{'State':'" + messageState.name() + "'}"))
                     .andReturn();
             } catch (Exception e) {
