@@ -53,7 +53,6 @@ class CaseEventMessageErrorHandlingRepositoryTest {
         transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
-    @After
     @AfterEach
     public void clearDownData() {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(db);
