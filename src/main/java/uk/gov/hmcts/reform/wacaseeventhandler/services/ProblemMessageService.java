@@ -41,7 +41,7 @@ public class ProblemMessageService {
         log.info("{} Retrieved problem messages '{}'",
                  jobName.name(),
                  caseEventMessages.isEmpty()
-                 ? LoggingUtility.logPrettyPrint(caseEventMessages) : "no records match the query");
+                 ?  "no records match the query" : LoggingUtility.logPrettyPrint(caseEventMessages));
         return caseEventMessages;
     }
 }
