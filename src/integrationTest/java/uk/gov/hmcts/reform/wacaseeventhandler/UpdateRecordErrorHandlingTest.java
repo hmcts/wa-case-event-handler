@@ -52,6 +52,7 @@ public class UpdateRecordErrorHandlingTest {
         .registerModule(new JavaTimeModule())
         .registerModule(new Jdk8Module());
     private static final String MESSAGE_ID = "MessageId_30915063-ec4b-4272-933d-91087b486195";
+    private static final String MESSAGE_ID_2 = "MessageId_bc8299fc-5d31-45c7-b847-c2622014a85a";
 
     @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
@@ -114,6 +115,27 @@ public class UpdateRecordErrorHandlingTest {
                     assertEquals(1, getMessageById(MESSAGE_ID).getRetryCount());
                     assertNotNull(getMessageById(MESSAGE_ID).getHoldUntil());
                     }
+            );
+    }
+
+    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+        scripts = {"classpath:sql/delete_from_case_event_messages.sql",
+            "classpath:sql/insert_case_event_messages_for_processing_ready_msgs.sql"})
+    @Test
+    void should_set_message_state_to_processed_when_message_update_failed_in_second_time_onwards()
+        throws JsonProcessingException {
+        String caseId = "9140931237014412";
+
+        doNothing().when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
+        doThrow(new TransactionTimedOutException("Time out")).when(caseEventMessageRepository)
+            .updateMessageState(eq(MessageState.PROCESSED), Mockito.<String>anyList());
+
+        await()
+            .atMost(60, SECONDS)
+            .untilAsserted(() -> {
+                               assertEquals(1, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
+                               assertEquals(MessageState.PROCESSED, getMessageById(MESSAGE_ID_2).getState());
+                           }
             );
     }
 
