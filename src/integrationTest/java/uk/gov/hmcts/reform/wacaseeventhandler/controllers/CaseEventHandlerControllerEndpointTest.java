@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.commons.lang3.StringUtils;
@@ -56,7 +56,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.
 @ActiveProfiles(profiles = {"db", "integration"})
 class CaseEventHandlerControllerEndpointTest {
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-        .setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE)
+        .setPropertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE)
         .registerModule(new JavaTimeModule())
         .registerModule(new Jdk8Module());
 
@@ -358,6 +358,7 @@ class CaseEventHandlerControllerEndpointTest {
             assertEquals(unprocessableMessage, response.getMessageContent(), "Valid message should be returned");
         }
 
+
         @Test
         void should_store_parsing_error_unprocessable_message_and_return_200_ok() throws Exception {
             when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
@@ -399,6 +400,7 @@ class CaseEventHandlerControllerEndpointTest {
                 .andExpect(created)
                 .andReturn();
         }
+
     }
 
     @Test
