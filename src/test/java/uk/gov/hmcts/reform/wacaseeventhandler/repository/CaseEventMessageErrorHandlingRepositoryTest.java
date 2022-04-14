@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.repository;
 
-import org.junit.After;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -53,7 +52,6 @@ class CaseEventMessageErrorHandlingRepositoryTest {
         transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
-    @After
     @AfterEach
     public void clearDownData() {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(db);
