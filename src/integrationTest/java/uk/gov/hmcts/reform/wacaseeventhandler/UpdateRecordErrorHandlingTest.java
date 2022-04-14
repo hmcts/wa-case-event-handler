@@ -133,9 +133,9 @@ public class UpdateRecordErrorHandlingTest {
         await()
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
-                               assertEquals(1, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
-                               assertEquals(MessageState.PROCESSED, getMessageById(MESSAGE_ID_2).getState());
-                           }
+                    assertEquals(1, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
+                    assertEquals(MessageState.PROCESSED, getMessageById(MESSAGE_ID_2).getState());
+                    }
             );
     }
 
