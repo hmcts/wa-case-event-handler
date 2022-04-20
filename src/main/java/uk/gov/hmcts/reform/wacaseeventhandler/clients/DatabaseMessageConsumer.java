@@ -7,26 +7,32 @@ import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.MessageUpdateRetry;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageMapper;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.UpdateRecordErrorHandlingService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
 import uk.gov.hmcts.reform.wacaseeventhandler.util.UserIdParser;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED;
 import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.DLQ_DB_PROCESS;
 
 @Slf4j
 @Component
 @SuppressWarnings({"PMD.DoNotUseThreads", "PMD.DataflowAnomalyAnalysis"})
-@Transactional
+@Transactional(propagation = NOT_SUPPORTED)
 @Profile("!functional & !local")
 public class DatabaseMessageConsumer implements Runnable {
 
@@ -34,17 +40,23 @@ public class DatabaseMessageConsumer implements Runnable {
     private final CaseEventMessageMapper caseEventMessageMapper;
     private final CcdEventProcessor ccdEventProcessor;
     private final LaunchDarklyFeatureFlagProvider flagProvider;
+    private final UpdateRecordErrorHandlingService updateRecordErrorHandlingService;
+    private final TransactionTemplate transactionTemplate;
     protected static final Map<Integer, Integer> RETRY_COUNT_TO_DELAY_MAP = new ConcurrentHashMap<>();
 
 
     public DatabaseMessageConsumer(CaseEventMessageRepository caseEventMessageRepository,
                                    CaseEventMessageMapper caseEventMessageMapper,
                                    CcdEventProcessor ccdEventProcessor,
-                                   LaunchDarklyFeatureFlagProvider flagProvider) {
+                                   LaunchDarklyFeatureFlagProvider flagProvider,
+                                   UpdateRecordErrorHandlingService updateRecordErrorHandlingService,
+                                   PlatformTransactionManager transactionManager) {
         this.caseEventMessageRepository = caseEventMessageRepository;
         this.caseEventMessageMapper = caseEventMessageMapper;
         this.ccdEventProcessor = ccdEventProcessor;
         this.flagProvider = flagProvider;
+        this.updateRecordErrorHandlingService = updateRecordErrorHandlingService;
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
     static {
@@ -61,20 +73,40 @@ public class DatabaseMessageConsumer implements Runnable {
     @Override
     @SuppressWarnings("squid:S2189")
     public void run() {
-        CaseEventMessageEntity caseEventMessageEntity = selectNextMessage();
-        if (caseEventMessageEntity == null) {
-            log.info("No message returned from database for processing");
-        } else {
-            log.info("Start message processing");
-            if (flagProvider.getBooleanValue(DLQ_DB_PROCESS, getUserId(caseEventMessageEntity))) {
-                final CaseEventMessage caseEventMessage = caseEventMessageMapper
-                        .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
-                processMessage(caseEventMessage);
+        Optional<MessageUpdateRetry> updateRetry = transactionTemplate.execute(status -> {
+
+            CaseEventMessageEntity caseEventMessageEntity = selectNextMessage();
+
+            if (caseEventMessageEntity == null) {
+                log.info("No message returned from database for processing");
             } else {
-                log.trace("Feature flag '{}' evaluated to false. Did not start message processor thread",
-                        DLQ_DB_PROCESS.getKey());
+                log.info("Start message processing");
+
+                if (flagProvider.getBooleanValue(DLQ_DB_PROCESS, getUserId(caseEventMessageEntity))) {
+                    final CaseEventMessage caseEventMessage = caseEventMessageMapper
+                        .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
+                    Optional<MessageUpdateRetry> updatable = processMessage(caseEventMessage);
+
+                    //if record state update failed, Rollback the transaction
+                    updatable.ifPresent(r -> status.setRollbackOnly());
+                    return updatable;
+                } else {
+                    log.trace(
+                        "Feature flag '{}' evaluated to false. Did not start message processor thread",
+                        DLQ_DB_PROCESS.getKey()
+                    );
+                }
             }
-        }
+            return Optional.empty();
+        });
+
+        //Retry updating the record state
+        updateRetry.ifPresent(msg ->
+            updateRecordErrorHandlingService.handleUpdateError(msg.getState(),
+                                                               msg.getMessageId(),
+                                                               msg.getRetryCount(),
+                                                               msg.getHoldUntil())
+        );
 
     }
 
@@ -93,7 +125,7 @@ public class DatabaseMessageConsumer implements Runnable {
         return caseEventMessageRepository.getNextAvailableMessageReadyToProcess();
     }
 
-    private void processMessage(CaseEventMessage caseEventMessage) {
+    private Optional<MessageUpdateRetry> processMessage(CaseEventMessage caseEventMessage) {
         if (caseEventMessage == null) {
             log.info("No message to process");
         } else {
@@ -103,16 +135,17 @@ public class DatabaseMessageConsumer implements Runnable {
                 ccdEventProcessor.processMessage(caseEventMessage);
                 log.info("Message with id {} processed successfully, setting message state to PROCESSED",
                         caseEventMessageId);
-                caseEventMessageRepository.updateMessageState(MessageState.PROCESSED, List.of(caseEventMessageId));
+                return updateMessageState(MessageState.PROCESSED, caseEventMessageId, 0, null);
             } catch (FeignException fe) {
-                processException(fe, caseEventMessage);
+                return processException(fe, caseEventMessage);
             } catch (Exception ex) {
-                processError(caseEventMessage);
+                return processError(caseEventMessage);
             }
         }
+        return Optional.empty();
     }
 
-    private void processException(FeignException fce, CaseEventMessage caseEventMessage) {
+    private Optional<MessageUpdateRetry> processException(FeignException fce, CaseEventMessage caseEventMessage) {
         boolean retryableError = false;
         try {
             final HttpStatus httpStatus = HttpStatus.valueOf(fce.status());
@@ -126,13 +159,13 @@ public class DatabaseMessageConsumer implements Runnable {
         if (retryableError) {
             log.info("Retryable error occurred when processing message with caseId {}",
                     caseEventMessage.getMessageId());
-            processRetryableError(caseEventMessage);
+            return processRetryableError(caseEventMessage);
         } else {
-            processError(caseEventMessage);
+            return processError(caseEventMessage);
         }
     }
 
-    private void processRetryableError(CaseEventMessage caseEventMessage) {
+    private Optional<MessageUpdateRetry> processRetryableError(CaseEventMessage caseEventMessage) {
         int retryCount = caseEventMessage.getRetryCount() + 1;
         Integer newHoldUntilIncrement = RETRY_COUNT_TO_DELAY_MAP.get(retryCount);
 
@@ -143,18 +176,35 @@ public class DatabaseMessageConsumer implements Runnable {
                     retryCount,
                     newHoldUntil,
                     messageId);
-            caseEventMessageRepository.updateMessageWithRetryDetails(retryCount,
-                    newHoldUntil,
-                    messageId);
+            return updateMessageState(null, messageId, retryCount, newHoldUntil);
         }
+        return Optional.empty();
     }
 
-    private void processError(CaseEventMessage caseEventMessage) {
+    private Optional<MessageUpdateRetry> processError(CaseEventMessage caseEventMessage) {
         String caseEventMessageId = caseEventMessage.getMessageId();
-        log.info("Could not process message with id {}, setting state to Unprocessable",
-                caseEventMessageId);
+        log.info("Could not process message with id {}, setting state to Unprocessable", caseEventMessageId);
 
-        caseEventMessageRepository.updateMessageState(MessageState.UNPROCESSABLE,
-                    List.of(caseEventMessageId));
+        return updateMessageState(MessageState.UNPROCESSABLE, caseEventMessageId, 0, null);
+    }
+
+    private Optional<MessageUpdateRetry> updateMessageState(MessageState state, String messageId,
+                                                            int retryCount, LocalDateTime holdUntil) {
+        try {
+            if (state == null) {
+                caseEventMessageRepository.updateMessageWithRetryDetails(retryCount, holdUntil, messageId);
+            } else {
+                caseEventMessageRepository.updateMessageState(state, List.of(messageId));
+            }
+        } catch (RuntimeException e) {
+            log.info("Error in updating message with id {}, retrying to update", messageId);
+            return Optional.of(MessageUpdateRetry.builder()
+                                   .messageId(messageId)
+                                   .state(state)
+                                   .holdUntil(holdUntil)
+                                   .retryCount(retryCount)
+                                   .build());
+        }
+        return Optional.empty();
     }
 }
