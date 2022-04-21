@@ -50,6 +50,10 @@ public interface CaseEventMessageRepository extends CrudRepository<CaseEventMess
             + " SET state = cast(:#{#messageState.toString()} as message_state_enum)"
             + " WHERE message_id in (:messageIds)";
 
+    String UPDATE_CASE_MESSAGE_RETRY_DETAILS =
+        "UPDATE public.wa_case_event_messages SET retry_count = :retryCount, "
+            + "hold_until = :holdUntil WHERE message_id = :messageId";
+
     String SELECT_NEW_MESSAGES =
             "SELECT * from public.wa_case_event_messages msg where msg.state = 'NEW' "
             + "order by sequence DESC for update skip locked";
@@ -88,8 +92,7 @@ public interface CaseEventMessageRepository extends CrudRepository<CaseEventMess
                            @Param("messageIds") List<String> messageIds);
 
     @Modifying
-    @Query(value = "UPDATE public.wa_case_event_messages SET retry_count = :retryCount, "
-                    + "hold_until = :holdUntil WHERE message_id = :messageId", nativeQuery = true)
+    @Query(value = UPDATE_CASE_MESSAGE_RETRY_DETAILS, nativeQuery = true)
     int updateMessageWithRetryDetails(@Param("retryCount") int retryCount,
                                       @Param("holdUntil") LocalDateTime holdUntil,
                                       @Param("messageId") String messageId);
