@@ -3,9 +3,12 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.hamcrest.CoreMatchers;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
@@ -19,6 +22,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static net.serenitybdd.rest.SerenityRest.given;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
@@ -42,6 +46,65 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
         eventTimestamp1 = LocalDateTime.parse("2020-03-27T12:56:10.403975").minusDays(1);
         eventTimestamp2 = LocalDateTime.parse("2020-03-27T12:56:10.403975").minusDays(2);
         holdUntilTimestamp = LocalDateTime.parse("2020-03-27T12:56:10.403975").plusDays(10);
+    }
+
+    @Test
+    @Ignore("Ignore until AZURE_SERVICE_BUS_FEATURE_TOGGLE is turned on")
+    public void given_post_event_using_test_rest_endpoints_should_create_task() {
+        String caseIdForTask = getCaseId();
+
+        String messageId = randomMessageId();
+        String eventInstanceId = UUID.randomUUID().toString();
+        LocalDateTime timeStamp = LocalDateTime.now();
+        EventInformation eventInformation = buildEventInformation(eventInstanceId, caseIdForTask,
+                                                                  "wa-dlq-user@fake.hmcts.net", timeStamp);
+        EventInformationRequest createRequest = createRequestWithAdditionalMetadata(eventInformation, null);
+
+        postEventToRestEndpoint(messageId, s2sToken, createRequest)
+            .then()
+            .statusCode(HttpStatus.CREATED.value())
+            .assertThat()
+            .body("MessageId", equalTo(messageId))
+            .body("Sequence", notNullValue())
+            .body("CaseId", equalTo(caseIdForTask))
+            .body("EventTimestamp", equalTo(timeStamp.toString()))
+            .body("FromDlq", equalTo(false))
+            .body("State", equalTo(MessageState.NEW.name()))
+            .body("MessageContent", equalTo(asJsonString(createRequest)))
+            .body("Received", notNullValue())
+            .body("DeliveryCount", equalTo(0))
+            .body("RetryCount", equalTo(0))
+
+            .rootPath("MessageProperties")
+            .body("messageProperty1", equalTo("value1"))
+            .body("messageProperty2", equalTo("value2"));
+
+        Response taskFound = findTasksByCaseId(caseIdForTask, 1);
+
+        String taskId = taskFound
+            .then().assertThat()
+            .body("[0].id", CoreMatchers.notNullValue())
+            .extract()
+            .path("[0].id");
+
+        Response response = findTaskDetailsForGivenTaskId(taskId);
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("caseTypeId.value", is("Asylum"))
+            .body("jurisdiction.value", is("IA"))
+            .body("idempotencyKey.value", CoreMatchers.notNullValue())
+            .body("dueDate.value", CoreMatchers.notNullValue())
+            .body("taskState.value", is("unassigned"))
+            .body("hasWarnings.value", is(false))
+            .body("caseId.value", is(caseIdForTask))
+            .body("name.value", is("Follow-up non-standard direction"))
+            .body("workingDaysAllowed.value", is(2))
+            .body("isDuplicate.value", is(false))
+            .body("delayUntil.value", CoreMatchers.notNullValue())
+            .body("taskId.value", is("followUpNonStandardDirection"))
+            .body("warningList.value", is("[]"));
     }
 
     @Test
@@ -296,6 +359,11 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
     }
 
     private EventInformationRequest createRequestWithAdditionalMetadata(EventInformation eventInformation) {
+        return createRequestWithAdditionalMetadata(eventInformation, holdUntilTimestamp);
+    }
+
+    private EventInformationRequest createRequestWithAdditionalMetadata(EventInformation eventInformation,
+                                                                        LocalDateTime holdUntil) {
         return new EventInformationRequest(
             eventInformation,
             new EventInformationMetadata(
@@ -303,22 +371,27 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
                     "messageProperty1", "value1",
                     "messageProperty2", "value2"
                 ),
-                holdUntilTimestamp
+                holdUntil
             )
         );
     }
 
     private EventInformation buildEventInformation(String eventInstanceId, String caseIdForTask) {
+        return buildEventInformation(eventInstanceId, caseIdForTask, "insert_true", eventTimestamp1);
+    }
+
+    private EventInformation buildEventInformation(String eventInstanceId, String caseIdForTask, String userId,
+                                                   LocalDateTime eventTimeStamp) {
         return EventInformation.builder()
             .eventInstanceId(eventInstanceId)
-            .eventTimeStamp(eventTimestamp1)
+            .eventTimeStamp(eventTimeStamp)
             .caseId(caseIdForTask)
             .jurisdictionId("IA")
             .caseTypeId("Asylum")
             .eventId("sendDirection")
             .newStateId(null)
             .previousStateId(null)
-            .userId("insert_true")
+            .userId(userId)
             .additionalData(additionalData())
             .build();
     }
