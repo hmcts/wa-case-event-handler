@@ -88,13 +88,15 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
             .path("[0].id");
 
         Response response = findTaskDetailsForGivenTaskId(taskId);
+        String idempotencyKey = idempotencyKeyGenerator.generateIdempotencyKey(eventInformation.getEventInstanceId(),
+                                                                               "followUpNonStandardDirection");
 
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .body("caseTypeId.value", is("Asylum"))
             .body("jurisdiction.value", is("IA"))
-            .body("idempotencyKey.value", CoreMatchers.notNullValue())
+            .body("idempotencyKey.value", is(idempotencyKey))
             .body("dueDate.value", CoreMatchers.notNullValue())
             .body("taskState.value", is("unassigned"))
             .body("hasWarnings.value", is(false))

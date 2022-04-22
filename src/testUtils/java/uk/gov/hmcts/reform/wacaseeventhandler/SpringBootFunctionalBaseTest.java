@@ -27,6 +27,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.config.RestApiActions;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.IdamService;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.IdempotencyKeyGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wacaseeventhandler.utils.Common;
 
@@ -70,6 +71,7 @@ public abstract class SpringBootFunctionalBaseTest {
     @Autowired protected RoleAssignmentServiceApi roleAssignmentServiceApi;
     @Autowired private AuthTokenGenerator authTokenGenerator;
     @Autowired private ApplicationContext applicationContext;
+    @Autowired protected IdempotencyKeyGenerator idempotencyKeyGenerator;
 
     protected List<String> caseIds;
 
