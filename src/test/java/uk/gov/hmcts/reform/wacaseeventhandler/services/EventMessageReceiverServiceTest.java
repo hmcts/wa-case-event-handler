@@ -63,6 +63,7 @@ class EventMessageReceiverServiceTest {
     private static final String JURISDICTION = "JUR";
     private static final String CASE_TYPE_ID = "CASETYPEID";
     private static final String CASE_ID = "12345";
+    private static final String SESSION_ID = "12345";
     private static final LocalDateTime EVENT_TIME_STAMP = LocalDateTime.now();
     private static final LocalDateTime RECEIVED = LocalDateTime.now();
 
@@ -113,7 +114,7 @@ class EventMessageReceiverServiceTest {
 
         CaseEventMessageEntity entity = new CaseEventMessageEntity();
         when(caseEventMessageRepository.save(any())).thenReturn(entity);
-        eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
+        eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
 
         verify(caseEventMessageRepository).findByMessageId(MESSAGE_ID);
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
@@ -127,7 +128,7 @@ class EventMessageReceiverServiceTest {
     void should_handle_message_event_information_when_parsing_failed() throws JsonProcessingException {
         when(objectMapper.readValue(MESSAGE, EventInformation.class)).thenThrow(jsonProcessingException);
 
-        eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
+        eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
 
         assertLogMessageContains(String.format("Could not parse the message with id '%s'",  MESSAGE_ID));
 
@@ -142,7 +143,7 @@ class EventMessageReceiverServiceTest {
             .thenReturn(getEventInformation());
         mockParsingExceptionWhenRetrievingMessageProperties();
 
-        eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
+        eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
 
         assertLogMessageContains(String.format("Could not parse the message with id '%s'",  MESSAGE_ID));
 
@@ -161,7 +162,7 @@ class EventMessageReceiverServiceTest {
                             .build());
         mockMessageProperties();
 
-        eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
+        eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
 
         verify(caseEventMessageRepository).findByMessageId(MESSAGE_ID);
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
@@ -177,7 +178,7 @@ class EventMessageReceiverServiceTest {
             .thenReturn(getEventInformation());
         mockMessageProperties();
 
-        CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, true);
+        CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, SESSION_ID, MESSAGE, true);
 
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
         verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
@@ -198,7 +199,7 @@ class EventMessageReceiverServiceTest {
             .thenReturn(getEventInformationWithMissingEventTimeStamp());
         mockMessageProperties();
 
-        CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, true);
+        CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, SESSION_ID, MESSAGE, true);
 
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
         verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
@@ -220,7 +221,7 @@ class EventMessageReceiverServiceTest {
             .thenReturn(getEventInformationWithMissingCaseId());
         mockMessageProperties();
 
-        CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, true);
+        CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, SESSION_ID, MESSAGE, true);
 
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
         verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
@@ -243,7 +244,7 @@ class EventMessageReceiverServiceTest {
 
         CaseEventMessageEntity entity = new CaseEventMessageEntity();
         when(caseEventMessageRepository.save(any())).thenReturn(entity);
-        eventMessageReceiverService.upsertMessage(null, MESSAGE, true);
+        eventMessageReceiverService.upsertMessage(null, SESSION_ID, MESSAGE, true);
 
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
         verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
@@ -260,7 +261,7 @@ class EventMessageReceiverServiceTest {
             .thenReturn(getEventInformation());
         mockMessageProperties();
 
-        CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, null);
+        CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, SESSION_ID, MESSAGE, null);
 
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
         verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
@@ -281,13 +282,13 @@ class EventMessageReceiverServiceTest {
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenThrow(jsonProcessingException);
 
-        CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, false);
+        CaseEventMessage result = eventMessageReceiverService.upsertMessage(MESSAGE_ID, SESSION_ID, MESSAGE, false);
 
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
         verify(caseEventMessageMapper).mapToCaseEventMessage(any(CaseEventMessageEntity.class));
 
         assertEquals(MESSAGE_ID, result.getMessageId());
-        assertNull(result.getCaseId());
+        assertEquals(SESSION_ID, result.getCaseId());
         assertNull(result.getEventTimestamp());
         assertEquals(false, result.getFromDlq());
         assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
@@ -309,7 +310,7 @@ class EventMessageReceiverServiceTest {
 
         CaseEventMessageEntity entity = new CaseEventMessageEntity();
         when(caseEventMessageRepository.save(any())).thenReturn(entity);
-        eventMessageReceiverService.upsertMessage(MESSAGE_ID, MESSAGE, true);
+        eventMessageReceiverService.upsertMessage(MESSAGE_ID, SESSION_ID, MESSAGE, true);
 
         verify(caseEventMessageRepository, times(2)).findByMessageId(MESSAGE_ID);
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
@@ -325,7 +326,7 @@ class EventMessageReceiverServiceTest {
             .thenThrow(jsonProcessingException);
         CaseEventMessageEntity entity = new CaseEventMessageEntity();
         when(caseEventMessageRepository.save(any())).thenReturn(entity);
-        eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
+        eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
 
         verify(caseEventMessageRepository).findByMessageId(MESSAGE_ID);
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
@@ -340,7 +341,7 @@ class EventMessageReceiverServiceTest {
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenThrow(jsonProcessingException);
 
-        eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
+        eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
 
         assertLogMessageContains(
             String.format("Could not parse the message with id '%s'", MESSAGE_ID));
@@ -348,6 +349,7 @@ class EventMessageReceiverServiceTest {
         verify(caseEventMessageRepository).findByMessageId(MESSAGE_ID);
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
         assertEquals(MessageState.UNPROCESSABLE, caseEventMessageEntityCaptor.getValue().getState());
+        assertEquals(SESSION_ID, caseEventMessageEntityCaptor.getValue().getCaseId());
     }
 
     @Test
@@ -366,7 +368,7 @@ class EventMessageReceiverServiceTest {
 
         final CaseEventMessageDuplicateMessageIdException caseEventMessageDuplicateMessageIdException =
             assertThrows(CaseEventMessageDuplicateMessageIdException.class,
-                () -> eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE));
+                () -> eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE));
 
         verify(caseEventMessageRepository).findByMessageId(MESSAGE_ID);
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
@@ -380,7 +382,7 @@ class EventMessageReceiverServiceTest {
     void should_handle_dlq_message_when_feature_flag_disabled() {
         when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(FALSE);
 
-        eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, MESSAGE);
+        eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
 
         verifyNoInteractions(caseEventMessageRepository);
         assertLogMessageContains(String.format("Received Case Event Dead Letter Queue message with id '%s'",
@@ -405,7 +407,7 @@ class EventMessageReceiverServiceTest {
                             .build());
         mockMessageProperties();
 
-        eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, MESSAGE);
+        eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
 
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
         assertEquals(MessageState.NEW, caseEventMessageEntityCaptor.getValue().getState());
@@ -425,7 +427,7 @@ class EventMessageReceiverServiceTest {
                         .caseTypeId("CASEID")
                         .build());
         mockMessageProperties();
-        eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, MESSAGE);
+        eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
 
         verify(caseEventMessageRepository).findByMessageId(MESSAGE_ID);
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
@@ -439,7 +441,7 @@ class EventMessageReceiverServiceTest {
                 .thenCallRealMethod();
 
         final NullPointerException nullPointerException = assertThrows(NullPointerException.class, () ->
-                eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, MESSAGE_WITHOUT_USER));
+                eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, SESSION_ID, MESSAGE_WITHOUT_USER));
 
         assertEquals("userId is null", nullPointerException.getMessage());
         verifyNoInteractions(caseEventMessageRepository);
@@ -452,7 +454,7 @@ class EventMessageReceiverServiceTest {
                 .thenCallRealMethod();
 
         final NullPointerException nullPointerException = assertThrows(NullPointerException.class, () ->
-                eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, MESSAGE_WITHOUT_USER));
+                eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, SESSION_ID, MESSAGE_WITHOUT_USER));
 
         assertEquals("userId is null", nullPointerException.getMessage());
         verifyNoInteractions(caseEventMessageRepository);
@@ -462,7 +464,7 @@ class EventMessageReceiverServiceTest {
     void should_handle_ccd_case_event_asb_message_when_feature_flag_disabled() {
         when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(FALSE);
 
-        eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, MESSAGE);
+        eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
 
         verifyNoInteractions(caseEventMessageRepository);
         assertLogMessageContains(String.format("Received CCD Case Events ASB message with id '%s'", MESSAGE_ID));
@@ -488,7 +490,7 @@ class EventMessageReceiverServiceTest {
                         .eventTimeStamp(LocalDateTime.now())
                         .build());
 
-        eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, MESSAGE);
+        eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
 
         verify(caseEventMessageRepository).findByMessageId(MESSAGE_ID);
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
@@ -509,7 +511,7 @@ class EventMessageReceiverServiceTest {
                         .caseTypeId("CASEID")
                         .build());
 
-        eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, MESSAGE);
+        eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
 
         verify(caseEventMessageRepository).findByMessageId(MESSAGE_ID);
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
@@ -540,7 +542,7 @@ class EventMessageReceiverServiceTest {
 
         when(caseEventMessageRepository.findByMessageId(MESSAGE_ID)).thenReturn(List.of(entity));
 
-        eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, MESSAGE);
+        eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
 
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
         assertEquals(MessageState.READY, caseEventMessageEntityCaptor.getValue().getState());
@@ -572,7 +574,7 @@ class EventMessageReceiverServiceTest {
 
         when(caseEventMessageRepository.findByMessageId(MESSAGE_ID)).thenReturn(List.of(entity));
 
-        eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, MESSAGE);
+        eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
 
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
         assertEquals(MessageState.READY, caseEventMessageEntityCaptor.getValue().getState());
@@ -587,7 +589,7 @@ class EventMessageReceiverServiceTest {
                 .thenCallRealMethod();
 
         final NullPointerException nullPointerException = assertThrows(NullPointerException.class, () ->
-                eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, MESSAGE_WITHOUT_USER));
+                eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE_WITHOUT_USER));
 
         assertEquals("userId is null", nullPointerException.getMessage());
         verifyNoInteractions(caseEventMessageRepository);
@@ -599,7 +601,7 @@ class EventMessageReceiverServiceTest {
         when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, null)).thenCallRealMethod();
 
         final NullPointerException nullPointerException = assertThrows(NullPointerException.class, () ->
-                eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, MESSAGE_WITHOUT_USER));
+                eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE_WITHOUT_USER));
 
         assertEquals("userId is null", nullPointerException.getMessage());
         verifyNoInteractions(caseEventMessageRepository);
@@ -684,7 +686,7 @@ class EventMessageReceiverServiceTest {
         CaseEventMessageEntity entity = new CaseEventMessageEntity();
         entity.setDeliveryCount(0);
         when(caseEventMessageRepository.findByMessageId(any())).thenReturn(List.of(entity));
-        eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, MESSAGE);
+        eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
 
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
 

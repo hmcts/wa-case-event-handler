@@ -9,6 +9,8 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -35,6 +37,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -365,7 +368,10 @@ class CaseEventHandlerControllerEndpointTest {
             String messageId = randomMessageId();
             String unprocessableMessage = getUnprocessableCaseEventMessage();
 
-            MvcResult result = mockMvc.perform(post("/messages/" + messageId + "?from_dlq=true")
+            MvcResult result = mockMvc.perform(post("/messages/"
+                                                        + messageId
+                                                        + "?from_dlq=false&session_id="
+                                                        + CASE_REFERENCE)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(unprocessableMessage))
                 .andExpect(status().isCreated())
@@ -379,12 +385,44 @@ class CaseEventHandlerControllerEndpointTest {
             assertNotNull(response, "Response should not be null");
             assertEquals(messageId, response.getMessageId(), "Valid MessageId should be returned");
             assertNotNull(response.getSequence(), "Valid sequence should be returned");
-            assertNull(response.getCaseId(), "Valid CaseId should be returned");
-            assertEquals(true, response.getFromDlq(), "Valid FromDlq should be returned");
+            assertEquals(CASE_REFERENCE, response.getCaseId(), "Valid CaseId should be returned");
+            assertEquals(false, response.getFromDlq(), "Valid FromDlq should be returned");
             assertEquals(MessageState.UNPROCESSABLE, response.getState(), "Valid State should be returned");
             assertNotNull(response.getReceived(), "Valid Received should be returned");
             assertEquals(0, response.getDeliveryCount(), "Valid DeliveryCount should be returned");
             assertEquals(unprocessableMessage, response.getMessageContent(), "Valid message should be returned");
+        }
+
+        @ParameterizedTest
+        @MethodSource("uk.gov.hmcts.reform.wacaseeventhandler.controllers.CaseEventHandlerControllerEndpointTest"
+            + "#provideInvalidMessages")
+        void should_store_invalid_unprocessable_message_and_return_200_ok(String invalidMessage) throws Exception {
+            when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
+            String messageId = randomMessageId();
+
+            MvcResult result = mockMvc.perform(post("/messages/"
+                                                        + messageId
+                                                        + "?from_dlq=false&session_id="
+                                                        + CASE_REFERENCE)
+                                                   .contentType(MediaType.APPLICATION_JSON)
+                                                   .content(invalidMessage))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+            String content = result.getResponse().getContentAsString();
+            assertEquals(201, result.getResponse().getStatus(), content);
+            assertNotNull(content, "Content Should not be null");
+
+            CaseEventMessage response = OBJECT_MAPPER.readValue(content, CaseEventMessage.class);
+            assertNotNull(response, "Response should not be null");
+            assertEquals(messageId, response.getMessageId(), "Valid MessageId should be returned");
+            assertNotNull(response.getSequence(), "Valid sequence should be returned");
+            assertEquals(CASE_REFERENCE, response.getCaseId(), "Valid CaseId should be returned");
+            assertEquals(false, response.getFromDlq(), "Valid FromDlq should be returned");
+            assertEquals(MessageState.UNPROCESSABLE, response.getState(), "Valid State should be returned");
+            assertNotNull(response.getReceived(), "Valid Received should be returned");
+            assertEquals(0, response.getDeliveryCount(), "Valid DeliveryCount should be returned");
+            assertEquals(invalidMessage, response.getMessageContent(), "Valid message should be returned");
         }
 
         @NotNull
@@ -707,6 +745,35 @@ class CaseEventHandlerControllerEndpointTest {
                + "      \"property1\" : \"test1\"\n"
                + "  }\n"
                + "}";
+    }
+
+    public static Stream<String> provideInvalidMessages() {
+        return Stream.of(
+            "{\n"
+                + "  \"EventInstanceId\" : \"some event instance Id\",\n"
+                + "  \"EventTimeStamp\" : \"" + EVENT_TIME_STAMP + "\",\n"
+                + "  \"InvalidField\" : \"data\",\n"
+                + "  \"CaseTypeId\" : \"asylum\",\n"
+                + "  \"EventId\" : \"some event Id\",\n"
+                + "  \"NewStateId\" : \"some new state Id\",\n"
+                + "  \"UserId\" : \"some user Id\",\n"
+                + "  \"MessageProperties\" : {\n"
+                + "      \"property1\" : \"test1\"\n"
+                + "  }\n"
+                + "}",
+            "{\n"
+                + "  \"EventInstanceId\" : \"some event instance Id\",\n"
+                + "  \"CaseId\" : " + CASE_REFERENCE + ",\n"
+                + "  \"InvalidField\" : \"data\",\n"
+                + "  \"CaseTypeId\" : \"asylum\",\n"
+                + "  \"EventId\" : \"some event Id\",\n"
+                + "  \"NewStateId\" : \"some new state Id\",\n"
+                + "  \"UserId\" : \"some user Id\",\n"
+                + "  \"MessageProperties\" : {\n"
+                + "      \"property1\" : \"test1\"\n"
+                + "  }\n"
+                + "}"
+        );
     }
 }
 

@@ -97,7 +97,7 @@ class CcdCaseEventDeadLetterQueueConsumerTest {
 
         publishMessageToReceiver();
 
-        doThrow(new RuntimeException()).when(eventMessageReceiverService).handleDlqMessage(any(), any());
+        doThrow(new RuntimeException()).when(eventMessageReceiverService).handleDlqMessage(any(), any(), any());
 
         underTest.consumeMessage(receiverClient);
 

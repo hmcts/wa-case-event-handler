@@ -99,7 +99,8 @@ class CcdCaseEventConsumerTest {
 
         publishMessageToReceiver();
 
-        doThrow(new RuntimeException()).when(eventMessageReceiverService).handleCcdCaseEventAsbMessage(any(), any());
+        doThrow(new RuntimeException()).when(eventMessageReceiverService)
+            .handleCcdCaseEventAsbMessage(any(), any(), any());
 
         underTest.consumeMessage(sessionReceiverClient);
 

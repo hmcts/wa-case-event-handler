@@ -48,6 +48,7 @@ public class CcdCaseEventsDeadLetterQueueConsumer implements Runnable {
 
                         eventMessageReceiverService.handleDlqMessage(
                             messageId,
+                            message.getSessionId(),
                             new String(message.getBody().toBytes())
                         );
 
