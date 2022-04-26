@@ -78,7 +78,7 @@ public class DatabaseMessageConsumer implements Runnable {
             CaseEventMessageEntity caseEventMessageEntity = selectNextMessage();
 
             if (caseEventMessageEntity == null) {
-                log.info("No message returned from database for processing");
+                log.trace("No message returned from database for processing");
             } else {
                 log.info("Start message processing");
 
