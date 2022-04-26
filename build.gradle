@@ -83,8 +83,8 @@ tasks.withType(Test) {
 }
 
 tasks.withType(Copy) {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-  }
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
 
 
 test {
@@ -227,7 +227,7 @@ dependencyManagement {
       entry 'logback-classic'
       entry 'logback-core'
     }
-    dependencySet( group: 'io.netty', name: 'netty-all', version: '4.1.71.Final') {
+    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.71.Final') {
       entry 'netty-buffer'
       entry 'netty-codec'
       entry 'netty-codec-dns'
@@ -247,7 +247,7 @@ dependencyManagement {
       entry 'netty-resolver-dns-native-macos'
     }
 
-    dependencySet(group: 'org.seleniumhq.selenium', version: '4.1.2'){
+    dependencySet(group: 'org.seleniumhq.selenium', version: '4.1.2') {
       entry 'selenium-java'
       entry 'selenium-remote-driver'
       entry 'selenium-firefox-driver'
@@ -267,16 +267,16 @@ repositories {
 }
 
 def versions = [
-  junit           : '5.7.2',
-  junitPlatform   : '1.7.2',
-  reformLogging   : '5.1.9',
-  springDoc       : '1.6.6',
-  springBoot      : '2.6.3',
-  serenity        : '3.1.20',
-  pitest          : '1.5.2',
-  logbook         : '2.6.2',
-  tomcat          : '9.0.58',
-  log4j           : '2.17.1'
+  junit        : '5.7.2',
+  junitPlatform: '1.7.2',
+  reformLogging: '5.1.9',
+  springDoc    : '1.6.6',
+  springBoot   : '2.6.3',
+  serenity     : '3.1.20',
+  pitest       : '1.5.2',
+  logbook      : '2.6.2',
+  tomcat       : '9.0.58',
+  log4j        : '2.17.1'
 ]
 
 ext.libraries = [
