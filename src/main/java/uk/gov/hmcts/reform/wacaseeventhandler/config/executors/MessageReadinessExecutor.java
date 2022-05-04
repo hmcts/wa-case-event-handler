@@ -19,6 +19,9 @@ public class MessageReadinessExecutor {
     @Value("${scheduledExecutors.messageReadiness.pollIntervalSeconds}")
     private int pollInterval;
 
+    @Value("${scheduledExecutors.messageReadiness.threadPoolSize}")
+    private int threadPoolSize;
+
     @Autowired
     private MessageReadinessConsumer messageReadinessConsumer;
 
@@ -26,7 +29,7 @@ public class MessageReadinessExecutor {
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public void createMessageReadinessConsumer() {
         final ScheduledExecutorService scheduledExecutorService =
-                Executors.newScheduledThreadPool(1);
+                Executors.newScheduledThreadPool(threadPoolSize);
 
         scheduledExecutorService.scheduleAtFixedRate(messageReadinessConsumer, 5, pollInterval, TimeUnit.SECONDS);
     }

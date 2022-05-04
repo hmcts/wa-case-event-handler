@@ -20,6 +20,9 @@ public class CcdMessageProcessorExecutor {
     @Value("${scheduledExecutors.messageProcessing.pollIntervalSeconds}")
     private int pollInterval;
 
+    @Value("${scheduledExecutors.messageProcessing.threadPoolSize}")
+    private int threadPoolSize;
+
     @Autowired
     private DatabaseMessageConsumer databaseMessageConsumer;
 
@@ -27,7 +30,7 @@ public class CcdMessageProcessorExecutor {
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     public void createDatabaseMessageConsumer() {
         final ScheduledExecutorService scheduledExecutorService =
-                    Executors.newScheduledThreadPool(1);
+                    Executors.newScheduledThreadPool(threadPoolSize);
 
         scheduledExecutorService.scheduleAtFixedRate(databaseMessageConsumer, 5, pollInterval, TimeUnit.SECONDS);
     }
