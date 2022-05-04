@@ -1162,51 +1162,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         return findTaskForGivenCaseId(caseId, outcomeTaskId);
     }
 
-    protected Response findTasksByCaseId(
-        String caseId, int expectedTaskAmount
-    ) {
-
-        log.info("Finding task for caseId = {}", caseId);
-        AtomicReference<Response> response = new AtomicReference<>();
-        await().ignoreException(AssertionError.class)
-            .pollInterval(1000, MILLISECONDS)
-            .atMost(60, SECONDS)
-            .until(
-                () -> {
-                    Response result = given()
-                        .relaxedHTTPSValidation()
-                        .header(SERVICE_AUTHORIZATION, s2sToken)
-                        .contentType(APPLICATION_JSON_VALUE)
-                        .baseUri(camundaUrl)
-                        .basePath("/task")
-                        .param("processVariables", "caseId_eq_" + caseId)
-                        .when()
-                        .get();
-
-                    result
-                        .then().assertThat()
-                        .statusCode(HttpStatus.OK.value())
-                        .body("size()", is(expectedTaskAmount));
-
-                    response.set(result);
-                    return true;
-                });
-
-        return response.get();
-    }
-
-    protected Response findTaskDetailsForGivenTaskId(String taskId) {
-        log.info("Attempting to retrieve task details with taskId = {}", taskId);
-
-        return given()
-            .header(SERVICE_AUTHORIZATION, s2sToken)
-            .contentType(APPLICATION_JSON_VALUE)
-            .baseUri(camundaUrl)
-            .basePath("/task/" + taskId + "/variables")
-            .when()
-            .get();
-    }
-
     private String findTaskForGivenCaseId(String caseId, String taskIdDmnColumn) {
 
         log.info("Attempting to retrieve task with caseId = {} and taskId = {}", caseId, taskIdDmnColumn);
