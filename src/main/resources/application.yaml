@@ -12,20 +12,67 @@ management:
         include: health, info, prometheus
 
 idam:
+  url: ${OPEN_ID_IDAM_URL:http://sidam-api}
   s2s-auth:
     url: ${S2S_URL:http://service-auth-provider-api}
     secret: ${S2S_SECRET_CASE_EVENT_HANDLER:AAAAAAAAAAAAAAAA}
     name: ${S2S_NAME_CASE_EVENT_HANDLER:wa_case_event_handler}
   s2s-authorised:
-    services: ${WA_S2S_AUTHORIZED_SERVICES:ccd,ccd_data,ccd_gw,ccd_ps}
+    services: ${WA_S2S_AUTHORIZED_SERVICES:wa_case_event_handler,wa_task_monitor,wa_task_management_api,wa_message_cron_service}
+  redirectUrl: ${IA_IDAM_REDIRECT_URI:http://xui-webapp/oauth2/callback}
+  scope: "openid profile roles"
+  api:
+    baseUrl: ${IDAM_URL:http://sidam-api}
+
 
 wa-workflow-api:
   url: ${WA_WORKFLOW_API_URL:http://localhost:8099}
 
 spring:
+  config:
+    import: "optional:configtree:/mnt/secrets/wa/"
   application:
     name: WA Case Event Handler
   jackson.serialization.indent_output: true
+  flyway:
+    out-of-order: true
+    ignore-missing-migrations: true
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_NAME:wa_case_event_messages_db}${POSTGRES_CONNECTION_OPTIONS:?stringtype=unspecified}
+    username: ${POSTGRES_USERNAME:ccd}
+    password: ${POSTGRES_PASSWORD:ccd}
+    type: com.zaxxer.hikari.HikariDataSource
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${OPEN_ID_IDAM_URL:http://sidam-api}/o/jwks
+      client:
+        provider:
+          oidc:
+            issuer-uri: ${OPEN_ID_IDAM_URL:http://sidam-api}/o
+        registration:
+          oidc:
+            client-id: ${WA_IDAM_CLIENT_ID:wa}
+            client-secret: ${WA_IDAM_CLIENT_SECRET:something}
+
+springdoc:
+  packagesToScan: uk.gov.hmcts.reform.wacaseeventhandler.controllers
+
+security:
+  anonymousPaths:
+    - "/"
+    - "/health"
+    - "/health/liveness"
+    - "/health/readiness"
+    - "/loggers/**"
+    - "/swagger-resources/**"
+    - "/swagger-ui/**"
+    - "/swagger-ui/index.html"
+    - "/v3/**"
+    - "/webjars/**"
+    - "/favicon.ico"
 
 govUkHolidays:
   url: https://www.gov.uk/
@@ -35,18 +82,53 @@ azure:
     connection-string: ${AZURE_SERVICE_BUS_CONNECTION_STRING}
     topic-name: ${AZURE_SERVICE_BUS_TOPIC_NAME:ccd-case-events-aat}
     subscription-Name: ${AZURE_SERVICE_BUS_SUBSCRIPTION_NAME:wa-case-events-sub-aat}
+    ccd-case-events-subscription-name: ${AZURE_SERVICE_BUS_CCD_CASE_EVENTS_SUBSCRIPTION_NAME:wa-ccd-case-events-sub-aat}
     retry-duration: ${AZURE_SERVICE_BUS_RETRY_DURATION:60}
-    threads: ${AZURE_SERVICE_BUS_CONCURRENT_SESSIONS:1}
+    threads: ${AZURE_SERVICE_BUS_CONCURRENT_SESSIONS:2}
     enableASB: ${AZURE_SERVICE_BUS_FEATURE_TOGGLE:false}
     retry-attempts: ${AZURE_SERVICE_BUS_RETRY_ATTEMPTS:3}
 
+environment: ${ENVIRONMENT:local}
+
 logging:
   level:
+    root: INFO
     com.microsoft.azure.servicebus: OFF
     com.azure.messaging.servicebus: OFF
     com.azure.core.amqp: OFF
+    org.zalando.logbook: TRACE
 
 launchDarkly:
   sdkKey: ${LAUNCH_DARKLY_SDK_KEY:sdk-key}
   connectionTimeout: 5000
   socketTimeout: 5000
+
+feign:
+  client:
+    config:
+      default:
+        loggerLevel: basic
+
+logbook:
+  include: /workflow/**
+
+role-assignment-service:
+  url: ${ROLE_ASSIGNMENT_URL:http://role-assignment}
+
+core_case_data:
+  api:
+    search.url: ${CCD_SEARCH_URL:http://wiremock}
+    url: ${CCD_URL:http://ccd-data-store-api}
+
+scheduledExecutors:
+  messageProcessing:
+    pollIntervalSeconds: ${MESSAGE_PROCESSING_POLL_INTERVAL_SECONDS:5}
+    threadPoolSize: ${MESSAGE_PROCESSING_THREAD_POOL_SIZE:2}
+  messageReadiness:
+    pollIntervalSeconds: ${MESSAGE_READINESS_POLL_INTERVAL_SECONDS:5}
+    threadPoolSize: ${MESSAGE_READINESS_THREAD_POOL_SIZE:2}
+
+job:
+  problem-message:
+    #number of minutes
+    message-time-limit: ${PROLEM-MESSAGE_TIME_LIMIT:60}

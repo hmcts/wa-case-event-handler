@@ -1,0 +1,22 @@
+{
+  "results": [
+    {
+      "taskId": {
+        "value": "processApplication",
+        "type": "String"
+      },
+      "delayDuration": {
+        "value": 2,
+        "type": "Integer"
+      },
+      "workingDaysAllowed": {
+        "value": 2,
+        "type": "Integer"
+      },
+      "name": {
+        "value": "Process Application",
+        "type": "String"
+      }
+    }
+  ]
+}

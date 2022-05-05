@@ -1,13 +1,41 @@
 targets:
   instance: ${TEST_URL:http://localhost:8088}
-  camunda: ${CAMUNDA_URL:http://camunda-bpm/engine-rest}
+  camunda: ${CAMUNDA_URL:http://camunda-local-bpm/engine-rest}
 
 azure:
   servicebus:
     connection-string: ${AZURE_SERVICE_BUS_CONNECTION_STRING}
     topic-name: ${AZURE_SERVICE_BUS_TOPIC_NAME}
     subscription-Name: ${AZURE_SERVICE_BUS_SUBSCRIPTION_NAME}
+    ccd-case-events-subscription-name: ${AZURE_SERVICE_BUS_CCD_CASE_EVENTS_SUBSCRIPTION_NAME}
     retry-duration: ${AZURE_SERVICE_BUS_RETRY_DURATION:60}
     threads: ${AZURE_SERVICE_BUS_CONCURRENT_SESSIONS:1}
     enableASB: ${AZURE_SERVICE_BUS_FEATURE_TOGGLE:false}
     retry-attempts: ${AZURE_SERVICE_BUS_RETRY_ATTEMPTS:0}
+
+idam:
+  api:
+    baseUrl: ${IDAM_URL:http://sidam-api}
+  redirectUrl: ${IA_IDAM_REDIRECT_URI:http://xui-webapp/oauth2/callback}
+  scope: "openid profile roles"
+  test:
+    userCleanupEnabled: ${ENABLE_TEST_USER_DELETION:false}
+
+document_management:
+  url: ${DM_STORE_URL:http://local-dm-store}
+
+core_case_data:
+  api:
+    url: ${CCD_URL:http://ccd-data-store-api}
+
+role-assignment-service:
+  url: ${ROLE_ASSIGNMENT_URL:http://role-assignment}
+
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          oidc:
+            client-id: ${WA_IDAM_CLIENT_ID:wa}
+            client-secret: ${WA_IDAM_CLIENT_SECRET:something}

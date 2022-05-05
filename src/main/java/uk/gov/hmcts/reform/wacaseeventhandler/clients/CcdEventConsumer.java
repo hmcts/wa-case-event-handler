@@ -5,31 +5,38 @@ import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.ServiceBusConfiguration;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventErrorHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
+import uk.gov.hmcts.reform.wacaseeventhandler.util.UserIdParser;
+
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.DLQ_DB_INSERT;
 
 @Slf4j
 @Component
 @Scope("prototype")
 @ConditionalOnProperty("azure.servicebus.enableASB")
+@Profile("!functional & !local")
 @SuppressWarnings("PMD.DoNotUseThreads")
 public class CcdEventConsumer implements Runnable {
 
     private final ServiceBusConfiguration serviceBusConfiguration;
     private final CcdEventProcessor ccdEventProcessor;
     private final CcdEventErrorHandler ccdEventErrorHandler;
+    private final LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
     public CcdEventConsumer(ServiceBusConfiguration serviceBusConfiguration,
                             CcdEventProcessor ccdEventProcessor,
-                            CcdEventErrorHandler ccdEventErrorHandler
-    ) {
+                            CcdEventErrorHandler ccdEventErrorHandler,
+                            LaunchDarklyFeatureFlagProvider featureFlagProvider) {
         this.serviceBusConfiguration = serviceBusConfiguration;
         this.ccdEventProcessor = ccdEventProcessor;
         this.ccdEventErrorHandler = ccdEventErrorHandler;
+        this.featureFlagProvider = featureFlagProvider;
     }
 
     @Override
@@ -53,7 +60,13 @@ public class CcdEventConsumer implements Runnable {
                         try {
                             log.info("Received message with id '{}'", message.getMessageId());
 
-                            ccdEventProcessor.processMessage(incomingMessage);
+                            if (featureFlagProvider.getBooleanValue(DLQ_DB_INSERT,
+                                                                     UserIdParser.getUserId(incomingMessage))) {
+                                log.info("Feature flag '{}' evaluated to true. Message is not processed",
+                                         DLQ_DB_INSERT.getKey());
+                            } else {
+                                ccdEventProcessor.processMessage(incomingMessage);
+                            }
                             receiver.complete(message);
 
                             log.info("Message with id '{}' handled successfully", message.getMessageId());

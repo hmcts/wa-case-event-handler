@@ -1,14 +1,17 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
+import lombok.Builder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates.HolidayService;
 
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.stream.Stream;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -122,10 +125,78 @@ class DueDateServiceTest {
         assertEquals(actual, zonedDateTime);
     }
 
+    @ParameterizedTest
+    @MethodSource(value = "scenarioProvider")
+    void calculateDelayUntil(ZonedDateTimeScenario scenario) {
+        ZonedDateTime zonedDateTime = underTest.calculateDelayUntil(scenario.actualDateTime, scenario.days);
+        assertEquals(scenario.expectedDateTime, zonedDateTime);
+    }
+
     private void checkWorkingDays(ZonedDateTime startDay, int leadTimeDays, ZonedDateTime expectedDueDate) {
         ZonedDateTime calculatedDueDate = underTest.calculateDueDate(startDay, leadTimeDays);
 
         assertThat(calculatedDueDate, is(expectedDueDate));
+    }
+
+    private static Stream<ZonedDateTimeScenario> scenarioProvider() {
+        return Stream.of(
+            ZonedDateTimeScenario.builder()
+                .actualDateTime(
+                    ZonedDateTime.of(2021, 3, 1, 16, 0, 0, 0, ZoneId.systemDefault()))
+                .days(1)
+                .expectedDateTime(
+                    ZonedDateTime.of(2021, 3, 2, 16, 0, 0, 0, ZoneId.systemDefault())
+                ).build(),
+            ZonedDateTimeScenario.builder()
+                .actualDateTime(
+                    ZonedDateTime.of(2021, 3, 1, 16, 0, 0, 0, ZoneId.systemDefault()))
+                .days(5)
+                .expectedDateTime(
+                    ZonedDateTime.of(2021, 3, 6, 16, 0, 0, 0, ZoneId.systemDefault()))
+                .build(),
+            ZonedDateTimeScenario.builder()
+                .actualDateTime(
+                    ZonedDateTime.of(2021, 3, 1, 16, 0, 0, 0, ZoneId.systemDefault()))
+                .days(18)
+                .expectedDateTime(
+                    ZonedDateTime.of(2021, 3, 19, 16, 0, 0, 0, ZoneId.systemDefault()))
+                .build(),
+            ZonedDateTimeScenario.builder()
+                .actualDateTime(
+                    ZonedDateTime.of(2021, 2, 28, 16, 0, 0, 0, ZoneId.systemDefault()))
+                .days(1)
+                .expectedDateTime(
+                    ZonedDateTime.of(2021, 3, 1, 16, 0, 0, 0, ZoneId.systemDefault()))
+                .build(),
+            ZonedDateTimeScenario.builder()
+                .actualDateTime(
+                    ZonedDateTime.of(2020, 2, 28, 16, 0, 0, 0, ZoneId.systemDefault()))
+                .days(1)
+                .expectedDateTime(
+                    ZonedDateTime.of(2020, 2, 29, 16, 0, 0, 0, ZoneId.systemDefault()))
+                .build(),
+            ZonedDateTimeScenario.builder()
+                .actualDateTime(
+                    ZonedDateTime.of(2021, 3, 1, 16, 0, 0, 0, ZoneId.systemDefault()))
+                .days(30)
+                .expectedDateTime(
+                    ZonedDateTime.of(2021, 3, 31, 16, 0, 0, 0, ZoneId.systemDefault()))
+                .build(),
+            ZonedDateTimeScenario.builder()
+                .actualDateTime(
+                    ZonedDateTime.of(2021, 3, 1, 16, 0, 0, 0, ZoneId.systemDefault()))
+                .days(31)
+                .expectedDateTime(
+                    ZonedDateTime.of(2021, 4, 1, 16, 0, 0, 0, ZoneId.systemDefault()))
+                .build()
+        );
+    }
+
+    @Builder
+    private static class ZonedDateTimeScenario {
+        ZonedDateTime actualDateTime;
+        int days;
+        ZonedDateTime expectedDateTime;
     }
 
 }

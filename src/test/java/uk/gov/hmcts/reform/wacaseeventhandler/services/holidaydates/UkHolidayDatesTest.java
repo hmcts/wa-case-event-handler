@@ -5,7 +5,7 @@ import pl.pojo.tester.api.assertion.Method;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-public class UkHolidayDatesTest {
+class UkHolidayDatesTest {
 
     private final Class classToTest = UkHolidayDates.class;
 
@@ -13,8 +13,6 @@ public class UkHolidayDatesTest {
     void isWellImplemented() {
         assertPojoMethodsFor(classToTest)
             .testing(Method.GETTER)
-            .testing(Method.EQUALS)
-            .testing(Method.HASH_CODE)
             .testing(Method.TO_STRING)
             .areWellImplemented();
 
