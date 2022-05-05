@@ -84,7 +84,7 @@ azure:
     subscription-Name: ${AZURE_SERVICE_BUS_SUBSCRIPTION_NAME:wa-case-events-sub-aat}
     ccd-case-events-subscription-name: ${AZURE_SERVICE_BUS_CCD_CASE_EVENTS_SUBSCRIPTION_NAME:wa-ccd-case-events-sub-aat}
     retry-duration: ${AZURE_SERVICE_BUS_RETRY_DURATION:60}
-    threads: ${AZURE_SERVICE_BUS_CONCURRENT_SESSIONS:1}
+    threads: ${AZURE_SERVICE_BUS_CONCURRENT_SESSIONS:2}
     enableASB: ${AZURE_SERVICE_BUS_FEATURE_TOGGLE:false}
     retry-attempts: ${AZURE_SERVICE_BUS_RETRY_ATTEMPTS:3}
 
@@ -122,9 +122,11 @@ core_case_data:
 
 scheduledExecutors:
   messageProcessing:
-    pollIntervalSeconds: ${MESSAGE_PROCESSING_POLL_INTERVAL_SECONDS:30}
+    pollIntervalSeconds: ${MESSAGE_PROCESSING_POLL_INTERVAL_SECONDS:5}
+    threadPoolSize: ${MESSAGE_PROCESSING_THREAD_POOL_SIZE:2}
   messageReadiness:
-    pollIntervalSeconds: ${MESSAGE_READINESS_POLL_INTERVAL_SECONDS:30}
+    pollIntervalSeconds: ${MESSAGE_READINESS_POLL_INTERVAL_SECONDS:5}
+    threadPoolSize: ${MESSAGE_READINESS_THREAD_POOL_SIZE:2}
 
 job:
   problem-message:
