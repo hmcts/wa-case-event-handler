@@ -3,18 +3,10 @@ updates:
 - package-ecosystem: gradle
   directory: "/"
   schedule:
-    interval: daily
+    interval: weekly
+  rebase-strategy: "disabled"
   open-pull-requests-limit: 10
   ignore:
-  - dependency-name: net.serenity-bdd:serenity-gradle-plugin
-    versions:
-    - 2.3.12
-    - 2.3.13
-    - 2.3.31
-    - 2.4.2
-  - dependency-name: org.camunda.bpm:camunda-external-task-client
-    versions:
-    - 1.4.1
   - dependency-name: org.apache.tomcat.embed:tomcat-embed-websocket
     versions:
     - 10.0.0
@@ -25,9 +17,3 @@ updates:
     - 10.0.0
     - 10.0.2
     - 10.0.4
-  - dependency-name: org.projectlombok:lombok
-    versions:
-    - 1.18.18
-  - dependency-name: org.springframework.cloud:spring-cloud-starter-netflix-hystrix
-    versions:
-    - 2.2.6.RELEASE
