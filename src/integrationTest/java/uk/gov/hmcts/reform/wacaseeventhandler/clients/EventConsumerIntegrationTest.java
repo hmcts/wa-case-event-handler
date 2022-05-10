@@ -5,6 +5,7 @@ import com.azure.core.util.IterableStream;
 import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
 import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
+import lombok.SneakyThrows;
 import org.junit.FixMethodOrder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -115,7 +116,7 @@ public class EventConsumerIntegrationTest {
             doNothing().when(sessionReceiverClient).close();
             ServiceBusReceiverClient receiverClient = mock(ServiceBusReceiverClient.class);
             when(sessionReceiverClient.acceptNextSession()).thenReturn(receiverClient);
-            when(receiverClient.receiveMessages(1)).thenReturn(new IterableStream<>(Flux.empty()));
+            doAnswer(invocation -> emitMessage(List.of())).when(receiverClient).receiveMessages(1);
 
             return serviceBusConfiguration;
         }
@@ -221,15 +222,19 @@ public class EventConsumerIntegrationTest {
             + "}";
     }
 
+    @SneakyThrows
     private static IterableStream<ServiceBusReceivedMessage> emitMessage(List<ServiceBusReceivedMessage> messages) {
-        if (!messages.isEmpty()) {
-            final Flux<ServiceBusReceivedMessage> iterableStreamFlux = Flux.<ServiceBusReceivedMessage>create(
-                sink -> {
-                    sink.next(messages.remove(0));
-                    sink.complete();
-                }).subscribeOn(Schedulers.single());
-            return new IterableStream<>(iterableStreamFlux);
+        synchronized (messages) {
+            Thread.sleep(2000);
+            if (!messages.isEmpty()) {
+                final Flux<ServiceBusReceivedMessage> iterableStreamFlux = Flux.<ServiceBusReceivedMessage>create(
+                    sink -> {
+                        sink.next(messages.remove(0));
+                        sink.complete();
+                    }).subscribeOn(Schedulers.single());
+                return new IterableStream<>(iterableStreamFlux);
+            }
+            return new IterableStream<>(Flux.empty());
         }
-        return new IterableStream<>(Flux.empty());
     }
 }
