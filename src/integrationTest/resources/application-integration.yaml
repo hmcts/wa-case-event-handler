@@ -22,8 +22,6 @@ ccd_gateway:
 
 scheduledExecutors:
   messageProcessing:
-    pollIntervalSeconds: 5
     threadPoolSize: 1
   messageReadiness:
-    pollIntervalSeconds: 5
     threadPoolSize: 1
