@@ -100,7 +100,7 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
                 || response.getProcessCategories() != null
                    && isNotBlank(response.getProcessCategories().getValue()))) {
             log.warn(
-                "DMN configuration has provided fields not suitable for Reconfiguration and that they will be ignored"
+                "DMN configuration has provided fields not suitable for Reconfiguration and they will be ignored"
             );
         }
     }
