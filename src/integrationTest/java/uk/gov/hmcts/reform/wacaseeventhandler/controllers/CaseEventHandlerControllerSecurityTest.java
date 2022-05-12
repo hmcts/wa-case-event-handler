@@ -32,9 +32,9 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.CaseEventHandle
 import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.asJsonString;
 
 
-@ActiveProfiles({"local"})
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles(profiles = {"db", "integration"})
 class CaseEventHandlerControllerSecurityTest {
 
     public static final String SOME_SERVICE_AUTHORIZATION = "Bearer some service authorization";
@@ -70,9 +70,9 @@ class CaseEventHandlerControllerSecurityTest {
         when(serviceAuthorisationApi.getServiceName(SOME_SERVICE_AUTHORIZATION)).thenReturn(serviceName);
 
         mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .header(ServiceAuthFilter.AUTHORISATION, SOME_SERVICE_AUTHORIZATION)
-            .content(asJsonString(getBaseEventInformation(null))))
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(ServiceAuthFilter.AUTHORISATION, SOME_SERVICE_AUTHORIZATION)
+                .content(asJsonString(getBaseEventInformation(null))))
             .andExpect(status().is(expectedHttpStatus.value()));
     }
 

@@ -11,7 +11,7 @@
     "Data": {
       "appealType": "protection",
       "lastModifiedDirection": {
-        "directionDueDate": "2021-04-08"
+        "dateDue": "2021-04-08"
       }
     },
     "Definition": {
@@ -19,11 +19,11 @@
         "type": "Complex",
         "subtype": "lastModifiedDirection",
         "typeDef": {
-          "directionDueDate": {
+          "dateDue": {
             "type": "SimpleDate",
             "subtype": "Date",
             "typeDef": null,
-            "originalId": "directionDueDate"
+            "originalId": "dateDue"
           }
         },
         "originalId": "lastModifiedDirection"

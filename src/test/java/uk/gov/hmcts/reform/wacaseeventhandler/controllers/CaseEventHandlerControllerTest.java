@@ -20,6 +20,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
+
 @ExtendWith(MockitoExtension.class)
 class CaseEventHandlerControllerTest {
 
@@ -30,7 +31,6 @@ class CaseEventHandlerControllerTest {
     void given_evaluateDmn_returns_nothing_then_caseEventHandler_does_not_handle() {
         List<CaseEventHandler> handlerServices = List.of(initiationTaskHandler);
         CaseEventHandlerController controller = new CaseEventHandlerController(handlerServices);
-
         ResponseEntity<Void> response = controller.caseEventHandler(
             EventInformation.builder()
                 .jurisdictionId("ia")
@@ -65,4 +65,5 @@ class CaseEventHandlerControllerTest {
         verify(initiationTaskHandler).evaluateDmn(any(EventInformation.class));
         verify(initiationTaskHandler).handle(anyList(), any(EventInformation.class));
     }
+
 }

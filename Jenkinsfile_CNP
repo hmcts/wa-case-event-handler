@@ -7,44 +7,63 @@ def product = "wa"
 def component = "case-event-handler"
 
 def secrets = [
-    'wa-${env}' : [
+  'wa-${env}' : [
     secret('ld-secret', 'LAUNCH_DARKLY_SDK_KEY'),
-    ],
-    's2s-${env}': [
-        secret('microservicekey-wa-case-event-handler', 'S2S_SECRET_CASE_EVENT_HANDLER')
-    ]
+    secret('wa-case-event-handler-POSTGRES-PASS', 'POSTGRES_PASSWORD'),
+    secret('wa-case-event-handler-POSTGRES-USER', 'POSTGRES_USERNAME'),
+    secret('wa-case-event-handler-POSTGRES-HOST', 'POSTGRES_HOST'),
+    secret('wa-case-event-handler-POSTGRES-PORT', 'POSTGRES_PORT'),
+    secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
+    secret('idam-secret', 'IA_IDAM_SECRET'),
+    secret('wa-idam-client-secret', 'WA_IDAM_CLIENT_SECRET'),
+  ],
+  's2s-${env}': [
+    secret('microservicekey-wa-case-event-handler', 'S2S_SECRET_CASE_EVENT_HANDLER')
+  ]
 ]
 
 static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
-    [$class     : 'AzureKeyVaultSecret',
-     secretType : 'Secret',
-     name       : secretName,
-     version    : '',
-     envVariable: envVar
-    ]
+  [$class     : 'AzureKeyVaultSecret',
+   secretType : 'Secret',
+   name       : secretName,
+   version    : '',
+   envVariable: envVar
+  ]
 }
 
-withPipeline(type, product, component) {
-    disableLegacyDeployment()
+def branchesToSync = ['demo', 'ithc', 'perftest']
 
-    env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
-    env.CAMUNDA_URL = "http://camunda-api-aat.service.core-compute-aat.internal/engine-rest"
+withPipeline(type, product, component) {
+  disableLegacyDeployment()
+
+  env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
+  env.CAMUNDA_URL = "http://camunda-api-aat.service.core-compute-aat.internal/engine-rest"
+  env.DM_STORE_URL = "http://dm-store-aat.service.core-compute-aat.internal"
+  env.IDAM_URL = "https://idam-api.aat.platform.hmcts.net"
+  env.ROLE_ASSIGNMENT_URL = "http://am-role-assignment-service-aat.service.core-compute-aat.internal"
+  env.CCD_URL = "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
 
   loadVaultSecrets(secrets)
 
-    after('test') {
-        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/**/*'
-        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/integration/**/*'
-    }
+  after('test') {
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/**/*'
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/integration/**/*'
+  }
 
-    after('functionalTest:preview') {
-        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
-        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/functional/**/*'
-    }
+  after('functionalTest:preview') {
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/functional/**/*'
+  }
 
-    after('functionalTest:aat') {
-        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
-        steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/functional/**/*'
-    }
+  after('functionalTest:aat') {
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/functional/**/*'
+  }
 
+  onPR() {
+    enableCleanupOfHelmReleaseOnSuccess()
+  }
+  
+  // Sync environment specific branches with master branch
+  syncBranchesWithMaster(branchesToSync)
 }

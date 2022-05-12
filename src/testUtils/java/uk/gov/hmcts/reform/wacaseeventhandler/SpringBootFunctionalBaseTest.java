@@ -1,7 +1,15 @@
 package uk.gov.hmcts.reform.wacaseeventhandler;
 
 import com.azure.messaging.servicebus.ServiceBusSenderClient;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.restassured.RestAssured;
+import io.restassured.config.ObjectMapperConfig;
+import io.restassured.config.RestAssuredConfig;
+import io.restassured.response.Response;
+import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -9,43 +17,103 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
+import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.DocumentManagementFiles;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.GivensBuilder;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.RestApiActions;
+import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestVariables;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.AuthorizationProvider;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.IdamService;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.IdempotencyKeyGenerator;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.RoleAssignmentServiceApi;
+import uk.gov.hmcts.reform.wacaseeventhandler.utils.Common;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static com.fasterxml.jackson.databind.PropertyNamingStrategy.LOWER_CAMEL_CASE;
+import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static net.serenitybdd.rest.SerenityRest.given;
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.CoreMatchers.is;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
 @ActiveProfiles(profiles = {"local", "functional"})
+@Slf4j
 public abstract class SpringBootFunctionalBaseTest {
 
     public static final String SERVICE_AUTHORIZATION = "ServiceAuthorization";
-
-
-    @Value("${targets.instance}")
-    protected String testUrl;
-
-    @Value("${targets.camunda}")
-    public String camundaUrl;
-
-    @Autowired
-    public AuthTokenGenerator authTokenGenerator;
-
-    @Autowired
-    private ApplicationContext applicationContext;
+    public static final String AUTHORIZATION = "Authorization";
+    public static final String CAMUNDA_DATE_REQUEST_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS+0000";
+    @Value("${targets.instance}") protected String testUrl;
+    @Value("${targets.camunda}") public String camundaUrl;
 
     public ServiceBusSenderClient publisher;
-
     public String s2sToken;
+    protected GivensBuilder given;
+    protected Common common;
+    protected RestApiActions camundaApiActions;
+
+    @Autowired protected AuthorizationProvider authorizationProvider;
+    @Autowired protected CoreCaseDataApi coreCaseDataApi;
+    @Autowired protected DocumentManagementFiles documentManagementFiles;
+    @Autowired protected IdamService idamService;
+    @Autowired protected RoleAssignmentServiceApi roleAssignmentServiceApi;
+    @Autowired private AuthTokenGenerator authTokenGenerator;
+    @Autowired private ApplicationContext applicationContext;
+    @Autowired protected IdempotencyKeyGenerator idempotencyKeyGenerator;
+
+    protected List<String> caseIds;
 
     @Before
-    public void setUp() {
+    public void setUp() throws IOException {
+        RestAssured.config = RestAssuredConfig.config()
+            .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
+                (type, s) -> {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE);
+                    objectMapper.registerModule(new Jdk8Module());
+                    objectMapper.registerModule(new JavaTimeModule());
+                    return objectMapper;
+                }
+            ));
         RestAssured.baseURI = testUrl;
         RestAssured.useRelaxedHTTPSValidation();
         s2sToken = authTokenGenerator.generate();
         if (applicationContext.containsBean("serviceBusSenderClient")) {
             publisher = (ServiceBusSenderClient) applicationContext.getBean("serviceBusSenderClient");
         }
+
+        camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
+
+        documentManagementFiles.prepare();
+
+        given = new GivensBuilder(
+            camundaApiActions,
+            authorizationProvider,
+            coreCaseDataApi,
+            documentManagementFiles
+        );
+
+        common = new Common(
+            given,
+            camundaApiActions,
+            authorizationProvider,
+            idamService,
+            roleAssignmentServiceApi
+        );
+
+        caseIds = new ArrayList<>();
     }
 
     public void waitSeconds(int seconds) {
@@ -54,5 +122,59 @@ public abstract class SpringBootFunctionalBaseTest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    public String getCaseId() {
+        TestVariables taskVariables = common.createCase();
+        requireNonNull(taskVariables, "taskVariables is null");
+        requireNonNull(taskVariables.getCaseId(), "case id is null");
+        caseIds.add(taskVariables.getCaseId());
+        return taskVariables.getCaseId();
+
+    }
+
+    protected Response findTasksByCaseId(
+        String caseId, int expectedTaskAmount
+    ) {
+
+        log.info("Finding task for caseId = {}", caseId);
+        AtomicReference<Response> response = new AtomicReference<>();
+        await().ignoreException(AssertionError.class)
+            .pollInterval(1000, MILLISECONDS)
+            .atMost(60, SECONDS)
+            .until(
+                () -> {
+                    Response result = given()
+                        .relaxedHTTPSValidation()
+                        .header(SERVICE_AUTHORIZATION, s2sToken)
+                        .contentType(APPLICATION_JSON_VALUE)
+                        .baseUri(camundaUrl)
+                        .basePath("/task")
+                        .param("processVariables", "caseId_eq_" + caseId)
+                        .when()
+                        .get();
+
+                    result
+                        .then().assertThat()
+                        .statusCode(HttpStatus.OK.value())
+                        .body("size()", is(expectedTaskAmount));
+
+                    response.set(result);
+                    return true;
+                });
+
+        return response.get();
+    }
+
+    protected Response findTaskDetailsForGivenTaskId(String taskId) {
+        log.info("Attempting to retrieve task details with taskId = {}", taskId);
+
+        return given()
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .contentType(APPLICATION_JSON_VALUE)
+            .baseUri(camundaUrl)
+            .basePath("/task/" + taskId + "/variables")
+            .when()
+            .get();
     }
 }

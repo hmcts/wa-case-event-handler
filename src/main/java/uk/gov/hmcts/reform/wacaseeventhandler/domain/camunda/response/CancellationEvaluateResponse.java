@@ -3,12 +3,14 @@ package uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
 
 @ToString
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
+@EqualsAndHashCode
 public final class CancellationEvaluateResponse implements EvaluateResponse {
 
     @JsonProperty("action")

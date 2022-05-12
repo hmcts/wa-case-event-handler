@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformatio
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CancellationCaseEventHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.InitiationCaseEventHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.WarningCaseEventHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageReceiverService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,7 +29,8 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmn
     CaseEventHandlerController.class,
     CancellationCaseEventHandler.class,
     InitiationCaseEventHandler.class,
-    WarningCaseEventHandler.class
+    WarningCaseEventHandler.class,
+    EventMessageReceiverService.class
 })
 class CaseEventHandlerControllerHandlersOrderTest {
 
@@ -41,6 +43,9 @@ class CaseEventHandlerControllerHandlersOrderTest {
 
     @MockBean
     private WarningCaseEventHandler warningTaskHandlerService;
+
+    @MockBean
+    private EventMessageReceiverService eventMessageReceiverService;
 
     @Autowired
     private CaseEventHandlerController controller;
@@ -61,7 +66,7 @@ class CaseEventHandlerControllerHandlersOrderTest {
 
         EvaluateDmnResponse<CancellationEvaluateResponse> warningDmnResponse =
             new EvaluateDmnResponse<>(List.of(new CancellationEvaluateResponse(
-                warnAction, null, null,taskCategory, null)));
+                warnAction, null, null, taskCategory, null)));
 
         doReturn(warningDmnResponse.getResults())
             .when(warningTaskHandlerService).evaluateDmn(any(EventInformation.class));

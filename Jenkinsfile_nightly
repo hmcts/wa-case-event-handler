@@ -17,12 +17,50 @@ def type = "java"
 def product = "wa"
 def component = "case-event-handler"
 
+def secrets = [
+  'wa-${env}' : [
+    secret('ld-secret', 'LAUNCH_DARKLY_SDK_KEY'),
+    secret('wa-case-event-handler-POSTGRES-PASS', 'POSTGRES_PASSWORD'),
+    secret('wa-case-event-handler-POSTGRES-USER', 'POSTGRES_USERNAME'),
+    secret('wa-case-event-handler-POSTGRES-HOST', 'POSTGRES_HOST'),
+    secret('wa-case-event-handler-POSTGRES-PORT', 'POSTGRES_PORT'),
+    secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
+    secret('idam-secret', 'IA_IDAM_SECRET'),
+    secret('wa-idam-client-secret', 'WA_IDAM_CLIENT_SECRET'),
+  ],
+  's2s-${env}': [
+    secret('microservicekey-wa-case-event-handler', 'S2S_SECRET_CASE_EVENT_HANDLER')
+  ]
+]
+
+static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
+  [$class     : 'AzureKeyVaultSecret',
+   secretType : 'Secret',
+   name       : secretName,
+   version    : '',
+   envVariable: envVar
+  ]
+}
+
 withNightlyPipeline(type, product, component) {
   env.TEST_URL = params.URL_TO_TEST
   env.Rules = params.SecurityRules
+  env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
+  env.CAMUNDA_URL = "http://camunda-api-aat.service.core-compute-aat.internal/engine-rest"
+  env.DM_STORE_URL = "http://dm-store-aat.service.core-compute-aat.internal"
+  env.IDAM_URL = "https://idam-api.aat.platform.hmcts.net"
+  env.ROLE_ASSIGNMENT_URL = "http://am-role-assignment-service-aat.service.core-compute-aat.internal"
+  env.CCD_URL = "http://ccd-data-store-api-aat.service.core-compute-aat.internal"
 
+  loadVaultSecrets(secrets)
 
   enableSecurityScan()
+  enableFortifyScan()
   enableMutationTest()
+  enableFullFunctionalTest()
   enableSlackNotifications('#wa-build')
+
+  after('fortify-scan') {
+    steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/Fortify Scan/**/*'
+  }
 }

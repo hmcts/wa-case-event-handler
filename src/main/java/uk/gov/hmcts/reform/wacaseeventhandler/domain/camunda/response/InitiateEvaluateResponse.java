@@ -12,7 +12,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public final class InitiateEvaluateResponse implements EvaluateResponse {
     private final DmnValue<String> taskId;
-    private final DmnValue<String> group;
     private final DmnValue<Integer> delayDuration;
     private final DmnValue<Integer> workingDaysAllowed;
     private final DmnValue<String> name;
@@ -21,14 +20,12 @@ public final class InitiateEvaluateResponse implements EvaluateResponse {
 
     @JsonCreator
     public InitiateEvaluateResponse(@JsonProperty("taskId") DmnValue<String> taskId,
-                                    @JsonProperty("group") DmnValue<String> group,
                                     @JsonProperty("delayDuration") DmnValue<Integer> delayDuration,
                                     @JsonProperty("workingDaysAllowed") DmnValue<Integer> workingDaysAllowed,
                                     @JsonProperty("name") DmnValue<String> name,
                                     @JsonProperty("taskCategory") DmnValue<String> taskCategory,
                                     @JsonProperty("processCategories") DmnValue<String> processCategories) {
         this.taskId = taskId;
-        this.group = group;
         this.delayDuration = delayDuration;
         this.workingDaysAllowed = workingDaysAllowed;
         this.name = name;
@@ -38,10 +35,6 @@ public final class InitiateEvaluateResponse implements EvaluateResponse {
 
     public DmnValue<String> getTaskId() {
         return taskId;
-    }
-
-    public DmnValue<String> getGroup() {
-        return group;
     }
 
     public DmnValue<Integer> getDelayDuration() {

@@ -36,9 +36,9 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.
 
 
 @SuppressWarnings("unchecked")
-@ActiveProfiles({"local"})
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
+@ActiveProfiles(profiles = {"db", "integration"})
 class CaseEventHandlerControllerBackwardsCompatibilityTest {
 
     public static final String S2S_TOKEN = "Bearer s2s token";
@@ -64,8 +64,8 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
         EventInformation validEventInformation = getBaseEventInformation(null);
 
         mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(validEventInformation)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(validEventInformation)))
             .andDo(print())
             .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
     }
@@ -73,7 +73,7 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
     @Test
     void event_information_with_additional_data_should_succeed_and_return_204() throws Exception {
         Map<String, Object> dataMap = Map.of(
-            "lastModifiedDirection", Map.of("directionDueDate", "2021-04-06"),
+            "lastModifiedDirection", Map.of("dateDue", "2021-04-06"),
             "appealType", "protection"
         );
 
@@ -84,8 +84,8 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
         EventInformation validEventInformation = getBaseEventInformation(additionalData);
 
         mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(validEventInformation)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(validEventInformation)))
             .andDo(print())
             .andExpect(status().is(HttpStatus.NO_CONTENT.value()));
     }
@@ -104,8 +104,8 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
             .build();
 
         mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(partialEventInformation)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(partialEventInformation)))
             .andDo(print())
             .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
     }
@@ -124,8 +124,8 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
             .build();
 
         mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(asJsonString(emptyStringEventInformation)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(emptyStringEventInformation)))
             .andDo(print())
             .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
     }

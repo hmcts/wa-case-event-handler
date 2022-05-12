@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.config;
 
 import org.junit.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
@@ -12,6 +14,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.AZURE_AMQP_LOGS;
 import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.AZURE_MESSAGING_SERVICE_BUS_LOGS;
 import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.AZURE_SERVICE_BUS_LOGS;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.DLQ_DB_INSERT;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.DLQ_DB_PROCESS;
 import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.NON_EXISTENT_KEY;
 import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.TASK_INITIATION_FEATURE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.TEST_KEY;
@@ -19,6 +23,12 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag
 public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBaseTest {
 
     public static final String SOME_USER_ID = "some user id";
+    public static final String DB_INSERT_USER_ID_TARGET_TRUE = "insert_true";
+    public static final String DB_INSERT_USER_ID_TARGET_FALSE = "insert_false";
+    public static final String DB_PROCESS_USER_ID_TARGET_TRUE = "process_true";
+    public static final String DB_PROCESS_USER_ID_TARGET_FALSE = "process_false";
+    public static final String DLQ_PROCESS_USER_ID_TARGET_TRUE = "wa-dlq-user@fake.hmcts.net";
+
     @Autowired
     private LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
@@ -62,5 +72,39 @@ public class LaunchDarklyFeatureFlagProviderTest extends SpringBootFunctionalBas
     public void should_hit_launch_darkly_for_task_initiation_feature_and_return_either_true_or_false() {
         boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE, SOME_USER_ID);
         assertThat(launchDarklyFeature, either(equalTo(true)).or(equalTo(false)));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        DB_INSERT_USER_ID_TARGET_TRUE,
+        DLQ_PROCESS_USER_ID_TARGET_TRUE
+    })
+    public void should_hit_launch_darkly_for_wa_dlq_database_insert_when_user_id_contains_insert_true(String userId) {
+        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, userId);
+        assertThat(launchDarklyFeature, equalTo(true));
+    }
+
+    @Test
+    public void should_hit_launch_darkly_for_wa_dlq_database_insert_when_user_id_does_not_contain_insert_true() {
+        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(DLQ_DB_INSERT,
+                                                                          DB_INSERT_USER_ID_TARGET_FALSE);
+        assertThat(launchDarklyFeature, equalTo(false));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        DB_PROCESS_USER_ID_TARGET_TRUE,
+        DLQ_PROCESS_USER_ID_TARGET_TRUE
+    })
+    public void should_hit_launch_darkly_for_wa_dlq_database_process_when_user_id_contains_process_true(String userId) {
+        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(DLQ_DB_PROCESS, userId);
+        assertThat(launchDarklyFeature, equalTo(true));
+    }
+
+    @Test
+    public void should_hit_launch_darkly_for_wa_dlq_database_process_when_user_id_does_not_contain_process_true() {
+        boolean launchDarklyFeature = featureFlagProvider.getBooleanValue(DLQ_DB_PROCESS,
+                                                                          DB_PROCESS_USER_ID_TARGET_FALSE);
+        assertThat(launchDarklyFeature, equalTo(false));
     }
 }

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +33,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -73,6 +75,8 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
     private IsoDateFormatter isoDateFormatter;
     @Mock
     private DueDateService dueDateService;
+    @Mock
+    private ObjectMapper objectMapper;
 
     @InjectMocks
     private InitiationCaseEventHandler handlerService;
@@ -108,7 +112,12 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
 
     @ParameterizedTest
     @MethodSource("provideEventInformation")
-    void evaluateDmn(EventInformation eventInformation, String directionDueDate, String appealType) {
+    void evaluateDmn(EventInformation eventInformation, String directionDueDate, Map<String, Object> appealType) {
+        Map<String, Object> appealMap = new HashMap<>();
+        appealMap.put("appealType", "protection");
+        Map<String, Object> dataMap = new HashMap<>();
+        dataMap.put("data", appealMap);
+        lenient().when(objectMapper.convertValue(eventInformation.getAdditionalData(), Map.class)).thenReturn(dataMap);
         EvaluateDmnRequest requestParameters =
             buildInitiateTaskDmnRequest(directionDueDate, appealType);
 
@@ -144,7 +153,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
         );
 
         InitiateEvaluateResponse initiateTaskResponse1 = InitiateEvaluateResponse.builder()
-            .group(dmnStringValue("TCW"))
             .name(dmnStringValue("Process Application"))
             .taskId(dmnStringValue("processApplication"))
             .delayDuration(dmnIntegerValue(0))
@@ -154,7 +162,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
 
         // response without delayDuration and WorkingDaysAllowed
         InitiateEvaluateResponse initiateTaskResponse2 = InitiateEvaluateResponse.builder()
-            .group(dmnStringValue("external"))
             .name(dmnStringValue("Decide On Time Extension"))
             .taskId(dmnStringValue("decideOnTimeExtension"))
             .taskCategory(dmnStringValue("Time extension"))
@@ -185,7 +192,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
             "Process Application",
             "processApplication",
             "Case progression",
-            "TCW",
             handleDateTimeScenario.dateAt4pm,
             handleDateTimeScenario.expectedDate,
             0
@@ -196,7 +202,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
             "Decide On Time Extension",
             "decideOnTimeExtension",
             "Time extension",
-            "external",
             handleDateTimeScenario.dateAt4pm,
             handleDateTimeScenario.expectedDate,
             0
@@ -221,7 +226,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
         );
 
         InitiateEvaluateResponse initiateTaskResponse1 = InitiateEvaluateResponse.builder()
-            .group(dmnStringValue("TCW"))
             .name(dmnStringValue("Process Application"))
             .taskId(dmnStringValue("processApplication"))
             .delayDuration(dmnIntegerValue(2))
@@ -250,7 +254,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
             "Process Application",
             "processApplication",
             "Case progression",
-            "TCW",
             "2020-12-12T16:00:00",
             "2020-12-10T16:00:00",
             2
@@ -271,7 +274,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
         String name,
         String taskId,
         String taskCategory,
-        String group,
         String dueDate,
         String delayUntil,
         int workingDays
@@ -283,7 +285,6 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
                 entry("caseTypeId", dmnStringValue("asylum")),
                 entry("dueDate", dmnStringValue(dueDate)),
                 entry("workingDaysAllowed", dmnIntegerValue(workingDays)),
-                entry("group", dmnStringValue(group)),
                 entry("jurisdiction", dmnStringValue("ia")),
                 entry("name", dmnStringValue(name)),
                 entry("taskId", dmnStringValue(taskId)),
@@ -316,13 +317,17 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
     }
 
     private static Stream<Arguments> provideEventInformation() {
+        Map<String, Object> appealMap = new HashMap<>();
+        appealMap.put("appealType", "protection");
+        Map<String, Object> dataMap = new HashMap<>();
+        dataMap.put("data", appealMap);
         return Stream.of(
             Arguments.of(getEventInformation("eventInstanceId",
                 "2020-03-29T10:53:36.530377"), null, null),
-            Arguments.of(validAdditionalData(), "2021-04-06", "protection"),
-            Arguments.of(withEmptyDirectionDueDate(), "", ""),
-            Arguments.of(withoutDirectionDueDate(), null, "protection"),
-            Arguments.of(withoutLastModifiedDirection(), null, "protection")
+            Arguments.of(validAdditionalData(), "2021-04-06", dataMap),
+            Arguments.of(withEmptyDirectionDueDate(), "", dataMap),
+            Arguments.of(withoutDirectionDueDate(), null, dataMap),
+            Arguments.of(withoutLastModifiedDirection(), null, dataMap)
         );
     }
 

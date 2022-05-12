@@ -1,8 +1,10 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,26 +22,24 @@ import javax.validation.Valid;
 import static org.springframework.http.ResponseEntity.noContent;
 
 @RestController
+@Slf4j
 public class CaseEventHandlerController {
-
     private final List<CaseEventHandler> handlerServices;
 
     public CaseEventHandlerController(List<CaseEventHandler> handlerServices) {
         this.handlerServices = handlerServices;
     }
 
-    @ApiOperation("Handles the CCD case event message")
-    @ApiResponses({
-        @ApiResponse(
-            code = 204,
-            message = "Message processed successfully",
-            response = Object.class)
-    })
+    @Operation(summary = "Handles the CCD case event message")
+    @ApiResponse(
+        responseCode = "204",
+        description = "Message processed successfully",
+        content = @Content(schema = @Schema(implementation = Object.class)))
     @PostMapping(path = "/messages", consumes = {MediaType.APPLICATION_JSON_VALUE})
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> caseEventHandler(@Valid @RequestBody EventInformation eventInformation) {
-
+        log.info("incoming test message: {}", eventInformation);
         for (CaseEventHandler handler : handlerServices) {
             List<? extends EvaluateResponse> results = handler.evaluateDmn(eventInformation);
             if (!results.isEmpty()) {
@@ -50,5 +50,4 @@ public class CaseEventHandlerController {
         return noContent().build();
 
     }
-
 }
