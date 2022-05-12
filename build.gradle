@@ -298,7 +298,7 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: versions.springBoot
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: versions.springBoot
-  implementation group: 'org.springframework.security', name: 'spring-security-test', version: '5.5.1'
+  implementation group: 'org.springframework.security', name: 'spring-security-test', version: '5.6.3'
 
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.1.1'
 
