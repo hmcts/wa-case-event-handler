@@ -77,6 +77,7 @@ tasks.withType(JavaCompile) {
 
 tasks.withType(Test) {
   useJUnitPlatform()
+
   testLogging {
     exceptionFormat = 'full'
   }
@@ -322,7 +323,7 @@ dependencies {
   implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
 
   implementation 'org.camunda.bpm:camunda-external-task-client:7.17.0'
-  implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.2.2'
+  implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.8.1'
   implementation 'org.apache.commons:commons-lang3:3.12.0'
 
   testImplementation libraries.junit5
