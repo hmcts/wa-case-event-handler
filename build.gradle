@@ -298,7 +298,7 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: versions.springBoot
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: versions.springBoot
-  implementation group: 'org.springframework.security', name: 'spring-security-test', version: '5.5.1'
+  implementation group: 'org.springframework.security', name: 'spring-security-test', version: '5.6.3'
 
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.1.1'
 
@@ -344,7 +344,7 @@ dependencies {
   testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.16.2'
 
   testImplementation group: 'org.pitest', name: 'pitest', version: versions.pitest
-  testImplementation 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.6.0'
+  testImplementation 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.7.4'
   testImplementation 'org.codehaus.sonar-plugins:sonar-pitest-plugin:0.5'
   testImplementation 'com.github.hmcts:fortify-client:1.2.1:all'
   testImplementation group: 'com.github.hmcts', name: 'document-management-client', version: '7.0.1'
