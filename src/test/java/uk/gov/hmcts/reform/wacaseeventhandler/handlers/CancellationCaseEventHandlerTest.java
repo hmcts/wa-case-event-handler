@@ -103,6 +103,162 @@ class CancellationCaseEventHandlerTest {
     }
 
     @Test
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action() {
+        EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
+        EventInformation eventInfo = EventInformation.builder()
+            .eventId("UPDATE")
+            .newStateId("")
+            .previousStateId("")
+            .jurisdictionId("ia")
+            .caseTypeId("asylum")
+            .caseId("some case reference")
+            .eventTimeStamp(LocalDateTime.now())
+            .build();
+
+        List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
+            dmnStringValue("Reconfigure"),
+            null, null,
+            null,
+            null
+        ));
+
+        when(workflowApiClient.evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        )).thenReturn(new EvaluateDmnResponse(results));
+
+        List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInfo);
+
+        assertThat(actualResponse).isSameAs(results);
+
+        verify(workflowApiClient, times(1)).evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        );
+    }
+
+    @Test
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_nonnull_warning_text() {
+        EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
+        EventInformation eventInfo = EventInformation.builder()
+            .eventId("UPDATE")
+            .newStateId("")
+            .previousStateId("")
+            .jurisdictionId("ia")
+            .caseTypeId("asylum")
+            .caseId("some case reference")
+            .eventTimeStamp(LocalDateTime.now())
+            .build();
+
+        List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
+            dmnStringValue("Reconfigure"),
+            null, dmnStringValue("warningText"),
+            null,
+            null
+        ));
+
+        when(workflowApiClient.evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        )).thenReturn(new EvaluateDmnResponse(results));
+
+        List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInfo);
+
+        assertThat(actualResponse).isSameAs(results);
+
+        verify(workflowApiClient, times(1)).evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        );
+    }
+
+    @Test
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_nonnull_warning_code() {
+        EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
+        EventInformation eventInfo = EventInformation.builder()
+            .eventId("UPDATE")
+            .newStateId("")
+            .previousStateId("")
+            .jurisdictionId("ia")
+            .caseTypeId("asylum")
+            .caseId("some case reference")
+            .eventTimeStamp(LocalDateTime.now())
+            .build();
+
+        List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
+            dmnStringValue("Reconfigure"),
+            dmnStringValue("warningCode"), null,
+            null,
+            null
+        ));
+
+        when(workflowApiClient.evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        )).thenReturn(new EvaluateDmnResponse(results));
+
+        List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInfo);
+
+        assertThat(actualResponse).isSameAs(results);
+
+        verify(workflowApiClient, times(1)).evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        );
+    }
+
+    @Test
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_nonnull_process_category() {
+        EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
+        EventInformation eventInfo = EventInformation.builder()
+            .eventId("UPDATE")
+            .newStateId("")
+            .previousStateId("")
+            .jurisdictionId("ia")
+            .caseTypeId("asylum")
+            .caseId("some case reference")
+            .eventTimeStamp(LocalDateTime.now())
+            .build();
+
+        List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
+            dmnStringValue("Reconfigure"),
+            null, null,
+            null,
+            dmnStringValue("processCategory")
+        ));
+
+        when(workflowApiClient.evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        )).thenReturn(new EvaluateDmnResponse(results));
+
+        List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInfo);
+
+        assertThat(actualResponse).isSameAs(results);
+
+        verify(workflowApiClient, times(1)).evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        );
+    }
+
+    @Test
     void should_evaluate_the_dmn_table_and_return_empty_results() {
 
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateDmnRequest();
@@ -235,6 +391,16 @@ class CancellationCaseEventHandlerTest {
             "event", dmnStringValue("some event id"),
             "state", dmnStringValue("some post state"),
             "fromState", dmnStringValue("some previous state")
+        );
+
+        return new EvaluateDmnRequest(variables);
+    }
+
+    private EvaluateDmnRequest buildEvaluateUpdateDmnRequest() {
+        Map<String, DmnValue<?>> variables = Map.of(
+            "event", dmnStringValue("UPDATE"),
+            "state", dmnStringValue(""),
+            "fromState", dmnStringValue("")
         );
 
         return new EvaluateDmnRequest(variables);

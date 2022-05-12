@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -22,10 +23,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnAndMessageNames.TASK_CANCELLATION;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnBooleanValue;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnStringValue;
 
+@Slf4j
 @Service
 @Order(1)
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "unchecked"})
@@ -60,7 +63,9 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
             tenantId,
             evaluateDmnRequest);
 
-        return response.getResults();
+        List<CancellationEvaluateResponse> results = response.getResults();
+        evaluateDmnResponse(eventInformation, results);
+        return results;
     }
 
     @Override
@@ -78,6 +83,26 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
                     processCategories
                 );
             });
+    }
+
+    private void evaluateDmnResponse(EventInformation eventInformation, List<CancellationEvaluateResponse> results) {
+        results.stream()
+            .forEach(response -> evaluateReconfigureActionResponse(eventInformation.getEventId(), response));
+    }
+
+    private void evaluateReconfigureActionResponse(String eventId, CancellationEvaluateResponse response) {
+        if (response.getAction().getValue().equals("Reconfigure")
+            && eventId.equals("UPDATE")
+            && (response.getWarningCode() != null
+                && isNotBlank(response.getWarningCode().getValue())
+                || response.getWarningText() != null
+                   && isNotBlank(response.getWarningText().getValue())
+                || response.getProcessCategories() != null
+                   && isNotBlank(response.getProcessCategories().getValue()))) {
+            log.warn(
+                "DMN configuration has provided fields not suitable for Reconfiguration and that they will be ignored"
+            );
+        }
     }
 
     private EvaluateDmnRequest buildEvaluateDmnRequest(
