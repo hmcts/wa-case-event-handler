@@ -149,7 +149,7 @@ jacocoTestReport {
 }
 
 pitest {
-  junit5PluginVersion = '0.12'
+  junit5PluginVersion = '0.15'
   targetClasses = ['uk.gov.hmcts.reform.wacaseeventhandler.*']
   excludedClasses = [
     'uk.gov.hmcts.reform.wacaseeventhandler.config.*',
