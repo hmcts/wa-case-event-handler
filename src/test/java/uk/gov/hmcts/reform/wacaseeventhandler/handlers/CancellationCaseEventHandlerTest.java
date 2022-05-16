@@ -116,7 +116,7 @@ class CancellationCaseEventHandlerTest {
     }
 
     @Test
-    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action() {
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_null_fields() {
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
         EventInformation eventInfo = EventInformation.builder()
             .eventId("UPDATE")
@@ -152,6 +152,10 @@ class CancellationCaseEventHandlerTest {
             TENANT_ID,
             evaluateDmnRequest
         );
+
+        List<ILoggingEvent> logsList = listAppender.list;
+        assertEquals(0, logsList.size());
+        logsList.clear();
     }
 
     @Test
