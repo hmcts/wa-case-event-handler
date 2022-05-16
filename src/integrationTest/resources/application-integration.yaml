@@ -19,3 +19,9 @@ document_management:
 
 ccd_gateway:
   url: ${CCD_GW_URL:http://ccd-api-gateway}
+
+scheduledExecutors:
+  messageProcessing:
+    threadPoolSize: 1
+  messageReadiness:
+    threadPoolSize: 1

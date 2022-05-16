@@ -19,6 +19,7 @@ public class CcdCaseEventsDeadLetterQueueConsumer implements Runnable {
 
     private final ServiceBusConfiguration serviceBusConfiguration;
     private final EventMessageReceiverService eventMessageReceiverService;
+    private boolean keepRun = true;
 
     public CcdCaseEventsDeadLetterQueueConsumer(ServiceBusConfiguration serviceBusConfiguration,
                                                 EventMessageReceiverService eventMessageReceiverService) {
@@ -31,7 +32,7 @@ public class CcdCaseEventsDeadLetterQueueConsumer implements Runnable {
     public void run() {
         try (ServiceBusReceiverClient sessionReceiver =
                      serviceBusConfiguration.createCcdCaseEventsDeadLetterQueueSessionReceiver()) {
-            while (true) {
+            while (keepRun) {
                 consumeMessage(sessionReceiver);
             }
         }
@@ -67,5 +68,9 @@ public class CcdCaseEventsDeadLetterQueueConsumer implements Runnable {
         } catch (Exception ex) {
             log.error("Error occurred while completing the message processing", ex);
         }
+    }
+
+    public void stop() {
+        keepRun = false;
     }
 }
