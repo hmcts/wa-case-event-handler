@@ -246,6 +246,9 @@ dependencyManagement {
       entry 'netty-resolver'
       entry 'netty-resolver-dns'
       entry 'netty-resolver-dns-native-macos'
+      entry 'netty-transport-classes-epoll'
+      entry 'netty-transport-classes-kqueue'
+      entry 'netty-resolver-dns-classes-macos'
     }
 
     dependencySet(group: 'org.seleniumhq.selenium', version: '4.1.4') {
