@@ -53,13 +53,15 @@ public class CaseEventHandlerTestingController {
     @ResponseStatus(HttpStatus.CREATED)
     public CaseEventMessage postCaseEventHandlerMessage(@Valid @RequestBody String message,
                                                         @PathVariable("message_id") final String messageId,
+                                                        @RequestParam(value = "session_id",
+                                                            required = false) final String sessionId,
                                                         @RequestParam(value = "from_dlq",
                                                             required = false) final Boolean fromDlq) {
         if (isNonProdEnvironment()) {
             if (fromDlq != null && fromDlq) {
-                return eventMessageReceiverService.handleDlqMessage(messageId, message);
+                return eventMessageReceiverService.handleDlqMessage(messageId, sessionId, message);
             } else {
-                return eventMessageReceiverService.handleCcdCaseEventAsbMessage(messageId, message);
+                return eventMessageReceiverService.handleCcdCaseEventAsbMessage(messageId, sessionId, message);
             }
         } else {
             throw new CaseEventMessageNotAllowedRequestException();
@@ -78,10 +80,12 @@ public class CaseEventHandlerTestingController {
     @ResponseStatus(HttpStatus.CREATED)
     public CaseEventMessage putCaseEventHandlerMessage(@Valid @RequestBody String message,
                                                        @PathVariable("message_id") final String messageId,
+                                                       @RequestParam(value = "session_id",
+                                                           required = false) final String sessionId,
                                                        @RequestParam("from_dlq") final Boolean fromDlq) {
         if (isNonProdEnvironment()) {
             log.info("Processing '{}' in '{}' environment ", messageId, environment);
-            return eventMessageReceiverService.upsertMessage(messageId, message, fromDlq);
+            return eventMessageReceiverService.upsertMessage(messageId, sessionId, message, fromDlq);
         } else {
             throw new CaseEventMessageNotAllowedRequestException();
         }

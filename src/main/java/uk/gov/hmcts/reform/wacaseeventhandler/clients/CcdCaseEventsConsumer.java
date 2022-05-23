@@ -20,6 +20,7 @@ public class CcdCaseEventsConsumer implements Runnable {
 
     private final ServiceBusConfiguration serviceBusConfiguration;
     private final EventMessageReceiverService eventMessageReceiverService;
+    private boolean keepRun = true;
 
     public CcdCaseEventsConsumer(ServiceBusConfiguration serviceBusConfiguration,
                                  EventMessageReceiverService eventMessageReceiverService) {
@@ -32,7 +33,7 @@ public class CcdCaseEventsConsumer implements Runnable {
     public void run() {
         try (ServiceBusSessionReceiverClient sessionReceiver =
                      serviceBusConfiguration.createCcdCaseEventsSessionReceiver()) {
-            while (true) {
+            while (keepRun) {
                 consumeMessage(sessionReceiver);
             }
         }
@@ -47,7 +48,7 @@ public class CcdCaseEventsConsumer implements Runnable {
                         String messageId = message.getMessageId();
                         log.info("Received CCD Case Event message with id '{}'", messageId);
 
-                        eventMessageReceiverService.handleCcdCaseEventAsbMessage(messageId,
+                        eventMessageReceiverService.handleCcdCaseEventAsbMessage(messageId, message.getSessionId(),
                                 new String(message.getBody().toBytes()));
                         receiver.complete(message);
 
@@ -63,5 +64,9 @@ public class CcdCaseEventsConsumer implements Runnable {
         } catch (Exception ex) {
             log.error("Error occurred while closing the session", ex);
         }
+    }
+
+    public void stop() {
+        keepRun = false;
     }
 }

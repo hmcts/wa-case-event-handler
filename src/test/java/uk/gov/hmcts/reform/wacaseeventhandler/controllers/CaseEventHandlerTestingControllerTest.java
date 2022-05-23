@@ -27,6 +27,7 @@ class CaseEventHandlerTestingControllerTest {
     public static final String MESSAGE_ID = "123";
     public static final String STATES = "NEW,UNPROCESSABLE";
     public static final String CASE_ID = "123";
+    public static final String SESSION_ID = "123";
     public static final String EVENT_TIMESTAMP = LocalDateTime.now().toString();
     public static final Boolean FROM_DLQ = Boolean.TRUE;
 
@@ -53,33 +54,36 @@ class CaseEventHandlerTestingControllerTest {
     @Test
     void post_messages_should_delegate_to_eventMessageReceiverService() {
         doReturn(responseMessage).when(eventMessageReceiverService)
-            .handleCcdCaseEventAsbMessage(MESSAGE_ID, JSON_MESSAGE);
+            .handleCcdCaseEventAsbMessage(MESSAGE_ID, SESSION_ID, JSON_MESSAGE);
 
         CaseEventMessage response = controller.postCaseEventHandlerMessage(
             JSON_MESSAGE,
             MESSAGE_ID,
+            SESSION_ID,
             false
         );
 
         assertThat(response).isEqualTo(responseMessage);
 
-        verify(eventMessageReceiverService).handleCcdCaseEventAsbMessage(MESSAGE_ID, JSON_MESSAGE);
+        verify(eventMessageReceiverService).handleCcdCaseEventAsbMessage(MESSAGE_ID, SESSION_ID, JSON_MESSAGE);
         verifyNoMoreInteractions(eventMessageReceiverService);
     }
 
     @Test
     void post_messages_should_delegate_to_eventMessageReceiverService_for_dlq_message() {
-        doReturn(responseMessage).when(eventMessageReceiverService).handleDlqMessage(MESSAGE_ID, JSON_MESSAGE);
+        doReturn(responseMessage).when(eventMessageReceiverService)
+            .handleDlqMessage(MESSAGE_ID, SESSION_ID, JSON_MESSAGE);
 
         CaseEventMessage response = controller.postCaseEventHandlerMessage(
             JSON_MESSAGE,
             MESSAGE_ID,
+            SESSION_ID,
             true
         );
 
         assertThat(response).isEqualTo(responseMessage);
 
-        verify(eventMessageReceiverService).handleDlqMessage(MESSAGE_ID, JSON_MESSAGE);
+        verify(eventMessageReceiverService).handleDlqMessage(MESSAGE_ID, SESSION_ID, JSON_MESSAGE);
         verifyNoMoreInteractions(eventMessageReceiverService);
     }
 
@@ -90,23 +94,26 @@ class CaseEventHandlerTestingControllerTest {
         assertThatThrownBy(() -> controller.postCaseEventHandlerMessage(
             JSON_MESSAGE,
             MESSAGE_ID,
+            SESSION_ID,
             true
         )).isInstanceOf(CaseEventMessageNotAllowedRequestException.class);
     }
 
     @Test
     void put_messages_should_delegate_to_eventMessageReceiverService() {
-        doReturn(responseMessage).when(eventMessageReceiverService).upsertMessage(MESSAGE_ID, JSON_MESSAGE, false);
+        doReturn(responseMessage).when(eventMessageReceiverService)
+            .upsertMessage(MESSAGE_ID, SESSION_ID, JSON_MESSAGE, false);
 
         CaseEventMessage response = controller.putCaseEventHandlerMessage(
             JSON_MESSAGE,
             MESSAGE_ID,
+            SESSION_ID,
             false
         );
 
         assertThat(response).isEqualTo(responseMessage);
 
-        verify(eventMessageReceiverService).upsertMessage(MESSAGE_ID, JSON_MESSAGE, false);
+        verify(eventMessageReceiverService).upsertMessage(MESSAGE_ID, SESSION_ID, JSON_MESSAGE, false);
         verifyNoMoreInteractions(eventMessageReceiverService);
     }
 
@@ -117,6 +124,7 @@ class CaseEventHandlerTestingControllerTest {
         assertThatThrownBy(() -> controller.putCaseEventHandlerMessage(
             JSON_MESSAGE,
             MESSAGE_ID,
+            SESSION_ID,
             true
         )).isInstanceOf(CaseEventMessageNotAllowedRequestException.class);
     }

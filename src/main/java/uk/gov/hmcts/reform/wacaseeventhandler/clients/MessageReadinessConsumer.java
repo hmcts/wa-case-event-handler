@@ -36,7 +36,7 @@ public class MessageReadinessConsumer implements Runnable {
     public void run() {
         final List<CaseEventMessageEntity> allMessageInNewState = caseEventMessageRepository.getAllMessagesInNewState();
 
-        log.info("Number of messages to check the readiness {}", allMessageInNewState.size());
+        log.trace("Number of messages to check the readiness {}", allMessageInNewState.size());
 
         allMessageInNewState.stream()
                 .filter(msg -> launchDarklyFeatureFlagProvider
