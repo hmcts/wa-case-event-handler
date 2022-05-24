@@ -1,5 +1,9 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -8,6 +12,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClient;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
@@ -28,6 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -46,6 +52,7 @@ class CancellationCaseEventHandlerTest {
     public static final String CANCEL_TASKS_MESSAGE_NAME = "cancelTasks";
     private static final String TASK_CANCELLATION_DMN_TABLE = "wa-task-cancellation-ia-asylum";
     private static final String SERVICE_AUTH_TOKEN = "s2s token";
+    ListAppender<ILoggingEvent> listAppender;
     private EventInformation eventInformation;
     @Mock
     private WorkflowApiClient workflowApiClient;
@@ -68,6 +75,12 @@ class CancellationCaseEventHandlerTest {
             .caseId("some case reference")
             .eventTimeStamp(LocalDateTime.now())
             .build();
+
+        Logger cancellationCaseEventHandlerLogger =
+            (Logger) LoggerFactory.getLogger(CancellationCaseEventHandler.class);
+        listAppender = new ListAppender<>();
+        cancellationCaseEventHandlerLogger.addAppender(listAppender);
+        listAppender.start();
     }
 
     @Test
@@ -100,6 +113,189 @@ class CancellationCaseEventHandlerTest {
             evaluateDmnRequest
         );
 
+    }
+
+    @Test
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_null_fields() {
+        EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
+        EventInformation eventInfo = EventInformation.builder()
+            .eventId("UPDATE")
+            .newStateId("")
+            .previousStateId("")
+            .jurisdictionId("ia")
+            .caseTypeId("asylum")
+            .caseId("some case reference")
+            .eventTimeStamp(LocalDateTime.now())
+            .build();
+
+        List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
+            dmnStringValue("Reconfigure"),
+            null, null,
+            null,
+            null
+        ));
+
+        when(workflowApiClient.evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        )).thenReturn(new EvaluateDmnResponse(results));
+
+        List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInfo);
+
+        assertThat(actualResponse).isSameAs(results);
+
+        verify(workflowApiClient, times(1)).evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        );
+
+        List<ILoggingEvent> logsList = listAppender.list;
+        assertEquals(0, logsList.size());
+        logsList.clear();
+    }
+
+    @Test
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_nonnull_warning_text() {
+
+        EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
+        EventInformation eventInfo = EventInformation.builder()
+            .eventId("UPDATE")
+            .newStateId("")
+            .previousStateId("")
+            .jurisdictionId("ia")
+            .caseTypeId("asylum")
+            .caseId("some case reference")
+            .eventTimeStamp(LocalDateTime.now())
+            .build();
+
+        List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
+            dmnStringValue("Reconfigure"),
+            null, dmnStringValue("warningText"),
+            null,
+            null
+        ));
+
+        when(workflowApiClient.evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        )).thenReturn(new EvaluateDmnResponse(results));
+
+        List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInfo);
+
+        assertThat(actualResponse).isSameAs(results);
+
+        verify(workflowApiClient, times(1)).evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        );
+        List<ILoggingEvent> logsList = listAppender.list;
+        assertEquals(
+            "DMN configuration has provided fields not suitable for Reconfiguration and they will be ignored",
+            logsList.get(0).getMessage()
+        );
+        assertEquals(Level.WARN, logsList.get(0).getLevel());
+        logsList.clear();
+    }
+
+    @Test
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_nonnull_warning_code() {
+        EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
+        EventInformation eventInfo = EventInformation.builder()
+            .eventId("UPDATE")
+            .newStateId("")
+            .previousStateId("")
+            .jurisdictionId("ia")
+            .caseTypeId("asylum")
+            .caseId("some case reference")
+            .eventTimeStamp(LocalDateTime.now())
+            .build();
+
+        List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
+            dmnStringValue("Reconfigure"),
+            dmnStringValue("warningCode"), null,
+            null,
+            null
+        ));
+
+        when(workflowApiClient.evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        )).thenReturn(new EvaluateDmnResponse(results));
+
+        List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInfo);
+
+        assertThat(actualResponse).isSameAs(results);
+
+        verify(workflowApiClient, times(1)).evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        );
+        List<ILoggingEvent> logsList = listAppender.list;
+        assertEquals(
+            "DMN configuration has provided fields not suitable for Reconfiguration and they will be ignored",
+            logsList.get(0).getMessage()
+        );
+        assertEquals(Level.WARN, logsList.get(0).getLevel());
+        logsList.clear();
+    }
+
+    @Test
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_nonnull_process_category() {
+        EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
+        EventInformation eventInfo = EventInformation.builder()
+            .eventId("UPDATE")
+            .newStateId("")
+            .previousStateId("")
+            .jurisdictionId("ia")
+            .caseTypeId("asylum")
+            .caseId("some case reference")
+            .eventTimeStamp(LocalDateTime.now())
+            .build();
+
+        List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
+            dmnStringValue("Reconfigure"),
+            null, null,
+            null,
+            dmnStringValue("processCategory")
+        ));
+
+        when(workflowApiClient.evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        )).thenReturn(new EvaluateDmnResponse(results));
+
+        List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInfo);
+
+        assertThat(actualResponse).isSameAs(results);
+
+        verify(workflowApiClient, times(1)).evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        );
+
+        List<ILoggingEvent> logsList = listAppender.list;
+        assertEquals(
+            "DMN configuration has provided fields not suitable for Reconfiguration and they will be ignored",
+            logsList.get(0).getMessage()
+        );
+        assertEquals(Level.WARN, logsList.get(0).getLevel());
+        logsList.clear();
     }
 
     @Test
@@ -235,6 +431,16 @@ class CancellationCaseEventHandlerTest {
             "event", dmnStringValue("some event id"),
             "state", dmnStringValue("some post state"),
             "fromState", dmnStringValue("some previous state")
+        );
+
+        return new EvaluateDmnRequest(variables);
+    }
+
+    private EvaluateDmnRequest buildEvaluateUpdateDmnRequest() {
+        Map<String, DmnValue<?>> variables = Map.of(
+            "event", dmnStringValue("UPDATE"),
+            "state", dmnStringValue(""),
+            "fromState", dmnStringValue("")
         );
 
         return new EvaluateDmnRequest(variables);
