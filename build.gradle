@@ -13,7 +13,7 @@ plugins {
   id 'pmd'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-  id 'org.springframework.boot' version '2.6.7'
+  id 'org.springframework.boot' version '2.7.0'
   id 'org.owasp.dependencycheck' version '7.1.0.1'
   id 'uk.gov.hmcts.java' version '0.12.5'
   id 'com.github.ben-manes.versions' version '0.38.0'
@@ -201,6 +201,9 @@ dependencyUpdates {
 dependencyCheck {
   suppressionFile = 'config/owasp/suppressions.xml'
 
+  // CVE Scanning only relevant to production code that is published, not test or other implementations
+  scanConfigurations += 'releaseCompileClasspath'
+
   analyzers {
     // Disable scanning of .NET related binaries
     assemblyEnabled = false
@@ -279,7 +282,7 @@ def versions = [
   serenity     : '3.1.20',
   pitest       : '1.7.4',
   logbook      : '2.6.2',
-  tomcat       : '9.0.58',
+  tomcat       : '9.0.63',
   log4j        : '2.17.1'
 ]
 
