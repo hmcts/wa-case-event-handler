@@ -612,10 +612,13 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         taskIdStatusMap.put(caseId1Task2Id, "completed");
 
         // send warning message
-        sendMessage(caseIdForTask1, "makeAnApplication",
-            "", "", false, "IA", "Asylum"
+        sendMessageWithAdditionalData(
+            caseIdForTask1,
+            "makeAnApplication",
+            "",
+            "",
+            false
         );
-
         waitSeconds(5);
 
         response = findTasksByCaseId(
@@ -676,10 +679,13 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         taskIdStatusMap.put(caseId1Task2Id, "completed");
 
         // send warning message
-        sendMessage(caseIdForTask1, "makeAnApplication",
-            "", "", false, "IA", "Asylum"
+        sendMessageWithAdditionalData(
+            caseIdForTask1,
+            "makeAnApplication",
+            "",
+            "",
+            false
         );
-
         waitSeconds(5);
 
         response = findTasksByCaseId(caseIdForTask1, 3);
@@ -1262,7 +1268,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
                 "uniqueId", "",
                 "directionType", ""
             ),
-            "appealType", "protection"
+            "appealType", "deprivation",
+            "lastModifiedApplication", Map.of("type", "Adjourn",
+                                              "decision", "")
+
         );
 
         return AdditionalData.builder()
