@@ -46,3 +46,8 @@ java:
     ROLE_ASSIGNMENT_URL: "http://am-role-assignment-service-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     CAMUNDA_URL: "http://camunda-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal/engine-rest"
     CCD_URL: "http://ccd-data-store-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
+    AZURE_SERVICE_BUS_CONCURRENT_SESSIONS: 2
+    MESSAGE_PROCESSING_POLL_INTERVAL_MILLISECONDS: 2000
+    MESSAGE_PROCESSING_THREAD_POOL_SIZE: 5
+    MESSAGE_READINESS_POLL_INTERVAL_MILLISECONDS: 500
+    MESSAGE_READINESS_THREAD_POOL_SIZE 2
