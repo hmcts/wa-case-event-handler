@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
@@ -34,7 +33,6 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
     private List<String> caseIdToDelete = new ArrayList<>();
 
     @Test
-    @Ignore("Ignore until AZURE_SERVICE_BUS_FEATURE_TOGGLE is turned on")
     public void should_process_message_with_the_lowest_event_timestamp_for_that_case() {
         List<String> messageIds = List.of(randomMessageId(), randomMessageId(), randomMessageId());
 
@@ -79,7 +77,6 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
     }
 
     @Test
-    @Ignore("Ignore until AZURE_SERVICE_BUS_FEATURE_TOGGLE is turned on")
     public void should_process_dlq_msg_if_processed_or_ready_messages_with_timestamp_later_than_thirty_mins_exist() {
         final EventInformation.EventInformationBuilder eventInformationBuilder = EventInformation.builder()
                 .eventInstanceId(UUID.randomUUID().toString())
@@ -130,7 +127,6 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
     }
 
     @Test
-    @Ignore("Ignore until AZURE_SERVICE_BUS_FEATURE_TOGGLE is turned on")
     public void should_process_dlq_msg_if_processed_or_ready_messages_with_same_case_id_exist() {
         String caseId = randomCaseId();
 
@@ -178,7 +174,6 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
     }
 
     @Test
-    @Ignore("Ignore until AZURE_SERVICE_BUS_FEATURE_TOGGLE is turned on")
     public void should_not_process_message_unless_in_ready_state() {
         List<String> messageIds = List.of(randomMessageId(), randomMessageId());
 
@@ -241,7 +236,6 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
     }
 
     @Test
-    @Ignore("Ignore until AZURE_SERVICE_BUS_FEATURE_TOGGLE is turned on")
     public void should_not_process_dlq_message_unless_other_messages_exist_with_same_case_id() {
         String msgId = randomMessageId();
         String caseId = randomCaseId();

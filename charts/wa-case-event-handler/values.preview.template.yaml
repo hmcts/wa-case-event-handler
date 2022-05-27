@@ -9,6 +9,5 @@ java:
     POSTGRES_PASSWORD: "{{ .Values.postgresql.postgresqlPassword}}"
     POSTGRES_CONNECTION_OPTIONS: "?stringtype=unspecified"
     POSTGRES_PORT: 5432
-    AZURE_SERVICE_BUS_FEATURE_TOGGLE: true
   postgresql:
     enabled: true
