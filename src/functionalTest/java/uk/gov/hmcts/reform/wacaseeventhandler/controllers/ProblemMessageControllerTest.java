@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
-import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wacaseeventhandler.MessagingTests;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationMetadata;
@@ -22,7 +22,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 import static net.serenitybdd.rest.SerenityRest.given;
@@ -31,7 +30,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
 @Slf4j
-public class ProblemMessageControllerTest extends SpringBootFunctionalBaseTest {
+public class ProblemMessageControllerTest extends MessagingTests {
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
         .setPropertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE)
         .registerModule(new JavaTimeModule())
@@ -76,6 +75,8 @@ public class ProblemMessageControllerTest extends SpringBootFunctionalBaseTest {
 
         assertThat(messageIds).asList()
             .containsSubsequence(messageId);
+
+        deleteMessagesFromDatabaseByMsgIds(messageId);
     }
 
 
@@ -118,10 +119,6 @@ public class ProblemMessageControllerTest extends SpringBootFunctionalBaseTest {
             "lastModifiedDirection", Map.of("dateDue", ""),
             "appealType", "protection"
         );
-    }
-
-    private String randomMessageId() {
-        return "" + ThreadLocalRandom.current().nextLong(1000000);
     }
 
     private Response postEventToRestEndpoint(String messageId,
