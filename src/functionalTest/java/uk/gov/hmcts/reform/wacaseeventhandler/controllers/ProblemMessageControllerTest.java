@@ -76,7 +76,7 @@ public class ProblemMessageControllerTest extends MessagingTests {
         assertThat(messageIds).asList()
             .containsSubsequence(messageId);
 
-        deleteMessagesFromDatabaseByMsgIds(messageId);
+        deleteMessagesFromDatabaseByMsgIds(List.of(messageId));
     }
 
 
