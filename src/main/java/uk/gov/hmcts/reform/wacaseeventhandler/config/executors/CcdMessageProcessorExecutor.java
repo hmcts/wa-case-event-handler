@@ -30,7 +30,10 @@ public class CcdMessageProcessorExecutor {
     @PostConstruct
     public void start() {
         log.info("Starting Database message executor");
-        databaseMessageExecutorService.scheduleAtFixedRate(databaseMessageConsumer, 5000, pollInterval, TimeUnit.MILLISECONDS);
+        databaseMessageExecutorService.scheduleAtFixedRate(databaseMessageConsumer,
+                                                           5000,
+                                                           pollInterval,
+                                                           TimeUnit.MILLISECONDS);
     }
 
     @PreDestroy
