@@ -71,7 +71,7 @@ class CcdMessageProcessorExecutorTest {
     }
 
     private long getLogMessageOccurrenceCount(String expectedMessage) {
-        List<ILoggingEvent> logsList = listAppender.list;
+        List<ILoggingEvent> logsList = List.copyOf(listAppender.list);
         return logsList.stream().filter(x -> x.getFormattedMessage().equals(expectedMessage)).count();
     }
 
