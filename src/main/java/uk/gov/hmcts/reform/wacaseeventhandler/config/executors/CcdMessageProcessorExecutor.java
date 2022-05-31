@@ -18,7 +18,7 @@ import javax.annotation.PreDestroy;
 @Profile("!functional & !local")
 public class CcdMessageProcessorExecutor {
 
-    @Value("${scheduledExecutors.messageProcessing.pollIntervalSeconds}")
+    @Value("${scheduledExecutors.messageProcessing.pollIntervalMilliSeconds}")
     private int pollInterval;
 
     @Autowired
