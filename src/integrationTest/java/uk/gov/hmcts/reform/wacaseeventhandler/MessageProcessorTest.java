@@ -301,7 +301,7 @@ class MessageProcessorTest {
     }
 
     private void assertLogMessageContains(String expectedMessage) {
-        List<ILoggingEvent> logsList = listAppender.list;
+        List<ILoggingEvent> logsList = List.copyOf(listAppender.list);
 
         assertTrue(logsList.stream()
                 .map(ILoggingEvent::getFormattedMessage)
@@ -310,7 +310,7 @@ class MessageProcessorTest {
     }
 
     private int getLogMessageIndex(String expectedMessage) {
-        List<ILoggingEvent> logsList = listAppender.list;
+        List<ILoggingEvent> logsList = List.copyOf(listAppender.list);
 
         return logsList.stream()
                        .map(ILoggingEvent::getFormattedMessage)
