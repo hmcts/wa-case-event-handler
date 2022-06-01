@@ -47,3 +47,4 @@ java:
     CAMUNDA_URL: "http://camunda-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal/engine-rest"
     CCD_URL: "http://ccd-data-store-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     AZURE_SERVICE_BUS_FEATURE_TOGGLE: true
+    AZURE_SERVICE_BUS_DLQ_FEATURE_TOGGLE: true

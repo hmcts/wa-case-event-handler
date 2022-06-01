@@ -16,7 +16,7 @@ import java.util.List;
 @Slf4j
 @Component
 @SuppressWarnings("PMD.DoNotUseThreads")
-@ConditionalOnProperty("azure.servicebus.enableASB")
+@ConditionalOnProperty("azure.servicebus.enableASB-DLQ")
 public class MessageReadinessConsumer implements Runnable {
 
     private final DeadLetterQueuePeekService deadLetterQueuePeekService;
