@@ -48,7 +48,7 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 @SpringBootTest
 @ActiveProfiles(profiles = {"db", "integration"})
 @ContextConfiguration(classes = EventConsumerIntegrationTest.TestConfig.class)
-@TestPropertySource(properties = {"azure.servicebus.enableASB=true",
+@TestPropertySource(properties = {"azure.servicebus.enableASB-DLQ=true",
     "azure.servicebus.connection-string="
         + "Endpoint=sb:test;SharedAccessKeyName=test;SharedAccessKey=test;EntityPath=test",
     "azure.servicebus.topic-name=test",
