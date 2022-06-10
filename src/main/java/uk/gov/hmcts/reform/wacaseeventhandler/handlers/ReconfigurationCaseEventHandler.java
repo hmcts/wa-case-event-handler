@@ -32,14 +32,14 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmn
 @Service
 @Order(3)
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "unchecked"})
-public class ReconfigureCaseEventHandler implements CaseEventHandler {
+public class ReconfigurationCaseEventHandler implements CaseEventHandler {
 
     private final AuthTokenGenerator serviceAuthGenerator;
     private final WorkflowApiClient workflowApiClient;
     private final TaskManagementApiClient taskManagementApiClient;
 
-    public ReconfigureCaseEventHandler(AuthTokenGenerator serviceAuthGenerator, WorkflowApiClient workflowApiClient,
-                                       TaskManagementApiClient taskManagementApiClient) {
+    public ReconfigurationCaseEventHandler(AuthTokenGenerator serviceAuthGenerator, WorkflowApiClient workflowApiClient,
+                                           TaskManagementApiClient taskManagementApiClient) {
         this.serviceAuthGenerator = serviceAuthGenerator;
         this.workflowApiClient = workflowApiClient;
         this.taskManagementApiClient = taskManagementApiClient;
@@ -74,7 +74,9 @@ public class ReconfigureCaseEventHandler implements CaseEventHandler {
         results.stream()
             .filter(CancellationEvaluateResponse.class::isInstance)
             .map(CancellationEvaluateResponse.class::cast)
-            .filter(result -> CancellationActions.RECONFIGURE == CancellationActions.from(result.getAction().getValue()))
+            .filter(result ->
+                CancellationActions.RECONFIGURE == CancellationActions.from(result.getAction().getValue())
+            )
             .forEach(reconfigureResponse -> {
                 evaluateReconfigureActionResponse(eventInformation.getEventId(), reconfigureResponse);
                 sendReconfigurationRequest(eventInformation.getCaseId());
@@ -114,8 +116,12 @@ public class ReconfigureCaseEventHandler implements CaseEventHandler {
     }
 
     private TaskOperationRequest buildTaskOperationRequest(String caseReference) {
-        TaskOperation operation = new TaskOperation(TaskOperationName.MARK_TO_RECONFIGURE, UUID.randomUUID().toString());
-        TaskFilter<?> filter = new MarkTaskToReconfigureTaskFilter("case_id", List.of(caseReference), TaskFilterOperator.IN);
+        TaskOperation operation = new TaskOperation(
+            TaskOperationName.MARK_TO_RECONFIGURE, UUID.randomUUID().toString()
+        );
+        TaskFilter<?> filter = new MarkTaskToReconfigureTaskFilter(
+            "case_id", List.of(caseReference), TaskFilterOperator.IN
+        );
         return new TaskOperationRequest(operation, List.of(filter));
     }
 
