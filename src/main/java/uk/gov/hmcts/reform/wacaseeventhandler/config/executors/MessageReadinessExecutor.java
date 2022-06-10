@@ -17,7 +17,7 @@ import javax.annotation.PreDestroy;
 @Slf4j
 @ConditionalOnProperty("azure.servicebus.enableASB-DLQ")
 public class MessageReadinessExecutor {
-    @Value("${scheduledExecutors.messageReadiness.pollIntervalSeconds}")
+    @Value("${scheduledExecutors.messageReadiness.pollIntervalMilliSeconds}")
     private int pollInterval;
 
     @Autowired
@@ -30,8 +30,8 @@ public class MessageReadinessExecutor {
     @PostConstruct
     public void start() {
         log.info("Starting message readiness executor");
-        messageReadinessExecutorService.scheduleAtFixedRate(messageReadinessConsumer,5, pollInterval,
-                                                            TimeUnit.SECONDS);
+        messageReadinessExecutorService.scheduleAtFixedRate(messageReadinessConsumer,5000, pollInterval,
+                                                            TimeUnit.MILLISECONDS);
     }
 
     @PreDestroy
