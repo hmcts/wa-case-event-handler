@@ -233,6 +233,36 @@ class DatabaseMessageConsumerTest {
     }
 
     @Test
+    void should_process_message_and_update_to_unprocessable_when_retry_count_exceed_and_non_retryable_errors_occur()
+        throws Exception {
+
+        when(caseEventMessageRepository.getNextAvailableMessageReadyToProcess())
+            .thenReturn(createCaseEventMessageEntity());
+
+        final CaseEventMessage caseEventMessage = createCaseEventMessage(8);
+        when(caseEventMessageMapper.mapToCaseEventMessage(any(CaseEventMessageEntity.class)))
+            .thenReturn(caseEventMessage);
+
+        final Request request = Mockito.mock(Request.class);
+        FeignException.NotFound errorMessage = new FeignException.NotFound(
+            "Error Message",
+            request, new byte[]{},
+            Collections.emptyMap()
+        );
+
+        doThrow(errorMessage)
+            .when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
+
+        databaseMessageConsumer.run();
+
+        verify(ccdEventProcessor).processMessage(caseEventMessage);
+        verify(caseEventMessageRepository).updateMessageState(
+            MessageState.UNPROCESSABLE,
+            List.of(caseEventMessage.getMessageId())
+        );
+    }
+
+    @Test
     void should_process_message_and_set_as_processed() throws Exception {
         CaseEventMessageEntity caseEventMessageEntity = createCaseEventMessageEntity();
         when(caseEventMessageRepository.getNextAvailableMessageReadyToProcess()).thenReturn(caseEventMessageEntity);

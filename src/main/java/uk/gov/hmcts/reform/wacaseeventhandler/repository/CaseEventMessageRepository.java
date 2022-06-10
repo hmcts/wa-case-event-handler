@@ -18,30 +18,36 @@ public interface CaseEventMessageRepository extends CrudRepository<CaseEventMess
             "select * "
                     + "from public.wa_case_event_messages msg "
                     + "where msg.state = 'READY' "
+                    // earliest event message unprocessed message for the case
                     + "and (msg.case_id, msg.event_timestamp) in ( "
                     + "  select case_id, min(event_timestamp) "
                     + "  from wa_case_event_messages "
                     + "  where state != 'PROCESSED' "
                     + "  group by case_id) "
+                    // there is no event message for the same case with timestamp null
                     + "and not exists (select 1 from wa_case_event_messages e "
                     + "                where e.case_id = msg.case_id "
                     + "                and e.event_timestamp is null) "
+                    // there is no any event message with case id null
                     + "and not exists (select 1 from wa_case_event_messages c "
                     + "                where c.case_id is null) "
                     + "and ( "
                     + "  not msg.from_dlq "
                     + "  or ( "
+                    // if message from dlq
                     + "    msg.from_dlq and ( "
+                    // There is at least one non dlq message in ready state and higher timestamp for the same case
                     + "      exists (select 1 from wa_case_event_messages d "
                     + "              where d.case_id = msg.case_id "
                     + "              and d.event_timestamp > msg.event_timestamp "
                     + "              and not d.from_dlq "
                     + "              and d.state = 'READY') "
+                    // There is at least one non dlq message in ready or processed state and timestamp is 30 min higher
                     + "      or exists (select 1 from wa_case_event_messages d "
                     + "                 where d.event_timestamp > msg.event_timestamp + interval '30 minutes' "
                     + "                 and not d.from_dlq "
                     + "                 and d.state in ('READY', 'PROCESSED'))))) "
-                    + "and (event_timestamp > hold_until or hold_until is null)"
+                    + "and (current_timestamp > hold_until or hold_until is null)"
                     + "for update skip locked "
                     + "limit 1 ";
 
