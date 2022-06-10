@@ -24,18 +24,12 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateDm
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.InitiateEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.MarkTaskToReconfigureTaskFilter;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.TaskFilter;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.TaskFilterOperator;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.TaskOperation;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.TaskOperationName;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.TaskOperationRequest;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -118,6 +112,17 @@ class ReconfigurationCaseEventHandlerTest {
             evaluateDmnRequest
         );
 
+        handlerService.handle(results, eventInformation);
+
+        verify(taskManagementApiClient, times(1)).performOperation(
+            anyString(),
+            any(TaskOperationRequest.class)
+        );
+
+        List<ILoggingEvent> logsList = listAppender.list;
+        assertEquals(0, logsList.size());
+        logsList.clear();
+
     }
 
     @Test
@@ -150,6 +155,13 @@ class ReconfigurationCaseEventHandlerTest {
         List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInfo);
 
         assertThat(actualResponse).isSameAs(results);
+
+        handlerService.handle(results, eventInformation);
+
+        verify(taskManagementApiClient, times(1)).performOperation(
+            anyString(),
+            any(TaskOperationRequest.class)
+        );
 
         List<ILoggingEvent> logsList = listAppender.list;
         assertEquals(0, logsList.size());
@@ -402,16 +414,6 @@ class ReconfigurationCaseEventHandlerTest {
         );
 
         return new EvaluateDmnRequest(variables);
-    }
-
-    private TaskOperationRequest buildTaskOperationRequest(String caseReference) {
-        TaskOperation operation = new TaskOperation(
-            TaskOperationName.MARK_TO_RECONFIGURE, UUID.randomUUID().toString()
-        );
-        TaskFilter<?> filter = new MarkTaskToReconfigureTaskFilter(
-            "case_id", List.of(caseReference), TaskFilterOperator.IN
-        );
-        return new TaskOperationRequest(operation, List.of(filter));
     }
 
 }
