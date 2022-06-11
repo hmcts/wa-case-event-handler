@@ -975,6 +975,36 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         taskIdStatusMap.put(caseId1Task1Id, "completed");
     }
 
+    @Test
+    public void given_initiate_tasks_then_reconfigure_task_to_mark_tasks_for_reconfiguration() {
+        // Given multiple existing tasks
+        String caseIdForTask1 = getCaseId();
+        caseId1Task1Id = createTaskWithId(
+            caseIdForTask1,
+            "requestCaseBuilding",
+            "", "caseBuilding", false,
+            "followUpOverdueCaseBuilding", "IA", "Asylum"
+        );
+
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
+
+        sendMessage(caseIdForTask1, "UPDATE",
+            "", "", false, "IA", "Asylum"
+        );
+
+        waitSeconds(5);
+
+        Response taskFound = findTasksByCaseId(caseIdForTask1, 2);
+
+        caseId1Task2Id = taskFound
+            .then().assertThat()
+            .body("[1].id", notNullValue())
+            .extract()
+            .path("[1].id");
+
+        taskIdStatusMap.put(caseId1Task2Id, "completed");
+    }
+
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
         given()
             .contentType(APPLICATION_JSON_VALUE)
