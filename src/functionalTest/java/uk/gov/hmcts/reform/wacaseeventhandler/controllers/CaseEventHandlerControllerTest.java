@@ -998,9 +998,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         caseId1Task2Id = taskFound
             .then().assertThat()
-            .body("[1].id", notNullValue())
+            .body("[0].id", notNullValue())
             .extract()
-            .path("[1].id");
+            .path("[0].id");
 
         taskIdStatusMap.put(caseId1Task2Id, "completed");
     }
