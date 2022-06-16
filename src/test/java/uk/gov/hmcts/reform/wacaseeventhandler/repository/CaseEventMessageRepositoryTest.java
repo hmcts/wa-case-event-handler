@@ -117,7 +117,6 @@ class CaseEventMessageRepositoryTest {
         final CaseEventMessageEntity caseEventMessageEntity1 = caseEventMessageEntities.get(0);
         assertEquals(MessageState.READY, caseEventMessageEntity1.getState());
         caseEventMessageEntity1.setHoldUntil(LocalDateTime.now().plusDays(2));
-        caseEventMessageEntity1.setEventTimestamp(LocalDateTime.now());
         caseEventMessageRepository.save(caseEventMessageEntity1);
 
         final CaseEventMessageEntity caseEventMessageEntity =
@@ -140,10 +139,8 @@ class CaseEventMessageRepositoryTest {
         caseEventMessageEntity1.setState(MessageState.READY);
         caseEventMessageEntity1.setCaseId("293e1db4-dfd7-433d-902c-39470386a32c");
 
-        final LocalDateTime yearAgoFromCurrentEventTimestamp =
-                caseEventMessageEntity1.getEventTimestamp().minusYears(1);
-        caseEventMessageEntity1.setHoldUntil(yearAgoFromCurrentEventTimestamp);
-        caseEventMessageEntity1.setEventTimestamp(yearAgoFromCurrentEventTimestamp.plusDays(2));
+        final LocalDateTime minuteAgoFromCurrentTimestamp = LocalDateTime.now().minusMinutes(1);
+        caseEventMessageEntity1.setHoldUntil(minuteAgoFromCurrentTimestamp);
         caseEventMessageRepository.save(caseEventMessageEntity1);
 
         final CaseEventMessageEntity caseEventMessageEntity =

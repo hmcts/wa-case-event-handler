@@ -48,7 +48,8 @@ resource "azurerm_key_vault_secret" "ccd_shared_servicebus_connection_string" {
 
 module "wa_case_event_handler_database" {
   source             = "git@github.com:hmcts/cnp-module-postgres?ref=master"
-  product            = "${var.postgres_db_component_name}-postgres-db"
+  product            = "${var.product}"
+  name               = "${var.postgres_db_component_name}-postgres-db"
   location           = "${var.location}"
   env                = "${var.env}"
   database_name      = "${var.postgresql_database_name}"
