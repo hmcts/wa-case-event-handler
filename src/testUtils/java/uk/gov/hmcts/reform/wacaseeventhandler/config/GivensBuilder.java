@@ -59,7 +59,7 @@ public class GivensBuilder {
 
     }
 
-    public String createCcdCase() {
+    public String createCcdCase(String jurisdictionId, String caseType) {
         TestAuthenticationCredentials lawFirmCredentials = authorizationProvider.getNewLawFirm();
         String userToken = lawFirmCredentials.getHeaders().getValue(AUTHORIZATION);
         String serviceToken = lawFirmCredentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
@@ -71,8 +71,8 @@ public class GivensBuilder {
             userToken,
             serviceToken,
             userInfo.getUid(),
-            "IA",
-            "Asylum",
+            jurisdictionId,
+            caseType,
             "startAppeal"
         );
 
@@ -115,8 +115,8 @@ public class GivensBuilder {
             userToken,
             serviceToken,
             userInfo.getUid(),
-            "IA",
-            "Asylum",
+            jurisdictionId,
+            caseType,
             true,
             caseDataContent
         );
@@ -127,8 +127,8 @@ public class GivensBuilder {
             userToken,
             serviceToken,
             userInfo.getUid(),
-            "IA",
-            "Asylum",
+            jurisdictionId,
+            caseType,
             caseDetails.getId().toString(),
             "submitAppeal"
         );
@@ -147,8 +147,8 @@ public class GivensBuilder {
             userToken,
             serviceToken,
             userInfo.getUid(),
-            "IA",
-            "Asylum",
+            jurisdictionId,
+            caseType,
             caseDetails.getId().toString(),
             true,
             submitCaseDataContent

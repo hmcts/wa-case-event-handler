@@ -32,12 +32,14 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wacaseeventhandler.utils.Common;
 
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.fasterxml.jackson.databind.PropertyNamingStrategy.LOWER_CAMEL_CASE;
+import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -55,6 +57,7 @@ public abstract class SpringBootFunctionalBaseTest {
     public static final String SERVICE_AUTHORIZATION = "ServiceAuthorization";
     public static final String AUTHORIZATION = "Authorization";
     public static final String CAMUNDA_DATE_REQUEST_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS+0000";
+    public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     @Value("${targets.instance}") protected String testUrl;
     @Value("${targets.camunda}") public String camundaUrl;
 
@@ -125,12 +128,15 @@ public abstract class SpringBootFunctionalBaseTest {
     }
 
     public String getCaseId() {
-        TestVariables taskVariables = common.createCase();
+        return getCaseIdForJurisdictionAndCaseType("IA", "Asylum");
+    }
+
+    public String getCaseIdForJurisdictionAndCaseType(String jurisdictionId, String caseType) {
+        TestVariables taskVariables = common.createCase(jurisdictionId, caseType);
         requireNonNull(taskVariables, "taskVariables is null");
         requireNonNull(taskVariables.getCaseId(), "case id is null");
         caseIds.add(taskVariables.getCaseId());
         return taskVariables.getCaseId();
-
     }
 
     protected Response findTasksByCaseId(

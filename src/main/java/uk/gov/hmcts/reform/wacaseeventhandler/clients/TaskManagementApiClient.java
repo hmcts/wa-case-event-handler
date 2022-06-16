@@ -18,7 +18,7 @@ public interface TaskManagementApiClient {
     String SERVICE_AUTHORIZATION = "ServiceAuthorization";
 
     @PostMapping(
-        value = "/workflow/task/operation",
+        value = "/task/operation",
         consumes = APPLICATION_JSON_VALUE,
         produces = APPLICATION_JSON_VALUE
     )

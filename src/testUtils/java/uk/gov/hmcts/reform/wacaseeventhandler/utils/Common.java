@@ -67,12 +67,13 @@ public class Common {
     }
 
 
-    public TestVariables createCase() {
+    public TestVariables createCase(String jurisdictionId, String caseType) {
 
-        String caseId = given.createCcdCase();
+        String caseId = given.createCcdCase(jurisdictionId, caseType);
 
         return new TestVariables(caseId, null, null);
     }
+
 
     public void setupCftOrganisationalRoleAssignment(Headers headers) {
         UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));

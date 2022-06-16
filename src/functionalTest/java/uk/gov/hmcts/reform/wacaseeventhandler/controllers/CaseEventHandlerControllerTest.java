@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import com.azure.messaging.servicebus.ServiceBusMessage;
+import feign.FeignException;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
@@ -11,6 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttribute;
+import uk.gov.hmcts.reform.wacaseeventhandler.clients.TaskManagementTestClient;
+import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TerminateInfo;
+import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestAuthenticationCredentials;
@@ -25,6 +31,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.util.Arrays.asList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
@@ -35,6 +42,13 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
+import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.InitiateTaskOperation.INITIATION;
+import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_CREATED;
+import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_DUE_DATE;
+import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_TITLE;
+import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_TYPE;
 
 @Slf4j
 public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest {
@@ -49,6 +63,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     @Autowired
     private DueDateService dueDateService;
+
+    @Autowired
+    private TaskManagementTestClient taskManagementTestClient;
 
     @Before
     public void setup() {
@@ -978,7 +995,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     @Test
     public void given_initiate_tasks_then_reconfigure_task_to_mark_tasks_for_reconfiguration() {
         // Given multiple existing tasks
-        String caseIdForTask1 = getCaseId();
+        String caseIdForTask1 = getCaseIdForJurisdictionAndCaseType("IA", "Asylum");
         caseId1Task1Id = createTaskWithId(
             caseIdForTask1,
             "requestCaseBuilding",
@@ -986,7 +1003,24 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             "followUpOverdueCaseBuilding", "IA", "Asylum"
         );
 
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+
+        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
+            new TaskAttribute(TASK_TYPE, "reviewHearingBundle"),
+            new TaskAttribute(TASK_NAME, "review Hearing Bundle"),
+            new TaskAttribute(TASK_CASE_ID, caseIdForTask1),
+            new TaskAttribute(TASK_TITLE, "review Hearing Bundle"),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+        ));
+        try {
+            taskManagementTestClient.initiateTask(s2sToken, caseId1Task1Id, req);
+        } catch(FeignException e) {
+            log.info(e.getMessage());
+        }
 
         sendMessage(caseIdForTask1, "UPDATE",
             "", "", false, "IA", "Asylum"
@@ -1001,6 +1035,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
+
+        TerminateTaskRequest request = new TerminateTaskRequest(new TerminateInfo("deleted"));
+        taskManagementTestClient.terminateTask(s2sToken, caseId1Task1Id, request);
 
         taskIdStatusMap.put(caseId1Task2Id, "completed");
     }
