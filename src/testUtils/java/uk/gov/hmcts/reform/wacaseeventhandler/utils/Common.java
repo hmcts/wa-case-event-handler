@@ -48,6 +48,7 @@ public class Common {
 
     private final GivensBuilder given;
     private final RestApiActions camundaApiActions;
+    private final RestApiActions restApiActions;
     private final AuthorizationProvider authorizationProvider;
     private final IdamService idamService;
     private final RoleAssignmentServiceApi roleAssignmentServiceApi;
@@ -56,11 +57,13 @@ public class Common {
 
     public Common(GivensBuilder given,
                   RestApiActions camundaApiActions,
+                  RestApiActions restApiActions,
                   AuthorizationProvider authorizationProvider,
                   IdamService idamService,
                   RoleAssignmentServiceApi roleAssignmentServiceApi) {
         this.given = given;
         this.camundaApiActions = camundaApiActions;
+        this.restApiActions = restApiActions;
         this.authorizationProvider = authorizationProvider;
         this.idamService = idamService;
         this.roleAssignmentServiceApi = roleAssignmentServiceApi;
@@ -75,7 +78,7 @@ public class Common {
     }
 
 
-    public void setupCftOrganisationalRoleAssignment(Headers headers) {
+    public void setupCftOrganisationalRoleAssignment(Headers headers, String jurisdiction) {
         UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 
         Map<String, String> attributes = Map.of(
@@ -83,11 +86,11 @@ public class Common {
             "region", "1",
             //This value must match the camunda task location variable for the permission check to pass
             "baseLocation", "765324",
-            "jurisdiction", "IA"
+            "jurisdiction", jurisdiction
         );
 
         //Clean/Reset user
-        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers, jurisdiction);
 
         //Creates an organizational role for jurisdiction IA
         log.info("Creating Organizational Role");
@@ -103,9 +106,9 @@ public class Common {
 
     }
 
-    public void clearAllRoleAssignments(Headers headers) {
+    public void clearAllRoleAssignments(Headers headers, String jurisdiction) {
         UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
-        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers);
+        clearAllRoleAssignmentsForUser(userInfo.getUid(), headers, jurisdiction);
     }
 
     public void cleanUpTask(Headers authenticationHeaders, List<String> caseIds) {
@@ -120,7 +123,7 @@ public class Common {
 
     }
 
-    private void clearAllRoleAssignmentsForUser(String userId, Headers headers) {
+    private void clearAllRoleAssignmentsForUser(String userId, Headers headers, String jurisdiction) {
         String userToken = headers.getValue(AUTHORIZATION);
         String serviceToken = headers.getValue(SERVICE_AUTHORIZATION);
 
@@ -152,9 +155,9 @@ public class Common {
                 log.info("Orphaned Restricted role assignments were found.");
                 log.info("Creating a temporary role assignment to perform cleanup");
                 //Create a temporary organisational role
-                setupCftOrganisationalRoleAssignment(headers);
+                setupCftOrganisationalRoleAssignment(headers, jurisdiction);
                 //Recursive
-                clearAllRoleAssignments(headers);
+                clearAllRoleAssignments(headers, jurisdiction);
             }
 
             caseRoleAssignments.forEach(assignment ->

@@ -42,17 +42,20 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.utils.Common.CAMUNDA_DATA_T
 public class GivensBuilder {
 
     private final RestApiActions camundaApiActions;
+    private final RestApiActions restApiActions;
     private final AuthorizationProvider authorizationProvider;
     private final DocumentManagementFiles documentManagementFiles;
 
     private final CoreCaseDataApi coreCaseDataApi;
 
     public GivensBuilder(RestApiActions camundaApiActions,
+                         RestApiActions restApiActions,
                          AuthorizationProvider authorizationProvider,
                          CoreCaseDataApi coreCaseDataApi,
                          DocumentManagementFiles documentManagementFiles
     ) {
         this.camundaApiActions = camundaApiActions;
+        this.restApiActions = restApiActions;
         this.authorizationProvider = authorizationProvider;
         this.coreCaseDataApi = coreCaseDataApi;
         this.documentManagementFiles = documentManagementFiles;
