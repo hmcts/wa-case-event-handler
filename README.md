@@ -68,6 +68,33 @@ To build the project execute the following command:
   ```
   ./gradlew tests
   ```
+### Running the application with ASB connection
+Following ASB configurations need to be set up in your local environment for the application to consume event messages from ASB
+  ```
+  AZURE_SERVICE_BUS_CONNECTION_STRING="Endpoint=sb://<path>.servicebus.windows.net/;SharedAccessKeyName=SendAndRecieveCCDMessage;SharedAccessKey=<access key>;EntityPath=wa-case-event-handler-topic-sessions-ft"
+  AZURE_SERVICE_BUS_TOPIC_NAME=wa-case-event-handler-topic-sessions-ft
+  ```
+Subscription name for DLQ enabled subscriber
+  ```
+  AZURE_SERVICE_BUS_CCD_CASE_EVENTS_SUBSCRIPTION_NAME=rasika_dev_ccdcaseevent_local
+  ```
+
+Subscription name for non DLQ subscriber
+  ```
+  AZURE_SERVICE_BUS_SUBSCRIPTION_NAME=rasika_dev_local
+  ```
+
+If you want to enable your local case-event-handler to consume messages from ASB, set these environment variables to true
+
+  - DLQ enabled consumer
+  ```
+  AZURE_SERVICE_BUS_DLQ_FEATURE_TOGGLE=true
+  ```
+
+  - non DLQ consumer
+  ```
+  AZURE_SERVICE_BUS_FEATURE_TOGGLE=true
+  ```
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
