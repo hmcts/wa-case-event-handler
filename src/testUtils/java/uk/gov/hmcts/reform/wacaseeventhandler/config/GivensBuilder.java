@@ -174,6 +174,26 @@ public class GivensBuilder {
         );
     }
 
+    public GivensBuilder createTaskWithCaseId(String caseId) {
+        Map<String, CamundaValue<?>> processVariables = initiateProcessVariables(caseId);
+
+        CamundaSendMessageRequest request = new CamundaSendMessageRequest(
+            CREATE_TASK_MESSAGE.toString(),
+            processVariables
+        );
+
+        Response result = camundaApiActions.post(
+            "message",
+            request,
+            authorizationProvider.getServiceAuthorizationHeader()
+        );
+
+        result.then().assertThat()
+            .statusCode(HttpStatus.NO_CONTENT.value());
+
+        return this;
+    }
+
     public GivensBuilder createTaskWithCaseId(String caseId, boolean warnings, String jurisdiction, String caseType) {
         Map<String, CamundaValue<?>> processVariables
             = initiateProcessVariables(caseId, warnings, jurisdiction, caseType);
@@ -331,26 +351,6 @@ public class GivensBuilder {
         authorizationProvider.deleteAccount(credentials.getAccount().getUsername());
 
         return caseDetails.getId().toString();
-    }
-
-    public GivensBuilder createTaskWithCaseId(String caseId) {
-        Map<String, CamundaValue<?>> processVariables = initiateProcessVariables(caseId);
-
-        CamundaSendMessageRequest request = new CamundaSendMessageRequest(
-            CREATE_TASK_MESSAGE.toString(),
-            processVariables
-        );
-
-        Response result = camundaApiActions.post(
-            "message",
-            request,
-            authorizationProvider.getServiceAuthorizationHeader()
-        );
-
-        result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
-
-        return this;
     }
 
     public GivensBuilder createDelayedTaskWithCaseId(String caseId) {
