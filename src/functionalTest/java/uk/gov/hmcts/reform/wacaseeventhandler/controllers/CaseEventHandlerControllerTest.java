@@ -1147,8 +1147,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
     @Test
     public void given_initiate_tasks_then_reconfigure_task_to_mark_tasks_for_reconfiguration_for_WA() {
-        String jurisdiction = "WA";
-        String caseType = "WaCaseType";
 
         TestVariables taskVariables = common.setupWaTaskAndRetrieveIds();
         caseId1Task1Id = taskVariables.getTaskId();
@@ -1175,6 +1173,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
 
         //send update event to trigger reconfigure action
+        String jurisdiction = "WA";
+        String caseType = "WaCaseType";
         sendMessage(caseIdForTask1, "UPDATE",
             "", "", false, jurisdiction, caseType
         );

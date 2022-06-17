@@ -186,12 +186,12 @@ public class Common {
 
     public TestVariables setupWaTaskAndRetrieveIds() {
 
-        String caseId = given.iCreateWaCcdCase();
+        String caseId = given.createWaCcdCase();
 
         List<CamundaTask> response = given
-            .iCreateTaskWithCaseId(caseId, false, "WA", "WaCaseType")
+            .createTaskWithCaseId(caseId, false, "WA", "WaCaseType")
             .and()
-            .iRetrieveTaskWithProcessVariableFilter("caseId", caseId, 1);
+            .retrieveTaskWithProcessVariableFilter("caseId", caseId, 1);
 
         if (response.size() > 1) {
             fail("Search was not an exact match and returned more than one task used: " + caseId);

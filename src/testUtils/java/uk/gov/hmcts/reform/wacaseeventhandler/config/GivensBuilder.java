@@ -162,7 +162,7 @@ public class GivensBuilder {
         return caseDetails.getId().toString();
     }
 
-    public String iCreateWaCcdCase() {
+    public String createWaCcdCase() {
         TestAuthenticationCredentials lawFirmCredentials =
             authorizationProvider.getNewWaTribunalCaseworker("wa-ft-r2-");
         return createCcdCaseWithJurisdictionAndCaseTypeAndEvent("WA",
@@ -174,7 +174,7 @@ public class GivensBuilder {
         );
     }
 
-    public GivensBuilder iCreateTaskWithCaseId(String caseId, boolean warnings, String jurisdiction, String caseType) {
+    public GivensBuilder createTaskWithCaseId(String caseId, boolean warnings, String jurisdiction, String caseType) {
         Map<String, CamundaValue<?>> processVariables
             = initiateProcessVariables(caseId, warnings, jurisdiction, caseType);
 
@@ -195,7 +195,7 @@ public class GivensBuilder {
         return this;
     }
 
-    public List<CamundaTask> iRetrieveTaskWithProcessVariableFilter(String key, String value, int taskCount) {
+    public List<CamundaTask> retrieveTaskWithProcessVariableFilter(String key, String value, int taskCount) {
         String filter = "?processVariables=" + key + "_eq_" + value;
 
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
