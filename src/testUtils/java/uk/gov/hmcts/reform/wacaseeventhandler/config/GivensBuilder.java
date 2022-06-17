@@ -162,10 +162,10 @@ public class GivensBuilder {
         return caseDetails.getId().toString();
     }
 
-    public String iCreateWACcdCase() {
+    public String iCreateWaCcdCase() {
         TestAuthenticationCredentials lawFirmCredentials =
             authorizationProvider.getNewWaTribunalCaseworker("wa-ft-r2-");
-        return createCCDCaseWithJurisdictionAndCaseTypeAndEvent("WA",
+        return createCcdCaseWithJurisdictionAndCaseTypeAndEvent("WA",
             "WaCaseType",
             "CREATE",
             "START_PROGRESS",
@@ -174,7 +174,7 @@ public class GivensBuilder {
         );
     }
 
-    public GivensBuilder iCreateATaskWithCaseId(String caseId, boolean warnings, String jurisdiction, String caseType) {
+    public GivensBuilder iCreateTaskWithCaseId(String caseId, boolean warnings, String jurisdiction, String caseType) {
         Map<String, CamundaValue<?>> processVariables
             = initiateProcessVariables(caseId, warnings, jurisdiction, caseType);
 
@@ -195,7 +195,7 @@ public class GivensBuilder {
         return this;
     }
 
-    public List<CamundaTask> iRetrieveATaskWithProcessVariableFilter(String key, String value, int taskCount) {
+    public List<CamundaTask> iRetrieveTaskWithProcessVariableFilter(String key, String value, int taskCount) {
         String filter = "?processVariables=" + key + "_eq_" + value;
 
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
@@ -227,7 +227,7 @@ public class GivensBuilder {
     }
 
 
-    private String createCCDCaseWithJurisdictionAndCaseTypeAndEvent(String jurisdiction,
+    private String createCcdCaseWithJurisdictionAndCaseTypeAndEvent(String jurisdiction,
                                                                     String caseType,
                                                                     String startEventId,
                                                                     String submitEventId,
@@ -373,7 +373,6 @@ public class GivensBuilder {
         return this;
     }
 
-
     public List<CamundaTask> retrieveTaskWithProcessVariableFilter(String key, String value) {
         log.info("Attempting to retrieve task with {} = {}", key, value);
         String filter = "?processVariables=" + key + "_eq_" + value;
@@ -443,37 +442,6 @@ public class GivensBuilder {
         return this;
     }
 
-    public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId) {
-        CamundaProcessVariables processVariables = processVariables()
-            .withProcessVariable("caseId", caseId)
-            .withProcessVariable("jurisdiction", "IA")
-            .withProcessVariable("caseTypeId", "Asylum")
-            .withProcessVariable("region", "1")
-            .withProcessVariable("location", "765324")
-            .withProcessVariable("locationName", "Taylor House")
-            .withProcessVariable("staffLocation", "Taylor House")
-            .withProcessVariable("securityClassification", "PUBLIC")
-            .withProcessVariable("name", "task name")
-            .withProcessVariable("taskId", "reviewTheAppeal")
-            .withProcessVariable("taskAttributes", "")
-            .withProcessVariable("taskType", "reviewTheAppeal")
-            .withProcessVariable("taskCategory", "Case Progression")
-            .withProcessVariable("taskState", "unconfigured")
-            //for testing-purposes
-            .withProcessVariable("dueDate", now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariable("task-supervisor", "Read,Refer,Manage,Cancel")
-            .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariable("workingDaysAllowed", "2")
-            .withProcessVariableBoolean("hasWarnings", false)
-            .withProcessVariable("caseManagementCategory", "Protection")
-            .withProcessVariable("description", "aDescription")
-            .build();
-
-        return processVariables.getProcessVariablesMap();
-    }
-
     public Map<String, CamundaValue<?>> createDelayedTaskVariables(String caseId) {
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("caseId", caseId)
@@ -520,6 +488,10 @@ public class GivensBuilder {
         } else {
             return createDefaultTaskVariables(caseId, jurisdiction, caseTypeId);
         }
+    }
+
+    private Map<String, CamundaValue<?>> initiateProcessVariablesForDelayedTask(String caseId) {
+        return createDelayedTaskVariables(caseId);
     }
 
     public Map<String, CamundaValue<?>> createDefaultTaskVariablesWithWarnings(
@@ -594,8 +566,35 @@ public class GivensBuilder {
         return processVariables.getProcessVariablesMap();
     }
 
-    private Map<String, CamundaValue<?>> initiateProcessVariablesForDelayedTask(String caseId) {
-        return createDelayedTaskVariables(caseId);
+    public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId) {
+        CamundaProcessVariables processVariables = processVariables()
+            .withProcessVariable("caseId", caseId)
+            .withProcessVariable("jurisdiction", "IA")
+            .withProcessVariable("caseTypeId", "Asylum")
+            .withProcessVariable("region", "1")
+            .withProcessVariable("location", "765324")
+            .withProcessVariable("locationName", "Taylor House")
+            .withProcessVariable("staffLocation", "Taylor House")
+            .withProcessVariable("securityClassification", "PUBLIC")
+            .withProcessVariable("name", "task name")
+            .withProcessVariable("taskId", "reviewTheAppeal")
+            .withProcessVariable("taskAttributes", "")
+            .withProcessVariable("taskType", "reviewTheAppeal")
+            .withProcessVariable("taskCategory", "Case Progression")
+            .withProcessVariable("taskState", "unconfigured")
+            //for testing-purposes
+            .withProcessVariable("dueDate", now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariable("task-supervisor", "Read,Refer,Manage,Cancel")
+            .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+            .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+            .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
+            .withProcessVariable("workingDaysAllowed", "2")
+            .withProcessVariableBoolean("hasWarnings", false)
+            .withProcessVariable("caseManagementCategory", "Protection")
+            .withProcessVariable("description", "aDescription")
+            .build();
+
+        return processVariables.getProcessVariablesMap();
     }
 
 }

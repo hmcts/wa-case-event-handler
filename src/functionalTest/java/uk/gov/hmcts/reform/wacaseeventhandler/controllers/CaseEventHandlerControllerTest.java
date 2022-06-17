@@ -1150,11 +1150,11 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         String jurisdiction = "WA";
         String caseType = "WaCaseType";
 
-        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        TestVariables taskVariables = common.setupWaTaskAndRetrieveIds();
         caseId1Task1Id = taskVariables.getTaskId();
 
         String caseIdForTask1 = taskVariables.getCaseId();
-        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+        common.setupCftOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
         //initiate task
         initiateTask(caseworkerCredentials.getHeaders(), caseIdForTask1, caseId1Task1Id,

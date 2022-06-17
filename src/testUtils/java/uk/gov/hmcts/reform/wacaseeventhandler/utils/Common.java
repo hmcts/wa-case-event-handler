@@ -44,7 +44,8 @@ public class Common {
 
     public static final DateTimeFormatter ROLE_ASSIGNMENT_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ssX");
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-    public static final String R2_ROLE_ASSIGNMENT_REQUEST = "requests/roleAssignment/r2/set-organisational-role-assignment-request.json";
+    public static final String R2_ROLE_ASSIGNMENT_REQUEST =
+        "requests/roleAssignment/r2/set-organisational-role-assignment-request.json";
     private static String DELETE_REQUEST = "{\n"
                                            + "    \"deleteReason\": \"clean up running process instances\",\n"
                                            + "    \"processInstanceIds\": [\n"
@@ -115,7 +116,7 @@ public class Common {
 
     }
 
-    public void setupCFTOrganisationalRoleAssignmentForWA(Headers headers) {
+    public void setupCftOrganisationalRoleAssignmentForWA(Headers headers) {
         UserInfo userInfo = idamService.getUserInfo(headers.getValue(AUTHORIZATION));
         clearAllRoleAssignmentsForUser(userInfo.getUid(), headers, "WA");
         createCaseAllocator(userInfo, headers, "WA");
@@ -183,14 +184,14 @@ public class Common {
         );
     }
 
-    public TestVariables setupWATaskAndRetrieveIds() {
+    public TestVariables setupWaTaskAndRetrieveIds() {
 
-        String caseId = given.iCreateWACcdCase();
+        String caseId = given.iCreateWaCcdCase();
 
         List<CamundaTask> response = given
-            .iCreateATaskWithCaseId(caseId, false, "WA", "WaCaseType")
+            .iCreateTaskWithCaseId(caseId, false, "WA", "WaCaseType")
             .and()
-            .iRetrieveATaskWithProcessVariableFilter("caseId", caseId, 1);
+            .iRetrieveTaskWithProcessVariableFilter("caseId", caseId, 1);
 
         if (response.size() > 1) {
             fail("Search was not an exact match and returned more than one task used: " + caseId);
