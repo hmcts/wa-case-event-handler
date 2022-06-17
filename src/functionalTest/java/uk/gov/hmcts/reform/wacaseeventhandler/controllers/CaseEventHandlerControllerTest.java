@@ -17,6 +17,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TerminateTaskReque
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestAuthenticationCredentials;
+import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 
 import java.time.LocalDateTime;
@@ -34,6 +35,7 @@ import static net.serenitybdd.rest.SerenityRest.given;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -1088,7 +1090,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
-    public void given_initiate_tasks_then_reconfigure_task_to_mark_tasks_for_reconfiguration() {
+    @Ignore("IA related test case for reconfiguration")
+    public void given_initiate_tasks_then_reconfigure_task_to_mark_tasks_for_reconfiguration_for_IA() {
         String jurisdiction = "IA";
         String caseType = "Asylum";
         // create task in camunda
@@ -1139,7 +1142,71 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         //cleanup
         TerminateTaskRequest request = new TerminateTaskRequest(new TerminateInfo("deleted"));
         taskManagementTestClient.terminateTask(s2sToken, caseId1Task1Id, request);
-        taskIdStatusMap.put(caseId1Task2Id, "completed");
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
+    }
+
+    @Test
+    public void given_initiate_tasks_then_reconfigure_task_to_mark_tasks_for_reconfiguration_for_WA() {
+        String jurisdiction = "WA";
+        String caseType = "WaCaseType";
+
+        TestVariables taskVariables = common.setupWATaskAndRetrieveIds();
+        caseId1Task1Id = taskVariables.getTaskId();
+
+        String caseIdForTask1 = taskVariables.getCaseId();
+        common.setupCFTOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+
+        //initiate task
+        initiateTask(caseworkerCredentials.getHeaders(), caseIdForTask1, caseId1Task1Id,
+            "followUpOverdueCaseBuilding", "Follow-up overdue case building", "Follow-up overdue case building");
+
+        //get task from CFT
+        Response result = restApiActions.get(
+            TASK_ENDPOINT,
+            caseId1Task1Id,
+            caseworkerCredentials.getHeaders()
+        );
+        //assert reconfigure request time
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .body("task.id", equalTo(caseId1Task1Id))
+            .body("task.reconfigure_request_time", nullValue());
+
+
+        //send update event to trigger reconfigure action
+        sendMessage(caseIdForTask1, "UPDATE",
+            "", "", false, jurisdiction, caseType
+        );
+
+        waitSeconds(5);
+
+        //assert task in camunda
+        Response taskFound = findTasksByCaseId(caseIdForTask1, 1);
+        caseId1Task2Id = taskFound
+            .then().assertThat()
+            .body("[0].id", notNullValue())
+            .extract()
+            .path("[0].id");
+
+        waitSeconds(5);
+
+        //get task from CFT
+        result = restApiActions.get(
+            TASK_ENDPOINT,
+            caseId1Task1Id,
+            caseworkerCredentials.getHeaders()
+        );
+
+        //assert reconfigure request time
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .body("task.id", equalTo(caseId1Task1Id))
+            .body("task.reconfigure_request_time", notNullValue());
+
+        //cleanup
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
     }
 
     public void completeTask(String taskId, String status) {
