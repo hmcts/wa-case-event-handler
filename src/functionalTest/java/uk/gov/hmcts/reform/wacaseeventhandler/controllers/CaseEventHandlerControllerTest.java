@@ -43,19 +43,124 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonS
 @Slf4j
 public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest {
 
-    private LocalDateTime eventTimeStamp;
     protected Map<String, String> taskIdStatusMap;
     protected String caseId1Task1Id;
     protected String caseId1Task2Id;
     protected String caseId2Task1Id;
     protected String caseId2Task2Id;
     protected TestAuthenticationCredentials caseworkerCredentials;
-
+    private LocalDateTime eventTimeStamp;
     @Autowired
     private DueDateService dueDateService;
 
     @Autowired
     private TaskManagementTestClient taskManagementTestClient;
+
+    protected void sendMessage(String caseId,
+                               String event,
+                               String previousStateId,
+                               String newStateId,
+                               boolean taskDelay,
+                               String jurisdictionId,
+                               String caseTypeId) {
+
+        if (taskDelay) {
+            eventTimeStamp = LocalDateTime.now().plusSeconds(2);
+        }
+        EventInformation eventInformation = getEventInformation(
+            caseId,
+            event,
+            previousStateId,
+            newStateId,
+            eventTimeStamp,
+            jurisdictionId,
+            caseTypeId
+        );
+
+        if (publisher != null) {
+            publishMessageToTopic(eventInformation);
+            waitSeconds(2);
+        } else {
+            callRestEndpoint(s2sToken, eventInformation);
+        }
+    }
+
+    protected void sendMessageWithAdditionalData(String caseId, String event, String previousStateId,
+                                                 String newStateId, boolean taskDelay) {
+
+        if (taskDelay) {
+            eventTimeStamp = LocalDateTime.now().plusSeconds(2);
+        }
+        EventInformation eventInformation = getEventInformationWithAdditionalData(
+            caseId, event, previousStateId, newStateId, eventTimeStamp
+        );
+
+        if (publisher != null) {
+            publishMessageToTopic(eventInformation);
+        } else {
+            callRestEndpoint(s2sToken, eventInformation);
+        }
+    }
+
+    protected String createTaskWithId(String caseId,
+                                      String eventId,
+                                      String previousStateId,
+                                      String newStateId,
+                                      boolean delayUntil,
+                                      String outcomeTaskId,
+                                      String jurisdictionId,
+                                      String caseTypeId) {
+
+        sendMessage(caseId, eventId, previousStateId, newStateId, delayUntil, jurisdictionId, caseTypeId);
+
+        // if the delayUntil is true, then the taskCreation process waits for delayUntil timer
+        // to expire. The task is delayed for 2 seconds,
+        // so manually waiting for 5 seconds for process to start
+        if (delayUntil) {
+            waitSeconds(10);
+        } else {
+            waitSeconds(5);
+        }
+
+        return findTaskForGivenCaseId(caseId, outcomeTaskId);
+    }
+
+    protected void assertDelayDuration(Response result) {
+        Map<String, Object> mapJson = result.jsonPath().get("dueDate");
+        final String dueDateVal = (String) mapJson.get("value");
+        final LocalDateTime dueDateTime = LocalDateTime.parse(dueDateVal);
+
+        mapJson = result.jsonPath().get("delayUntil");
+        final String delayUntil = (String) mapJson.get("value");
+        final LocalDateTime delayUntilDateTime = LocalDateTime.parse(
+            delayUntil,
+            DateTimeFormatter.ISO_LOCAL_DATE_TIME
+        );
+
+        mapJson = result.jsonPath().get("workingDaysAllowed");
+        int workingDaysLocal = (Integer) mapJson.get("value");
+
+        ZoneId zoneId = ZoneId.of("Europe/London");
+        ZonedDateTime zonedDateTimeStamp = eventTimeStamp.atZone(zoneId);
+        final ZonedDateTime expectedDueDate = dueDateService.calculateDueDate(zonedDateTimeStamp, workingDaysLocal);
+
+        assertAll(
+            () -> assertEquals(expectedDueDate.getYear(), dueDateTime.getYear()),
+            () -> assertEquals(expectedDueDate.getMonthValue(), dueDateTime.getMonthValue()),
+            () -> assertEquals(expectedDueDate.getDayOfMonth(), dueDateTime.getDayOfMonth()),
+            () -> assertEquals(16, dueDateTime.getHour()),
+            () -> assertEquals(0, dueDateTime.getMinute()),
+            () -> assertEquals(0, dueDateTime.getSecond()),
+            () -> assertEquals(0, dueDateTime.getNano()),
+            () -> assertEquals(eventTimeStamp.getYear(), delayUntilDateTime.getYear()),
+            () -> assertEquals(eventTimeStamp.getMonthValue(), delayUntilDateTime.getMonthValue()),
+            () -> assertEquals(eventTimeStamp.getDayOfMonth(), delayUntilDateTime.getDayOfMonth()),
+            () -> assertEquals(eventTimeStamp.getHour(), delayUntilDateTime.getHour()),
+            () -> assertEquals(eventTimeStamp.getMinute(), delayUntilDateTime.getMinute()),
+            () -> assertEquals(eventTimeStamp.getSecond(), delayUntilDateTime.getSecond()),
+            () -> assertEquals(eventTimeStamp.getNano(), delayUntilDateTime.getNano())
+        );
+    }
 
     @Before
     public void setup() {
@@ -986,7 +1091,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     public void given_initiate_tasks_then_reconfigure_task_to_mark_tasks_for_reconfiguration() {
         String jurisdiction = "IA";
         String caseType = "Asylum";
-        // Given multiple existing tasks
+        // create task in camunda
         String caseIdForTask1 = getCaseIdForJurisdictionAndCaseType(jurisdiction, caseType);
         caseId1Task1Id = createTaskWithId(
             caseIdForTask1,
@@ -995,18 +1100,20 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             "followUpOverdueCaseBuilding", jurisdiction, caseType
         );
 
+        //initiate task
         common.setupCftOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), jurisdiction);
         initiateTask(caseworkerCredentials.getHeaders(), caseIdForTask1, caseId1Task1Id,
-            "requestCaseBuilding", "Follow-up overdue case building", "Follow-up overdue case building");
+            "followUpOverdueCaseBuilding", "Follow-up overdue case building", "Follow-up overdue case building");
 
+        //send update event to trigger reconfigure action
         sendMessage(caseIdForTask1, "UPDATE",
             "", "", false, jurisdiction, caseType
         );
 
         waitSeconds(5);
 
+        //assert task in camunda
         Response taskFound = findTasksByCaseId(caseIdForTask1, 1);
-
         caseId1Task2Id = taskFound
             .then().assertThat()
             .body("[0].id", notNullValue())
@@ -1015,6 +1122,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         waitSeconds(5);
 
+        //get task from CFT
         Response result = restApiActions.get(
             TASK_ENDPOINT,
             caseId1Task1Id,
@@ -1028,11 +1136,22 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("task.id", equalTo(caseId1Task1Id))
             .body("task.reconfigure_request_time", notNullValue());
 
-            //cleanup
+        //cleanup
         TerminateTaskRequest request = new TerminateTaskRequest(new TerminateInfo("deleted"));
         taskManagementTestClient.terminateTask(s2sToken, caseId1Task1Id, request);
-
         taskIdStatusMap.put(caseId1Task2Id, "completed");
+    }
+
+    public void completeTask(String taskId, String status) {
+        log.info(String.format("Completing task : %s", taskId));
+        given()
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .accept(APPLICATION_JSON_VALUE)
+            .contentType(APPLICATION_JSON_VALUE)
+            .when()
+            .post(camundaUrl + "/task/{task-id}/complete", taskId);
+
+        assertTaskDeleteReason(taskId, status);
     }
 
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
@@ -1097,52 +1216,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
                 });
     }
 
-    protected void sendMessage(String caseId,
-                               String event,
-                               String previousStateId,
-                               String newStateId,
-                               boolean taskDelay,
-                               String jurisdictionId,
-                               String caseTypeId) {
-
-        if (taskDelay) {
-            eventTimeStamp = LocalDateTime.now().plusSeconds(2);
-        }
-        EventInformation eventInformation = getEventInformation(
-            caseId,
-            event,
-            previousStateId,
-            newStateId,
-            eventTimeStamp,
-            jurisdictionId,
-            caseTypeId
-        );
-
-        if (publisher != null) {
-            publishMessageToTopic(eventInformation);
-            waitSeconds(2);
-        } else {
-            callRestEndpoint(s2sToken, eventInformation);
-        }
-    }
-
-    protected void sendMessageWithAdditionalData(String caseId, String event, String previousStateId,
-                                                 String newStateId, boolean taskDelay) {
-
-        if (taskDelay) {
-            eventTimeStamp = LocalDateTime.now().plusSeconds(2);
-        }
-        EventInformation eventInformation = getEventInformationWithAdditionalData(
-            caseId, event, previousStateId, newStateId, eventTimeStamp
-        );
-
-        if (publisher != null) {
-            publishMessageToTopic(eventInformation);
-        } else {
-            callRestEndpoint(s2sToken, eventInformation);
-        }
-    }
-
     private EventInformation getEventInformation(String caseId,
                                                  String event,
                                                  String previousStateId,
@@ -1199,29 +1272,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         publisher.sendMessage(message);
     }
 
-    protected String createTaskWithId(String caseId,
-                                      String eventId,
-                                      String previousStateId,
-                                      String newStateId,
-                                      boolean delayUntil,
-                                      String outcomeTaskId,
-                                      String jurisdictionId,
-                                      String caseTypeId) {
-
-        sendMessage(caseId, eventId, previousStateId, newStateId, delayUntil, jurisdictionId, caseTypeId);
-
-        // if the delayUntil is true, then the taskCreation process waits for delayUntil timer
-        // to expire. The task is delayed for 2 seconds,
-        // so manually waiting for 5 seconds for process to start
-        if (delayUntil) {
-            waitSeconds(10);
-        } else {
-            waitSeconds(5);
-        }
-
-        return findTaskForGivenCaseId(caseId, outcomeTaskId);
-    }
-
     private String findTaskForGivenCaseId(String caseId, String taskIdDmnColumn) {
 
         log.info("Attempting to retrieve task with caseId = {} and taskId = {}", caseId, taskIdDmnColumn);
@@ -1257,18 +1307,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         return response.get();
     }
 
-    public void completeTask(String taskId, String status) {
-        log.info(String.format("Completing task : %s", taskId));
-        given()
-            .header(SERVICE_AUTHORIZATION, s2sToken)
-            .accept(APPLICATION_JSON_VALUE)
-            .contentType(APPLICATION_JSON_VALUE)
-            .when()
-            .post(camundaUrl + "/task/{task-id}/complete", taskId);
-
-        assertTaskDeleteReason(taskId, status);
-    }
-
     private AdditionalData setAdditionalData() {
         Map<String, Object> dataMap = Map.of(
             "lastModifiedDirection", Map.of(
@@ -1282,43 +1320,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         return AdditionalData.builder()
             .data(dataMap)
             .build();
-    }
-
-    protected void assertDelayDuration(Response result) {
-        Map<String, Object> mapJson = result.jsonPath().get("dueDate");
-        final String dueDateVal = (String) mapJson.get("value");
-        final LocalDateTime dueDateTime = LocalDateTime.parse(dueDateVal);
-
-        mapJson = result.jsonPath().get("delayUntil");
-        final String delayUntil = (String) mapJson.get("value");
-        final LocalDateTime delayUntilDateTime = LocalDateTime.parse(
-            delayUntil,
-            DateTimeFormatter.ISO_LOCAL_DATE_TIME
-        );
-
-        mapJson = result.jsonPath().get("workingDaysAllowed");
-        int workingDaysLocal = (Integer) mapJson.get("value");
-
-        ZoneId zoneId = ZoneId.of("Europe/London");
-        ZonedDateTime zonedDateTimeStamp = eventTimeStamp.atZone(zoneId);
-        final ZonedDateTime expectedDueDate = dueDateService.calculateDueDate(zonedDateTimeStamp, workingDaysLocal);
-
-        assertAll(
-            () -> assertEquals(expectedDueDate.getYear(), dueDateTime.getYear()),
-            () -> assertEquals(expectedDueDate.getMonthValue(), dueDateTime.getMonthValue()),
-            () -> assertEquals(expectedDueDate.getDayOfMonth(), dueDateTime.getDayOfMonth()),
-            () -> assertEquals(16, dueDateTime.getHour()),
-            () -> assertEquals(0, dueDateTime.getMinute()),
-            () -> assertEquals(0, dueDateTime.getSecond()),
-            () -> assertEquals(0, dueDateTime.getNano()),
-            () -> assertEquals(eventTimeStamp.getYear(), delayUntilDateTime.getYear()),
-            () -> assertEquals(eventTimeStamp.getMonthValue(), delayUntilDateTime.getMonthValue()),
-            () -> assertEquals(eventTimeStamp.getDayOfMonth(), delayUntilDateTime.getDayOfMonth()),
-            () -> assertEquals(eventTimeStamp.getHour(), delayUntilDateTime.getHour()),
-            () -> assertEquals(eventTimeStamp.getMinute(), delayUntilDateTime.getMinute()),
-            () -> assertEquals(eventTimeStamp.getSecond(), delayUntilDateTime.getSecond()),
-            () -> assertEquals(eventTimeStamp.getNano(), delayUntilDateTime.getNano())
-        );
     }
 
 }
