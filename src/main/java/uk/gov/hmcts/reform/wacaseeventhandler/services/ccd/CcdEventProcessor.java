@@ -40,6 +40,10 @@ public class CcdEventProcessor {
     }
 
     public void processMessage(CaseEventMessage caseEventMessage) throws JsonProcessingException {
+        log.info("Mapping message content for messageId: {} and caseId: {}",
+            caseEventMessage.getMessageId(),
+            caseEventMessage.getCaseId());
+
         EventInformation eventInformation =
             objectMapper.readValue(caseEventMessage.getMessageContent(), EventInformation.class);
         processMessage(eventInformation);

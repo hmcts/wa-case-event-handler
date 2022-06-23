@@ -103,9 +103,9 @@ public class DatabaseMessageConsumer implements Runnable {
         //Retry updating the record state
         updateRetry.ifPresent(msg ->
             updateRecordErrorHandlingService.handleUpdateError(msg.getState(),
-                                                               msg.getMessageId(),
-                                                               msg.getRetryCount(),
-                                                               msg.getHoldUntil())
+                msg.getMessageId(),
+                msg.getRetryCount(),
+                msg.getHoldUntil())
         );
 
     }
@@ -130,15 +130,22 @@ public class DatabaseMessageConsumer implements Runnable {
             log.info("No message to process");
         } else {
             final String caseEventMessageId = caseEventMessage.getMessageId();
-            log.info("Processing message with id {} from the database", caseEventMessageId);
+            log.info("Processing message with id: {} and caseId: {} from the database",
+                caseEventMessageId,
+                caseEventMessage.getCaseId()
+            );
             try {
                 ccdEventProcessor.processMessage(caseEventMessage);
-                log.info("Message with id {} processed successfully, setting message state to PROCESSED",
-                        caseEventMessageId);
+                log.info("Message with id: {} and caseId: {} processed successfully, setting message state to PROCESSED",
+                    caseEventMessageId,
+                    caseEventMessage.getCaseId()
+                );
                 return updateMessageState(MessageState.PROCESSED, caseEventMessageId, 0, null);
             } catch (FeignException fe) {
+                log.error("FeignException while processing message.", fe);
                 return processException(fe, caseEventMessage);
             } catch (Exception ex) {
+                log.error("Exception while processing message.", ex);
                 return processError(caseEventMessage);
             }
         }
@@ -157,8 +164,10 @@ public class DatabaseMessageConsumer implements Runnable {
         }
 
         if (retryableError) {
-            log.info("Retryable error occurred when processing message with caseId {}",
-                    caseEventMessage.getMessageId());
+            log.info("Retryable error occurred when processing message with messageId: {} and caseId: {}",
+                caseEventMessage.getMessageId(),
+                caseEventMessage.getCaseId()
+            );
             return processRetryableError(caseEventMessage);
         } else {
             return processError(caseEventMessage);
@@ -173,9 +182,9 @@ public class DatabaseMessageConsumer implements Runnable {
         if (newHoldUntilIncrement != null) {
             LocalDateTime newHoldUntil = LocalDateTime.now().plusSeconds(newHoldUntilIncrement);
             log.info("Updating values, retry_count {} and hold_until {} on case event message {}",
-                    retryCount,
-                    newHoldUntil,
-                    messageId);
+                retryCount,
+                newHoldUntil,
+                messageId);
             return updateMessageState(null, messageId, retryCount, newHoldUntil);
         }
         return updateMessageState(MessageState.UNPROCESSABLE, messageId, 0, null);
@@ -183,7 +192,10 @@ public class DatabaseMessageConsumer implements Runnable {
 
     private Optional<MessageUpdateRetry> processError(CaseEventMessage caseEventMessage) {
         String caseEventMessageId = caseEventMessage.getMessageId();
-        log.info("Could not process message with id {}, setting state to Unprocessable", caseEventMessageId);
+        log.info("Could not process message with id {} and caseId {}, setting state to Unprocessable",
+            caseEventMessageId,
+            caseEventMessage.getCaseId()
+        );
 
         return updateMessageState(MessageState.UNPROCESSABLE, caseEventMessageId, 0, null);
     }
@@ -199,11 +211,11 @@ public class DatabaseMessageConsumer implements Runnable {
         } catch (RuntimeException e) {
             log.info("Error in updating message with id {}, retrying to update", messageId);
             return Optional.of(MessageUpdateRetry.builder()
-                                   .messageId(messageId)
-                                   .state(state)
-                                   .holdUntil(holdUntil)
-                                   .retryCount(retryCount)
-                                   .build());
+                .messageId(messageId)
+                .state(state)
+                .holdUntil(holdUntil)
+                .retryCount(retryCount)
+                .build());
         }
         return Optional.empty();
     }
