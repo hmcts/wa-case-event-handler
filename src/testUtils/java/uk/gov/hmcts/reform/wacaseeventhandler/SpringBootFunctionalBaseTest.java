@@ -75,7 +75,7 @@ public abstract class SpringBootFunctionalBaseTest {
     protected static final String TASK_ENDPOINT = "/task/{task-id}";
 
     @Value("${targets.instance}") protected String testUrl;
-    @Value("${wa-task-management-api.url}") protected String taskManagementUrl;
+    @Value("${targets.taskapi}") protected String taskManagementUrl;
     @Value("${targets.camunda}") public String camundaUrl;
 
     public ServiceBusSenderClient publisher;
