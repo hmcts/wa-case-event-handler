@@ -94,6 +94,23 @@ public class AuthorizationProvider {
         return new TestAuthenticationCredentials(lawfirm, authenticationHeaders);
     }
 
+    public TestAuthenticationCredentials getWaCaseworkerAAuthorizationOnly(String emailPrefix) {
+        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-wa-task-configuration"),
+                                              new RoleCode("payments"),
+                                              new RoleCode("caseworker-wa"));
+        TestAccount testAccount = generateIdamTestAccount(emailPrefix, requiredRoles);
+
+        Headers authenticationHeaders = new Headers(
+            getAuthorizationOnly(testAccount),
+            getServiceAuthorizationHeader()
+        );
+
+
+
+        return new TestAuthenticationCredentials(testAccount, authenticationHeaders);
+
+    }
+
 
     public Header getCaseworkerAuthorizationOnly(String emailPrefix) {
         TestAccount caseworker = getIdamCaseWorkerCredentials(emailPrefix);

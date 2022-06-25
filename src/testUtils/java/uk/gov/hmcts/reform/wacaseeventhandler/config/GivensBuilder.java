@@ -164,14 +164,102 @@ public class GivensBuilder {
 
     public String createWaCcdCase() {
         TestAuthenticationCredentials lawFirmCredentials =
-            authorizationProvider.getNewWaTribunalCaseworker("wa-ft-r2-");
-        return createCcdCaseWithJurisdictionAndCaseTypeAndEvent("WA",
+            authorizationProvider.getWaCaseworkerAAuthorizationOnly("wa-ft-test-r2-");
+        String userToken = lawFirmCredentials.getHeaders().getValue(AUTHORIZATION);
+        String serviceToken = lawFirmCredentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
+        UserInfo userInfo = authorizationProvider.getUserInfo(userToken);
+
+        Document document = documentManagementFiles.getDocumentAs(NOTICE_OF_APPEAL_PDF, lawFirmCredentials);
+
+        StartEventResponse startCase = coreCaseDataApi.startForCaseworker(
+            userToken,
+            serviceToken,
+            userInfo.getUid(),
+            "WA",
             "WaCaseType",
-            "CREATE",
-            "START_PROGRESS",
-            lawFirmCredentials,
-            "requests/ccd/wa_case_data.json"
+            "CREATE"
         );
+
+        String resourceFilename = "requests/ccd/wa_case_data.json";
+
+        Map data = null;
+        try {
+            String caseDataString =
+                FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename), "UTF-8");
+            caseDataString = caseDataString.replace(
+                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
+                document.getDocumentUrl()
+            );
+            caseDataString = caseDataString.replace(
+                "{NOTICE_OF_DECISION_DOCUMENT_NAME}",
+                document.getDocumentFilename()
+            );
+            caseDataString = caseDataString.replace(
+                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL_BINARY}",
+                document.getDocumentBinaryUrl()
+            );
+
+            data = new ObjectMapper().readValue(caseDataString, Map.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        CaseDataContent caseDataContent = CaseDataContent.builder()
+            .eventToken(startCase.getToken())
+            .event(Event.builder()
+                       .id(startCase.getEventId())
+                       .summary("summary")
+                       .description("description")
+                       .build())
+            .data(data)
+            .build();
+
+        //Fire submit event
+        CaseDetails caseDetails = coreCaseDataApi.submitForCaseworker(
+            userToken,
+            serviceToken,
+            userInfo.getUid(),
+            "WA",
+            "WaCaseType",
+            true,
+            caseDataContent
+        );
+
+        log.info("Created case [" + caseDetails.getId() + "]");
+
+        StartEventResponse submitCase = coreCaseDataApi.startEventForCaseWorker(
+            userToken,
+            serviceToken,
+            userInfo.getUid(),
+            "WA",
+            "WaCaseType",
+            caseDetails.getId().toString(),
+            "START_PROGRESS"
+        );
+
+        CaseDataContent submitCaseDataContent = CaseDataContent.builder()
+            .eventToken(submitCase.getToken())
+            .event(Event.builder()
+                       .id(submitCase.getEventId())
+                       .summary("summary")
+                       .description("description")
+                       .build())
+            .data(data)
+            .build();
+
+        coreCaseDataApi.submitEventForCaseWorker(
+            userToken,
+            serviceToken,
+            userInfo.getUid(),
+            "WA",
+            "WaCaseType",
+            caseDetails.getId().toString(),
+            true,
+            submitCaseDataContent
+        );
+        log.info("Submitted case [" + caseDetails.getId() + "]");
+
+        return caseDetails.getId().toString();
     }
 
     public GivensBuilder createTaskWithCaseId(String caseId) {
