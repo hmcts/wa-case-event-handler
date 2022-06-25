@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CancellationCaseEventHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.InitiationCaseEventHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.handlers.ReconfigurationCaseEventHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.WarningCaseEventHandler;
 
 import java.util.Collections;
@@ -46,6 +47,8 @@ class CaseEventHandlerControllerSecurityTest {
     private InitiationCaseEventHandler initiationCaseEventHandler;
     @MockBean
     private WarningCaseEventHandler warningCaseEventHandler;
+    @MockBean
+    private ReconfigurationCaseEventHandler reconfigurationCaseEventHandler;
 
     @Autowired
     private WebApplicationContext context;
@@ -80,6 +83,7 @@ class CaseEventHandlerControllerSecurityTest {
         when(cancellationCaseEventHandler.evaluateDmn(any())).thenReturn(Collections.emptyList());
         when(initiationCaseEventHandler.evaluateDmn(any())).thenReturn(Collections.emptyList());
         when(warningCaseEventHandler.evaluateDmn(any())).thenReturn(Collections.emptyList());
+        when(reconfigurationCaseEventHandler.evaluateDmn(any())).thenReturn(Collections.emptyList());
     }
 
     private static Stream<Arguments> scenarioProvider() {
