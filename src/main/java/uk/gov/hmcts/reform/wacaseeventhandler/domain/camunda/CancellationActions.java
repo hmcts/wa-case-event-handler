@@ -5,7 +5,8 @@ import static java.util.Arrays.stream;
 public enum CancellationActions {
 
     CANCEL,
-    WARN;
+    WARN,
+    RECONFIGURE;
 
     public static CancellationActions from(String value) {
         return stream(values())
