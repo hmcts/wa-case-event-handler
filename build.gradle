@@ -375,7 +375,7 @@ dependencies {
 
   implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.10.3'
 
-  runtimeOnly group: 'org.postgresql', name: 'postgresql', version: '42.3.5'
+  runtimeOnly group: 'org.postgresql', name: 'postgresql', version: '42.4.0'
 }
 
 mainClassName = 'uk.gov.hmcts.reform.wacaseeventhandler.Application'
