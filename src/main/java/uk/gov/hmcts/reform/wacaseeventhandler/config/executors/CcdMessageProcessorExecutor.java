@@ -18,7 +18,7 @@ import javax.annotation.PreDestroy;
 @Profile("!functional & !local")
 public class CcdMessageProcessorExecutor {
 
-    @Value("${scheduledExecutors.messageProcessing.pollIntervalSeconds}")
+    @Value("${scheduledExecutors.messageProcessing.pollIntervalMilliSeconds}")
     private int pollInterval;
 
     @Autowired
@@ -30,7 +30,10 @@ public class CcdMessageProcessorExecutor {
     @PostConstruct
     public void start() {
         log.info("Starting Database message executor");
-        databaseMessageExecutorService.scheduleAtFixedRate(databaseMessageConsumer, 5, pollInterval, TimeUnit.SECONDS);
+        databaseMessageExecutorService.scheduleAtFixedRate(databaseMessageConsumer,
+                                                           5000,
+                                                           pollInterval,
+                                                           TimeUnit.MILLISECONDS);
     }
 
     @PreDestroy

@@ -168,17 +168,17 @@ public class DatabaseMessageConsumer implements Runnable {
     private Optional<MessageUpdateRetry> processRetryableError(CaseEventMessage caseEventMessage) {
         int retryCount = caseEventMessage.getRetryCount() + 1;
         Integer newHoldUntilIncrement = RETRY_COUNT_TO_DELAY_MAP.get(retryCount);
+        String messageId = caseEventMessage.getMessageId();
 
         if (newHoldUntilIncrement != null) {
             LocalDateTime newHoldUntil = LocalDateTime.now().plusSeconds(newHoldUntilIncrement);
-            String messageId = caseEventMessage.getMessageId();
             log.info("Updating values, retry_count {} and hold_until {} on case event message {}",
                     retryCount,
                     newHoldUntil,
                     messageId);
             return updateMessageState(null, messageId, retryCount, newHoldUntil);
         }
-        return Optional.empty();
+        return updateMessageState(MessageState.UNPROCESSABLE, messageId, 0, null);
     }
 
     private Optional<MessageUpdateRetry> processError(CaseEventMessage caseEventMessage) {

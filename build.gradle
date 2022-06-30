@@ -13,7 +13,7 @@ plugins {
   id 'pmd'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-  id 'org.springframework.boot' version '2.6.7'
+  id 'org.springframework.boot' version '2.7.0'
   id 'org.owasp.dependencycheck' version '7.1.0.1'
   id 'uk.gov.hmcts.java' version '0.12.5'
   id 'com.github.ben-manes.versions' version '0.38.0'
@@ -201,6 +201,9 @@ dependencyUpdates {
 dependencyCheck {
   suppressionFile = 'config/owasp/suppressions.xml'
 
+  // CVE Scanning only relevant to production code that is published, not test or other implementations
+  scanConfigurations += 'releaseCompileClasspath'
+
   analyzers {
     // Disable scanning of .NET related binaries
     assemblyEnabled = false
@@ -228,7 +231,7 @@ dependencyManagement {
       entry 'logback-classic'
       entry 'logback-core'
     }
-    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.71.Final') {
+    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.77.Final') {
       entry 'netty-buffer'
       entry 'netty-codec'
       entry 'netty-codec-dns'
@@ -246,6 +249,9 @@ dependencyManagement {
       entry 'netty-resolver'
       entry 'netty-resolver-dns'
       entry 'netty-resolver-dns-native-macos'
+      entry 'netty-transport-classes-epoll'
+      entry 'netty-transport-classes-kqueue'
+      entry 'netty-resolver-dns-classes-macos'
     }
 
     dependencySet(group: 'org.seleniumhq.selenium', version: '4.1.4') {
@@ -272,11 +278,11 @@ def versions = [
   junitPlatform: '1.8.2',
   reformLogging: '5.1.9',
   springDoc    : '1.6.6',
-  springBoot   : '2.6.3',
+  springBoot   : '2.7.0',
   serenity     : '3.1.20',
   pitest       : '1.7.4',
   logbook      : '2.6.2',
-  tomcat       : '9.0.58',
+  tomcat       : '9.0.63',
   log4j        : '2.17.1'
 ]
 
@@ -298,7 +304,8 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: versions.springBoot
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: versions.springBoot
-  implementation group: 'org.springframework.security', name: 'spring-security-test', version: '5.6.3'
+  implementation group: 'org.springframework.security', name: 'spring-security-test', version: '5.7.1'
+  implementation group: 'org.springframework.security', name: 'spring-security-rsa', version: '1.0.11.RELEASE'
 
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.1.1'
 
@@ -322,16 +329,16 @@ dependencies {
 
   implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
 
-  implementation 'org.camunda.bpm:camunda-external-task-client:7.17.0'
+  implementation group: 'org.camunda.bpm', name: 'camunda-external-task-client', version: '7.17.0'
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '5.8.1'
-  implementation 'org.apache.commons:commons-lang3:3.12.0'
+  implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
 
   testImplementation libraries.junit5
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
   }
-  testImplementation "org.junit.vintage:junit-vintage-engine:${versions.junit}"
+  testImplementation group: 'org.junit.vintage', name: 'junit-vintage-engine', version: versions.junit
 
   testImplementation group: 'pl.pojo', name: 'pojo-tester', version: '0.7.6'
   testImplementation group: 'com.jparams', name: 'to-string-verifier', version: '1.4.8'
@@ -344,9 +351,10 @@ dependencies {
   testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.16.2'
 
   testImplementation group: 'org.pitest', name: 'pitest', version: versions.pitest
-  testImplementation 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.7.4'
-  testImplementation 'org.codehaus.sonar-plugins:sonar-pitest-plugin:0.5'
-  testImplementation 'com.github.hmcts:fortify-client:1.2.1:all'
+  testImplementation group: 'info.solidsoft.gradle.pitest', name: 'gradle-pitest-plugin', version: '1.7.4'
+  testImplementation group: 'org.codehaus.sonar-plugins', name: 'sonar-pitest-plugin', version: '0.5'
+
+  testImplementation group: 'com.github.hmcts', name: 'fortify-client', version: '1.2.1', classifier: 'all'
   testImplementation group: 'com.github.hmcts', name: 'document-management-client', version: '7.0.1'
 
   testUtilsImplementation sourceSets.main.runtimeClasspath

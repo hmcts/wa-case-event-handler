@@ -16,7 +16,7 @@ import javax.annotation.PreDestroy;
 
 @Slf4j
 @Component
-@ConditionalOnProperty("azure.servicebus.enableASB")
+@ConditionalOnProperty("azure.servicebus.enableASB-DLQ")
 @Profile("!functional & !local")
 public class CcdCaseEventsDeadLetterQueueExecutor {
 

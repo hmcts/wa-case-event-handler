@@ -13,7 +13,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageReceiverServi
 @Slf4j
 @Component
 @Scope("prototype")
-@ConditionalOnProperty("azure.servicebus.enableASB")
+@ConditionalOnProperty("azure.servicebus.enableASB-DLQ")
 @Profile("!functional & !local")
 @SuppressWarnings("PMD.DoNotUseThreads")
 public class CcdCaseEventsConsumer implements Runnable {

@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.CoreMatchers;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -49,7 +48,6 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
     }
 
     @Test
-    @Ignore("Ignore until AZURE_SERVICE_BUS_FEATURE_TOGGLE is turned on")
     public void given_post_event_using_test_rest_endpoints_should_create_task() {
         String caseIdForTask = getCaseId();
 

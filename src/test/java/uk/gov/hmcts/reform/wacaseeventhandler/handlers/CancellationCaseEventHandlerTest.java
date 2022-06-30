@@ -46,6 +46,7 @@ class CancellationCaseEventHandlerTest {
     public static final String CANCEL_TASKS_MESSAGE_NAME = "cancelTasks";
     private static final String TASK_CANCELLATION_DMN_TABLE = "wa-task-cancellation-ia-asylum";
     private static final String SERVICE_AUTH_TOKEN = "s2s token";
+
     private EventInformation eventInformation;
     @Mock
     private WorkflowApiClient workflowApiClient;
@@ -235,6 +236,16 @@ class CancellationCaseEventHandlerTest {
             "event", dmnStringValue("some event id"),
             "state", dmnStringValue("some post state"),
             "fromState", dmnStringValue("some previous state")
+        );
+
+        return new EvaluateDmnRequest(variables);
+    }
+
+    private EvaluateDmnRequest buildEvaluateUpdateDmnRequest() {
+        Map<String, DmnValue<?>> variables = Map.of(
+            "event", dmnStringValue("UPDATE"),
+            "state", dmnStringValue(""),
+            "fromState", dmnStringValue("")
         );
 
         return new EvaluateDmnRequest(variables);

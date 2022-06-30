@@ -40,7 +40,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDe
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.LAST_MODIFIED_DIRECTION;
 
 @Service
-@Order(3)
+@Order(4)
 @Slf4j
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports", "unchecked"})
 public class InitiationCaseEventHandler implements CaseEventHandler {

@@ -3,14 +3,14 @@ package uk.gov.hmcts.reform.wacaseeventhandler.config;
 import com.azure.messaging.servicebus.ServiceBusClientBuilder;
 import com.azure.messaging.servicebus.ServiceBusSenderClient;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PreDestroy;
 
 @Configuration
-@ConditionalOnProperty("azure.servicebus.enableASB")
+@ConditionalOnExpression("${azure.servicebus.enableASB:true} || ${azure.servicebus.enableASB-DLQ:true}")
 public class CcdEventPublisherConfiguration {
 
     @Value("${azure.servicebus.connection-string}")
