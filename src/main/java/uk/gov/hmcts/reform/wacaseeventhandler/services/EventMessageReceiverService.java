@@ -51,10 +51,10 @@ public class EventMessageReceiverService {
         this.featureFlagProvider = featureFlagProvider;
     }
 
-    public CaseEventMessage handleDlqMessage(String messageId, String message) {
+    public CaseEventMessage handleDlqMessage(String messageId, String sessionId, String message) {
         log.info("Received Case Event Dead Letter Queue message with id '{}'", messageId);
         if (featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, UserIdParser.getUserId(message))) {
-            return handleMessage(messageId, message, true);
+            return handleMessage(messageId, sessionId,  message, true);
         } else {
             log.info("Feature flag '{}' evaluated to false. Message not inserted into database",
                     DLQ_DB_INSERT.getKey());
@@ -62,16 +62,16 @@ public class EventMessageReceiverService {
         return null;
     }
 
-    public CaseEventMessage handleAsbMessage(String messageId, String message) {
+    public CaseEventMessage handleAsbMessage(String messageId, String sessionId, String message) {
         log.info("Received ASB message with id '{}'", messageId);
-        return handleMessage(messageId, message, false);
+        return handleMessage(messageId, sessionId, message, false);
     }
 
-    public CaseEventMessage handleCcdCaseEventAsbMessage(String messageId, String message) {
+    public CaseEventMessage handleCcdCaseEventAsbMessage(String messageId, String sessionId, String message) {
         log.info("Received CCD Case Events ASB message with id '{}'", messageId);
 
         if (featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, UserIdParser.getUserId(message))) {
-            return handleMessage(messageId, message, false);
+            return handleMessage(messageId, sessionId, message, false);
         } else {
             log.info("Feature flag '{}' evaluated to false. Message not inserted into database",
                     DLQ_DB_INSERT.getKey());
@@ -109,7 +109,7 @@ public class EventMessageReceiverService {
         repository.deleteById(entity.getSequence());
     }
 
-    public CaseEventMessage upsertMessage(String messageId, String message, Boolean fromDlq) {
+    public CaseEventMessage upsertMessage(String messageId, String sessionId, String message, Boolean fromDlq) {
 
         List<CaseEventMessageEntity> byMessageId = repository.findByMessageId(messageId);
         if (byMessageId != null) {
@@ -128,7 +128,8 @@ public class EventMessageReceiverService {
                     log.error("Could not parse the message with id '{}'", messageId);
 
                     boolean isDlq = TRUE.equals(fromDlq);
-                    CaseEventMessageEntity messageEntity = build(messageId, message, isDlq, MessageState.UNPROCESSABLE);
+                    CaseEventMessageEntity messageEntity = build(messageId, sessionId, message, isDlq,
+                                                                 MessageState.UNPROCESSABLE);
                     repository.save(messageEntity);
 
                     return mapper.mapToCaseEventMessage(messageEntity);
@@ -136,10 +137,10 @@ public class EventMessageReceiverService {
             }
         }
 
-        return handleMessage(messageId, message, fromDlq);
+        return handleMessage(messageId, sessionId, message, fromDlq);
     }
 
-    private CaseEventMessage handleMessage(String messageId, String message, Boolean fromDlq) {
+    private CaseEventMessage handleMessage(String messageId, String sessionId, String message, Boolean fromDlq) {
 
         try {
             CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId, message, fromDlq);
@@ -152,7 +153,8 @@ public class EventMessageReceiverService {
             log.error("Could not parse the message with id '{}'", messageId);
 
             boolean isDlq = TRUE.equals(fromDlq);
-            CaseEventMessageEntity messageEntity = build(messageId, message, isDlq, MessageState.UNPROCESSABLE);
+            CaseEventMessageEntity messageEntity = build(messageId, sessionId, message, isDlq,
+                                                         MessageState.UNPROCESSABLE);
             CaseEventMessageEntity savedEntity = insertMessage(messageEntity);
 
 
@@ -222,11 +224,13 @@ public class EventMessageReceiverService {
     }
 
     private CaseEventMessageEntity build(String messageId,
+                                         String sessionId,
                                          String message,
                                          boolean fromDlq,
                                          MessageState state) {
         CaseEventMessageEntity caseEventMessageEntity = new CaseEventMessageEntity();
         caseEventMessageEntity.setMessageId(messageId);
+        caseEventMessageEntity.setCaseId(sessionId);
         caseEventMessageEntity.setFromDlq(fromDlq);
         caseEventMessageEntity.setState(state);
         caseEventMessageEntity.setMessageContent(message);
@@ -246,4 +250,6 @@ public class EventMessageReceiverService {
             && isNotBlank(eventInformation.getEventTimeStamp().toString())
             && fromDlq != null;
     }
+
+
 }

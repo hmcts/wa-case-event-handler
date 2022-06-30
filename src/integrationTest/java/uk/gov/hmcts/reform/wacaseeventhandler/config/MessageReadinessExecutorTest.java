@@ -11,13 +11,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
+import uk.gov.hmcts.reform.wacaseeventhandler.clients.MessageReadinessConsumer;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.executors.MessageReadinessExecutor;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DeadLetterQueuePeekService;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.MessageReadinessConsumer;
 
 import java.util.List;
+import java.util.concurrent.Executors;
 
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
@@ -60,7 +61,10 @@ class MessageReadinessExecutorTest {
         MessageReadinessConsumer messageReadinessConsumer =
                 new MessageReadinessConsumer(deadLetterQueuePeekService, caseEventMessageRepository,
                         launchDarklyFeatureFlagProvider);
-        ReflectionTestUtils.setField(messageReadinessExecutor, "messageReadinessConsumer", messageReadinessConsumer);
+        ReflectionTestUtils.setField(messageReadinessExecutor, "messageReadinessConsumer",
+                                     messageReadinessConsumer);
+        ReflectionTestUtils.setField(messageReadinessExecutor, "messageReadinessExecutorService",
+                                     Executors.newScheduledThreadPool(1));
         ReflectionTestUtils.setField(messageReadinessExecutor, "pollInterval", 2);
 
         CaseEventMessageEntity caseEventMessageEntity = new CaseEventMessageEntity();
@@ -68,15 +72,17 @@ class MessageReadinessExecutorTest {
         when(caseEventMessageRepository.getAllMessagesInNewState()).thenReturn(List.of(caseEventMessageEntity));
         when(deadLetterQueuePeekService.isDeadLetterQueueEmpty()).thenReturn(true);
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
-        messageReadinessExecutor.createMessageReadinessConsumer();
+        messageReadinessExecutor.start();
 
         await().until(
             () -> getLogMessageOccurrenceCount(PROCESS_LOG_MESSAGE) > 2
         );
+
+        messageReadinessExecutor.cleanup();
     }
 
     private long getLogMessageOccurrenceCount(String expectedMessage)  {
-        List<ILoggingEvent> logsList = listAppender.list;
+        List<ILoggingEvent> logsList = List.copyOf(listAppender.list);
         return logsList.stream().filter(x -> x.getFormattedMessage().startsWith(expectedMessage)).count();
     }
 }

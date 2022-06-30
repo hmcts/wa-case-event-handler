@@ -18,30 +18,36 @@ public interface CaseEventMessageRepository extends CrudRepository<CaseEventMess
             "select * "
                     + "from public.wa_case_event_messages msg "
                     + "where msg.state = 'READY' "
+                    // earliest event message unprocessed message for the case
                     + "and (msg.case_id, msg.event_timestamp) in ( "
                     + "  select case_id, min(event_timestamp) "
                     + "  from wa_case_event_messages "
                     + "  where state != 'PROCESSED' "
                     + "  group by case_id) "
+                    // there is no event message for the same case with timestamp null
                     + "and not exists (select 1 from wa_case_event_messages e "
                     + "                where e.case_id = msg.case_id "
                     + "                and e.event_timestamp is null) "
+                    // there is no any event message with case id null
                     + "and not exists (select 1 from wa_case_event_messages c "
                     + "                where c.case_id is null) "
                     + "and ( "
                     + "  not msg.from_dlq "
                     + "  or ( "
+                    // if message from dlq
                     + "    msg.from_dlq and ( "
+                    // There is at least one non dlq message in ready state and higher timestamp for the same case
                     + "      exists (select 1 from wa_case_event_messages d "
                     + "              where d.case_id = msg.case_id "
                     + "              and d.event_timestamp > msg.event_timestamp "
                     + "              and not d.from_dlq "
                     + "              and d.state = 'READY') "
+                    // There is at least one non dlq message in ready or processed state and timestamp is 30 min higher
                     + "      or exists (select 1 from wa_case_event_messages d "
                     + "                 where d.event_timestamp > msg.event_timestamp + interval '30 minutes' "
                     + "                 and not d.from_dlq "
                     + "                 and d.state in ('READY', 'PROCESSED'))))) "
-                    + "and (event_timestamp > hold_until or hold_until is null)"
+                    + "and (current_timestamp > hold_until or hold_until is null)"
                     + "for update skip locked "
                     + "limit 1 ";
 
@@ -50,9 +56,35 @@ public interface CaseEventMessageRepository extends CrudRepository<CaseEventMess
             + " SET state = cast(:#{#messageState.toString()} as message_state_enum)"
             + " WHERE message_id in (:messageIds)";
 
+    String UPDATE_CASE_MESSAGE_RETRY_DETAILS =
+        "UPDATE public.wa_case_event_messages SET retry_count = :retryCount, "
+            + "hold_until = :holdUntil WHERE message_id = :messageId";
+
     String SELECT_NEW_MESSAGES =
             "SELECT * from public.wa_case_event_messages msg where msg.state = 'NEW' "
             + "order by sequence DESC for update skip locked";
+
+
+    String FIND_PROBLEM_MESSAGES = "SELECT message_id,\n"
+                                  + "sequence,\n"
+                                  + "case_id,\n"
+                                  + "event_timestamp,\n"
+                                  + "from_dlq,\n"
+                                  + "state,\n"
+                                  + "null as message_properties,\n"
+                                  + "null as message_content,\n"
+                                  + "received,\n"
+                                  + "delivery_count,\n"
+                                  + "hold_until,\n"
+                                  + "retry_count \n"
+                                  + "from wa_case_event_messages msg \n"
+                                  + "where msg.state IN ('UNPROCESSABLE', 'READY') \n"
+                                  + "and case when msg.state='READY' "
+                                  + "then EXTRACT(EPOCH FROM (((current_timestamp - interval '" + " ?1 minutes')"
+                                  + " - msg.event_timestamp )))/60 "
+                                  + "> ?1 "
+                                  + "else 1=1 end \n"
+                                  + "order by state;";
 
     @Query("FROM CaseEventMessageEntity cem WHERE cem.messageId=:messageId")
     List<CaseEventMessageEntity> findByMessageId(String messageId);
@@ -66,12 +98,14 @@ public interface CaseEventMessageRepository extends CrudRepository<CaseEventMess
                            @Param("messageIds") List<String> messageIds);
 
     @Modifying
-    @Query(value = "UPDATE public.wa_case_event_messages SET retry_count = :retryCount, "
-                    + "hold_until = :holdUntil WHERE message_id = :messageId", nativeQuery = true)
+    @Query(value = UPDATE_CASE_MESSAGE_RETRY_DETAILS, nativeQuery = true)
     int updateMessageWithRetryDetails(@Param("retryCount") int retryCount,
                                       @Param("holdUntil") LocalDateTime holdUntil,
                                       @Param("messageId") String messageId);
 
     @Query(value = SELECT_NEW_MESSAGES, nativeQuery = true)
     List<CaseEventMessageEntity> getAllMessagesInNewState();
+
+    @Query(value = FIND_PROBLEM_MESSAGES, nativeQuery = true)
+    List<CaseEventMessageEntity> findProblemMessages(int messageTimeLimit);
 }

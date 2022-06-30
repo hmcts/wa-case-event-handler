@@ -8,7 +8,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.config.ServiceBusConfiguration;
 
 @Slf4j
 @Service
-@ConditionalOnProperty("azure.servicebus.enableASB")
+@ConditionalOnProperty("azure.servicebus.enableASB-DLQ")
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class DeadLetterQueuePeekService {
 

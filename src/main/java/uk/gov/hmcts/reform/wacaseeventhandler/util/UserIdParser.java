@@ -18,9 +18,7 @@ public final class UserIdParser {
             JsonNode messageAsJson = new ObjectMapper().readTree(message);
             final JsonNode userIdNode = messageAsJson.findPath(USER_ID);
             if (!userIdNode.isMissingNode()) {
-                String userIdTextValue = userIdNode.textValue();
-                log.info("Returning User Id {} found in message", userIdTextValue);
-                return userIdTextValue;
+                return userIdNode.textValue();
             }
         } catch (IllegalArgumentException | JsonProcessingException e) {
             log.info("Unable to find User Id in message");

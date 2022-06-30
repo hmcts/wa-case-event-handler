@@ -12,13 +12,14 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageReceiverServi
 @Slf4j
 @Component
 @Scope("prototype")
-@ConditionalOnProperty("azure.servicebus.enableASB")
+@ConditionalOnProperty("azure.servicebus.enableASB-DLQ")
 @Profile("!functional & !local")
 @SuppressWarnings("PMD.DoNotUseThreads")
 public class CcdCaseEventsDeadLetterQueueConsumer implements Runnable {
 
     private final ServiceBusConfiguration serviceBusConfiguration;
     private final EventMessageReceiverService eventMessageReceiverService;
+    private boolean keepRun = true;
 
     public CcdCaseEventsDeadLetterQueueConsumer(ServiceBusConfiguration serviceBusConfiguration,
                                                 EventMessageReceiverService eventMessageReceiverService) {
@@ -31,7 +32,7 @@ public class CcdCaseEventsDeadLetterQueueConsumer implements Runnable {
     public void run() {
         try (ServiceBusReceiverClient sessionReceiver =
                      serviceBusConfiguration.createCcdCaseEventsDeadLetterQueueSessionReceiver()) {
-            while (true) {
+            while (keepRun) {
                 consumeMessage(sessionReceiver);
             }
         }
@@ -39,24 +40,37 @@ public class CcdCaseEventsDeadLetterQueueConsumer implements Runnable {
 
     @SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
     protected void consumeMessage(ServiceBusReceiverClient receiver) {
-        receiver.receiveMessages(1).forEach(
-            message -> {
-                final String messageId = message.getMessageId();
-                try {
-                    log.info("Received CCD Case Event Dead Letter Queue message with id '{}'", messageId);
+        try {
+            receiver.receiveMessages(1).forEach(
+                message -> {
+                    final String messageId = message.getMessageId();
+                    try {
+                        log.info("Received CCD Case Event Dead Letter Queue message with id '{}'", messageId);
 
-                    eventMessageReceiverService.handleDlqMessage(messageId,
-                            new String(message.getBody().toBytes()));
+                        eventMessageReceiverService.handleDlqMessage(
+                            messageId,
+                            message.getSessionId(),
+                            new String(message.getBody().toBytes())
+                        );
 
-                    receiver.complete(message);
+                        receiver.complete(message);
 
-                    log.info("CCD Case Event Dead Letter Queue message with id '{}' handled successfully",
-                            messageId);
-                } catch (Exception ex) {
-                    log.error("Error processing CCD Case Event Dead Letter Queue message with id '{}' - "
-                            + "will continue to complete message", messageId);
-                    receiver.complete(message);
-                }
-            });
+                        log.info(
+                            "CCD Case Event Dead Letter Queue message with id '{}' handled successfully",
+                            messageId
+                        );
+                    } catch (Exception ex) {
+                        log.error("Error processing CCD Case Event Dead Letter Queue message with id '{}' - "
+                                      + "abandon the processing and ASB will re-deliver it", messageId);
+                        receiver.abandon(message);
+                    }
+                });
+        } catch (Exception ex) {
+            log.error("Error occurred while completing the message processing", ex);
+        }
+    }
+
+    public void stop() {
+        keepRun = false;
     }
 }

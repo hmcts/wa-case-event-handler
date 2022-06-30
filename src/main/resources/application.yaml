@@ -18,7 +18,7 @@ idam:
     secret: ${S2S_SECRET_CASE_EVENT_HANDLER:AAAAAAAAAAAAAAAA}
     name: ${S2S_NAME_CASE_EVENT_HANDLER:wa_case_event_handler}
   s2s-authorised:
-    services: ${WA_S2S_AUTHORIZED_SERVICES:wa_case_event_handler,wa_task_monitor,wa_task_management_api}
+    services: ${WA_S2S_AUTHORIZED_SERVICES:wa_case_event_handler,wa_task_monitor,wa_task_management_api,wa_message_cron_service}
   redirectUrl: ${IA_IDAM_REDIRECT_URI:http://xui-webapp/oauth2/callback}
   scope: "openid profile roles"
   api:
@@ -27,7 +27,8 @@ idam:
 
 wa-workflow-api:
   url: ${WA_WORKFLOW_API_URL:http://localhost:8099}
-
+wa-task-management-api:
+  url: ${WA_TASK_MANAGEMENT_API_URL:http://localhost:8087}
 spring:
   config:
     import: "optional:configtree:/mnt/secrets/wa/"
@@ -57,6 +58,9 @@ spring:
             client-id: ${WA_IDAM_CLIENT_ID:wa}
             client-secret: ${WA_IDAM_CLIENT_SECRET:something}
 
+springdoc:
+  packagesToScan: uk.gov.hmcts.reform.wacaseeventhandler.controllers
+
 security:
   anonymousPaths:
     - "/"
@@ -67,8 +71,8 @@ security:
     - "/swagger-resources/**"
     - "/swagger-ui/**"
     - "/swagger-ui/index.html"
-    - "/v2/api-docs"
-    - "/webjars/springfox-swagger-ui/**"
+    - "/v3/**"
+    - "/webjars/**"
     - "/favicon.ico"
 
 govUkHolidays:
@@ -83,6 +87,7 @@ azure:
     retry-duration: ${AZURE_SERVICE_BUS_RETRY_DURATION:60}
     threads: ${AZURE_SERVICE_BUS_CONCURRENT_SESSIONS:1}
     enableASB: ${AZURE_SERVICE_BUS_FEATURE_TOGGLE:false}
+    enableASB-DLQ: ${AZURE_SERVICE_BUS_DLQ_FEATURE_TOGGLE:false}
     retry-attempts: ${AZURE_SERVICE_BUS_RETRY_ATTEMPTS:3}
 
 environment: ${ENVIRONMENT:local}
@@ -109,9 +114,6 @@ feign:
 logbook:
   include: /workflow/**
 
-messageProcessing:
-  pollIntervalSeconds: ${MESSAGE_PROCESSING_POLL_INTERVAL_SECONDS:30}
-
 role-assignment-service:
   url: ${ROLE_ASSIGNMENT_URL:http://role-assignment}
 
@@ -122,6 +124,13 @@ core_case_data:
 
 scheduledExecutors:
   messageProcessing:
-    pollIntervalSeconds: ${MESSAGE_PROCESSING_POLL_INTERVAL_SECONDS:30}
+    pollIntervalMilliSeconds: ${MESSAGE_PROCESSING_POLL_INTERVAL_MILLISECONDS:5000}
+    threadPoolSize: ${MESSAGE_PROCESSING_THREAD_POOL_SIZE:1}
   messageReadiness:
-    pollIntervalSeconds: ${MESSAGE_READINESS_POLL_INTERVAL_SECONDS:30}
+    pollIntervalMilliSeconds: ${MESSAGE_READINESS_POLL_INTERVAL_MILLISECONDS:5000}
+    threadPoolSize: ${MESSAGE_READINESS_THREAD_POOL_SIZE:1}
+
+job:
+  problem-message:
+    #number of minutes
+    message-time-limit: ${PROLEM-MESSAGE_TIME_LIMIT:60}
