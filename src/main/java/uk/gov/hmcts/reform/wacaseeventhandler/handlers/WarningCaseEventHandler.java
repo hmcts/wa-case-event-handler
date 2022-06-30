@@ -2,10 +2,13 @@ package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClient;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.CancellationActions;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.Warning;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.WarningValues;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.request.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.request.SendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.CancellationEvaluateResponse;
@@ -14,6 +17,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateRe
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,34 +67,98 @@ public class WarningCaseEventHandler implements CaseEventHandler {
         return response.getResults();
     }
 
+    @SuppressWarnings("PMD.ConfusingTernary")
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
+        Set<CancellationEvaluateResponse> emptyWarnings = new LinkedHashSet<>();
+        Set<CancellationEvaluateResponse> ctgWarnings = new LinkedHashSet<>();
+        Set<Warning> warnings = new LinkedHashSet<>();
+
         results.stream()
             .filter(CancellationEvaluateResponse.class::isInstance)
             .map(CancellationEvaluateResponse.class::cast)
             .filter(result -> CancellationActions.WARN == CancellationActions.from(result.getAction().getValue()))
-            .forEach(cancellationEvaluateResponse -> {
-                DmnValue<String> taskCategories = cancellationEvaluateResponse.getTaskCategories();
-                DmnValue<String> processCategories = cancellationEvaluateResponse.getProcessCategories();
-                sendWarningMessage(
-                    eventInformation.getCaseId(),
-                    taskCategories,
-                    processCategories,
-                    cancellationEvaluateResponse.getWarningCode(),
-                    cancellationEvaluateResponse.getWarningText()
-                );
+            .forEach(warnResponse -> {
+                if (ObjectUtils.isEmpty(warnResponse.getWarningCode())
+                    || ObjectUtils.isEmpty(warnResponse.getWarningText())) {
+                    emptyWarnings.add(warnResponse);
+                } else {
+                    if (!ObjectUtils.isEmpty(warnResponse.getProcessCategories())
+                        || !ObjectUtils.isEmpty(warnResponse.getTaskCategories())) {
+                        CancellationEvaluateResponse localWarnResponse = CancellationEvaluateResponse.builder()
+                            .processCategories(warnResponse.getProcessCategories())
+                            .taskCategories(warnResponse.getTaskCategories())
+                            .warningText(warnResponse.getWarningText())
+                            .warningCode(warnResponse.getWarningCode()).build();
+                        ctgWarnings.add(localWarnResponse);
+                    } else {
+                        final Warning warning = new Warning(
+                            warnResponse.getWarningCode().getValue(),
+                            warnResponse.getWarningText().getValue()
+                        );
+                        warnings.add(warning);
+                    }
+                }
             });
 
+        processWarningResponse(emptyWarnings, warnings, ctgWarnings, eventInformation);
+    }
+
+    private void processWarningResponse(
+        Set<CancellationEvaluateResponse> emptyWarnings,
+        Set<Warning> warnings,
+        Set<CancellationEvaluateResponse> ctgWarnings,
+        EventInformation eventInformation
+
+    ) {
+        // scenario: event without warning attributes
+        if (!emptyWarnings.isEmpty()) {
+            emptyWarnings.forEach(response -> sendWarningMessage(
+                eventInformation.getCaseId(),
+                response.getTaskCategories(),
+                response.getProcessCategories(),
+                null)
+            );
+        }
+
+        // scenario: event without categories. Should contain unique warning attributes
+        if (!warnings.isEmpty()) {
+            WarningValues warningValues = new WarningValues();
+            warnings.forEach(warning -> warningValues.getValues().add(warning));
+
+            sendWarningMessage(
+                eventInformation.getCaseId(),
+                null,
+                null,
+                warningValues.getValuesAsJson()
+            );
+        }
+        // scenario: event with categories and warning attributes
+        if (!ctgWarnings.isEmpty()) {
+            ctgWarnings.forEach(response -> {
+                final Warning warning = new Warning(response.getWarningCode().getValue(),
+                                                    response.getWarningText().getValue());
+
+                WarningValues warningValues = new WarningValues();
+                warningValues.getValues().add(warning);
+
+                sendWarningMessage(
+                    eventInformation.getCaseId(),
+                    response.getTaskCategories(),
+                    response.getProcessCategories(),
+                    warningValues.getValuesAsJson()
+                );
+            });
+        }
     }
 
     private void sendWarningMessage(String caseReference,
                                     DmnValue<String> categories,
                                     DmnValue<String> processCategories,
-                                    DmnValue<String> warningCode,
-                                    DmnValue<String> warningText) {
+                                    String warningVariables) {
         Set<SendMessageRequest> warningMessageRequest =
             buildWarningMessageRequest(caseReference, categories,
-                                       processCategories, warningCode, warningText);
+                                       processCategories, warningVariables);
 
         warningMessageRequest.forEach(message -> {
                 if (message != null) {
@@ -105,16 +173,13 @@ public class WarningCaseEventHandler implements CaseEventHandler {
         String caseReference,
         DmnValue<String> categories,
         DmnValue<String> processCategories,
-        DmnValue<String> warningCode,
-        DmnValue<String> warningText
+        String warningVariables
     ) {
 
         SendMessageRequest oldFormatWarningMessage =
-            createOldFormatWarningMessage(caseReference, categories, processCategories,
-                                          warningCode, warningText);
+            createOldFormatWarningMessage(caseReference, categories, processCategories, warningVariables);
         SendMessageRequest warningMessage =
-            createWarningMessage(caseReference, categories, processCategories,
-                                 warningCode, warningText);
+            createWarningMessage(caseReference, categories, processCategories, warningVariables);
 
         return new HashSet<>(asList(oldFormatWarningMessage, warningMessage));
     }
@@ -130,8 +195,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
     private SendMessageRequest createWarningMessage(String caseReference,
                                                     DmnValue<String> categories,
                                                     DmnValue<String> processCategories,
-                                                    DmnValue<String> warningCode,
-                                                    DmnValue<String> warningText) {
+                                                    String warningVariables) {
 
         Map<String, DmnValue<?>> correlationKeys = new ConcurrentHashMap<>();
         correlationKeys.put("caseId", dmnStringValue(caseReference));
@@ -156,8 +220,8 @@ public class WarningCaseEventHandler implements CaseEventHandler {
             );
         }
 
-        if (checkForWarningProperties(warningCode, warningText)) {
-            return addWarningsToProcessVariables(correlationKeys, warningCode, warningText);
+        if (!ObjectUtils.isEmpty(warningVariables)) {
+            return addWarningsToProcessVariables(correlationKeys, warningVariables);
         }
 
         return SendMessageRequest.builder()
@@ -180,8 +244,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
     private SendMessageRequest createOldFormatWarningMessage(String caseReference,
                                                              DmnValue<String> categories,
                                                              DmnValue<String> processCategories,
-                                                             DmnValue<String> warningCode,
-                                                             DmnValue<String> warningText) {
+                                                             String warningVariables) {
 
         if (processCategories == null) {
             Map<String, DmnValue<?>> correlationKeys = new ConcurrentHashMap<>();
@@ -191,8 +254,8 @@ public class WarningCaseEventHandler implements CaseEventHandler {
                 correlationKeys.put("taskCategory", categories);
             }
 
-            if (checkForWarningProperties(warningCode, warningText)) {
-                return addWarningsToProcessVariables(correlationKeys, warningCode, warningText);
+            if (!ObjectUtils.isEmpty(warningVariables)) {
+                return addWarningsToProcessVariables(correlationKeys, warningVariables);
             }
             return SendMessageRequest.builder()
                 .messageName(TASK_WARN.getMessageName())
@@ -204,7 +267,6 @@ public class WarningCaseEventHandler implements CaseEventHandler {
         return null;
 
     }
-
 
     private EvaluateDmnRequest buildEvaluateDmnRequest(
         String previousStateId,
@@ -220,25 +282,14 @@ public class WarningCaseEventHandler implements CaseEventHandler {
         return new EvaluateDmnRequest(variables);
     }
 
-    private boolean checkForWarningProperties(
-        DmnValue<String> warningCode, DmnValue<String> warningText) {
-        return warningCode != null && warningText != null;
-    }
-
     private SendMessageRequest addWarningsToProcessVariables(
         Map<String, DmnValue<?>> correlationKeys,
-        DmnValue<String> warningCode,
-        DmnValue<String> warningText) {
-
-        Map<String, DmnValue<?>> processVariables = Map.of(
-            "warningCode", warningCode,
-            "warningText", warningText
-        );
+        String warningVariables) {
 
         return SendMessageRequest.builder()
             .messageName(TASK_WARN.getMessageName())
             .correlationKeys(correlationKeys)
-            .processVariables(processVariables)
+            .processVariables(Map.of("warningsToAdd", new DmnValue<>(warningVariables, "String")))
             .all(true)
             .build();
     }

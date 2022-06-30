@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 import com.azure.messaging.servicebus.ServiceBusMessage;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -12,28 +11,32 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wacaseeventhandler.clients.TaskManagementTestClient;
+import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TerminateInfo;
+import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestAuthenticationCredentials;
+import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.util.Collections.emptyMap;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -42,67 +45,195 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonS
 @Slf4j
 public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest {
 
-    private String taskToTearDown;
+    protected Map<String, String> taskIdStatusMap;
+    protected String caseId1Task1Id;
+    protected String caseId1Task2Id;
+    protected String caseId2Task1Id;
+    protected String caseId2Task2Id;
+    protected TestAuthenticationCredentials caseworkerCredentials;
     private LocalDateTime eventTimeStamp;
-
     @Autowired
     private DueDateService dueDateService;
+
+    @Autowired
+    private TaskManagementTestClient taskManagementTestClient;
+
+    protected void sendMessage(String caseId,
+                               String event,
+                               String previousStateId,
+                               String newStateId,
+                               boolean taskDelay,
+                               String jurisdictionId,
+                               String caseTypeId) {
+
+        if (taskDelay) {
+            eventTimeStamp = LocalDateTime.now().plusSeconds(2);
+        }
+        EventInformation eventInformation = getEventInformation(
+            caseId,
+            event,
+            previousStateId,
+            newStateId,
+            eventTimeStamp,
+            jurisdictionId,
+            caseTypeId
+        );
+
+        if (publisher != null) {
+            publishMessageToTopic(eventInformation);
+            waitSeconds(2);
+        } else {
+            callRestEndpoint(s2sToken, eventInformation);
+        }
+    }
+
+    protected void sendMessageWithAdditionalData(String caseId, String event, String previousStateId,
+                                                 String newStateId, boolean taskDelay) {
+
+        if (taskDelay) {
+            eventTimeStamp = LocalDateTime.now().plusSeconds(2);
+        }
+        EventInformation eventInformation = getEventInformationWithAdditionalData(
+            caseId, event, previousStateId, newStateId, eventTimeStamp
+        );
+
+        if (publisher != null) {
+            publishMessageToTopic(eventInformation);
+        } else {
+            callRestEndpoint(s2sToken, eventInformation);
+        }
+    }
+
+    protected String createTaskWithId(String caseId,
+                                      String eventId,
+                                      String previousStateId,
+                                      String newStateId,
+                                      boolean delayUntil,
+                                      String outcomeTaskId,
+                                      String jurisdictionId,
+                                      String caseTypeId) {
+
+        sendMessage(caseId, eventId, previousStateId, newStateId, delayUntil, jurisdictionId, caseTypeId);
+
+        // if the delayUntil is true, then the taskCreation process waits for delayUntil timer
+        // to expire. The task is delayed for 2 seconds,
+        // so manually waiting for 5 seconds for process to start
+        if (delayUntil) {
+            waitSeconds(10);
+        } else {
+            waitSeconds(5);
+        }
+
+        return findTaskForGivenCaseId(caseId, outcomeTaskId);
+    }
+
+    protected void assertDelayDuration(Response result) {
+        Map<String, Object> mapJson = result.jsonPath().get("dueDate");
+        final String dueDateVal = (String) mapJson.get("value");
+        final LocalDateTime dueDateTime = LocalDateTime.parse(dueDateVal);
+
+        mapJson = result.jsonPath().get("delayUntil");
+        final String delayUntil = (String) mapJson.get("value");
+        final LocalDateTime delayUntilDateTime = LocalDateTime.parse(
+            delayUntil,
+            DateTimeFormatter.ISO_LOCAL_DATE_TIME
+        );
+
+        mapJson = result.jsonPath().get("workingDaysAllowed");
+        int workingDaysLocal = (Integer) mapJson.get("value");
+
+        ZoneId zoneId = ZoneId.of("Europe/London");
+        ZonedDateTime zonedDateTimeStamp = eventTimeStamp.atZone(zoneId);
+        final ZonedDateTime expectedDueDate = dueDateService.calculateDueDate(zonedDateTimeStamp, workingDaysLocal);
+
+        assertAll(
+            () -> assertEquals(expectedDueDate.getYear(), dueDateTime.getYear()),
+            () -> assertEquals(expectedDueDate.getMonthValue(), dueDateTime.getMonthValue()),
+            () -> assertEquals(expectedDueDate.getDayOfMonth(), dueDateTime.getDayOfMonth()),
+            () -> assertEquals(16, dueDateTime.getHour()),
+            () -> assertEquals(0, dueDateTime.getMinute()),
+            () -> assertEquals(0, dueDateTime.getSecond()),
+            () -> assertEquals(0, dueDateTime.getNano()),
+            () -> assertEquals(eventTimeStamp.getYear(), delayUntilDateTime.getYear()),
+            () -> assertEquals(eventTimeStamp.getMonthValue(), delayUntilDateTime.getMonthValue()),
+            () -> assertEquals(eventTimeStamp.getDayOfMonth(), delayUntilDateTime.getDayOfMonth()),
+            () -> assertEquals(eventTimeStamp.getHour(), delayUntilDateTime.getHour()),
+            () -> assertEquals(eventTimeStamp.getMinute(), delayUntilDateTime.getMinute()),
+            () -> assertEquals(eventTimeStamp.getSecond(), delayUntilDateTime.getSecond()),
+            () -> assertEquals(eventTimeStamp.getNano(), delayUntilDateTime.getNano())
+        );
+    }
 
     @Before
     public void setup() {
         eventTimeStamp = LocalDateTime.now().minusDays(1);
+        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+
+        taskIdStatusMap = new HashMap<>();
+        caseId1Task1Id = "";
+        caseId1Task2Id = "";
+        caseId2Task1Id = "";
+        caseId2Task2Id = "";
+    }
+
+    @After
+    public void cleanUp() {
+        taskIdStatusMap.forEach((key, value) -> completeTask(key, value));
+        authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
+        common.cleanUpTask(caseworkerCredentials.getHeaders(), caseIds);
     }
 
     @Test
     public void should_succeed_and_create_a_task_with_no_categories() {
-        String caseId = UUID.randomUUID().toString();
+
+        String caseId = getCaseId();
 
         sendMessage(
             caseId,
-            "makeAnApplication",
+            "changeDirectionDueDate",
             "",
             "",
-            false
+            false,
+            "IA",
+            "Asylum"
         );
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
-        String taskId = taskFound
+        caseId1Task1Id = taskFound
             .then().assertThat()
             .body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
 
-        Response response = findTaskDetailsForGivenTaskId(taskId);
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
+
+        Response response = findTaskDetailsForGivenTaskId(caseId1Task1Id);
 
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", is("asylum"))
-            .body("idempotencyKey.value", notNullValue())
-            .body("jurisdiction.value", is("ia"))
+            .body("caseTypeId.value", is("Asylum"))
+            .body("jurisdiction.value", is("IA"))
             .body("dueDate.value", notNullValue())
-            .body("taskState.value", is("unconfigured")) // <- expected because caseId does not exist
+            .body("taskState.value", is("unassigned"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseId))
-            .body("name.value", is("Process Application"))
+            .body("name.value", is("Follow-up extended direction"))
             .body("workingDaysAllowed.value", is(2))
             .body("isDuplicate.value", is(false))
             .body("delayUntil.value", notNullValue())
-            .body("taskId.value", is("processApplication"))
-            .body("group.value", is("TCW"))
-            .body("caseId.value", is(caseId))
-            .body("hasWarnings.value", is(false))
+            .body("taskId.value", is("followUpExtendedDirection"))
             .body("warningList.value", is("[]"));
 
-        taskToTearDown = taskId;
     }
 
     @Test
     public void should_succeed_and_create_a_task_with_single_categories() {
-        String caseId = UUID.randomUUID().toString();
 
-        sendMessage(
+        String caseId = getCaseId();
+
+        sendMessageWithAdditionalData(
             caseId,
             "submitAppeal",
             "",
@@ -112,22 +243,24 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
-        String taskId = taskFound
+        caseId1Task1Id = taskFound
             .then().assertThat()
             .body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
 
-        Response response = findTaskDetailsForGivenTaskId(taskId);
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
+
+        Response response = findTaskDetailsForGivenTaskId(caseId1Task1Id);
 
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", is("asylum"))
+            .body("caseTypeId.value", is("Asylum"))
             .body("idempotencyKey.value", notNullValue())
-            .body("jurisdiction.value", is("ia"))
+            .body("jurisdiction.value", is("IA"))
             .body("dueDate.value", notNullValue())
-            .body("taskState.value", is("unconfigured")) // <- expected because caseId does not exist
+            .body("taskState.value", is("unassigned"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseId))
             .body("name.value", is("Review the appeal"))
@@ -135,46 +268,47 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("isDuplicate.value", is(false))
             .body("delayUntil.value", notNullValue())
             .body("taskId.value", is("reviewTheAppeal"))
-            .body("group.value", is("TCW"))
             .body("caseId.value", is(caseId))
             .body("__processCategory__caseProgression.value", is(true))
             .body("hasWarnings.value", is(false))
             .body("warningList.value", is("[]"));
 
-        taskToTearDown = taskId;
     }
 
     @Test
     @Ignore("non-existing requirement for IA")
     public void should_succeed_and_create_a_task_with_multiple_categories() {
-        String caseId = UUID.randomUUID().toString();
+
+        String caseId = getCaseId();
 
         sendMessage(
             caseId,
             "dummyEventForMultipleCategories",
             "",
             "",
-            false
+            false, "IA", "Asylum"
         );
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
-        String taskId = taskFound
+        caseId1Task1Id = taskFound
             .then().assertThat()
             .body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
 
-        Response response = findTaskDetailsForGivenTaskId(taskId);
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
+
+        Response response = findTaskDetailsForGivenTaskId(caseId1Task1Id);
 
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", is("asylum"))
+            .body("caseTypeId.value", is("Asylum"))
             .body("idempotencyKey.value", notNullValue())
-            .body("jurisdiction.value", is("ia"))
+            .body("jurisdiction.value", is("IA"))
             .body("dueDate.value", notNullValue())
-            .body("taskState.value", is("unconfigured")) // <- expected because caseId does not exist
+            .body("taskState.value", is("unassigned"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseId))
             .body("name.value", is("Test task to test multiple categories"))
@@ -182,81 +316,141 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .body("isDuplicate.value", is(false))
             .body("delayUntil.value", notNullValue())
             .body("taskId.value", is("testTaskIdForMultipleCategories"))
-            .body("group.value", is("TCW"))
             .body("caseId.value", is(caseId))
             .body("__processCategory__caseProgression.value", is(true))
             .body("__processCategory__followUpOverdue.value", is(true))
             .body("hasWarnings.value", is(false))
             .body("warningList.value", is("[]"));
 
-        taskToTearDown = taskId;
     }
 
     @Test
     @Ignore("non-existing requirement for IA")
     public void should_cancel_a_task_with_multiple_categories() {
-        String caseId = UUID.randomUUID().toString();
+
+        String caseId = getCaseId();
 
         sendMessage(
             caseId,
             "dummyEventForMultipleCategories",
             "",
             "",
-            false
+            false, "IA", "Asylum"
         );
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
-        String taskId = taskFound
+        caseId1Task1Id = taskFound
             .then().assertThat()
             .body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
+
+        taskIdStatusMap.put(caseId1Task1Id, "deleted");
 
         sendMessage(
             caseId,
             "dummyEventForMultipleCategoriesCancel",
             "",
             "",
-            false);
+            false, "IA", "Asylum"
+        );
 
         // Assert the task was deleted
         assertTaskDoesNotExist(caseId, "testTaskIdForMultipleCategories");
-        assertTaskDeleteReason(taskId, "deleted");
+
     }
 
     @Test
     @Ignore("non-existing requirement for IA")
     public void should_warn_a_task_with_multiple_categories() {
-        String caseId = UUID.randomUUID().toString();
+
+        String caseId = getCaseId();
 
         sendMessage(
             caseId,
             "dummyEventForMultipleCategories",
             "",
             "",
-            false
+            false, "IA", "Asylum"
         );
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
-        String taskId = taskFound
+        caseId1Task1Id = taskFound
             .then().assertThat()
             .body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
+
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
 
         sendMessage(
             caseId,
             "dummyEventForMultipleCategoriesWarn",
             "",
             "",
-            false);
+            false, "IA", "Asylum"
+        );
 
         // Assert the task warning was set
-        assertTaskHasWarnings(caseId, taskId, true);
+        assertTaskHasWarnings(caseId, caseId1Task1Id, true);
 
-        taskToTearDown = taskId;
+    }
+
+    /**
+     * This FT sends additionalData to DMN in json format to evaluate appealType.
+     * Disabled as the checkFeeStatus task is created with delayUntil to 28 days and can't be
+     * retrieved until the task is active.
+     * When the DMN is deployed onto new wa jurisdiction, this test can be enabled
+     * with delayUntil as 0.
+     */
+    @Test
+    @Ignore("CheckFeeStatus task cannot be retrieved")
+    public void given_event_submitAppeal_when_appealType_sent_as_json_then_initiate_task() {
+
+        String caseId = getCaseId();
+
+        sendMessageWithAdditionalData(
+            caseId,
+            "submitAppeal",
+            "",
+            "appealSubmitted",
+            false
+        );
+
+        Response taskFound = findTasksByCaseId(caseId, 2);
+
+        caseId1Task1Id = taskFound
+            .then().assertThat()
+            .body("[0].id", notNullValue())
+            .extract()
+            .path("[0].id");
+
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
+
+        Response response = findTaskDetailsForGivenTaskId(caseId1Task1Id);
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("taskId.value", is("checkFeeStatus"));
+
+        caseId1Task2Id = taskFound
+            .then().assertThat()
+            .body("[1].id", notNullValue())
+            .extract()
+            .path("[1].id");
+
+        taskIdStatusMap.put(caseId1Task2Id, "completed");
+
+        response = findTaskDetailsForGivenTaskId(caseId1Task2Id);
+
+        response.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("taskId.value", is("reviewTheAppeal"));
+
     }
 
     @Test
@@ -267,70 +461,78 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         eventTimeStamp = LocalDateTime.parse("2020-03-27T12:56:10.403975");
 
         // create task1
-        String caseIdForTask1 = UUID.randomUUID().toString();
+
+        String caseIdForTask1 = getCaseId();
+
         String taskIdDmnColumn = "decideOnTimeExtension";
-        String task1Id = createTaskWithId(
+        caseId1Task1Id = createTaskWithId(
             caseIdForTask1,
             "submitTimeExtension",
             "", "",
             false,
-            taskIdDmnColumn
+            taskIdDmnColumn, "IA", "Asylum"
         );
 
+        taskIdStatusMap.put(caseId1Task1Id, "deleted");
+
         // test for workingDaysAllowed  = 2
-        Response responseTaskDetails = findTaskDetailsForGivenTaskId(task1Id);
+        Response responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task1Id);
         assertDelayDuration(responseTaskDetails);
 
         // create task2
-        String caseIdForTask2 = UUID.randomUUID().toString();
-        String task2Id = createTaskWithId(
+        String caseIdForTask2 = getCaseId();
+        caseId1Task2Id = createTaskWithId(
             caseIdForTask2,
             "submitTimeExtension",
             "", "", false,
-            taskIdDmnColumn
+            taskIdDmnColumn, "IA", "Asylum"
         );
 
+        taskIdStatusMap.put(caseId1Task2Id, "completed");
+
         // test for workingDaysAllowed  = 2
-        responseTaskDetails = findTaskDetailsForGivenTaskId(task2Id);
+        responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task2Id);
         assertDelayDuration(responseTaskDetails);
 
         // Then cancel the task1
         String eventToCancelTask = "submitReasonsForAppeal";
         String previousStateToCancelTask = "awaitingReasonsForAppeal";
         sendMessage(caseIdForTask1, eventToCancelTask, previousStateToCancelTask,
-            "", false);
+            "", false, "IA", "Asylum"
+        );
 
         // Assert the task1 is deleted
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-        assertTaskDeleteReason(task1Id, "deleted");
+        assertTaskDeleteReason(caseId1Task1Id, "deleted");
 
-        // tear down task2
-        taskToTearDown = task2Id;
     }
 
     @Test
     public void given_initiate_tasks_with_follow_up_overdue_category_then_cancel_task() {
         // Given multiple existing tasks
-
         // create task1,
         // notice this creates only one task with the follow up category
-        String caseIdForTask1 = UUID.randomUUID().toString();
+        String caseIdForTask1 = getCaseId();
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
-        String task1Id = createTaskWithId(
+        caseId1Task1Id = createTaskWithId(
             caseIdForTask1,
             "requestRespondentEvidence",
             "", "awaitingRespondentEvidence", false,
-            taskIdDmnColumn
+            taskIdDmnColumn, "IA", "Asylum"
         );
+
+        taskIdStatusMap.put(caseId1Task1Id, "deleted");
 
         // Then cancel the task1
         String eventToCancelTask = "uploadHomeOfficeBundle";
         String previousStateToCancelTask = "awaitingRespondentEvidence";
-        sendMessage(caseIdForTask1, eventToCancelTask, previousStateToCancelTask, "", false);
+        sendMessage(caseIdForTask1, eventToCancelTask,
+            previousStateToCancelTask, "", false, "IA", "Asylum");
 
+        waitSeconds(5);
         // Assert the task1 is deleted
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-        assertTaskDeleteReason(task1Id, "deleted");
+        assertTaskDeleteReason(caseId1Task1Id, "deleted");
     }
 
     @Test
@@ -340,239 +542,310 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         eventTimeStamp = LocalDateTime.parse("2020-02-27T12:56:19.403975");
 
         // notice this creates one task with the follow up category
-        String caseIdForTask1 = UUID.randomUUID().toString();
+        String caseIdForTask1 = getCaseId();
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
 
         // task1
-        String task1Id = createTaskWithId(
+        caseId1Task1Id = createTaskWithId(
             caseIdForTask1,
             "requestRespondentEvidence",
             "", "awaitingRespondentEvidence", false,
-            taskIdDmnColumn
+            taskIdDmnColumn, "IA", "Asylum"
         );
+
+        taskIdStatusMap.put(caseId1Task1Id, "deleted");
 
         // Then cancel all tasks
         String eventToCancelTask = "removeAppealFromOnline";
-        sendMessage(caseIdForTask1, eventToCancelTask, "", "", false);
+        sendMessage(caseIdForTask1, eventToCancelTask,
+            "", "", false, "IA", "Asylum");
 
         waitSeconds(5);
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
 
-        assertTaskDeleteReason(task1Id, "deleted");
+        assertTaskDeleteReason(caseId1Task1Id, "deleted");
 
-        // add tasks to tear down.
-        tearDownMultipleTasks(Arrays.asList(task1Id), "deleted");
     }
 
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_initiate_tasks_with_different_categories_then_cancel_all_tasks() {
-        String caseIdForTask1 = UUID.randomUUID().toString();
-        String task1IdDmnColumn = "reviewTheAppeal";
+
+        String caseIdForTask1 = getCaseId();
+        String task1IdDmnColumn = "reviewRespondentEvidence";
 
         // task1 with category Case progression
-        String task1Id = createTaskWithId(
+        caseId1Task1Id = createTaskWithId(
             caseIdForTask1,
-            "submitAppeal",
-            "", "appealSubmitted", false,
-            task1IdDmnColumn
+            "uploadHomeOfficeBundle",
+            "", "awaitingRespondentEvidence", false,
+            task1IdDmnColumn, "IA", "Asylum"
         );
+
+        taskIdStatusMap.put(caseId1Task1Id, "deleted");
 
         // task2 with category Time Extension
         String task2IdDmnColumn = "decideOnTimeExtension";
-        String task2Id = createTaskWithId(
+        caseId1Task2Id = createTaskWithId(
             caseIdForTask1,
             "submitTimeExtension",
             "", "", false,
-            task2IdDmnColumn
+            task2IdDmnColumn, "IA", "Asylum"
         );
+
+        taskIdStatusMap.put(caseId1Task2Id, "deleted");
 
         // Then cancel all tasks
         String eventToCancelTask = "removeAppealFromOnline";
-        sendMessage(caseIdForTask1, eventToCancelTask, "", "", false);
+        sendMessage(caseIdForTask1, eventToCancelTask,
+            "", "", false, "IA", "Asylum");
 
         waitSeconds(5);
         assertTaskDoesNotExist(caseIdForTask1, task1IdDmnColumn);
         assertTaskDoesNotExist(caseIdForTask1, task2IdDmnColumn);
 
-        assertTaskDeleteReason(task1Id, "deleted");
-        assertTaskDeleteReason(task2Id, "deleted");
+        assertTaskDeleteReason(caseId1Task1Id, "deleted");
+        assertTaskDeleteReason(caseId1Task2Id, "deleted");
 
-        // add tasks to tear down.
-        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "deleted");
     }
 
     @Test
     public void given_initiated_tasks_with_delayTimer_toCurrentTime_with_followup_overdue_than_cancel_task() {
-        String caseIdForTask1 = UUID.randomUUID().toString();
+
+        String caseIdForTask1 = getCaseId();
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
-        final String task1Id = createTaskWithId(caseIdForTask1, "requestRespondentEvidence",
+        caseId1Task1Id = createTaskWithId(caseIdForTask1, "requestRespondentEvidence",
             "", "awaitingRespondentEvidence",
-            false, taskIdDmnColumn);
+            false, taskIdDmnColumn, "IA", "Asylum"
+        );
+
+        taskIdStatusMap.put(caseId1Task1Id, "deleted");
 
         // Then cancel the task1
-        sendMessage(caseIdForTask1, "uploadHomeOfficeBundle", "awaitingRespondentEvidence", "", false);
+        sendMessage(caseIdForTask1, "uploadHomeOfficeBundle",
+            "awaitingRespondentEvidence", "", false, "IA", "Asylum");
 
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
 
-        assertTaskDeleteReason(task1Id, "deleted");
+        assertTaskDeleteReason(caseId1Task1Id, "deleted");
+
     }
 
     @Test
     public void given_initiated_tasks_with_delayTimer_toFuture_with_followup_overdue_than_cancel_task() {
         // create task1
-        String caseIdForTask1 = UUID.randomUUID().toString();
+        String caseIdForTask1 = getCaseId();
         String taskIdDmnColumn = "followUpOverdueCaseBuilding";
-        final String task1Id = createTaskWithId(caseIdForTask1, "requestCaseBuilding",
+        caseId1Task1Id = createTaskWithId(caseIdForTask1, "requestCaseBuilding",
             "", "caseBuilding",
-            true, taskIdDmnColumn);
+            true, taskIdDmnColumn, "IA", "Asylum"
+        );
+
+        taskIdStatusMap.put(caseId1Task1Id, "deleted");
 
         // Then cancel the task1
-        sendMessage(caseIdForTask1, "submitCase", "caseBuilding", "", false);
+        sendMessage(caseIdForTask1, "buildCase", "caseBuilding", "", false, "IA", "Asylum");
 
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-        assertTaskDeleteReason(task1Id, "deleted");
+        assertTaskDeleteReason(caseId1Task1Id, "deleted");
+
     }
 
     @Test
     public void given_initiate_tasks_with_follow_up_overdue_category_then_warn_task_with_no_category() {
         // Given multiple existing tasks
-        String caseIdForTask1 = UUID.randomUUID().toString();
-        String task1Id = createTaskWithId(
+        String caseIdForTask1 = getCaseId();
+        caseId1Task1Id = createTaskWithId(
             caseIdForTask1,
-            "requestCaseBuilding",
-            "", "caseBuilding", false,
-            "followUpOverdueCaseBuilding"
+            "requestReasonsForAppeal",
+            "", "awaitingReasonsForAppeal", false,
+            "followUpOverdueReasonsForAppeal", "IA", "Asylum"
         );
 
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
+
         sendMessage(caseIdForTask1, "makeAnApplication",
-            "", "", false);
+            "", "", false, "IA", "Asylum"
+        );
 
         waitSeconds(5);
 
-        assertTaskHasWarnings(caseIdForTask1, task1Id, true);
+        Response taskFound = findTasksByCaseId(caseIdForTask1, 2);
 
-        taskToTearDown = task1Id;
+        caseId1Task2Id = taskFound
+            .then().assertThat()
+            .body("[1].id", notNullValue())
+            .extract()
+            .path("[1].id");
+
+        taskIdStatusMap.put(caseId1Task2Id, "completed");
+
+        assertTaskHasWarnings(caseIdForTask1, caseId1Task1Id, true);
+
     }
 
     @Test
     public void given_caseId_with_multiple_tasks_and_same_category_when_warning_raised_then_mark_tasks_with_warnings() {
-        String caseIdForTask1 = UUID.randomUUID().toString();
+
+        String caseIdForTask1 = getCaseId();
 
         // Initiate task1, category (Case progression)
-        sendMessage(caseIdForTask1, "submitCase", null,
-            "caseUnderReview", false);
+        sendMessage(caseIdForTask1, "submitReasonsForAppeal", null,
+            "reasonsForAppealSubmitted", false, "IA", "Asylum"
+        );
 
-        Response response = findTasksByCaseId(
-            caseIdForTask1, 1);
+        Response response = findTasksByCaseId(caseIdForTask1, 1);
 
-        String task1Id = response
+        caseId1Task1Id = response
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
 
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
+
         // test for workingDaysAllowed  = 5
-        Response responseTaskDetails = findTaskDetailsForGivenTaskId(task1Id);
+        Response responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task1Id);
         assertDelayDuration(responseTaskDetails);
 
         // initiate task2, category (Case progression)
-        sendMessage(caseIdForTask1, "submitCase", null,
-            "caseUnderReview", false);
+        sendMessage(caseIdForTask1, "draftHearingRequirements", null,
+            "listing", false, "IA", "Asylum"
+        );
 
-        response = findTasksByCaseId(
-            caseIdForTask1, 2);
+        response = findTasksByCaseId(caseIdForTask1, 2);
 
-        final String task2Id = response
+        caseId1Task2Id = response
             .then()
             .body("size()", is(2))
             .assertThat().body("[1].id", notNullValue())
             .extract()
             .path("[1].id");
 
+        taskIdStatusMap.put(caseId1Task2Id, "completed");
+
         // send warning message
-        sendMessage(caseIdForTask1, "makeAnApplication",
-            "", "", false);
+        sendMessageWithAdditionalData(
+            caseIdForTask1,
+            "makeAnApplication",
+            "",
+            "",
+            false
+        );
+        waitSeconds(5);
+
+        response = findTasksByCaseId(
+            caseIdForTask1, 3);
+
+        final String caseId1Task3Id = response
+            .then()
+            .body("size()", is(3))
+            .assertThat().body("[2].id", notNullValue())
+            .extract()
+            .path("[2].id");
+
+        taskIdStatusMap.put(caseId1Task3Id, "completed");
 
         // check for warnings flag on both the tasks
-        assertTaskHasWarnings(caseIdForTask1, task1Id, true);
-        assertTaskHasWarnings(caseIdForTask1, task2Id, true);
+        assertTaskHasWarnings(caseIdForTask1, caseId1Task1Id, true);
+        assertTaskHasWarnings(caseIdForTask1, caseId1Task2Id, true);
 
-        // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
     }
 
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_caseId_and_multiple_tasks_and_different_ctg_when_warning_raised_then_mark_tasks_with_warnings() {
-        String caseIdForTask1 = UUID.randomUUID().toString();
 
-        // Initiate task1 , category (Time extension)
-        sendMessage(caseIdForTask1, "submitTimeExtension", "",
-            null, false);
+        String caseIdForTask1 = getCaseId();
+
+        // Initiate task1 , category (caseProgression)
+        sendMessage(caseIdForTask1, "requestRespondentEvidence", null,
+            "awaitingRespondentEvidence", false, "IA", "Asylum"
+        );
 
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
 
-        String task1Id = response
+        caseId1Task1Id = response
             .then()
             .assertThat().body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
 
-        // initiate task2, category (Case progression)
-        sendMessage(caseIdForTask1, "requestCaseBuilding", null,
-            "caseBuilding", false);
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
+
+        // initiate task2, category (followUpOverdue)
+        sendMessage(caseIdForTask1, "sendDirectionWithQuestions", "",
+            "awaitingClarifyingQuestionsAnswers", false, "IA", "Asylum"
+        );
 
         response = findTasksByCaseId(
             caseIdForTask1, 2);
 
-        String task2Id = response
+        caseId1Task2Id = response
             .then()
             .body("size()", is(2))
             .assertThat().body("[1].id", notNullValue())
             .extract()
             .path("[1].id");
 
+        taskIdStatusMap.put(caseId1Task2Id, "completed");
+
         // send warning message
-        sendMessage(caseIdForTask1, "makeAnApplication",
-            "", "", false);
-
+        sendMessageWithAdditionalData(
+            caseIdForTask1,
+            "makeAnApplication",
+            "",
+            "",
+            false
+        );
         waitSeconds(5);
-        // check for warnings flag on both the tasks
-        assertTaskHasWarnings(caseIdForTask1, task1Id, true);
-        assertTaskHasWarnings(caseIdForTask1, task2Id, true);
 
-        // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(task1Id, task2Id), "completed");
+        response = findTasksByCaseId(caseIdForTask1, 3);
+
+        String caseId1Task3Id = response
+            .then().assertThat()
+            .body("[2].id", notNullValue())
+            .extract()
+            .path("[2].id");
+
+        taskIdStatusMap.put(caseId1Task3Id, "completed");
+
+        // check for warnings flag on both the tasks
+        assertTaskHasWarnings(caseIdForTask1, caseId1Task1Id, true);
+        assertTaskHasWarnings(caseIdForTask1, caseId1Task2Id, true);
+
     }
 
     @Test
     public void given_initiated_tasks_with_delayTimer_toFuture_and_without_followup_overdue_then_complete_task() {
-        String caseId = UUID.randomUUID().toString();
-        final String taskId = createTaskWithId(
+
+        String caseId = getCaseId();
+        caseId1Task1Id = createTaskWithId(
             caseId,
-            "makeAnApplication",
+            "uploadHomeOfficeBundle",
             "",
-            "",
+            "awaitingRespondentEvidence",
             true,
-            "processApplication"
+            "reviewRespondentEvidence", "IA", "Asylum"
         );
 
         // add tasks to tear down.
-        taskToTearDown = taskId;
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
     }
 
     @Test
     public void given_initiated_tasks_with_delayTimer_toCurrentTime_and_without_followup_overdue_then_complete_task() {
-        String caseId = UUID.randomUUID().toString();
-        final String taskId = createTaskWithId(caseId, "submitAppeal",
-            "", "appealSubmitted",
-            false, "reviewTheAppeal");
+
+        String caseId = getCaseId();
+        caseId1Task1Id = createTaskWithId(caseId, "generateDecisionAndReasons",
+            "", "decision",
+            false, "sendDecisionsAndReasons", "IA", "Asylum"
+        );
 
         // add tasks to tear down.
-        taskToTearDown = taskId;
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
     }
 
     @Test
@@ -580,51 +853,62 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         // DST (Day saving time) ended on October 25th 2020 at 2:00am.
         eventTimeStamp = LocalDateTime.parse("2020-10-23T12:56:19.403975");
 
-        String caseIdForTask1 = UUID.randomUUID().toString();
-        final String taskId = createTaskWithId(caseIdForTask1, "submitAppeal",
-            "", "appealSubmitted",
-            false, "reviewTheAppeal"
+        String caseIdForTask1 = getCaseId();
+        caseId1Task1Id = createTaskWithId(caseIdForTask1, "uploadHomeOfficeBundle",
+            "", "awaitingRespondentEvidence",
+            false, "reviewRespondentEvidence", "IA", "Asylum"
         );
+
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
 
         // test for workingDaysAllowed  = 2
-        Response responseTaskDetails = findTaskDetailsForGivenTaskId(taskId);
+        Response responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task1Id);
         assertDelayDuration(responseTaskDetails);
 
-        String caseIdForTask2 = UUID.randomUUID().toString();
-        final String task2Id = createTaskWithId(caseIdForTask2, "submitAppeal",
-            "", "appealSubmitted",
-            false, "reviewTheAppeal"
+
+        String caseIdForTask2 = getCaseId();
+        caseId1Task2Id = createTaskWithId(caseIdForTask2, "submitReasonsForAppeal",
+            "", "reasonsForAppealSubmitted",
+            false, "reviewReasonsForAppeal", "IA", "Asylum"
         );
 
-        // add tasks to tear down.
-        tearDownMultipleTasks(Arrays.asList(taskId, task2Id), "completed");
+        taskIdStatusMap.put(caseId1Task2Id, "completed");
     }
 
     @Test
     public void given_multiple_caseIDs_when_action_is_cancel_then_cancels_all_tasks() {
-        String caseId1 = UUID.randomUUID().toString();
+
+        String caseId1 = getCaseId();
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
 
         // caseId1 with category Followup overdue
         // task1
-        final String caseId1Task1Id = createTaskWithId(
+        caseId1Task1Id = createTaskWithId(
             caseId1,
             "requestRespondentEvidence",
             "", "awaitingRespondentEvidence", false,
-            taskIdDmnColumn
+            taskIdDmnColumn, "IA", "Asylum"
         );
 
+        taskIdStatusMap.put(caseId1Task1Id, "deleted");
+
         // caseId2 with category Case progression
+        String caseId2 = getCaseId();
         String taskId2DmnColumn = "reviewAppealSkeletonArgument";
-        String caseId2 = UUID.randomUUID().toString();
-        final String caseId2Task1Id = createTaskWithId(caseId2, "submitCase",
+        caseId2Task1Id = createTaskWithId(caseId2, "submitCase",
             "", "caseUnderReview",
-            false, taskId2DmnColumn);
+            false, taskId2DmnColumn, "IA", "Asylum"
+        );
+
+        taskIdStatusMap.put(caseId2Task1Id, "deleted");
+
         // Then cancel all tasks on both caseIDs
         String eventToCancelTask = "removeAppealFromOnline";
-        sendMessage(caseId1, eventToCancelTask, "", "", false);
+        sendMessage(caseId1, eventToCancelTask,
+            "", "", false, "IA", "Asylum");
         waitSeconds(5);
-        sendMessage(caseId2, eventToCancelTask, "", "", false);
+        sendMessage(caseId2, eventToCancelTask,
+            "", "", false, "IA", "Asylum");
         waitSeconds(5);
 
         assertTaskDoesNotExist(caseId1, taskIdDmnColumn);
@@ -633,50 +917,77 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         assertTaskDeleteReason(caseId1Task1Id, "deleted");
         assertTaskDeleteReason(caseId2Task1Id, "deleted");
 
-        // add tasks to tear down.
-        tearDownMultipleTasks(Arrays.asList(caseId1Task1Id, caseId1Task1Id,
-            caseId2Task1Id), "deleted");
     }
 
     @Test
     public void given_multiple_caseIDs_when_actions_is_warn_then_mark_all_tasks_with_warnings() {
         //caseId1 with category Case progression
-        String caseId1 = UUID.randomUUID().toString();
-        String taskIdDmnColumn = "attendCma";
-        final String caseId1Task1Id = createTaskWithId(
+        String caseId1 = getCaseId();
+        String taskIdDmnColumn = "reviewRespondentEvidence";
+        caseId1Task1Id = createTaskWithId(
             caseId1,
-            "listCma",
-            "", "cmaListed", false,
-            taskIdDmnColumn
+            "uploadHomeOfficeBundle",
+            "", "awaitingRespondentEvidence", false,
+            taskIdDmnColumn, "IA", "Asylum"
         );
 
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
+
         //caseId1 with category Case progression
-        String taskId2DmnColumn = "reviewRespondentResponse";
-        String caseId2 = UUID.randomUUID().toString();
-        final String caseId2Task1Id = createTaskWithId(caseId2, "uploadHomeOfficeAppealResponse",
-            "", "respondentReview",
-            false, taskId2DmnColumn);
+        String caseId2 = getCaseId();
+        String taskId2DmnColumn = "reviewRespondentEvidence";
+        caseId2Task1Id = createTaskWithId(caseId2, "uploadHomeOfficeBundle",
+            "", "awaitingRespondentEvidence",
+            false, taskId2DmnColumn, "IA", "Asylum"
+        );
+
+        taskIdStatusMap.put(caseId2Task1Id, "completed");
+
         // Then cancel all tasks on both caseIDs
         sendMessage(caseId1, "makeAnApplication",
-            "", "", false);
+            "", "", false, "IA", "Asylum"
+        );
         waitSeconds(5);
+
+        Response taskFound = findTasksByCaseId(caseId1, 2);
+
+        caseId1Task2Id = taskFound
+            .then().assertThat()
+            .body("[1].id", notNullValue())
+            .extract()
+            .path("[1].id");
+
+        taskIdStatusMap.put(caseId1Task2Id, "completed");
+
         sendMessage(caseId2, "makeAnApplication",
-            "", "", false);
+            "", "", false, "IA", "Asylum"
+        );
         waitSeconds(5);
+
+        taskFound = findTasksByCaseId(caseId2, 2);
+
+        caseId2Task2Id = taskFound
+            .then().assertThat()
+            .body("[1].id", notNullValue())
+            .extract()
+            .path("[1].id");
+
+        taskIdStatusMap.put(caseId2Task2Id, "completed");
 
         // check for warnings flag on both the tasks
         assertTaskHasWarnings(caseId1, caseId1Task1Id, true);
         assertTaskHasWarnings(caseId2, caseId2Task1Id, true);
 
-        // tear down all tasks
-        tearDownMultipleTasks(Arrays.asList(caseId1Task1Id, caseId2Task1Id), "completed");
     }
 
     @Test
     public void given_an_event_when_directionDueDate_is_empty_then_task_should_start_without_delay() {
 
+
+        String caseIdForTask = getCaseId();
+
         Map<String, Object> dataMap = Map.of(
-            "lastModifiedDirection", Map.of("directionDueDate", ""),
+            "lastModifiedDirection", Map.of("dateDue", ""),
             "appealType", "protection"
         );
 
@@ -684,7 +995,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .data(dataMap)
             .build();
 
-        String caseIdForTask = UUID.randomUUID().toString();
         EventInformation eventInformation = EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
             .eventTimeStamp(LocalDateTime.now().minusDays(1))
@@ -700,13 +1010,13 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         callRestEndpoint(s2sToken, eventInformation);
 
-        final String taskId = findTaskForGivenCaseId(
+        caseId1Task1Id = findTaskForGivenCaseId(
             caseIdForTask,
             "followUpOverdueCaseBuilding"
         );
 
         // add tasks to tear down.
-        taskToTearDown = taskId;
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
     }
 
     @Test
@@ -721,7 +1031,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .data(dataMap)
             .build();
 
-        String caseIdForTask = UUID.randomUUID().toString();
+        String caseIdForTask = getCaseId();
         EventInformation eventInformation = EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
             .eventTimeStamp(LocalDateTime.now().minusDays(1))
@@ -737,53 +1047,185 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         callRestEndpoint(s2sToken, eventInformation);
 
-        final String taskId = findTaskForGivenCaseId(
+        caseId1Task1Id = findTaskForGivenCaseId(
             caseIdForTask,
             "followUpNonStandardDirection"
         );
 
         // add tasks to tear down.
-        taskToTearDown = taskId;
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
     }
 
     @Test
     public void given_initiation_task_with_followup_overdue_ctg_when_cancelled_with_noc_event_then_cancel_the_task() {
-        String caseId1 = UUID.randomUUID().toString();
+
+        String caseId1 = getCaseId();
         String taskIdDmnColumn = "followUpOverdueCaseBuilding";
 
         // caseId1 with category Followup overdue
         // task1
-        final String caseId1Task1Id = createTaskWithId(
+        caseId1Task1Id = createTaskWithId(
             caseId1,
             "requestCaseBuilding",
             "", "caseBuilding", false,
-            taskIdDmnColumn
+            taskIdDmnColumn, "IA", "Asylum"
         );
 
+        taskIdStatusMap.put(caseId1Task1Id, "deleted");
+
         // Then cancel all tasks on both caseIDs
-        sendMessage(caseId1, "applyNocDecision", "", "", false);
+        sendMessage(caseId1, "applyNocDecision",
+            "", "", false, "IA", "Asylum");
 
         assertTaskDoesNotExist(caseId1, taskIdDmnColumn);
 
         assertTaskDeleteReason(caseId1Task1Id, "deleted");
+
     }
 
     @Test
-    public void given_event_requestHearingRequirementsFeature_when_initiated_verfiy_task_creation() {
-        String caseId1 = UUID.randomUUID().toString();
-        final String taskId = createTaskWithId(caseId1, "requestHearingRequirementsFeature",
+    public void given_event_requestHearingRequirementsFeature_when_initiated_verify_task_creation() {
+
+        String caseId1 = getCaseId();
+        caseId1Task1Id = createTaskWithId(caseId1, "requestHearingRequirementsFeature",
             "", "submitHearingRequirements",
-            false, "followUpOverdueHearingRequirements");
+            false, "followUpOverdueHearingRequirements", "IA", "Asylum"
+        );
 
         // add tasks to tear down.
-        taskToTearDown = taskId;
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
     }
 
-    @After
-    public void cleanUpTask() {
-        if (StringUtils.isNotEmpty(taskToTearDown)) {
-            completeTask(taskToTearDown, "completed");
-        }
+    @Test
+    @Ignore("IA related test case for reconfiguration")
+    public void given_initiate_tasks_then_reconfigure_task_to_mark_tasks_for_reconfiguration_for_IA() {
+        String jurisdiction = "IA";
+        String caseType = "Asylum";
+        // create task in camunda
+        String caseIdForTask1 = getCaseIdForJurisdictionAndCaseType(jurisdiction, caseType);
+        caseId1Task1Id = createTaskWithId(
+            caseIdForTask1,
+            "requestCaseBuilding",
+            "", "caseBuilding", false,
+            "followUpOverdueCaseBuilding", jurisdiction, caseType
+        );
+
+        //initiate task
+        common.setupCftOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), jurisdiction);
+        initiateTask(caseworkerCredentials.getHeaders(), caseIdForTask1, caseId1Task1Id,
+            "followUpOverdueCaseBuilding", "Follow-up overdue case building", "Follow-up overdue case building");
+
+        //send update event to trigger reconfigure action
+        sendMessage(caseIdForTask1, "UPDATE",
+            "", "", false, jurisdiction, caseType
+        );
+
+        waitSeconds(5);
+
+        //assert task in camunda
+        Response taskFound = findTasksByCaseId(caseIdForTask1, 1);
+        caseId1Task2Id = taskFound
+            .then().assertThat()
+            .body("[0].id", notNullValue())
+            .extract()
+            .path("[0].id");
+
+        waitSeconds(5);
+
+        //get task from CFT
+        Response result = restApiActions.get(
+            TASK_ENDPOINT,
+            caseId1Task1Id,
+            caseworkerCredentials.getHeaders()
+        );
+
+        //assert reconfigure request time
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .body("task.id", equalTo(caseId1Task1Id))
+            .body("task.reconfigure_request_time", notNullValue());
+
+        //cleanup
+        TerminateTaskRequest request = new TerminateTaskRequest(new TerminateInfo("deleted"));
+        taskManagementTestClient.terminateTask(s2sToken, caseId1Task1Id, request);
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
+    }
+
+    @Test
+    public void given_initiate_tasks_then_reconfigure_task_to_mark_tasks_for_reconfiguration_for_WA() {
+
+        TestVariables taskVariables = common.setupWaTaskAndRetrieveIds();
+        caseId1Task1Id = taskVariables.getTaskId();
+
+        String caseIdForTask1 = taskVariables.getCaseId();
+        common.setupCftOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+
+        //initiate task
+        initiateTask(caseworkerCredentials.getHeaders(), caseIdForTask1, caseId1Task1Id,
+            "followUpOverdueCaseBuilding", "Follow-up overdue case building", "Follow-up overdue case building");
+
+        //get task from CFT
+        Response result = restApiActions.get(
+            TASK_ENDPOINT,
+            caseId1Task1Id,
+            caseworkerCredentials.getHeaders()
+        );
+        //assert reconfigure request time
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .body("task.id", equalTo(caseId1Task1Id))
+            .body("task.reconfigure_request_time", nullValue());
+
+
+        //send update event to trigger reconfigure action
+        String jurisdiction = "WA";
+        String caseType = "WaCaseType";
+        sendMessage(caseIdForTask1, "UPDATE",
+            "", "", false, jurisdiction, caseType
+        );
+
+        waitSeconds(5);
+
+        //assert task in camunda
+        Response taskFound = findTasksByCaseId(caseIdForTask1, 1);
+        caseId1Task2Id = taskFound
+            .then().assertThat()
+            .body("[0].id", notNullValue())
+            .extract()
+            .path("[0].id");
+
+        waitSeconds(5);
+
+        //get task from CFT
+        result = restApiActions.get(
+            TASK_ENDPOINT,
+            caseId1Task1Id,
+            caseworkerCredentials.getHeaders()
+        );
+
+        //assert reconfigure request time
+        result.then().assertThat()
+            .statusCode(HttpStatus.OK.value())
+            .and()
+            .body("task.id", equalTo(caseId1Task1Id))
+            .body("task.reconfigure_request_time", notNullValue());
+
+        //cleanup
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
+    }
+
+    public void completeTask(String taskId, String status) {
+        log.info(String.format("Completing task : %s", taskId));
+        given()
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .accept(APPLICATION_JSON_VALUE)
+            .contentType(APPLICATION_JSON_VALUE)
+            .when()
+            .post(camundaUrl + "/task/{task-id}/complete", taskId);
+
+        assertTaskDeleteReason(taskId, status);
     }
 
     private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
@@ -848,26 +1290,29 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
                 });
     }
 
-    private void sendMessage(String caseId, String event, String previousStateId,
-                             String newStateId, boolean taskDelay) {
-
-        if (taskDelay) {
-            eventTimeStamp = LocalDateTime.now().plusSeconds(2);
-        }
-        EventInformation eventInformation = getEventInformation(
-            caseId, event, previousStateId, newStateId, eventTimeStamp
-        );
-
-        if (publisher != null) {
-            publishMessageToTopic(eventInformation);
-            waitSeconds(2);
-        } else {
-            callRestEndpoint(s2sToken, eventInformation);
-        }
+    private EventInformation getEventInformation(String caseId,
+                                                 String event,
+                                                 String previousStateId,
+                                                 String newStateId,
+                                                 LocalDateTime localDateTime,
+                                                 String jurisdictionId,
+                                                 String caseTypeId) {
+        return EventInformation.builder()
+            .eventInstanceId(UUID.randomUUID().toString())
+            .eventTimeStamp(localDateTime)
+            .caseId(caseId)
+            .jurisdictionId(jurisdictionId)
+            .caseTypeId(caseTypeId)
+            .eventId(event)
+            .newStateId(newStateId)
+            .previousStateId(previousStateId)
+            .additionalData(setAdditionalData())
+            .userId("some user Id")
+            .build();
     }
 
-    private EventInformation getEventInformation(String caseId, String event, String previousStateId,
-                                                 String newStateId, LocalDateTime localDateTime) {
+    private EventInformation getEventInformationWithAdditionalData(String caseId, String event, String previousStateId,
+                                                                   String newStateId, LocalDateTime localDateTime) {
         return EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
             .eventTimeStamp(localDateTime)
@@ -877,7 +1322,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .eventId(event)
             .newStateId(newStateId)
             .previousStateId(previousStateId)
-            .additionalData(new AdditionalData(emptyMap(), emptyMap()))
+            .additionalData(setAdditionalData())
             .userId("some user Id")
             .build();
     }
@@ -899,72 +1344,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         message.setSessionId(eventInformation.getCaseId());
 
         publisher.sendMessage(message);
-    }
-
-    private String createTaskWithId(String caseId,
-                                    String eventId,
-                                    String previousStateId,
-                                    String newStateId,
-                                    boolean delayUntil,
-                                    String outcomeTaskId) {
-
-        sendMessage(caseId, eventId, previousStateId, newStateId, delayUntil);
-
-        // if the delayUntil is true, then the taskCreation process waits for delayUntil timer
-        // to expire. The task is delayed for 2 seconds,
-        // so manually waiting for 5 seconds for process to start
-        if (delayUntil) {
-            waitSeconds(10);
-        } else {
-            waitSeconds(5);
-        }
-
-        return findTaskForGivenCaseId(caseId, outcomeTaskId);
-    }
-
-    private Response findTasksByCaseId(
-        String caseId, int expectedTaskAmount
-    ) {
-
-        log.info("Finding task for caseId = {}", caseId);
-        AtomicReference<Response> response = new AtomicReference<>();
-        await().ignoreException(AssertionError.class)
-            .pollInterval(1000, MILLISECONDS)
-            .atMost(60, SECONDS)
-            .until(
-                () -> {
-                    Response result = given()
-                        .relaxedHTTPSValidation()
-                        .header(SERVICE_AUTHORIZATION, s2sToken)
-                        .contentType(APPLICATION_JSON_VALUE)
-                        .baseUri(camundaUrl)
-                        .basePath("/task")
-                        .param("processVariables", "caseId_eq_" + caseId)
-                        .when()
-                        .get();
-
-                    result
-                        .then().assertThat()
-                        .statusCode(HttpStatus.OK.value())
-                        .body("size()", is(expectedTaskAmount));
-
-                    response.set(result);
-                    return true;
-                });
-
-        return response.get();
-    }
-
-    private Response findTaskDetailsForGivenTaskId(String taskId) {
-        log.info("Attempting to retrieve task details with taskId = {}", taskId);
-
-        return given()
-            .header(SERVICE_AUTHORIZATION, s2sToken)
-            .contentType(APPLICATION_JSON_VALUE)
-            .baseUri(camundaUrl)
-            .basePath("/task/" + taskId + "/variables")
-            .when()
-            .get();
     }
 
     private String findTaskForGivenCaseId(String caseId, String taskIdDmnColumn) {
@@ -1002,57 +1381,22 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         return response.get();
     }
 
-    private void completeTask(String taskId, String status) {
-        log.info(String.format("Completing task : %s", taskId));
-        given()
-            .header(SERVICE_AUTHORIZATION, s2sToken)
-            .accept(APPLICATION_JSON_VALUE)
-            .contentType(APPLICATION_JSON_VALUE)
-            .when()
-            .post(camundaUrl + "/task/{task-id}/complete", taskId);
+    private AdditionalData setAdditionalData() {
+        Map<String, Object> dataMap = Map.of(
+            "lastModifiedDirection", Map.of(
+                "dateDue", "",
+                "uniqueId", "",
+                "directionType", ""
+            ),
+            "appealType", "deprivation",
+            "lastModifiedApplication", Map.of("type", "Adjourn",
+                                              "decision", "")
 
-        assertTaskDeleteReason(taskId, status);
-    }
-
-    private void tearDownMultipleTasks(List<String> tasks, String status) {
-        tasks.forEach(task -> completeTask(task, status));
-    }
-
-    private void assertDelayDuration(Response result) {
-        Map<String, Object> mapJson = result.jsonPath().get("dueDate");
-        final String dueDateVal = (String) mapJson.get("value");
-        final LocalDateTime dueDateTime = LocalDateTime.parse(dueDateVal);
-
-        mapJson = result.jsonPath().get("delayUntil");
-        final String delayUntil = (String) mapJson.get("value");
-        final LocalDateTime delayUntilDateTime = LocalDateTime.parse(
-            delayUntil,
-            DateTimeFormatter.ISO_LOCAL_DATE_TIME
         );
 
-        mapJson = result.jsonPath().get("workingDaysAllowed");
-        int workingDaysLocal = (Integer) mapJson.get("value");
-
-        ZoneId zoneId = ZoneId.of("Europe/London");
-        ZonedDateTime zonedDateTimeStamp = eventTimeStamp.atZone(zoneId);
-        final ZonedDateTime expectedDueDate = dueDateService.calculateDueDate(zonedDateTimeStamp, workingDaysLocal);
-
-        assertAll(
-            () -> assertEquals(expectedDueDate.getYear(), dueDateTime.getYear()),
-            () -> assertEquals(expectedDueDate.getMonthValue(), dueDateTime.getMonthValue()),
-            () -> assertEquals(expectedDueDate.getDayOfMonth(), dueDateTime.getDayOfMonth()),
-            () -> assertEquals(16, dueDateTime.getHour()),
-            () -> assertEquals(0, dueDateTime.getMinute()),
-            () -> assertEquals(0, dueDateTime.getSecond()),
-            () -> assertEquals(0, dueDateTime.getNano()),
-            () -> assertEquals(eventTimeStamp.getYear(), delayUntilDateTime.getYear()),
-            () -> assertEquals(eventTimeStamp.getMonthValue(), delayUntilDateTime.getMonthValue()),
-            () -> assertEquals(eventTimeStamp.getDayOfMonth(), delayUntilDateTime.getDayOfMonth()),
-            () -> assertEquals(eventTimeStamp.getHour(), delayUntilDateTime.getHour()),
-            () -> assertEquals(eventTimeStamp.getMinute(), delayUntilDateTime.getMinute()),
-            () -> assertEquals(eventTimeStamp.getSecond(), delayUntilDateTime.getSecond()),
-            () -> assertEquals(eventTimeStamp.getNano(), delayUntilDateTime.getNano())
-        );
+        return AdditionalData.builder()
+            .data(dataMap)
+            .build();
     }
 
 }

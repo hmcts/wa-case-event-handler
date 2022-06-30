@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
@@ -15,7 +16,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateRe
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.InitiateEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.IdempotencyKeyGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
@@ -34,13 +34,13 @@ import static java.util.Optional.ofNullable;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnAndMessageNames.TASK_INITIATION;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnBooleanValue;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnIntegerValue;
+import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnMapValue;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnStringValue;
-import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.APPEAL_TYPE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.DATE_DUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.LAST_MODIFIED_DIRECTION;
 
 @Service
-@Order(3)
+@Order(4)
 @Slf4j
 @SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports", "unchecked"})
 public class InitiationCaseEventHandler implements CaseEventHandler {
@@ -50,19 +50,22 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
     private final IdempotencyKeyGenerator idempotencyKeyGenerator;
     private final IsoDateFormatter isoDateFormatter;
     private final DueDateService dueDateService;
+    private final ObjectMapper objectMapper;
 
     @Autowired
     public InitiationCaseEventHandler(AuthTokenGenerator serviceAuthGenerator,
                                       WorkflowApiClient workflowApiClient,
                                       IdempotencyKeyGenerator idempotencyKeyGenerator,
                                       IsoDateFormatter isoDateFormatter,
-                                      DueDateService dueDateService
+                                      DueDateService dueDateService,
+                                      ObjectMapper objectMapper
     ) {
         this.serviceAuthGenerator = serviceAuthGenerator;
         this.workflowApiClient = workflowApiClient;
         this.idempotencyKeyGenerator = idempotencyKeyGenerator;
         this.isoDateFormatter = isoDateFormatter;
         this.dueDateService = dueDateService;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -79,7 +82,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateDmnRequest(
             eventInformation.getEventId(),
             eventInformation.getNewStateId(),
-            readValue(eventInformation.getAdditionalData(), APPEAL_TYPE),
+            readValue(eventInformation.getAdditionalData()),
             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
             directionDueDate
         );
@@ -109,10 +112,9 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
             });
     }
 
-    private String readValue(AdditionalData additionalData, CaseEventFieldsDefinition caseField) {
-        if (additionalData != null && additionalData.getData() != null) {
-            return (String) ofNullable(additionalData.getData()).orElse(emptyMap())
-                .get(caseField.value());
+    private Map<String, Object> readValue(AdditionalData additionalData) {
+        if (additionalData != null) {
+            return objectMapper.convertValue(additionalData, Map.class);
         }
         return null;
     }
@@ -132,7 +134,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
     private EvaluateDmnRequest buildEvaluateDmnRequest(
         String eventId,
         String newStateId,
-        String appealType,
+        Map<String, Object> additionalData,
         String now,
         String directionDueDate
 
@@ -141,7 +143,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         Map<String, DmnValue<?>> variables = Map.of(
             "eventId", dmnStringValue(eventId),
             "postEventState", dmnStringValue(newStateId),
-            "appealType", dmnStringValue(appealType),
+            "additionalData", dmnMapValue(additionalData),
             "now", dmnStringValue(now),
             "directionDueDate", dmnStringValue(directionDueDate)
         );
@@ -196,7 +198,6 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         processVariables.put("caseTypeId", dmnStringValue(eventInformation.getCaseTypeId()));
         processVariables.put("dueDate", dmnStringValue(dueDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)));
         processVariables.put("workingDaysAllowed", cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()));
-        processVariables.put("group", initiateEvaluateResponse.getGroup());
         processVariables.put("jurisdiction", dmnStringValue(eventInformation.getJurisdictionId()));
         processVariables.put("name", initiateEvaluateResponse.getName());
         processVariables.put("taskId", initiateEvaluateResponse.getTaskId());

@@ -1,0 +1,27 @@
+spring:
+  datasource:
+    driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
+    url: jdbc:tc:postgresql:11.4://localhost/wa_case_event_messages_db
+    hikari:
+      minimum-idle: 1
+
+
+
+idam:
+  api:
+    baseUrl: ${IDAM_URL:http://sidam-api}
+
+role-assignment-service:
+  url: http://localhost:8888
+
+document_management:
+  url: ${DM_STORE_URL:http://local-dm-store}
+
+ccd_gateway:
+  url: ${CCD_GW_URL:http://ccd-api-gateway}
+
+scheduledExecutors:
+  messageProcessing:
+    threadPoolSize: 1
+  messageReadiness:
+    threadPoolSize: 1

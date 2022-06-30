@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.authorisation.ServiceAuthorisationApi;
 import uk.gov.hmcts.reform.authorisation.filters.ServiceAuthFilter;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CancellationCaseEventHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.InitiationCaseEventHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.handlers.ReconfigurationCaseEventHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.WarningCaseEventHandler;
 
 import java.util.Collections;
@@ -32,9 +33,9 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.CaseEventHandle
 import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.asJsonString;
 
 
-@ActiveProfiles({"local"})
 @SpringBootTest
 @AutoConfigureMockMvc
+@ActiveProfiles(profiles = {"db", "integration"})
 class CaseEventHandlerControllerSecurityTest {
 
     public static final String SOME_SERVICE_AUTHORIZATION = "Bearer some service authorization";
@@ -46,6 +47,8 @@ class CaseEventHandlerControllerSecurityTest {
     private InitiationCaseEventHandler initiationCaseEventHandler;
     @MockBean
     private WarningCaseEventHandler warningCaseEventHandler;
+    @MockBean
+    private ReconfigurationCaseEventHandler reconfigurationCaseEventHandler;
 
     @Autowired
     private WebApplicationContext context;
@@ -70,9 +73,9 @@ class CaseEventHandlerControllerSecurityTest {
         when(serviceAuthorisationApi.getServiceName(SOME_SERVICE_AUTHORIZATION)).thenReturn(serviceName);
 
         mockMvc.perform(post("/messages")
-            .contentType(MediaType.APPLICATION_JSON)
-            .header(ServiceAuthFilter.AUTHORISATION, SOME_SERVICE_AUTHORIZATION)
-            .content(asJsonString(getBaseEventInformation(null))))
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(ServiceAuthFilter.AUTHORISATION, SOME_SERVICE_AUTHORIZATION)
+                .content(asJsonString(getBaseEventInformation(null))))
             .andExpect(status().is(expectedHttpStatus.value()));
     }
 
@@ -80,6 +83,7 @@ class CaseEventHandlerControllerSecurityTest {
         when(cancellationCaseEventHandler.evaluateDmn(any())).thenReturn(Collections.emptyList());
         when(initiationCaseEventHandler.evaluateDmn(any())).thenReturn(Collections.emptyList());
         when(warningCaseEventHandler.evaluateDmn(any())).thenReturn(Collections.emptyList());
+        when(reconfigurationCaseEventHandler.evaluateDmn(any())).thenReturn(Collections.emptyList());
     }
 
     private static Stream<Arguments> scenarioProvider() {
