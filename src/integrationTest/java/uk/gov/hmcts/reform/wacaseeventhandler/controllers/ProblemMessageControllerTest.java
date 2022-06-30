@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles(profiles = {"integration","db"})
-@TestPropertySource(properties = {"azure.servicebus.enableASB=true",
+@TestPropertySource(properties = {"azure.servicebus.enableASB-DLQ=true",
     "azure.servicebus.connection-string="
     + "Endpoint=sb://REPLACE_ME/;SharedAccessKeyName=REPLACE_ME;SharedAccessKey=REPLACE_ME",
     "azure.servicebus.topic-name=test",

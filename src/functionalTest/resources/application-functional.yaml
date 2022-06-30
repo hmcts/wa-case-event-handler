@@ -1,6 +1,7 @@
 targets:
   instance: ${TEST_URL:http://localhost:8088}
   camunda: ${CAMUNDA_URL:http://camunda-local-bpm/engine-rest}
+  taskapi: ${WA_TASK_MANAGEMENT_API_URL:http://localhost:8087}
 
 azure:
   servicebus:
@@ -11,6 +12,7 @@ azure:
     retry-duration: ${AZURE_SERVICE_BUS_RETRY_DURATION:60}
     threads: ${AZURE_SERVICE_BUS_CONCURRENT_SESSIONS:1}
     enableASB: ${AZURE_SERVICE_BUS_FEATURE_TOGGLE:false}
+    enableASB-DLQ: ${AZURE_SERVICE_BUS_DLQ_FEATURE_TOGGLE:false}
     retry-attempts: ${AZURE_SERVICE_BUS_RETRY_ATTEMPTS:0}
 
 idam:

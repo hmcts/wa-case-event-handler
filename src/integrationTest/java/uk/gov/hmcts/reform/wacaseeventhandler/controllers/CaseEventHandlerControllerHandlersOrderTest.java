@@ -12,6 +12,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.InitiateEv
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.CancellationCaseEventHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.InitiationCaseEventHandler;
+import uk.gov.hmcts.reform.wacaseeventhandler.handlers.ReconfigurationCaseEventHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.handlers.WarningCaseEventHandler;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageReceiverService;
 
@@ -45,6 +46,9 @@ class CaseEventHandlerControllerHandlersOrderTest {
     private WarningCaseEventHandler warningTaskHandlerService;
 
     @MockBean
+    private ReconfigurationCaseEventHandler reconfigurationHandlerService;
+
+    @MockBean
     private EventMessageReceiverService eventMessageReceiverService;
 
     @Autowired
@@ -55,6 +59,7 @@ class CaseEventHandlerControllerHandlersOrderTest {
 
         DmnValue<String> cancelAction = dmnStringValue("Cancel");
         DmnValue<String> warnAction = dmnStringValue("Warn");
+        DmnValue<String> reconfigureAction = dmnStringValue("Reconfigure");
         DmnValue<String> taskCategory = dmnStringValue("Time extension");
 
         EvaluateDmnResponse<CancellationEvaluateResponse> cancellationDmnResponse =
@@ -70,6 +75,13 @@ class CaseEventHandlerControllerHandlersOrderTest {
 
         doReturn(warningDmnResponse.getResults())
             .when(warningTaskHandlerService).evaluateDmn(any(EventInformation.class));
+
+        EvaluateDmnResponse<CancellationEvaluateResponse> reconfigureDmnResponse =
+            new EvaluateDmnResponse<>(List.of(new CancellationEvaluateResponse(
+                reconfigureAction, null, null, taskCategory, null)));
+
+        doReturn(cancellationDmnResponse.getResults())
+            .when(reconfigurationHandlerService).evaluateDmn(any(EventInformation.class));
 
         EvaluateDmnResponse<InitiateEvaluateResponse> initiationDmnResponse =
             new EvaluateDmnResponse<>(List.of(InitiateEvaluateResponse.builder().build()));
@@ -91,6 +103,7 @@ class CaseEventHandlerControllerHandlersOrderTest {
         InOrder inOrder = inOrder(
             cancellationTaskHandlerService,
             initiationTaskHandlerService,
+            reconfigurationHandlerService,
             warningTaskHandlerService
         );
 
@@ -100,6 +113,9 @@ class CaseEventHandlerControllerHandlersOrderTest {
 
         inOrder.verify(warningTaskHandlerService).evaluateDmn(any(EventInformation.class));
         inOrder.verify(warningTaskHandlerService).handle(anyList(), eq(eventInformation));
+
+        inOrder.verify(reconfigurationHandlerService).evaluateDmn(any(EventInformation.class));
+        inOrder.verify(reconfigurationHandlerService).handle(anyList(), eq(eventInformation));
 
         inOrder.verify(initiationTaskHandlerService).evaluateDmn(any(EventInformation.class));
         inOrder.verify(initiationTaskHandlerService).handle(anyList(), eq(eventInformation));

@@ -36,6 +36,7 @@ java:
   environment:
     S2S_URL: "http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     WA_WORKFLOW_API_URL: "http://wa-workflow-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
+    WA_TASK_MANAGEMENT_API_URL: "http://wa-task-management-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     AZURE_SERVICE_BUS_TOPIC_NAME: "ccd-case-events-{{ .Values.global.environment }}"
     AZURE_SERVICE_BUS_SUBSCRIPTION_NAME: "wa-case-events-sub-{{ .Values.global.environment }}"
     AZURE_SERVICE_BUS_CCD_CASE_EVENTS_SUBSCRIPTION_NAME: "wa-ccd-case-events-sub-{{ .Values.global.environment }}"
@@ -46,3 +47,10 @@ java:
     ROLE_ASSIGNMENT_URL: "http://am-role-assignment-service-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
     CAMUNDA_URL: "http://camunda-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal/engine-rest"
     CCD_URL: "http://ccd-data-store-api-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
+    AZURE_SERVICE_BUS_FEATURE_TOGGLE: true
+    AZURE_SERVICE_BUS_DLQ_FEATURE_TOGGLE: true
+    AZURE_SERVICE_BUS_CONCURRENT_SESSIONS: 2
+    MESSAGE_PROCESSING_POLL_INTERVAL_MILLISECONDS: 2000
+    MESSAGE_PROCESSING_THREAD_POOL_SIZE: 5
+    MESSAGE_READINESS_POLL_INTERVAL_MILLISECONDS: 500
+    MESSAGE_READINESS_THREAD_POOL_SIZE: 2

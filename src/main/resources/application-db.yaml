@@ -7,9 +7,9 @@ spring:
 
 scheduledExecutors:
   messageProcessing:
-    pollIntervalSeconds: 3
+    pollIntervalMilliSeconds: 3000
   messageReadiness:
-    pollIntervalSeconds: 3
+    pollIntervalMilliSeconds: 3000
 
 logging.level.uk.gov.hmcts.reform.wacaseeventhandler.clients.*: TRACE
 logging.level.uk.gov.hmcts.reform: TRACE
