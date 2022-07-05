@@ -98,7 +98,6 @@ class ProblemMessageControllerTest {
         return "some case id" + ThreadLocalRandom.current().nextLong(1000000);
     }
 
-    @Test
     void should_return_a_ready_message_when_ready_message_timestamp_is_older_than_one_hour() throws Exception {
 
         String messageId = randomMessageId();
