@@ -1,9 +1,11 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
+import com.microsoft.applicationinsights.TelemetryClient;
 import feign.FeignException;
 import feign.RetryableException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -43,6 +45,9 @@ public class DatabaseMessageConsumer implements Runnable {
     private final UpdateRecordErrorHandlingService updateRecordErrorHandlingService;
     private final TransactionTemplate transactionTemplate;
     protected static final Map<Integer, Integer> RETRY_COUNT_TO_DELAY_MAP = new ConcurrentHashMap<>();
+
+    @Autowired
+    private TelemetryClient telemetryClient;
 
 
     public DatabaseMessageConsumer(CaseEventMessageRepository caseEventMessageRepository,
@@ -85,6 +90,11 @@ public class DatabaseMessageConsumer implements Runnable {
                 if (flagProvider.getBooleanValue(DLQ_DB_PROCESS, getUserId(caseEventMessageEntity))) {
                     final CaseEventMessage caseEventMessage = caseEventMessageMapper
                         .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
+
+                    if (telemetryClient != null) {
+                        telemetryClient.getContext().getOperation().setId(caseEventMessage.getMessageId());
+                    }
+
                     Optional<MessageUpdateRetry> updatable = processMessage(caseEventMessage);
 
                     //if record state update failed, Rollback the transaction
