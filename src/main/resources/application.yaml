@@ -27,7 +27,8 @@ idam:
 
 wa-workflow-api:
   url: ${WA_WORKFLOW_API_URL:http://localhost:8099}
-
+wa-task-management-api:
+  url: ${WA_TASK_MANAGEMENT_API_URL:http://localhost:8087}
 spring:
   config:
     import: "optional:configtree:/mnt/secrets/wa/"
