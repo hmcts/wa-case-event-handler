@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED;
@@ -91,9 +92,9 @@ public class DatabaseMessageConsumer implements Runnable {
                     final CaseEventMessage caseEventMessage = caseEventMessageMapper
                         .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
 
-                    if (telemetryClient != null) {
-                        telemetryClient.getContext().getOperation().setId(caseEventMessage.getMessageId());
-                    }
+                    String operationId = UUID.randomUUID().toString().replaceAll("-", "");;
+                    log.info("Operation id {} to process message {}", operationId, caseEventMessage.getMessageId());
+                    telemetryClient.getContext().getOperation().setId(caseEventMessage.getMessageId());
 
                     Optional<MessageUpdateRetry> updatable = processMessage(caseEventMessage);
 
