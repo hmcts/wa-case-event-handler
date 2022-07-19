@@ -49,8 +49,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -194,14 +200,13 @@ class MessageProcessorTest {
     @Test
     void should_set_message_state_to_unprocessable_when_non_retryable_error_occurs() throws JsonProcessingException {
         doThrow(FeignException.NotFound.class).when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
-        await()
-                .atMost(20, SECONDS)
-                .untilAsserted(() -> {
-                            assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
-                                                            MESSAGE_ID, CASE_ID));
-                            assertEquals(1, getMessagesInDbFromQuery(UNPROCESSABLE_STATE_QUERY).size());
-                        }
-            );
+        await().atMost(20, SECONDS)
+            .untilAsserted(() -> {
+                    assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
+                                                    MESSAGE_ID, CASE_ID));
+                    assertEquals(1, getMessagesInDbFromQuery(UNPROCESSABLE_STATE_QUERY).size());
+                }
+        );
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -210,14 +215,13 @@ class MessageProcessorTest {
     @Test
     void should_set_message_state_to_unprocessable_when_exception_occurs() throws JsonProcessingException {
         doThrow(IllegalArgumentException.class).when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
-        await()
-                .atMost(20, SECONDS)
-                .untilAsserted(() -> {
-                            assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
-                                                            MESSAGE_ID, CASE_ID));
-                            assertEquals(1, getMessagesInDbFromQuery(UNPROCESSABLE_STATE_QUERY).size());
-                        }
-            );
+        await().atMost(20, SECONDS)
+            .untilAsserted(() -> {
+                    assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
+                                                    MESSAGE_ID, CASE_ID));
+                    assertEquals(1, getMessagesInDbFromQuery(UNPROCESSABLE_STATE_QUERY).size());
+                }
+        );
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -226,14 +230,13 @@ class MessageProcessorTest {
     @Test
     void should_set_message_state_to_processed_when_message_processed_succesfully() throws JsonProcessingException {
         doNothing().when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
-        await()
-                .atMost(20, SECONDS)
-                .untilAsserted(() -> {
-                            assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
-                                                            MESSAGE_ID, CASE_ID));
-                            assertEquals(1, getMessagesInDbFromQuery(PROCESSED_STATE_QUERY).size());
-                        }
-            );
+        await().atMost(20, SECONDS)
+            .untilAsserted(() -> {
+                    assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
+                                                    MESSAGE_ID, CASE_ID));
+                    assertEquals(1, getMessagesInDbFromQuery(PROCESSED_STATE_QUERY).size());
+                }
+        );
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -243,14 +246,13 @@ class MessageProcessorTest {
     void should_set_message_state_to_processed_when_message_exist_ltr_than_30min_and_dlq_message_processed_succesfully()
         throws JsonProcessingException {
         doNothing().when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
-        await()
-                .atMost(20, SECONDS)
-                .untilAsserted(() -> {
-                            assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
-                                                            MESSAGE_ID, CASE_ID));
-                            assertEquals(1, getMessagesInDbFromQuery(PROCESSED_STATE_QUERY).size());
-                        }
-            );
+        await().atMost(20, SECONDS)
+            .untilAsserted(() -> {
+                    assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
+                                                    MESSAGE_ID, CASE_ID));
+                    assertEquals(1, getMessagesInDbFromQuery(PROCESSED_STATE_QUERY).size());
+                }
+        );
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -260,14 +262,13 @@ class MessageProcessorTest {
     void should_set_message_state_to_processed_when_message_exist_with_same_case_id_and_dlq_message_processed()
         throws JsonProcessingException {
         doNothing().when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
-        await()
-                .atMost(20, SECONDS)
-                .untilAsserted(() -> {
-                            assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
-                                                            MESSAGE_ID, CASE_ID));
-                            assertEquals(1, getMessagesInDbFromQuery(PROCESSED_STATE_QUERY).size());
-                        }
-            );
+        await().atMost(20, SECONDS)
+            .untilAsserted(() -> {
+                    assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
+                                                    MESSAGE_ID, CASE_ID));
+                    assertEquals(1, getMessagesInDbFromQuery(PROCESSED_STATE_QUERY).size());
+                }
+        );
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -298,13 +299,17 @@ class MessageProcessorTest {
         assertEquals(2, messageIds.size());
 
         int firstMessageStart = getLogMessageIndex(
-            format("Processing message with id: %s and caseId: %s from the database", MESSAGE_ID, CASE_ID));
+            format("Processing message with id: %s and caseId: %s from the database",
+                   MESSAGE_ID, CASE_ID));
         int secondMessageStart = getLogMessageIndex(
-            format("Processing message with id: %s and caseId: %s from the database", SECOND_MESSAGE_ID, "9140931237014412"));
+            format("Processing message with id: %s and caseId: %s from the database",
+                   SECOND_MESSAGE_ID, "9140931237014412"));
         int firstMessageComplete = getLogMessageIndex(
-            format("Message with id:%s and caseId:%s processed successfully, setting message state to PROCESSED", MESSAGE_ID, CASE_ID));
+            format("Message with id:%s and caseId:%s processed successfully, setting message state to PROCESSED",
+                   MESSAGE_ID, CASE_ID));
         int secondMessageComplete = getLogMessageIndex(
-            format("Message with id:%s and caseId:%s processed successfully, setting message state to PROCESSED", SECOND_MESSAGE_ID, "9140931237014412"));
+            format("Message with id:%s and caseId:%s processed successfully, setting message state to PROCESSED",
+                   SECOND_MESSAGE_ID, "9140931237014412"));
 
         //assert that the second message was selected from the database while first one is being processed
         assertTrue(Math.max(firstMessageStart, secondMessageStart)

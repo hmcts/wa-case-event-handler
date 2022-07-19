@@ -36,7 +36,8 @@ class CcdMessageProcessorExecutorTest {
 
     private static final String SELECT_LOG_MESSAGE = "Selecting next message for processing from the database";
 
-    private static final String PROCESS_LOG_MESSAGE = "Processing message with id: " + MESSAGE_ID + " and caseId: " + CASE_ID + " from the database";
+    private static final String PROCESS_LOG_MESSAGE = "Processing message with id: "
+        + MESSAGE_ID + " and caseId: " + CASE_ID + " from the database";
 
     private ListAppender<ILoggingEvent> listAppender;
 
