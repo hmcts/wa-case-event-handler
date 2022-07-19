@@ -8,11 +8,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.microsoft.applicationinsights.TelemetryClient;
+import com.microsoft.applicationinsights.extensibility.context.OperationContext;
+import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.Mock;
 import org.mockito.internal.stubbing.answers.AnswersWithDelay;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,13 +49,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -67,6 +66,15 @@ class MessageProcessorTest {
 
     @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
+
+    @MockBean
+    private TelemetryClient telemetryClient;
+
+    @Mock
+    private TelemetryContext telemetryContext;
+
+    @Mock
+    private OperationContext operationContext;
 
     @Autowired
     private MockMvc mockMvc;
@@ -92,6 +100,7 @@ class MessageProcessorTest {
     private static final String PROCESSED_STATE_QUERY = format(STATE_TEMPLATE, MessageState.PROCESSED.name());
     private static final String MESSAGE_ID = "MessageId_30915063-ec4b-4272-933d-91087b486195";
     private static final String SECOND_MESSAGE_ID = "MessageId_bc8299fc-5d31-45c7-b847-c2622014a85a";
+    private static final String CASE_ID = "6761065058131570";
 
     @BeforeEach
     void setup() {
@@ -102,6 +111,8 @@ class MessageProcessorTest {
         logger.addAppender(listAppender);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true).thenReturn(true);
+        lenient().when(telemetryClient.getContext()).thenReturn(telemetryContext);
+        lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -186,8 +197,8 @@ class MessageProcessorTest {
         await()
                 .atMost(20, SECONDS)
                 .untilAsserted(() -> {
-                            assertLogMessageContains(format("Processing message with id %s from the database",
-                                    MESSAGE_ID));
+                            assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
+                                                            MESSAGE_ID, CASE_ID));
                             assertEquals(1, getMessagesInDbFromQuery(UNPROCESSABLE_STATE_QUERY).size());
                         }
             );
@@ -202,8 +213,8 @@ class MessageProcessorTest {
         await()
                 .atMost(20, SECONDS)
                 .untilAsserted(() -> {
-                            assertLogMessageContains(format("Processing message with id %s from the database",
-                                    MESSAGE_ID));
+                            assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
+                                                            MESSAGE_ID, CASE_ID));
                             assertEquals(1, getMessagesInDbFromQuery(UNPROCESSABLE_STATE_QUERY).size());
                         }
             );
@@ -218,8 +229,8 @@ class MessageProcessorTest {
         await()
                 .atMost(20, SECONDS)
                 .untilAsserted(() -> {
-                            assertLogMessageContains(format("Processing message with id %s from the database",
-                                    MESSAGE_ID));
+                            assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
+                                                            MESSAGE_ID, CASE_ID));
                             assertEquals(1, getMessagesInDbFromQuery(PROCESSED_STATE_QUERY).size());
                         }
             );
@@ -235,8 +246,8 @@ class MessageProcessorTest {
         await()
                 .atMost(20, SECONDS)
                 .untilAsserted(() -> {
-                            assertLogMessageContains(format("Processing message with id %s from the database",
-                                    MESSAGE_ID));
+                            assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
+                                                            MESSAGE_ID, CASE_ID));
                             assertEquals(1, getMessagesInDbFromQuery(PROCESSED_STATE_QUERY).size());
                         }
             );
@@ -252,8 +263,8 @@ class MessageProcessorTest {
         await()
                 .atMost(20, SECONDS)
                 .untilAsserted(() -> {
-                            assertLogMessageContains(format("Processing message with id %s from the database",
-                                                            MESSAGE_ID));
+                            assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
+                                                            MESSAGE_ID, CASE_ID));
                             assertEquals(1, getMessagesInDbFromQuery(PROCESSED_STATE_QUERY).size());
                         }
             );
@@ -287,13 +298,13 @@ class MessageProcessorTest {
         assertEquals(2, messageIds.size());
 
         int firstMessageStart = getLogMessageIndex(
-            format("Processing message with id %s from the database", MESSAGE_ID));
+            format("Processing message with id: %s and caseId: %s from the database", MESSAGE_ID, CASE_ID));
         int secondMessageStart = getLogMessageIndex(
-            format("Processing message with id %s from the database", SECOND_MESSAGE_ID));
+            format("Processing message with id: %s and caseId: %s from the database", SECOND_MESSAGE_ID, "9140931237014412"));
         int firstMessageComplete = getLogMessageIndex(
-            format("Message with id %s processed successfully, setting message state to PROCESSED", MESSAGE_ID));
+            format("Message with id:%s and caseId:%s processed successfully, setting message state to PROCESSED", MESSAGE_ID, CASE_ID));
         int secondMessageComplete = getLogMessageIndex(
-            format("Message with id %s processed successfully, setting message state to PROCESSED", SECOND_MESSAGE_ID));
+            format("Message with id:%s and caseId:%s processed successfully, setting message state to PROCESSED", SECOND_MESSAGE_ID, "9140931237014412"));
 
         //assert that the second message was selected from the database while first one is being processed
         assertTrue(Math.max(firstMessageStart, secondMessageStart)

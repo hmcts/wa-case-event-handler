@@ -5,7 +5,6 @@ import feign.FeignException;
 import feign.RetryableException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -46,9 +45,7 @@ public class DatabaseMessageConsumer implements Runnable {
     private final UpdateRecordErrorHandlingService updateRecordErrorHandlingService;
     private final TransactionTemplate transactionTemplate;
     protected static final Map<Integer, Integer> RETRY_COUNT_TO_DELAY_MAP = new ConcurrentHashMap<>();
-
-    @Autowired
-    private TelemetryClient telemetryClient;
+    private final TelemetryClient telemetryClient;
 
 
     public DatabaseMessageConsumer(CaseEventMessageRepository caseEventMessageRepository,
@@ -56,13 +53,15 @@ public class DatabaseMessageConsumer implements Runnable {
                                    CcdEventProcessor ccdEventProcessor,
                                    LaunchDarklyFeatureFlagProvider flagProvider,
                                    UpdateRecordErrorHandlingService updateRecordErrorHandlingService,
-                                   PlatformTransactionManager transactionManager) {
+                                   PlatformTransactionManager transactionManager,
+                                   TelemetryClient telemetryClient) {
         this.caseEventMessageRepository = caseEventMessageRepository;
         this.caseEventMessageMapper = caseEventMessageMapper;
         this.ccdEventProcessor = ccdEventProcessor;
         this.flagProvider = flagProvider;
         this.updateRecordErrorHandlingService = updateRecordErrorHandlingService;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
+        this.telemetryClient = telemetryClient;
     }
 
     static {
@@ -92,8 +91,8 @@ public class DatabaseMessageConsumer implements Runnable {
                     final CaseEventMessage caseEventMessage = caseEventMessageMapper
                         .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
 
-                    String operationId = UUID.randomUUID().toString().replaceAll("-", "");;
-                    log.info("Operation id {} to process message {}", operationId, caseEventMessage.getMessageId());
+                    String operationId = UUID.randomUUID().toString().replaceAll("-", "");
+                    log.info("Set operation id {} to process message {}", operationId, caseEventMessage.getMessageId());
                     telemetryClient.getContext().getOperation().setId(caseEventMessage.getMessageId());
 
                     Optional<MessageUpdateRetry> updatable = processMessage(caseEventMessage);
@@ -147,7 +146,7 @@ public class DatabaseMessageConsumer implements Runnable {
             );
             try {
                 ccdEventProcessor.processMessage(caseEventMessage);
-                log.info("Message with id: {} and caseId: {} processed successfully, setting message state to PROCESSED",
+                log.info("Message with id:{} and caseId:{} processed successfully, setting message state to PROCESSED",
                     caseEventMessageId,
                     caseEventMessage.getCaseId()
                 );

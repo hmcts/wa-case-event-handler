@@ -46,9 +46,10 @@ public class CcdCaseEventsConsumer implements Runnable {
                 message -> {
                     try {
                         String messageId = message.getMessageId();
-                        log.info("Received CCD Case Event message with id '{}'", messageId);
+                        String sessionId = message.getSessionId();
+                        log.info("Received CCD Case Event message with id '{}' and case id '{}'", messageId, sessionId);
 
-                        eventMessageReceiverService.handleCcdCaseEventAsbMessage(messageId, message.getSessionId(),
+                        eventMessageReceiverService.handleCcdCaseEventAsbMessage(messageId, sessionId,
                                 new String(message.getBody().toBytes()));
                         receiver.complete(message);
 
