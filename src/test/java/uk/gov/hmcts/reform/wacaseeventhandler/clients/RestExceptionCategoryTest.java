@@ -20,6 +20,11 @@ class RestExceptionCategoryTest {
     }
 
     @Test
+    void should_return_true_for_a_401_retryable_error() {
+        assertTrue(RestExceptionCategory.isRetryableError(HttpStatus.UNAUTHORIZED));
+    }
+
+    @Test
     void should_return_true_for_a_5XX_retryable_error() {
         assertTrue(RestExceptionCategory.isRetryableError(HttpStatus.GATEWAY_TIMEOUT));
     }
