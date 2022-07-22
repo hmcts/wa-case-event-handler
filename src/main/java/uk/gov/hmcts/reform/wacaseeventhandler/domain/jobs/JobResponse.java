@@ -8,6 +8,9 @@ import java.util.List;
 
 @Builder
 public class JobResponse  implements Serializable {
+
+    private static final long serialVersionUID = 3213665988741833671L;
+
     private final String jobName;
     private final Integer numberOfMessages;
     private final List<String> messageIds;
