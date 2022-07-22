@@ -9,11 +9,9 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageMapper;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.ProblemMessageService;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices.FindProblemMessageJob;
 
 import java.util.List;
 
@@ -30,19 +28,18 @@ public class FindProblemMessageUnhappyPathTest {
     @Autowired
     private CaseEventMessageRepository caseEventMessageRepository;
 
-    private ProblemMessageService problemMessageService;
+    private FindProblemMessageJob problemMessageService;
 
     @BeforeEach
     void setUp() {
-        problemMessageService = new ProblemMessageService(caseEventMessageRepository,
+        problemMessageService = new FindProblemMessageJob(caseEventMessageRepository,
                                                           caseEventMessageMapper,
                                                           60);
     }
 
     @Test
     void should_not_retrieve_any_problem_messages() {
-        List<CaseEventMessage> caseEventMessages = problemMessageService
-            .findProblemMessages(JobName.FIND_PROBLEM_MESSAGES);
+        List<String> caseEventMessages = problemMessageService.run();
         Assertions.assertThat(caseEventMessages.isEmpty()).isTrue();
     }
 }

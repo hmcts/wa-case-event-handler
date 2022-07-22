@@ -25,6 +25,7 @@ import java.util.stream.IntStream;
 import javax.sql.DataSource;
 
 import static java.lang.Long.valueOf;
+import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -91,7 +92,7 @@ class CaseEventMessageRepositoryTest {
     void should_return_null_case_event_message_when_no_matching_messages_match_query_criteria() {
 
         final List<CaseEventMessageEntity> caseEventMessageEntities = caseEventMessageRepository.findByMessageId(
-                "MessageId_bc8299fc-5d31-45c7-b847-c2622014a85a");
+            singletonList("MessageId_bc8299fc-5d31-45c7-b847-c2622014a85a"));
         assertEquals(1, caseEventMessageEntities.size());
 
         final CaseEventMessageEntity caseEventMessageEntity1 = caseEventMessageEntities.get(0);
@@ -111,7 +112,7 @@ class CaseEventMessageRepositoryTest {
     void should_return_null_case_event_message_when_no_matching_messages_match_hold_until_query_criteria() {
 
         final List<CaseEventMessageEntity> caseEventMessageEntities = caseEventMessageRepository.findByMessageId(
-                "MessageId_bc8299fc-5d31-45c7-b847-c2622014a85a");
+            singletonList("MessageId_bc8299fc-5d31-45c7-b847-c2622014a85a"));
         assertEquals(1, caseEventMessageEntities.size());
 
         final CaseEventMessageEntity caseEventMessageEntity1 = caseEventMessageEntities.get(0);
@@ -131,7 +132,7 @@ class CaseEventMessageRepositoryTest {
     void should_return_case_event_message_when_messages_match_hold_until_query_criteria() {
 
         final List<CaseEventMessageEntity> caseEventMessageEntities = caseEventMessageRepository.findByMessageId(
-                MESSAGE_ID);
+            singletonList(MESSAGE_ID));
         assertEquals(1, caseEventMessageEntities.size());
 
         final CaseEventMessageEntity caseEventMessageEntity1 = caseEventMessageEntities.get(0);
@@ -162,7 +163,7 @@ class CaseEventMessageRepositoryTest {
         assertEquals(1, rowsAffected);
 
         final List<CaseEventMessageEntity> caseEventMessageEntities = caseEventMessageRepository.findByMessageId(
-                MESSAGE_ID);
+            singletonList(MESSAGE_ID));
         assertEquals(1, caseEventMessageEntities.size());
         assertEquals(MessageState.PROCESSED, caseEventMessageEntities.get(0).getState());
     }
@@ -190,7 +191,7 @@ class CaseEventMessageRepositoryTest {
     }
 
     private void assertMessageState(String messageId, MessageState messageState) {
-        caseEventMessageRepository.findByMessageId(messageId)
+        caseEventMessageRepository.findByMessageId(singletonList(messageId))
             .stream()
             .findFirst()
             .ifPresentOrElse(
@@ -226,7 +227,7 @@ class CaseEventMessageRepositoryTest {
 
         assertEquals(1, rowsAffected);
         final List<CaseEventMessageEntity> caseEventMessageEntities = caseEventMessageRepository.findByMessageId(
-                MESSAGE_ID);
+            singletonList(MESSAGE_ID));
 
         assertEquals(1, caseEventMessageEntities.size());
         assertEquals(retryCount, caseEventMessageEntities.get(0).getRetryCount());
@@ -263,7 +264,7 @@ class CaseEventMessageRepositoryTest {
     @Test
     void should_return_null_where_other_processed_or_ready_messages_exist_with_timestamp_earlier_than_30mins() {
         final List<CaseEventMessageEntity> caseEventMessageEntities =
-                caseEventMessageRepository.findByMessageId("MessageId_37f7a172-79e6-11ec-90d6-0242ac120003");
+            caseEventMessageRepository.findByMessageId(singletonList("MessageId_37f7a172-79e6-11ec-90d6-0242ac120003"));
 
         assertEquals(1, caseEventMessageEntities.size());
         final CaseEventMessageEntity caseEventMessageEntity = caseEventMessageEntities.get(0);
@@ -297,7 +298,7 @@ class CaseEventMessageRepositoryTest {
         caseEventMessageRepository.save(caseEventMessageEntity);
 
         final List<CaseEventMessageEntity> byMessageId =
-                caseEventMessageRepository.findByMessageId(caseEventMessageEntity.getMessageId());
+                caseEventMessageRepository.findByMessageId(singletonList(caseEventMessageEntity.getMessageId()));
 
         assertNotNull(byMessageId);
         assertEquals(1, byMessageId.size());
@@ -317,7 +318,7 @@ class CaseEventMessageRepositoryTest {
         caseEventMessageRepository.save(caseEventMessageEntity2);
 
         final List<CaseEventMessageEntity> byMessageId =
-                caseEventMessageRepository.findByMessageId("messageId2");
+                caseEventMessageRepository.findByMessageId(singletonList("messageId2"));
 
         assertNotNull(byMessageId);
         assertEquals(1, byMessageId.size());
@@ -326,7 +327,7 @@ class CaseEventMessageRepositoryTest {
 
     private void changeCaseIdAndSetFromDlq(String caseEventMessageId, String newCaseIdValue) {
         final List<CaseEventMessageEntity> caseEventMessageEntities =
-                caseEventMessageRepository.findByMessageId(caseEventMessageId);
+                caseEventMessageRepository.findByMessageId(singletonList(caseEventMessageId));
 
         assertEquals(1, caseEventMessageEntities.size());
         final CaseEventMessageEntity caseEventMessageEntity = caseEventMessageEntities.get(0);

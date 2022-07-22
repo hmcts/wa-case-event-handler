@@ -32,6 +32,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
@@ -146,10 +147,11 @@ public class EventConsumerIntegrationTest {
     public void should_abandon_the_message_when_database_repository_failure() {
         String messageId = "some_message_id_2";
         when(message.getMessageId()).thenReturn(messageId);
-        when(repository.findByMessageId(messageId)).thenThrow(new RuntimeException());
+        when(repository.findByMessageId(singletonList(messageId))).thenThrow(new RuntimeException());
         messageList.add(message);
         await()
-            .untilAsserted(() -> verify(repository, times(1)).findByMessageId(messageId));
+            .untilAsserted(() -> verify(repository,
+                                        times(1)).findByMessageId(singletonList(messageId)));
 
         verify(ccdReceiverClient, atLeast(1)).abandon(messageArgumentCaptor.capture());
         assertEquals(messageId, messageArgumentCaptor.getValue().getMessageId());
@@ -184,10 +186,11 @@ public class EventConsumerIntegrationTest {
     public void should_abandon_the_message_when_dlq_database_repository_failure() {
         String messageId = "some_message_id_5";
         when(message.getMessageId()).thenReturn(messageId);
-        when(repository.findByMessageId(messageId)).thenThrow(new RuntimeException());
+        when(repository.findByMessageId(singletonList(messageId))).thenThrow(new RuntimeException());
         dlqMessageList.add(message);
         await()
-            .untilAsserted(() -> verify(repository, times(1)).findByMessageId(messageId));
+            .untilAsserted(() -> verify(repository,
+                                        times(1)).findByMessageId(singletonList(messageId)));
 
         verify(dlqReceiverClient, atLeast(1)).abandon(messageArgumentCaptor.capture());
         assertEquals(messageId, messageArgumentCaptor.getValue().getMessageId());

@@ -9,12 +9,9 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
-import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageMapper;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.ProblemMessageService;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices.FindProblemMessageJob;
 
 import java.util.List;
 
@@ -30,24 +27,23 @@ public class FindProblemMessageTest {
     @Autowired
     private CaseEventMessageRepository caseEventMessageRepository;
 
-    private ProblemMessageService problemMessageService;
+    private FindProblemMessageJob findProblemMessageJob;
 
     @BeforeEach
     void setUp() {
-        problemMessageService = new ProblemMessageService(caseEventMessageRepository,
+        findProblemMessageJob = new FindProblemMessageJob(caseEventMessageRepository,
                                                           caseEventMessageMapper,
                                                           60);
     }
 
     @Test
     void should_retrieve_an_ready_message() {
-        final String messageId = "8d6cc5cf-c973-11eb-bdba-0242ac111000";
-
-        List<CaseEventMessage> caseEventMessages = problemMessageService
-            .findProblemMessages(JobName.FIND_PROBLEM_MESSAGES);
+        List<String> caseEventMessages = findProblemMessageJob.run();
         Assertions.assertThat(caseEventMessages.isEmpty()).isFalse();
-        Assertions.assertThat(caseEventMessages.get(0).getMessageId()).isEqualTo(messageId);
-        Assertions.assertThat(caseEventMessages.get(0).getState()).isEqualTo(MessageState.READY);
+        Assertions.assertThat(caseEventMessages.size()).isEqualTo(3);
+        Assertions.assertThat(caseEventMessages.get(0)).isEqualTo("8d6cc5cf-c973-11eb-bdba-0242ac111000");
+        Assertions.assertThat(caseEventMessages.get(1)).isEqualTo("8d6cc5cf-c973-11eb-bdba-0242ac111001");
+        Assertions.assertThat(caseEventMessages.get(2)).isEqualTo("8d6cc5cf-c973-11eb-bdba-0242ac111002");
     }
 }
 

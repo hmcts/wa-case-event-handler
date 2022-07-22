@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformatio
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationMetadata;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 
 import java.time.LocalDateTime;
@@ -66,14 +67,10 @@ public class ProblemMessageControllerTest extends MessagingTests {
             .extract()
             .response();
 
-        List<CaseEventMessage> caseEventMessages = OBJECT_MAPPER.readValue(result.body().asString(),
-                                                        new TypeReference<>() {});
-        List<String> messageIds = caseEventMessages
-            .stream()
-            .map(caseEventMessage -> caseEventMessage.getMessageId())
-            .collect(Collectors.toList());
+        JobResponse response = OBJECT_MAPPER.readValue(result.body().asString(),
+                                                          new TypeReference<>() {});
 
-        assertThat(messageIds).asList()
+        assertThat(response.getMessageIds()).asList()
             .containsSubsequence(messageId);
 
         deleteMessagesFromDatabaseByMsgIds(List.of(messageId));
