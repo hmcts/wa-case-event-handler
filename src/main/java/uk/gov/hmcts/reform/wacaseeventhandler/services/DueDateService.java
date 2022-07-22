@@ -20,7 +20,10 @@ public class DueDateService {
         if (delayDuration <= 0) {
             return eventDateTime;
         }
-        return resetTo4PmTime(eventDateTime.plusDays(delayDuration));
+
+        final ZonedDateTime zonedDateTime = addWorkingDaysForDelayDuration(eventDateTime, delayDuration);
+
+        return resetTo4PmTime(zonedDateTime);
     }
 
     public ZonedDateTime calculateDueDate(ZonedDateTime delayUntil, int workingDaysAllowed) {
@@ -40,6 +43,17 @@ public class DueDateService {
         } else {
             return addWorkingDays(newDate, numberOfDays - 1);
         }
+    }
+
+    private ZonedDateTime addWorkingDaysForDelayDuration(ZonedDateTime eventDate, int delayDuration) {
+
+        ZonedDateTime newDate = eventDate.plusDays(delayDuration);
+
+        if (isWeekend(newDate) || holidayService.isHoliday(newDate)) {
+            return addWorkingDaysForDelayDuration(eventDate, delayDuration + 1);
+        }
+        
+        return newDate;
     }
 
     private boolean isWeekend(ZonedDateTime date) {
