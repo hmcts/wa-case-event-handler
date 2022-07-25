@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
 import lombok.Builder;
+import lombok.ToString;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -52,35 +53,35 @@ class DueDateServiceTest {
     @Test
     void calculateDueDateAllWorkingDays() {
         checkWorkingDays(ZonedDateTime.of(2020, 9, 1, 16, 0, 0, 0, ZoneId.systemDefault()),
-                         2, ZonedDateTime.of(2020, 9, 1, 16, 0, 0, 0, ZoneId.systemDefault()).plusDays(2)
+            2, ZonedDateTime.of(2020, 9, 1, 16, 0, 0, 0, ZoneId.systemDefault()).plusDays(2)
         );
     }
 
     @Test
     void calculateDueDateWhenFallInAWeekend() {
         checkWorkingDays(ZonedDateTime.of(2020, 9, 3, 16, 0, 0, 0, ZoneId.systemDefault()), 2,
-                         ZonedDateTime.of(2020, 9, 7, 16, 0, 0, 0, ZoneId.systemDefault())
+            ZonedDateTime.of(2020, 9, 7, 16, 0, 0, 0, ZoneId.systemDefault())
         );
     }
 
     @Test
     void calculateDueDateWhenStraddlesAWeekend() {
         checkWorkingDays(ZonedDateTime.of(2020, 9, 3, 16, 0, 0, 0, ZoneId.systemDefault()), 4,
-                         ZonedDateTime.of(2020, 9, 9, 16, 0, 0, 0, ZoneId.systemDefault())
+            ZonedDateTime.of(2020, 9, 9, 16, 0, 0, 0, ZoneId.systemDefault())
         );
     }
 
     @Test
     void calculateDueDateWhichStraddlesMultipleWeekends() {
         checkWorkingDays(ZonedDateTime.of(2020, 9, 3, 16, 0, 0, 0, ZoneId.systemDefault()), 10,
-                         ZonedDateTime.of(2020, 9, 17, 16, 0, 0, 0, ZoneId.systemDefault())
+            ZonedDateTime.of(2020, 9, 17, 16, 0, 0, 0, ZoneId.systemDefault())
         );
     }
 
     @Test
     void calculateDueDateWhichFallsOnAWeekend() {
         checkWorkingDays(ZonedDateTime.of(2020, 9, 3, 16, 0, 0, 0, ZoneId.systemDefault()), 10,
-                         ZonedDateTime.of(2020, 9, 17, 16, 0, 0, 0, ZoneId.systemDefault())
+            ZonedDateTime.of(2020, 9, 17, 16, 0, 0, 0, ZoneId.systemDefault())
         );
     }
 
@@ -89,7 +90,7 @@ class DueDateServiceTest {
         when(holidayService.isHoliday(ZonedDateTime.of(2020, 9, 3, 16, 0, 0, 0, ZoneId.systemDefault())))
             .thenReturn(true);
         checkWorkingDays(ZonedDateTime.of(2020, 9, 1, 16, 0, 0, 0, ZoneId.systemDefault()), 2,
-                         ZonedDateTime.of(2020, 9, 4, 16, 0, 0, 0, ZoneId.systemDefault())
+            ZonedDateTime.of(2020, 9, 4, 16, 0, 0, 0, ZoneId.systemDefault())
         );
     }
 
@@ -98,12 +99,12 @@ class DueDateServiceTest {
         when(holidayService.isHoliday(ZonedDateTime.of(2020, 9, 1, 16, 0, 0, 0, ZoneId.systemDefault()).plusDays(1)))
             .thenReturn(true);
         checkWorkingDays(ZonedDateTime.of(2020, 9, 1, 16, 0, 0, 0, ZoneId.systemDefault()), 2,
-                         ZonedDateTime.of(2020, 9, 4, 16, 0, 0, 0, ZoneId.systemDefault())
+            ZonedDateTime.of(2020, 9, 4, 16, 0, 0, 0, ZoneId.systemDefault())
         );
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {00, 11, 16, 17}) // hours
+    @ValueSource(ints = {00, 11, 16, 17})
     void calculateDelayUntilWithDelayDuration(int hour) {
         final ZonedDateTime actual = ZonedDateTime.of(2021, 3, 1, hour, 0, 0, 0, ZoneId.systemDefault());
         final ZonedDateTime expected = ZonedDateTime.of(2021, 3, 2, 16, 0, 0, 0, ZoneId.systemDefault());
@@ -114,15 +115,15 @@ class DueDateServiceTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = {00, 11, 16, 17}) // hours
-    void calculateDelayUntilWithOutDelayDuration(int hour) {
-        final ZonedDateTime actual = ZonedDateTime.of(2021, 3, 1, hour, 0, 0, 0, ZoneId.systemDefault());
+    @ValueSource(ints = {00, 11, 16, 17})
+    void calculate_delay_until_without_delay_duration(int hour) {
+        final ZonedDateTime given = ZonedDateTime.of(2021, 3, 1, hour, 0, 0, 0, ZoneId.systemDefault());
 
-        ZonedDateTime zonedDateTime = underTest.calculateDelayUntil(actual, 0);
-        assertEquals(actual, zonedDateTime);
+        ZonedDateTime actual = underTest.calculateDelayUntil(given, 0);
+        assertEquals(given, actual);
 
-        zonedDateTime = underTest.calculateDelayUntil(actual, -1);
-        assertEquals(actual, zonedDateTime);
+        actual = underTest.calculateDelayUntil(given, -1);
+        assertEquals(given, actual);
     }
 
     @ParameterizedTest
@@ -130,6 +131,44 @@ class DueDateServiceTest {
     void calculateDelayUntil(ZonedDateTimeScenario scenario) {
         ZonedDateTime zonedDateTime = underTest.calculateDelayUntil(scenario.actualDateTime, scenario.days);
         assertEquals(scenario.expectedDateTime, zonedDateTime);
+    }
+
+    @Test
+    void should_return_event_date_when_delay_duration_is_0() {
+
+        ZonedDateTime eventDate = ZonedDateTime.of(2022, 7, 1, 9, 0, 0, 0, ZoneId.systemDefault());
+
+        ZonedDateTime actualDelayUntil = underTest.calculateDelayUntil(eventDate, 0);
+
+        assertEquals(eventDate, actualDelayUntil);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {1, 2, 3})
+    void should_return_next_working_day_when_event_date_is_friday_and_has_delay_duration(int delayDuration) {
+
+        ZonedDateTime eventDate = ZonedDateTime.of(2022, 7, 1, 9, 0, 0, 0, ZoneId.systemDefault());
+
+        ZonedDateTime expectedDueDateMonday = ZonedDateTime.of(2022, 7, 4, 16, 0, 0, 0, ZoneId.systemDefault());
+
+        ZonedDateTime actualDelayUntilDate = underTest.calculateDelayUntil(eventDate, delayDuration);
+
+        assertEquals(expectedDueDateMonday, actualDelayUntilDate);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {1, 2, 3, 4})
+    void should_return_next_working_day_when_event_date_plus_delay_duration_matches_holiday(int delayDuration) {
+        ZonedDateTime eventDate = ZonedDateTime.of(2022, 8, 26, 9, 0, 0, 0, ZoneId.systemDefault());
+
+        when(holidayService.isHoliday(eventDate.plusDays(3)))
+            .thenReturn(true);
+
+        ZonedDateTime expectedDueDateMonday = ZonedDateTime.of(2022, 8, 30, 16, 0, 0, 0, ZoneId.systemDefault());
+
+        ZonedDateTime actualDelayUntilDate = underTest.calculateDelayUntil(eventDate, delayDuration);
+
+        assertEquals(expectedDueDateMonday, actualDelayUntilDate);
     }
 
     private void checkWorkingDays(ZonedDateTime startDay, int leadTimeDays, ZonedDateTime expectedDueDate) {
@@ -147,13 +186,15 @@ class DueDateServiceTest {
                 .expectedDateTime(
                     ZonedDateTime.of(2021, 3, 2, 16, 0, 0, 0, ZoneId.systemDefault())
                 ).build(),
+
             ZonedDateTimeScenario.builder()
                 .actualDateTime(
                     ZonedDateTime.of(2021, 3, 1, 16, 0, 0, 0, ZoneId.systemDefault()))
                 .days(5)
                 .expectedDateTime(
-                    ZonedDateTime.of(2021, 3, 6, 16, 0, 0, 0, ZoneId.systemDefault()))
+                    ZonedDateTime.of(2021, 3, 8, 16, 0, 0, 0, ZoneId.systemDefault()))
                 .build(),
+
             ZonedDateTimeScenario.builder()
                 .actualDateTime(
                     ZonedDateTime.of(2021, 3, 1, 16, 0, 0, 0, ZoneId.systemDefault()))
@@ -161,6 +202,7 @@ class DueDateServiceTest {
                 .expectedDateTime(
                     ZonedDateTime.of(2021, 3, 19, 16, 0, 0, 0, ZoneId.systemDefault()))
                 .build(),
+
             ZonedDateTimeScenario.builder()
                 .actualDateTime(
                     ZonedDateTime.of(2021, 2, 28, 16, 0, 0, 0, ZoneId.systemDefault()))
@@ -168,13 +210,15 @@ class DueDateServiceTest {
                 .expectedDateTime(
                     ZonedDateTime.of(2021, 3, 1, 16, 0, 0, 0, ZoneId.systemDefault()))
                 .build(),
+
             ZonedDateTimeScenario.builder()
                 .actualDateTime(
                     ZonedDateTime.of(2020, 2, 28, 16, 0, 0, 0, ZoneId.systemDefault()))
                 .days(1)
                 .expectedDateTime(
-                    ZonedDateTime.of(2020, 2, 29, 16, 0, 0, 0, ZoneId.systemDefault()))
+                    ZonedDateTime.of(2020, 3, 2, 16, 0, 0, 0, ZoneId.systemDefault()))
                 .build(),
+
             ZonedDateTimeScenario.builder()
                 .actualDateTime(
                     ZonedDateTime.of(2021, 3, 1, 16, 0, 0, 0, ZoneId.systemDefault()))
@@ -182,6 +226,7 @@ class DueDateServiceTest {
                 .expectedDateTime(
                     ZonedDateTime.of(2021, 3, 31, 16, 0, 0, 0, ZoneId.systemDefault()))
                 .build(),
+
             ZonedDateTimeScenario.builder()
                 .actualDateTime(
                     ZonedDateTime.of(2021, 3, 1, 16, 0, 0, 0, ZoneId.systemDefault()))
@@ -193,6 +238,7 @@ class DueDateServiceTest {
     }
 
     @Builder
+    @ToString
     private static class ZonedDateTimeScenario {
         ZonedDateTime actualDateTime;
         int days;

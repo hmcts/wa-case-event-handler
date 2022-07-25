@@ -74,7 +74,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
             eventInformation.getJurisdictionId(),
             eventInformation.getCaseTypeId()
         );
-
+        log.debug("tableKey : {}", tableKey);
         String tenantId = eventInformation.getJurisdictionId();
         String directionDueDate = extractDirectionDueDate(eventInformation.getAdditionalData());
         log.debug("Direction Due Date : {}", directionDueDate);
@@ -86,13 +86,13 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
             directionDueDate
         );
-
+        log.debug("EvaluateDmnRequest : {}", evaluateDmnRequest);
         EvaluateDmnResponse<InitiateEvaluateResponse> response = workflowApiClient.evaluateInitiationDmn(
             serviceAuthGenerator.generate(),
             tableKey,
             tenantId,
             evaluateDmnRequest);
-
+        log.debug("Workflow api response : {}", response);
         return response.getResults();
     }
 
