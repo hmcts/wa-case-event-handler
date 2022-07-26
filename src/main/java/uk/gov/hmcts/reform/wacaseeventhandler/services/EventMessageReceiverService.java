@@ -151,7 +151,7 @@ public class EventMessageReceiverService {
 
             return mapper.mapToCaseEventMessage(savedEntity);
         } catch (JsonProcessingException e) {
-            log.error("Could not parse the message with id '{}'", messageId);
+            log.error("Could not parse the message with id '{}' case id '{}'", messageId, sessionId);
 
             boolean isDlq = TRUE.equals(fromDlq);
             CaseEventMessageEntity messageEntity = build(messageId, sessionId, message, isDlq,
@@ -176,8 +176,10 @@ public class EventMessageReceiverService {
 
         CaseEventMessageEntity messageEntity;
         if (isValid) {
+            log.info("Message validation successful for message id {}", messageId);
             messageEntity = build(messageId, message, fromDlq, eventInformation, MessageState.NEW);
         } else {
+            log.info("Message validation failed for message id {}", messageId);
             messageEntity = build(messageId, message, fromDlq, eventInformation, MessageState.UNPROCESSABLE);
         }
 
@@ -244,7 +246,8 @@ public class EventMessageReceiverService {
 
     private boolean validate(String messageId, EventInformation eventInformation, Boolean fromDlq) {
 
-        log.info("Validating message with id '{}'", messageId);
+        log.info("Message validation for message id {} - [case id : {}, event timestamp : {}, from DLQ {}]",
+                 messageId, eventInformation.getCaseId(), eventInformation.getEventTimeStamp(), fromDlq);
         return isNotBlank(eventInformation.getCaseId())
             && isNotBlank(messageId)
             && eventInformation.getEventTimeStamp() != null

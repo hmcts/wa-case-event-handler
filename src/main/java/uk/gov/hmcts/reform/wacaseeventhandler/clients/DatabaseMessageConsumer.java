@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
+import com.microsoft.applicationinsights.TelemetryClient;
 import feign.FeignException;
 import feign.RetryableException;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED;
@@ -43,6 +45,7 @@ public class DatabaseMessageConsumer implements Runnable {
     private final UpdateRecordErrorHandlingService updateRecordErrorHandlingService;
     private final TransactionTemplate transactionTemplate;
     protected static final Map<Integer, Integer> RETRY_COUNT_TO_DELAY_MAP = new ConcurrentHashMap<>();
+    private final TelemetryClient telemetryClient;
 
 
     public DatabaseMessageConsumer(CaseEventMessageRepository caseEventMessageRepository,
@@ -50,13 +53,15 @@ public class DatabaseMessageConsumer implements Runnable {
                                    CcdEventProcessor ccdEventProcessor,
                                    LaunchDarklyFeatureFlagProvider flagProvider,
                                    UpdateRecordErrorHandlingService updateRecordErrorHandlingService,
-                                   PlatformTransactionManager transactionManager) {
+                                   PlatformTransactionManager transactionManager,
+                                   TelemetryClient telemetryClient) {
         this.caseEventMessageRepository = caseEventMessageRepository;
         this.caseEventMessageMapper = caseEventMessageMapper;
         this.ccdEventProcessor = ccdEventProcessor;
         this.flagProvider = flagProvider;
         this.updateRecordErrorHandlingService = updateRecordErrorHandlingService;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
+        this.telemetryClient = telemetryClient;
     }
 
     static {
@@ -85,6 +90,11 @@ public class DatabaseMessageConsumer implements Runnable {
                 if (flagProvider.getBooleanValue(DLQ_DB_PROCESS, getUserId(caseEventMessageEntity))) {
                     final CaseEventMessage caseEventMessage = caseEventMessageMapper
                         .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
+
+                    String operationId = UUID.randomUUID().toString().replaceAll("-", "");
+                    log.info("Set operation id {} to process message {}", operationId, caseEventMessage.getMessageId());
+                    telemetryClient.getContext().getOperation().setId(caseEventMessage.getMessageId());
+
                     Optional<MessageUpdateRetry> updatable = processMessage(caseEventMessage);
 
                     //if record state update failed, Rollback the transaction
@@ -103,9 +113,9 @@ public class DatabaseMessageConsumer implements Runnable {
         //Retry updating the record state
         updateRetry.ifPresent(msg ->
             updateRecordErrorHandlingService.handleUpdateError(msg.getState(),
-                                                               msg.getMessageId(),
-                                                               msg.getRetryCount(),
-                                                               msg.getHoldUntil())
+                msg.getMessageId(),
+                msg.getRetryCount(),
+                msg.getHoldUntil())
         );
 
     }
@@ -130,15 +140,22 @@ public class DatabaseMessageConsumer implements Runnable {
             log.info("No message to process");
         } else {
             final String caseEventMessageId = caseEventMessage.getMessageId();
-            log.info("Processing message with id {} from the database", caseEventMessageId);
+            log.info("Processing message with id: {} and caseId: {} from the database",
+                caseEventMessageId,
+                caseEventMessage.getCaseId()
+            );
             try {
                 ccdEventProcessor.processMessage(caseEventMessage);
-                log.info("Message with id {} processed successfully, setting message state to PROCESSED",
-                        caseEventMessageId);
+                log.info("Message with id:{} and caseId:{} processed successfully, setting message state to PROCESSED",
+                    caseEventMessageId,
+                    caseEventMessage.getCaseId()
+                );
                 return updateMessageState(MessageState.PROCESSED, caseEventMessageId, 0, null);
             } catch (FeignException fe) {
+                log.error("FeignException while processing message.", fe);
                 return processException(fe, caseEventMessage);
             } catch (Exception ex) {
+                log.error("Exception while processing message.", ex);
                 return processError(caseEventMessage);
             }
         }
@@ -157,8 +174,10 @@ public class DatabaseMessageConsumer implements Runnable {
         }
 
         if (retryableError) {
-            log.info("Retryable error occurred when processing message with caseId {}",
-                    caseEventMessage.getMessageId());
+            log.info("Retryable error occurred when processing message with messageId: {} and caseId: {}",
+                caseEventMessage.getMessageId(),
+                caseEventMessage.getCaseId()
+            );
             return processRetryableError(caseEventMessage);
         } else {
             return processError(caseEventMessage);
@@ -173,9 +192,9 @@ public class DatabaseMessageConsumer implements Runnable {
         if (newHoldUntilIncrement != null) {
             LocalDateTime newHoldUntil = LocalDateTime.now().plusSeconds(newHoldUntilIncrement);
             log.info("Updating values, retry_count {} and hold_until {} on case event message {}",
-                    retryCount,
-                    newHoldUntil,
-                    messageId);
+                retryCount,
+                newHoldUntil,
+                messageId);
             return updateMessageState(null, messageId, retryCount, newHoldUntil);
         }
         return updateMessageState(MessageState.UNPROCESSABLE, messageId, 0, null);
@@ -183,7 +202,10 @@ public class DatabaseMessageConsumer implements Runnable {
 
     private Optional<MessageUpdateRetry> processError(CaseEventMessage caseEventMessage) {
         String caseEventMessageId = caseEventMessage.getMessageId();
-        log.info("Could not process message with id {}, setting state to Unprocessable", caseEventMessageId);
+        log.info("Could not process message with id {} and caseId {}, setting state to Unprocessable",
+            caseEventMessageId,
+            caseEventMessage.getCaseId()
+        );
 
         return updateMessageState(MessageState.UNPROCESSABLE, caseEventMessageId, 0, null);
     }
@@ -199,11 +221,11 @@ public class DatabaseMessageConsumer implements Runnable {
         } catch (RuntimeException e) {
             log.info("Error in updating message with id {}, retrying to update", messageId);
             return Optional.of(MessageUpdateRetry.builder()
-                                   .messageId(messageId)
-                                   .state(state)
-                                   .holdUntil(holdUntil)
-                                   .retryCount(retryCount)
-                                   .build());
+                .messageId(messageId)
+                .state(state)
+                .holdUntil(holdUntil)
+                .retryCount(retryCount)
+                .build());
         }
         return Optional.empty();
     }

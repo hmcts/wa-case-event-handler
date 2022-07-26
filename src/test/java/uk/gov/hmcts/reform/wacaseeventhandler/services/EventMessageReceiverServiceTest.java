@@ -131,7 +131,8 @@ class EventMessageReceiverServiceTest {
 
         eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
 
-        assertLogMessageContains(String.format("Could not parse the message with id '%s'",  MESSAGE_ID));
+        assertLogMessageContains(String.format("Could not parse the message with id '%s' case id '%s'",
+                                               MESSAGE_ID, SESSION_ID));
 
         verify(caseEventMessageRepository).findByMessageId(singletonList(MESSAGE_ID));
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
@@ -146,7 +147,8 @@ class EventMessageReceiverServiceTest {
 
         eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
 
-        assertLogMessageContains(String.format("Could not parse the message with id '%s'",  MESSAGE_ID));
+        assertLogMessageContains(String.format("Could not parse the message with id '%s' case id '%s'",
+                                               MESSAGE_ID, SESSION_ID));
 
         verify(caseEventMessageRepository).findByMessageId(singletonList(MESSAGE_ID));
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
@@ -343,7 +345,7 @@ class EventMessageReceiverServiceTest {
         eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
 
         assertLogMessageContains(
-            String.format("Could not parse the message with id '%s'", MESSAGE_ID));
+            String.format("Could not parse the message with id '%s' case id '%s'", MESSAGE_ID, SESSION_ID));
 
         verify(caseEventMessageRepository).findByMessageId(singletonList(MESSAGE_ID));
         verify(caseEventMessageRepository).save(caseEventMessageEntityCaptor.capture());
