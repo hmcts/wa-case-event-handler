@@ -222,6 +222,111 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         deleteMessagesFromDatabase(collect.get());
     }
 
+    @Test
+    public void should_not_process_any_message_after_unprocessable_message_for_same_case_id() {
+        String caseId = randomCaseId();
+        String caseId2 = randomCaseId();
+        caseIdToDelete.add(caseId);
+        caseIdToDelete.add(caseId2);
+        String unprocessableMsgId = randomMessageId();
+
+        // Sending message without time stamp will cause validation to fail and message will be stored with
+        // UNPROCESSABLE state
+        final EventInformation eventInformation = EventInformation.builder()
+            .eventInstanceId(UUID.randomUUID().toString())
+            .jurisdictionId("IA")
+            .eventId("makeAnApplication")
+            .caseId(caseId)
+            .userId("wa-dlq-user@fake.hmcts.net")
+            .newStateId("appealSubmitted")
+            .eventTimeStamp(null)
+            .caseTypeId("Asylum").build();
+
+
+        log.info("should_not_process_any_message_after_unprocessable_message_for_same_case_id "
+                     + "unprocessable message ID " + unprocessableMsgId);
+        sendMessageToTopic(unprocessableMsgId, eventInformation);
+        waitSeconds(3);
+
+        await().ignoreException(AssertionError.class)
+            .pollInterval(3, SECONDS)
+            .atMost(120, SECONDS)
+            .until(
+                () -> {
+                    final EventMessageQueryResponse unprocessableMsg = getMessagesFromDb(caseId, false);
+
+                    if (unprocessableMsg != null) {
+                        final List<CaseEventMessage> caseEventMessages = unprocessableMsg.getCaseEventMessages();
+
+                        assertTrue(caseEventMessages.stream()
+                                       .anyMatch(x -> x.getCaseId().equals(caseId)
+                                           && x.getMessageId().equals(unprocessableMsgId)
+                                           && x.getState() == MessageState.UNPROCESSABLE));
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
+
+        String msgId = randomMessageId();
+        String msgId2 = randomMessageId();
+
+        final EventInformation.EventInformationBuilder eventInformationBuilder = EventInformation.builder()
+            .eventInstanceId(UUID.randomUUID().toString())
+            .jurisdictionId("IA")
+            .eventId("makeAnApplication")
+            .userId("wa-dlq-user@fake.hmcts.net")
+            .newStateId("appealSubmitted")
+            .eventTimeStamp(LocalDateTime.now())
+            .caseTypeId("Asylum");
+
+        log.info("should_not_process_any_message_after_unprocessable_message_for_same_case_id "
+                     + "unprocessable message ID " + unprocessableMsgId);
+        sendMessageToTopic(msgId, eventInformationBuilder.caseId(caseId).build());
+        sendMessageToTopic(msgId2, eventInformationBuilder.caseId(caseId2).build());
+
+        //Wait for message processor run and process the second message
+        await().ignoreException(AssertionError.class)
+            .pollInterval(3, SECONDS)
+            .until(
+                () -> {
+                    final EventMessageQueryResponse messagesFromDb = getMessagesFromDb(caseId2, false);
+                    if (messagesFromDb != null) {
+                        final List<CaseEventMessage> caseEventMessages = messagesFromDb.getCaseEventMessages();
+
+                        assertTrue(caseEventMessages.stream()
+                                       .anyMatch(x -> x.getCaseId().equals(caseId2)
+                                           && x.getMessageId().equals(msgId2)
+                                           && x.getState() == MessageState.PROCESSED));
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
+
+        //Assert that message for the case with unprocessable message is not processed
+        await().ignoreException(AssertionError.class)
+            .pollInterval(3, SECONDS)
+            .until(
+                () -> {
+                    final EventMessageQueryResponse messagesFromDb = getMessagesFromDb(caseId, false);
+                    if (messagesFromDb != null) {
+                        final List<CaseEventMessage> caseEventMessages = messagesFromDb.getCaseEventMessages();
+
+                        assertTrue(caseEventMessages.stream()
+                                       .anyMatch(x -> x.getCaseId().equals(caseId)
+                                           && x.getMessageId().equals(msgId)
+                                           && x.getState() != MessageState.PROCESSED));
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
+
+
+    }
+
+
     private boolean hasAdditionalData(String msg) {
         try {
             JsonNode messageAsJson = new ObjectMapper().readTree(msg);
