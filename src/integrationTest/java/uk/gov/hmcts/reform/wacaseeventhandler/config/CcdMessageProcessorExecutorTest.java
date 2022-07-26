@@ -3,8 +3,12 @@ package uk.gov.hmcts.reform.wacaseeventhandler.config;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import com.microsoft.applicationinsights.TelemetryClient;
+import com.microsoft.applicationinsights.extensibility.context.OperationContext;
+import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -19,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -27,9 +32,12 @@ class CcdMessageProcessorExecutorTest {
 
     private static final String MESSAGE_ID = "message id";
 
+    private static final String CASE_ID = "case id";
+
     private static final String SELECT_LOG_MESSAGE = "Selecting next message for processing from the database";
 
-    private static final String PROCESS_LOG_MESSAGE = "Processing message with id " + MESSAGE_ID + " from the database";
+    private static final String PROCESS_LOG_MESSAGE = "Processing message with id: "
+        + MESSAGE_ID + " and caseId: " + CASE_ID + " from the database";
 
     private ListAppender<ILoggingEvent> listAppender;
 
@@ -38,6 +46,15 @@ class CcdMessageProcessorExecutorTest {
 
     @MockBean
     private LaunchDarklyFeatureFlagProvider featureFlagProvider;
+
+    @MockBean
+    private TelemetryClient telemetryClient;
+
+    @Mock
+    private TelemetryContext telemetryContext;
+
+    @Mock
+    private OperationContext operationContext;
 
     @BeforeEach
     void setup() {
@@ -50,8 +67,11 @@ class CcdMessageProcessorExecutorTest {
 
         CaseEventMessageEntity caseEventMessageEntity = new CaseEventMessageEntity();
         caseEventMessageEntity.setMessageId(MESSAGE_ID);
+        caseEventMessageEntity.setCaseId(CASE_ID);
         when(caseEventMessageRepository.getNextAvailableMessageReadyToProcess()).thenReturn(caseEventMessageEntity);
         when(featureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
+        lenient().when(telemetryClient.getContext()).thenReturn(telemetryContext);
+        lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
     }
 
     @Test

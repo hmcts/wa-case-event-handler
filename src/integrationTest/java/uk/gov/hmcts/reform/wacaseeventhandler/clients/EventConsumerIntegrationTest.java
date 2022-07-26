@@ -5,6 +5,7 @@ import com.azure.core.util.IterableStream;
 import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
 import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
+import com.microsoft.applicationinsights.TelemetryClient;
 import lombok.SneakyThrows;
 import org.junit.FixMethodOrder;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.annotation.DirtiesContext;
@@ -64,6 +66,9 @@ public class EventConsumerIntegrationTest {
 
     @Mock
     private ServiceBusReceivedMessage message;
+
+    @MockBean
+    private TelemetryClient telemetryClient;
 
     private static CaseEventMessageRepository repository;
 
