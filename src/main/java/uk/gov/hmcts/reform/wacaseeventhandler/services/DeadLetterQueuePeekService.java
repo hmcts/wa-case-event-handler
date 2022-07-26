@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
+import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
 import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -20,6 +21,8 @@ public class DeadLetterQueuePeekService {
     }
 
     public boolean isDeadLetterQueueEmpty() {
-        return serviceBusReceiverClient.peekMessage(1) == null;
+        ServiceBusReceivedMessage message = serviceBusReceiverClient.peekMessage(1);
+        log.info("Is dead letter queue empty {}", message == null);
+        return message == null;
     }
 }

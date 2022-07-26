@@ -5,9 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.microsoft.applicationinsights.TelemetryClient;
+import com.microsoft.applicationinsights.extensibility.context.OperationContext;
+import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -38,6 +42,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -57,6 +62,15 @@ public class UpdateRecordErrorHandlingTest {
     @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
+    @MockBean
+    private TelemetryClient telemetryClient;
+
+    @Mock
+    private TelemetryContext telemetryContext;
+
+    @Mock
+    private OperationContext operationContext;
+
     @SpyBean
     private CcdEventProcessor ccdEventProcessor;
 
@@ -73,6 +87,8 @@ public class UpdateRecordErrorHandlingTest {
     @BeforeEach
     void setup() {
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true).thenReturn(true);
+        lenient().when(telemetryClient.getContext()).thenReturn(telemetryContext);
+        lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,

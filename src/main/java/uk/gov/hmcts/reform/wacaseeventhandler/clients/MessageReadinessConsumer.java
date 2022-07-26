@@ -34,9 +34,10 @@ public class MessageReadinessConsumer implements Runnable {
     @Override
     @Transactional
     public void run() {
+        log.info("Running message readiness check");
         final List<CaseEventMessageEntity> allMessageInNewState = caseEventMessageRepository.getAllMessagesInNewState();
 
-        log.trace("Number of messages to check the readiness {}", allMessageInNewState.size());
+        log.info("Number of messages to check the readiness {}", allMessageInNewState.size());
 
         allMessageInNewState.stream()
                 .filter(msg -> launchDarklyFeatureFlagProvider
