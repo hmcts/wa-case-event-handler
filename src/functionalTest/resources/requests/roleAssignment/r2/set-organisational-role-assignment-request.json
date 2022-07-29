@@ -10,7 +10,7 @@
       "roleName": "{ROLE_NAME_PLACEHOLDER}",
       "roleType": "ORGANISATION",
       "beginTime": "2020-01-01T00:00Z",
-      "endTime": "2030-01-01T00:00Z",
+      "endTime": "{END_TIME_PLACEHOLDER}",
       "attributes": "{ATTRIBUTES_PLACEHOLDER}"
     },
     {
@@ -23,7 +23,7 @@
       "roleName": "task-supervisor",
       "roleType": "ORGANISATION",
       "beginTime": "2020-01-01T00:00Z",
-      "endTime": "2030-01-01T00:00Z",
+      "endTime": "{END_TIME_PLACEHOLDER}",
       "attributes": "{ATTRIBUTES_PLACEHOLDER}"
     }
   ],
