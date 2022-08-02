@@ -133,4 +133,5 @@ scheduledExecutors:
 job:
   problem-message:
     #number of minutes
-    message-time-limit: ${PROLEM-MESSAGE_TIME_LIMIT:60}
+    message-time-limit: ${PROBLEM_MESSAGE_TIME_LIMIT:60}
+    message-id-list: ${PROBLEM_MESSAGE_RESET_ID_LIST:}

@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
+import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -83,7 +84,7 @@ class CaseEventMessageErrorHandlingRepositoryTest {
         assertEquals(1, rowsAffected);
 
         final List<CaseEventMessageEntity> caseEventMessageEntities = caseEventMessageRepository.findByMessageId(
-                MESSAGE_ID);
+            singletonList(MESSAGE_ID));
         assertEquals(1, caseEventMessageEntities.size());
         assertEquals(MessageState.PROCESSED, caseEventMessageEntities.get(0).getState());
     }
@@ -111,7 +112,7 @@ class CaseEventMessageErrorHandlingRepositoryTest {
     }
 
     private void assertMessageState(String messageId, MessageState messageState) {
-        caseEventMessageRepository.findByMessageId(messageId)
+        caseEventMessageRepository.findByMessageId(singletonList(messageId))
             .stream()
             .findFirst()
             .ifPresentOrElse(
@@ -147,7 +148,7 @@ class CaseEventMessageErrorHandlingRepositoryTest {
 
         assertEquals(1, rowsAffected);
         final List<CaseEventMessageEntity> caseEventMessageEntities = caseEventMessageRepository.findByMessageId(
-                MESSAGE_ID);
+            singletonList(MESSAGE_ID));
 
         assertEquals(1, caseEventMessageEntities.size());
         assertEquals(retryCount, caseEventMessageEntities.get(0).getRetryCount());

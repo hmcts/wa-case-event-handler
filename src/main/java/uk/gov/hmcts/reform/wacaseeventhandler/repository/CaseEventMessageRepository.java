@@ -86,8 +86,8 @@ public interface CaseEventMessageRepository extends CrudRepository<CaseEventMess
                                   + "else 1=1 end \n"
                                   + "order by state;";
 
-    @Query("FROM CaseEventMessageEntity cem WHERE cem.messageId=:messageId")
-    List<CaseEventMessageEntity> findByMessageId(String messageId);
+    @Query("FROM CaseEventMessageEntity cem WHERE cem.messageId IN (:messageIds)")
+    List<CaseEventMessageEntity> findByMessageId(List<String> messageIds);
 
     @Query(value = LOCK_AND_GET_NEXT_MESSAGE_SQL, nativeQuery = true)
     CaseEventMessageEntity getNextAvailableMessageReadyToProcess();

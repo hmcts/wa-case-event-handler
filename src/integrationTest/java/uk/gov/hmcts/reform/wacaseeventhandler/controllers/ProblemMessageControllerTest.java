@@ -22,14 +22,13 @@ import org.springframework.test.web.servlet.ResultMatcher;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DeadLetterQueuePeekService;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -115,18 +114,11 @@ class ProblemMessageControllerTest {
             .untilAsserted(() -> checkMessagesInState(List.of(messageId), MessageState.READY));
 
         MvcResult mvcResult = postAJobRequest(JobName.FIND_PROBLEM_MESSAGES.name());
-        List<CaseEventMessage> response = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(),
-                                                        new TypeReference<>() {});
-
-        List<MessageState> messageStates = response.stream().map(caseEventMessage1 -> caseEventMessage1.getState())
-            .collect(Collectors.toList());
-        List<String> messageIds = response.stream().map(caseEventMessage1 -> caseEventMessage1.getMessageId())
-            .collect(Collectors.toList());
+        JobResponse response = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(),
+                                                       new TypeReference<>() {});
 
         assertNotNull(mvcResult, MESSAGE);
-        assertTrue(messageStates.contains(MessageState.READY));
-        assertTrue(messageIds.contains(messageId));
-
+        assertTrue(response.getMessageIds().contains(messageId));
     }
 
     @Test
@@ -145,11 +137,9 @@ class ProblemMessageControllerTest {
             .untilAsserted(() -> checkMessagesInState(List.of(messageId), MessageState.READY));
 
         MvcResult mvcResult = postAJobRequest(JobName.FIND_PROBLEM_MESSAGES.name());
-        List<CaseEventMessage> response = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(),
+        JobResponse response = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(),
                                                         new TypeReference<>() {});
-        List<String> messageIds = response.stream().map(caseEventMessage1 -> caseEventMessage1.getMessageId())
-            .collect(Collectors.toList());
-        assertFalse(messageIds.contains(messageId));
+        assertFalse(response.getMessageIds().contains(messageId));
     }
 
     @Test
@@ -170,13 +160,10 @@ class ProblemMessageControllerTest {
         assertNotNull(content, MESSAGE);
 
         MvcResult mvcResult = postAJobRequest(JobName.FIND_PROBLEM_MESSAGES.name());
-        List<CaseEventMessage> response = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(),
+        JobResponse response = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(),
                                                         new TypeReference<>() {});
-        List<MessageState> messageStates = response.stream().map(caseEventMessage1 -> caseEventMessage1.getState())
-            .collect(Collectors.toList());
-
         assertNotNull(mvcResult, MESSAGE);
-        assertTrue(messageStates.contains(MessageState.UNPROCESSABLE));
+        assertTrue(response.getMessageIds().contains(messageId));
     }
 
     @Test
@@ -196,14 +183,10 @@ class ProblemMessageControllerTest {
         assertNotNull(content, MESSAGE);
 
         MvcResult mvcResult = postAJobRequest(JobName.FIND_PROBLEM_MESSAGES.name());
-        List<CaseEventMessage> response = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(),
+        JobResponse response = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(),
                                                         new TypeReference<>() {});
-        List<String> messageIds = response.stream()
-            .map(caseEventMessage1 -> caseEventMessage1.getMessageId())
-            .collect(Collectors.toList());
-
         assertNotNull(mvcResult, MESSAGE);
-        assertFalse(messageIds.contains(caseId));
+        assertFalse(response.getMessageIds().contains(messageId));
     }
 
 

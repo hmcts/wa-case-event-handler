@@ -25,6 +25,7 @@ import java.util.Optional;
 
 import static java.lang.Boolean.TRUE;
 import static java.lang.String.format;
+import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.DLQ_DB_INSERT;
 
@@ -81,7 +82,7 @@ public class EventMessageReceiverService {
     }
 
     public CaseEventMessage getMessage(String messageId) {
-        CaseEventMessageEntity messageEntity = repository.findByMessageId(messageId).stream().findFirst()
+        CaseEventMessageEntity messageEntity = repository.findByMessageId(singletonList(messageId)).stream().findFirst()
             .orElseThrow(() -> new CaseEventMessageNotFoundException(
                 format("Could not find a message with message id: %s", messageId)));
         return mapper.mapToCaseEventMessage(messageEntity);
@@ -90,7 +91,7 @@ public class EventMessageReceiverService {
     private CaseEventMessageEntity insertMessage(CaseEventMessageEntity caseEventMessageEntity) {
 
         final List<CaseEventMessageEntity> existingMessages =
-                repository.findByMessageId(caseEventMessageEntity.getMessageId());
+                repository.findByMessageId(singletonList(caseEventMessageEntity.getMessageId()));
         if (existingMessages.isEmpty()) {
             return repository.save(caseEventMessageEntity);
         } else {
@@ -102,7 +103,7 @@ public class EventMessageReceiverService {
     }
 
     public void deleteMessage(String messageId) {
-        CaseEventMessageEntity entity = repository.findByMessageId(messageId).stream().findFirst()
+        CaseEventMessageEntity entity = repository.findByMessageId(singletonList(messageId)).stream().findFirst()
             .orElseThrow(() -> new CaseEventMessageNotFoundException(
                 format("Could not find a message with message id: %s", messageId)));
 
@@ -111,7 +112,7 @@ public class EventMessageReceiverService {
 
     public CaseEventMessage upsertMessage(String messageId, String sessionId, String message, Boolean fromDlq) {
 
-        List<CaseEventMessageEntity> byMessageId = repository.findByMessageId(messageId);
+        List<CaseEventMessageEntity> byMessageId = repository.findByMessageId(singletonList(messageId));
         if (byMessageId != null) {
             Optional<CaseEventMessageEntity> messageEntityOptional = byMessageId.stream().findFirst();
             if (messageEntityOptional.isPresent()) {

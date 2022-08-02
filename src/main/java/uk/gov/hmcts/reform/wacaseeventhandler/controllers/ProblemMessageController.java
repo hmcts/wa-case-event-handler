@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.ProblemMessageService;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices.ProblemMessageService;
 
 import java.util.List;
 
@@ -28,14 +28,12 @@ public class ProblemMessageController {
     @Operation(description = "Query case event message db to find problematic messages by job name")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "OK", content = {
-            @Content(mediaType = "application/json", schema = @Schema(implementation = List.class))})
+            @Content(mediaType = "application/json", schema = @Schema(implementation = JobResponse.class))})
     })
     @PostMapping(path = "/messages/jobs/{jobName}")
-    public List<CaseEventMessage> findProblemMessages(@PathVariable String jobName) {
-        log.info("Received request to find problem messages of type '{}'", jobName);
-        List<CaseEventMessage> problemMessages = problemMessageService
-            .findProblemMessages(JobName.valueOf(jobName));
-        log.info("Retrieved messages: {}", problemMessages);
-        return problemMessages;
+    public JobResponse problemMessagesJob(@PathVariable String jobName) {
+        log.info("Received request to problem messages job of type '{}'", jobName);
+        List<String> problemMessages = problemMessageService.process(JobName.valueOf(jobName));
+        return new JobResponse(jobName, problemMessages == null ? 0 : problemMessages.size(), problemMessages);
     }
 }
