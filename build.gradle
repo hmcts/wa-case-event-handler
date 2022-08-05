@@ -76,6 +76,10 @@ tasks.withType(JavaCompile) {
 }
 
 tasks.withType(Test) {
+  doFirst {
+      println "*** environment variables ***"
+      environment.each { k, v -> println "${k}:${v}" }
+  }
   useJUnitPlatform()
 
   testLogging {
@@ -97,6 +101,7 @@ task functional(type: Test) {
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
   classpath = sourceSets.functionalTest.runtimeClasspath
+
 }
 
 task integration(type: Test) {
