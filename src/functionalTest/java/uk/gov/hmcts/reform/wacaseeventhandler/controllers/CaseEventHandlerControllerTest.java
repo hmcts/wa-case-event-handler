@@ -233,12 +233,14 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         String caseId = getCaseId();
 
-        sendMessageWithAdditionalData(
+        sendMessage(
             caseId,
             "submitAppeal",
             "",
             "appealSubmitted",
-            false
+            false,
+            "IA",
+            "Asylum"
         );
 
         Response taskFound = findTasksByCaseId(caseId, 1);
@@ -276,17 +278,16 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
-    @Ignore("non-existing requirement for IA")
     public void should_succeed_and_create_a_task_with_multiple_categories() {
 
-        String caseId = getCaseId();
+        String caseId = getWaCaseId();
 
         sendMessage(
             caseId,
             "dummyEventForMultipleCategories",
-            "",
-            "",
-            false, "IA", "Asylum"
+            "IN_PROGRESS",
+            "DONE",
+            false, "WA", "WaCaseType"
         );
 
         Response taskFound = findTasksByCaseId(caseId, 1);
@@ -304,18 +305,18 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", is("Asylum"))
+            .body("caseTypeId.value", is("WaCaseType"))
             .body("idempotencyKey.value", notNullValue())
-            .body("jurisdiction.value", is("IA"))
+            .body("jurisdiction.value", is("WA"))
             .body("dueDate.value", notNullValue())
             .body("taskState.value", is("unassigned"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseId))
-            .body("name.value", is("Test task to test multiple categories"))
+            .body("name.value", is("Dummy Activity"))
             .body("workingDaysAllowed.value", is(2))
             .body("isDuplicate.value", is(false))
             .body("delayUntil.value", notNullValue())
-            .body("taskId.value", is("testTaskIdForMultipleCategories"))
+            .body("taskId.value", is("dummyActivity"))
             .body("caseId.value", is(caseId))
             .body("__processCategory__caseProgression.value", is(true))
             .body("__processCategory__followUpOverdue.value", is(true))
@@ -325,54 +326,16 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
     }
 
     @Test
-    @Ignore("non-existing requirement for IA")
     public void should_cancel_a_task_with_multiple_categories() {
 
-        String caseId = getCaseId();
+        String caseId = getWaCaseId();
 
         sendMessage(
             caseId,
             "dummyEventForMultipleCategories",
-            "",
-            "",
-            false, "IA", "Asylum"
-        );
-
-        Response taskFound = findTasksByCaseId(caseId, 1);
-
-        caseId1Task1Id = taskFound
-            .then().assertThat()
-            .body("[0].id", notNullValue())
-            .extract()
-            .path("[0].id");
-
-        taskIdStatusMap.put(caseId1Task1Id, "deleted");
-
-        sendMessage(
-            caseId,
-            "dummyEventForMultipleCategoriesCancel",
-            "",
-            "",
-            false, "IA", "Asylum"
-        );
-
-        // Assert the task was deleted
-        assertTaskDoesNotExist(caseId, "testTaskIdForMultipleCategories");
-
-    }
-
-    @Test
-    @Ignore("non-existing requirement for IA")
-    public void should_warn_a_task_with_multiple_categories() {
-
-        String caseId = getCaseId();
-
-        sendMessage(
-            caseId,
-            "dummyEventForMultipleCategories",
-            "",
-            "",
-            false, "IA", "Asylum"
+            "IN_PROGRESS",
+            "DONE",
+            false, "WA", "WaCaseType"
         );
 
         Response taskFound = findTasksByCaseId(caseId, 1);
@@ -387,11 +350,57 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         sendMessage(
             caseId,
-            "dummyEventForMultipleCategoriesWarn",
-            "",
-            "",
-            false, "IA", "Asylum"
+            "dummyEventForMultipleCategoriesCancel",
+            "IN_PROGRESS",
+            "DONE",
+            false, "WA", "WaCaseType"
         );
+
+        // Assert the task was deleted
+        assertTaskDoesNotExist(caseId, "testTaskIdForMultipleCategories");
+
+    }
+
+    @Test
+    public void should_warn_a_task_with_multiple_categories() {
+
+        String caseId = getWaCaseId();
+
+        sendMessage(
+            caseId,
+            "dummyEventForMultipleCategories",
+            "IN_PROGRESS",
+            "DONE",
+            false, "WA", "WaCaseType"
+        );
+
+        Response taskFound = findTasksByCaseId(caseId, 1);
+
+        caseId1Task1Id = taskFound
+            .then().assertThat()
+            .body("[0].id", notNullValue())
+            .extract()
+            .path("[0].id");
+
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
+
+        sendMessage(
+            caseId,
+            "makeAnApplication",
+            "",
+            "",
+            false, "WA", "WaCaseType"
+        );
+
+        taskFound = findTasksByCaseId(caseId, 2);
+
+        caseId1Task2Id = taskFound
+            .then().assertThat()
+            .body("[1].id", notNullValue())
+            .extract()
+            .path("[1].id");
+
+        taskIdStatusMap.put(caseId1Task2Id, "completed");
 
         // Assert the task warning was set
         assertTaskHasWarnings(caseId, caseId1Task1Id, true);
@@ -406,20 +415,19 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
      * with delayUntil as 0.
      */
     @Test
-    @Ignore("CheckFeeStatus task cannot be retrieved")
     public void given_event_submitAppeal_when_appealType_sent_as_json_then_initiate_task() {
 
-        String caseId = getCaseId();
+        String caseId = getWaCaseId();
 
         sendMessageWithAdditionalData(
             caseId,
-            "submitAppeal",
+            "dummySubmitAppeal",
             "",
-            "appealSubmitted",
+            "",
             false
         );
 
-        Response taskFound = findTasksByCaseId(caseId, 2);
+        Response taskFound = findTasksByCaseId(caseId, 1);
 
         caseId1Task1Id = taskFound
             .then().assertThat()
@@ -435,21 +443,6 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .body("taskId.value", is("checkFeeStatus"));
-
-        caseId1Task2Id = taskFound
-            .then().assertThat()
-            .body("[1].id", notNullValue())
-            .extract()
-            .path("[1].id");
-
-        taskIdStatusMap.put(caseId1Task2Id, "completed");
-
-        response = findTaskDetailsForGivenTaskId(caseId1Task2Id);
-
-        response.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("taskId.value", is("reviewTheAppeal"));
 
     }
 
@@ -1317,8 +1310,8 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
             .eventInstanceId(UUID.randomUUID().toString())
             .eventTimeStamp(localDateTime)
             .caseId(caseId)
-            .jurisdictionId("IA")
-            .caseTypeId("Asylum")
+            .jurisdictionId("WA")
+            .caseTypeId("WaCaseType")
             .eventId(event)
             .newStateId(newStateId)
             .previousStateId(previousStateId)

@@ -88,6 +88,13 @@ public class Common {
     }
 
 
+    public TestVariables createWaCase() {
+
+        String caseId = given.createWaCcdCase();
+
+        return new TestVariables(caseId, null, null);
+    }
+
     public void setupCftOrganisationalRoleAssignment(Headers headers, String jurisdiction) {
         UserInfo userInfo = authorizationProvider.getUserInfo(headers.getValue(AUTHORIZATION));
 

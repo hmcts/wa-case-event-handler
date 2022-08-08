@@ -192,6 +192,15 @@ public abstract class SpringBootFunctionalBaseTest {
         return taskVariables.getCaseId();
     }
 
+    public String getWaCaseId() {
+        TestVariables taskVariables = common.createWaCase();
+        requireNonNull(taskVariables, "taskVariables is null");
+        requireNonNull(taskVariables.getCaseId(), "case id is null");
+        caseIds.add(taskVariables.getCaseId());
+        return taskVariables.getCaseId();
+
+    }
+
     protected Response findTasksByCaseId(
         String caseId, int expectedTaskAmount
     ) {
