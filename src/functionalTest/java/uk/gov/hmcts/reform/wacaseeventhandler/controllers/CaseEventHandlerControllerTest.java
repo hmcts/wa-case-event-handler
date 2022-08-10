@@ -33,9 +33,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -213,7 +211,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", is("Asylum"))
+            .body("caseTypeId.value", either(is("Asylum")).or(is("asylum")))
             .body("jurisdiction.value", is("IA"))
             .body("dueDate.value", notNullValue())
             .body("taskState.value", is("unassigned"))
