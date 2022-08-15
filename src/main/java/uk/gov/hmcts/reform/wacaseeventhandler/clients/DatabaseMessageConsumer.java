@@ -93,7 +93,7 @@ public class DatabaseMessageConsumer implements Runnable {
 
                     String operationId = UUID.randomUUID().toString().replaceAll("-", "");
                     log.info("Set operation id {} to process message {}", operationId, caseEventMessage.getMessageId());
-                    telemetryClient.getContext().getOperation().setId(caseEventMessage.getMessageId());
+                    telemetryClient.getContext().getOperation().setId(operationId);
 
                     Optional<MessageUpdateRetry> updatable = processMessage(caseEventMessage);
 
