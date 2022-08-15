@@ -33,7 +33,6 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -214,10 +213,10 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", is("Asylum"))
-            .body("jurisdiction.value", is("IA"))
+            .body("caseTypeId.value", is("asylum"))
+            .body("jurisdiction.value", is("ia"))
             .body("dueDate.value", notNullValue())
-            .body("taskState.value", is("unassigned"))
+            .body("taskState.value", is("unconfigured"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseId))
             .body("name.value", is("Follow-up extended direction"))
@@ -258,12 +257,12 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .and().contentType(APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", containsStringIgnoringCase("asylum"))
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("caseTypeId.value", is("asylum"))
             .body("idempotencyKey.value", notNullValue())
-            .body("jurisdiction.value", containsStringIgnoringCase("ia"))
+            .body("jurisdiction.value", is("ia"))
             .body("dueDate.value", notNullValue())
-            .body("taskState.value", is("unassigned"))
+            .body("taskState.value", is("unconfigured"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseId))
             .body("name.value", is("Review the appeal"))
@@ -306,11 +305,11 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", is("WaCaseType"))
+            .body("caseTypeId.value", is("wacasetype"))
             .body("idempotencyKey.value", notNullValue())
-            .body("jurisdiction.value", is("WA"))
+            .body("jurisdiction.value", is("wa"))
             .body("dueDate.value", notNullValue())
-            .body("taskState.value", is("unassigned"))
+            .body("taskState.value", is("unconfigured"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseId))
             .body("name.value", is("Dummy Activity"))
