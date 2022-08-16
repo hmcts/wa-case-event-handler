@@ -53,7 +53,9 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
 
         String messageId = randomMessageId();
         String eventInstanceId = UUID.randomUUID().toString();
+
         LocalDateTime timeStamp = LocalDateTime.now();
+
         String timeStampString = timeStamp.toString().replaceAll("/(0+$)/g","");
         EventInformation eventInformation = buildEventInformation(eventInstanceId, caseIdForTask,
                                                                   "wa-dlq-user@fake.hmcts.net", timeStamp);
