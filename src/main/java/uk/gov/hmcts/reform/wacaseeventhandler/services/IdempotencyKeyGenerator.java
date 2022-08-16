@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
-import com.microsoft.applicationinsights.core.dependencies.apachecommons.codec.digest.DigestUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.Locale;
