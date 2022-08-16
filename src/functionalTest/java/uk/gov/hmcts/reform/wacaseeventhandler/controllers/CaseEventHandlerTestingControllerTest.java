@@ -53,7 +53,8 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
 
         String messageId = randomMessageId();
         String eventInstanceId = UUID.randomUUID().toString();
-        LocalDateTime timeStamp = LocalDateTime.now();
+        LocalDateTime timeStamp = LocalDateTime.now().withNano(400);
+        String timeStampString = timeStamp.toString().replaceAll("/(0+$)/g","");
         EventInformation eventInformation = buildEventInformation(eventInstanceId, caseIdForTask,
                                                                   "wa-dlq-user@fake.hmcts.net", timeStamp);
         EventInformationRequest createRequest = createRequestWithAdditionalMetadata(eventInformation, null);
@@ -65,7 +66,7 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
             .body("MessageId", equalTo(messageId))
             .body("Sequence", notNullValue())
             .body("CaseId", equalTo(caseIdForTask))
-            .body("EventTimestamp", equalTo(timeStamp.toString()))
+            .body("EventTimestamp", equalTo(timeStampString))
             .body("FromDlq", equalTo(false))
             .body("State", equalTo(MessageState.NEW.name()))
             .body("MessageContent", equalTo(asJsonString(createRequest)))
