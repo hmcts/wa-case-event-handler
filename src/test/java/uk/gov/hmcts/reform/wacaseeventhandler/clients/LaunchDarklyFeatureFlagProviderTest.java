@@ -68,7 +68,7 @@ class LaunchDarklyFeatureFlagProviderTest {
     @ParameterizedTest
     @CsvSource(value = {
         "NULL, some user id, featureFlag is null",
-        "TASK_INITIATION_FEATURE, NULL, userId is null",
+        "AZURE_AMQP_LOGS, NULL, userId is null",
     }, nullValues = "NULL")
     void getBooleanValue_edge_case_scenarios(FeatureFlag featureFlag, String userId, String expectedMessage) {
         assertThatThrownBy(() -> launchDarklyFeatureFlagProvider.getBooleanValue(featureFlag, userId))
@@ -99,7 +99,7 @@ class LaunchDarklyFeatureFlagProviderTest {
     @ParameterizedTest
     @CsvSource(value = {
         "NULL, some user id, featureFlag is null",
-        "TASK_INITIATION_FEATURE, NULL, userId is null",
+        "AZURE_AMQP_LOGS, NULL, userId is null",
     }, nullValues = "NULL")
     void getStringValue_edge_case_scenarios(FeatureFlag featureFlag, String userId, String expectedMessage) {
         assertThatThrownBy(() -> launchDarklyFeatureFlagProvider.getStringValue(featureFlag, userId))

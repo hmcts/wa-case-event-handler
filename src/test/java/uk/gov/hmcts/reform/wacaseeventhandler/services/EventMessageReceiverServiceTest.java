@@ -17,7 +17,6 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationMetadata;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationRequest;
@@ -34,8 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.TRUE;
 import static java.util.Collections.singletonList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -51,7 +48,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.DLQ_DB_INSERT;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageReceiverService.MESSAGE_PROPERTIES;
 
 @ExtendWith({MockitoExtension.class})
@@ -72,9 +68,6 @@ class EventMessageReceiverServiceTest {
 
     @Mock
     private ObjectMapper objectMapper;
-
-    @Mock
-    private LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
     @Mock
     private JsonProcessingException jsonProcessingException;
@@ -102,8 +95,7 @@ class EventMessageReceiverServiceTest {
 
         eventMessageReceiverService = new EventMessageReceiverService(objectMapper,
                                                                       caseEventMessageRepository,
-                                                                      caseEventMessageMapper,
-                                                                      featureFlagProvider);
+                                                                      caseEventMessageMapper);
     }
 
     @Test
@@ -380,23 +372,8 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void should_handle_dlq_message_when_feature_flag_disabled() {
-        when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(FALSE);
-
-        eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
-
-        verifyNoInteractions(caseEventMessageRepository);
-        assertLogMessageContains(String.format("Received Case Event Dead Letter Queue message with id '%s'",
-                MESSAGE_ID));
-        assertLogMessageContains(
-                String.format("Feature flag '%s' evaluated to false. Message not inserted into database",
-                        DLQ_DB_INSERT.getKey()));
-    }
-
-    @Test
     void should_handle_dlq_message_when_feature_flag_enabled_and_valid_message_received()
             throws JsonProcessingException {
-        when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(TRUE);
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenReturn(EventInformation.builder()
@@ -418,7 +395,6 @@ class EventMessageReceiverServiceTest {
     @Test
     void should_handle_dlq_case_event_asb_message_when_feature_flag_enabled_and_invalid_message_received()
             throws JsonProcessingException {
-        when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(TRUE);
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
                 .thenReturn(EventInformation
@@ -438,47 +414,27 @@ class EventMessageReceiverServiceTest {
     @Test
     void should_handle_dlq_message_when_error_parsing_user_id()
             throws JsonProcessingException {
-        when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, null))
-                .thenCallRealMethod();
 
         final NullPointerException nullPointerException = assertThrows(NullPointerException.class, () ->
                 eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, SESSION_ID, MESSAGE_WITHOUT_USER));
 
-        assertEquals("userId is null", nullPointerException.getMessage());
+        assertEquals(null, nullPointerException.getMessage());
         verifyNoInteractions(caseEventMessageRepository);
     }
 
     @Test
     void should_handle_dlq_message_when_missing_user_id() {
 
-        when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, null))
-                .thenCallRealMethod();
-
         final NullPointerException nullPointerException = assertThrows(NullPointerException.class, () ->
                 eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, SESSION_ID, MESSAGE_WITHOUT_USER));
 
-        assertEquals("userId is null", nullPointerException.getMessage());
+        assertEquals(null, nullPointerException.getMessage());
         verifyNoInteractions(caseEventMessageRepository);
-    }
-
-    @Test
-    void should_handle_ccd_case_event_asb_message_when_feature_flag_disabled() {
-        when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(FALSE);
-
-        eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
-
-        verifyNoInteractions(caseEventMessageRepository);
-        assertLogMessageContains(String.format("Received CCD Case Events ASB message with id '%s'", MESSAGE_ID));
-        assertLogMessageContains(
-                String.format("Feature flag '%s' evaluated to false. Message not inserted into database",
-                        DLQ_DB_INSERT.getKey()));
     }
 
     @Test
     void should_handle_ccd_case_event_asb_message_when_feature_flag_enabled_and_valid_message_received()
         throws JsonProcessingException {
-
-        when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(TRUE);
 
         mockMessageProperties();
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
@@ -501,7 +457,6 @@ class EventMessageReceiverServiceTest {
     @Test
     void should_handle_ccd_case_event_asb_message_when_feature_flag_enabled_and_invalid_message_received()
             throws JsonProcessingException {
-        when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(TRUE);
 
         mockMessageProperties();
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
@@ -527,8 +482,6 @@ class EventMessageReceiverServiceTest {
         entity.setMessageId(MESSAGE_ID);
         entity.setDeliveryCount(1);
         entity.setState(MessageState.READY);
-
-        when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(TRUE);
 
         mockMessageProperties();
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
@@ -560,8 +513,6 @@ class EventMessageReceiverServiceTest {
         entity.setState(MessageState.READY);
         entity.setMessageContent("Existing_Message");
 
-        when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, USER_ID)).thenReturn(TRUE);
-
         mockMessageProperties();
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenReturn(EventInformation
@@ -585,26 +536,20 @@ class EventMessageReceiverServiceTest {
 
     @Test
     void should_handle_ccd_case_event_asb_message_when_error_parsing_user_id() {
-
-        when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, null))
-                .thenCallRealMethod();
-
         final NullPointerException nullPointerException = assertThrows(NullPointerException.class, () ->
                 eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE_WITHOUT_USER));
 
-        assertEquals("userId is null", nullPointerException.getMessage());
+        assertEquals(null, nullPointerException.getMessage());
         verifyNoInteractions(caseEventMessageRepository);
     }
 
     @Test
     void should_handle_ccd_case_event_asb_message_when_missing_user_id() {
 
-        when(featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, null)).thenCallRealMethod();
-
         final NullPointerException nullPointerException = assertThrows(NullPointerException.class, () ->
                 eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE_WITHOUT_USER));
 
-        assertEquals("userId is null", nullPointerException.getMessage());
+        assertEquals(null, nullPointerException.getMessage());
         verifyNoInteractions(caseEventMessageRepository);
     }
 

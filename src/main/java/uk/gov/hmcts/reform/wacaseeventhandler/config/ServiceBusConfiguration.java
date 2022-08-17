@@ -23,26 +23,10 @@ public class ServiceBusConfiguration {
     private String connectionString;
     @Value("${azure.servicebus.topic-name}")
     private String topicName;
-    @Value("${azure.servicebus.subscription-name}")
-    private String subscriptionName;
     @Value("${azure.servicebus.ccd-case-events-subscription-name}")
     private String ccdCaseEventsSubscriptionName;
     @Value("${azure.servicebus.retry-duration}")
     private int retryTime;
-
-    public ServiceBusSessionReceiverClient createSessionReceiver() {
-        log.info("Creating Session receiver");
-        ServiceBusSessionReceiverClient client = new ServiceBusClientBuilder()
-            .connectionString(connectionString)
-            .retryOptions(retryOptions())
-            .sessionReceiver()
-            .topicName(topicName)
-            .subscriptionName(subscriptionName)
-            .buildClient();
-
-        log.info("Session receiver created, successfully");
-        return client;
-    }
 
     public ServiceBusSessionReceiverClient createCcdCaseEventsSessionReceiver() {
         log.info("Creating CCD Case Events Session receiver");

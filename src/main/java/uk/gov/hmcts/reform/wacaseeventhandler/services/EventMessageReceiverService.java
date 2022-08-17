@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationMetadata;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationRequest;
@@ -17,7 +16,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CaseEventMessageDuplicateMessageIdException;
 import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CaseEventMessageNotFoundException;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
-import uk.gov.hmcts.reform.wacaseeventhandler.util.UserIdParser;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,7 +25,6 @@ import static java.lang.Boolean.TRUE;
 import static java.lang.String.format;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.DLQ_DB_INSERT;
 
 
 @Slf4j
@@ -38,29 +35,20 @@ public class EventMessageReceiverService {
     protected static final String MESSAGE_PROPERTIES = "MessageProperties";
 
     private final ObjectMapper objectMapper;
-    private final LaunchDarklyFeatureFlagProvider featureFlagProvider;
     private final CaseEventMessageRepository repository;
     private final CaseEventMessageMapper mapper;
 
     public EventMessageReceiverService(ObjectMapper objectMapper,
                                        CaseEventMessageRepository repository,
-                                       CaseEventMessageMapper caseEventMessageMapper,
-                                       LaunchDarklyFeatureFlagProvider featureFlagProvider) {
+                                       CaseEventMessageMapper caseEventMessageMapper) {
         this.objectMapper = objectMapper;
         this.repository = repository;
         this.mapper = caseEventMessageMapper;
-        this.featureFlagProvider = featureFlagProvider;
     }
 
     public CaseEventMessage handleDlqMessage(String messageId, String sessionId, String message) {
         log.info("Received Case Event Dead Letter Queue message with id '{}'", messageId);
-        if (featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, UserIdParser.getUserId(message))) {
-            return handleMessage(messageId, sessionId,  message, true);
-        } else {
-            log.info("Feature flag '{}' evaluated to false. Message not inserted into database",
-                    DLQ_DB_INSERT.getKey());
-        }
-        return null;
+        return handleMessage(messageId, sessionId,  message, true);
     }
 
     public CaseEventMessage handleAsbMessage(String messageId, String sessionId, String message) {
@@ -71,14 +59,7 @@ public class EventMessageReceiverService {
     public CaseEventMessage handleCcdCaseEventAsbMessage(String messageId, String sessionId, String message) {
         log.info("Received CCD Case Events ASB message with id '{}'", messageId);
 
-        if (featureFlagProvider.getBooleanValue(DLQ_DB_INSERT, UserIdParser.getUserId(message))) {
-            return handleMessage(messageId, sessionId, message, false);
-        } else {
-            log.info("Feature flag '{}' evaluated to false. Message not inserted into database",
-                    DLQ_DB_INSERT.getKey());
-        }
-
-        return null;
+        return handleMessage(messageId, sessionId, message, false);
     }
 
     public CaseEventMessage getMessage(String messageId) {

@@ -19,21 +19,18 @@ import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageReposit
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.UpdateRecordErrorHandlingService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
-import uk.gov.hmcts.reform.wacaseeventhandler.util.UserIdParser;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED;
-import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.DLQ_DB_PROCESS;
 
 @Slf4j
 @Component
-@SuppressWarnings({"PMD.DoNotUseThreads", "PMD.DataflowAnomalyAnalysis"})
+@SuppressWarnings({"PMD.DoNotUseThreads", "PMD.DataflowAnomalyAnalysis", "PMD.UnusedPrivateField", "PMD.SingularField"})
 @Transactional(propagation = NOT_SUPPORTED)
 @Profile("!functional & !local")
 public class DatabaseMessageConsumer implements Runnable {
@@ -41,7 +38,6 @@ public class DatabaseMessageConsumer implements Runnable {
     private final CaseEventMessageRepository caseEventMessageRepository;
     private final CaseEventMessageMapper caseEventMessageMapper;
     private final CcdEventProcessor ccdEventProcessor;
-    private final LaunchDarklyFeatureFlagProvider flagProvider;
     private final UpdateRecordErrorHandlingService updateRecordErrorHandlingService;
     private final TransactionTemplate transactionTemplate;
     protected static final Map<Integer, Integer> RETRY_COUNT_TO_DELAY_MAP = new ConcurrentHashMap<>();
@@ -51,14 +47,12 @@ public class DatabaseMessageConsumer implements Runnable {
     public DatabaseMessageConsumer(CaseEventMessageRepository caseEventMessageRepository,
                                    CaseEventMessageMapper caseEventMessageMapper,
                                    CcdEventProcessor ccdEventProcessor,
-                                   LaunchDarklyFeatureFlagProvider flagProvider,
                                    UpdateRecordErrorHandlingService updateRecordErrorHandlingService,
                                    PlatformTransactionManager transactionManager,
                                    TelemetryClient telemetryClient) {
         this.caseEventMessageRepository = caseEventMessageRepository;
         this.caseEventMessageMapper = caseEventMessageMapper;
         this.ccdEventProcessor = ccdEventProcessor;
-        this.flagProvider = flagProvider;
         this.updateRecordErrorHandlingService = updateRecordErrorHandlingService;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
         this.telemetryClient = telemetryClient;
@@ -87,25 +81,14 @@ public class DatabaseMessageConsumer implements Runnable {
             } else {
                 log.info("Start message processing");
 
-                if (flagProvider.getBooleanValue(DLQ_DB_PROCESS, getUserId(caseEventMessageEntity))) {
-                    final CaseEventMessage caseEventMessage = caseEventMessageMapper
-                        .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
+                final CaseEventMessage caseEventMessage = caseEventMessageMapper
+                    .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
+                Optional<MessageUpdateRetry> updatable = processMessage(caseEventMessage);
 
-                    String operationId = UUID.randomUUID().toString().replaceAll("-", "");
-                    log.info("Set operation id {} to process message {}", operationId, caseEventMessage.getMessageId());
-                    telemetryClient.getContext().getOperation();//.setId(caseEventMessage.getMessageId());
+                //if record state update failed, Rollback the transaction
+                updatable.ifPresent(r -> status.setRollbackOnly());
+                return updatable;
 
-                    Optional<MessageUpdateRetry> updatable = processMessage(caseEventMessage);
-
-                    //if record state update failed, Rollback the transaction
-                    updatable.ifPresent(r -> status.setRollbackOnly());
-                    return updatable;
-                } else {
-                    log.trace(
-                        "Feature flag '{}' evaluated to false. Did not start message processor thread",
-                        DLQ_DB_PROCESS.getKey()
-                    );
-                }
             }
             return Optional.empty();
         });
@@ -118,15 +101,6 @@ public class DatabaseMessageConsumer implements Runnable {
                 msg.getHoldUntil())
         );
 
-    }
-
-    private String getUserId(CaseEventMessageEntity caseEventMessageEntity) {
-        final String messageContent = caseEventMessageEntity.getMessageContent();
-        if (messageContent != null) {
-            return UserIdParser.getUserId(messageContent);
-        }
-
-        return null;
     }
 
     private CaseEventMessageEntity selectNextMessage() {
