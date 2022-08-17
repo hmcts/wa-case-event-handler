@@ -22,11 +22,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
@@ -95,8 +91,8 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", is("asylum"))
-            .body("jurisdiction.value", is("ia"))
+            .body("caseTypeId.value", containsStringIgnoringCase("asylum"))
+            .body("jurisdiction.value", containsStringIgnoringCase("ia"))
             .body("idempotencyKey.value", is(idempotencyKey))
             .body("dueDate.value", CoreMatchers.notNullValue())
             .body("taskState.value", is("unconfigured"))
