@@ -23,7 +23,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
-import uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
@@ -32,7 +31,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.UpdateRecordErrorHandlingService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
@@ -66,9 +64,6 @@ class DatabaseMessageConsumerTest {
     private CcdEventProcessor ccdEventProcessor;
 
     @Mock
-    private LaunchDarklyFeatureFlagProvider featureFlagProvider;
-
-    @Mock
     private UpdateRecordErrorHandlingService updateRecordErrorHandlingService;
 
     @Mock
@@ -100,10 +95,6 @@ class DatabaseMessageConsumerTest {
 
     @BeforeEach
     public void setup() {
-        lenient().when(featureFlagProvider.getBooleanValue(
-            FeatureFlag.DLQ_DB_PROCESS,
-            "databaseMessageConsumerTestUserId"
-        )).thenReturn(true);
         transactionTemplate.setTransactionManager(platformTransactionManager);
         lenient().when(telemetryClient.getContext()).thenReturn(telemetryContext);
         lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
@@ -114,21 +105,6 @@ class DatabaseMessageConsumerTest {
         CaseEventMessageEntity caseEventMessageEntity = new CaseEventMessageEntity();
         caseEventMessageEntity.setMessageContent("{\"UserId\" : \"databaseMessageConsumerTestUserId\"}");
         return caseEventMessageEntity;
-    }
-
-    @Test
-    void should_not_process_message_if_launch_darkly_flag_disabled() throws IOException {
-        when(caseEventMessageRepository.getNextAvailableMessageReadyToProcess())
-            .thenReturn(createCaseEventMessageEntity());
-        when(featureFlagProvider.getBooleanValue(
-            FeatureFlag.DLQ_DB_PROCESS,
-            "databaseMessageConsumerTestUserId"
-        )).thenReturn(false);
-
-        databaseMessageConsumer.run();
-
-        verify(caseEventMessageMapper, never()).mapToCaseEventMessage(any());
-        verify(ccdEventProcessor, never()).processMessage(any(CaseEventMessage.class));
     }
 
     @Test

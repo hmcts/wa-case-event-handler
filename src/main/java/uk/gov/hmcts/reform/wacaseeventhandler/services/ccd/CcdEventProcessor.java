@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
@@ -14,23 +13,18 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static uk.gov.hmcts.reform.wacaseeventhandler.config.features.FeatureFlag.TASK_INITIATION_FEATURE;
-
 @Slf4j
 @Service
 public class CcdEventProcessor {
 
     private final List<CaseEventHandler> handlerServices;
     private final ObjectMapper objectMapper;
-    private final LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
 
     public CcdEventProcessor(List<CaseEventHandler> handlerServices,
-                             ObjectMapper objectMapper,
-                             LaunchDarklyFeatureFlagProvider featureFlagProvider) {
+                             ObjectMapper objectMapper) {
         this.handlerServices = handlerServices;
         this.objectMapper = objectMapper;
-        this.featureFlagProvider = featureFlagProvider;
     }
 
 
@@ -82,24 +76,14 @@ public class CcdEventProcessor {
 
         log.info(logInfo.toString());
 
-        boolean isTaskInitiationEnabled =
-                featureFlagProvider.getBooleanValue(TASK_INITIATION_FEATURE, eventInformation.getUserId()
-        );
-
-        if (isTaskInitiationEnabled) {
-            handlerServices.forEach(handler -> {
-                List<? extends EvaluateResponse> results = handler.evaluateDmn(eventInformation);
-                if (results.isEmpty()) {
-                    log.info("No results returned when evaluating {}", handler.getClass().getName());
-                } else {
-                    handler.handle(results, eventInformation);
-                }
-            });
-        } else {
-            log.info("Feature flag '{}' evaluated to false. Message consumed but not being processed",
-                     TASK_INITIATION_FEATURE
-            );
-        }
+        handlerServices.forEach(handler -> {
+            List<? extends EvaluateResponse> results = handler.evaluateDmn(eventInformation);
+            if (results.isEmpty()) {
+                log.info("No results returned when evaluating {}", handler.getClass().getName());
+            } else {
+                handler.handle(results, eventInformation);
+            }
+        });
     }
 
 }

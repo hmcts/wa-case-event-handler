@@ -117,13 +117,6 @@ public class EventConsumerIntegrationTest {
                 .thenReturn(dlqReceiverClient);
             doAnswer(invocation -> emitMessage(dlqMessageList)).when(dlqReceiverClient).receiveMessages(1);
 
-            ServiceBusSessionReceiverClient sessionReceiverClient = mock(ServiceBusSessionReceiverClient.class);
-            when(serviceBusConfiguration.createSessionReceiver()).thenReturn(sessionReceiverClient);
-            doNothing().when(sessionReceiverClient).close();
-            ServiceBusReceiverClient receiverClient = mock(ServiceBusReceiverClient.class);
-            when(sessionReceiverClient.acceptNextSession()).thenReturn(receiverClient);
-            doAnswer(invocation -> emitMessage(List.of())).when(receiverClient).receiveMessages(1);
-
             return serviceBusConfiguration;
         }
     }

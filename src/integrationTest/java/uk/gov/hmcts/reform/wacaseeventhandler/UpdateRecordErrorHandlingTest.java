@@ -23,7 +23,6 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.TransactionTimedOutException;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
@@ -43,7 +42,6 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -58,9 +56,6 @@ public class UpdateRecordErrorHandlingTest {
         .registerModule(new Jdk8Module());
     private static final String MESSAGE_ID = "MessageId_30915063-ec4b-4272-933d-91087b486195";
     private static final String MESSAGE_ID_2 = "MessageId_bc8299fc-5d31-45c7-b847-c2622014a85a";
-
-    @MockBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @MockBean
     private TelemetryClient telemetryClient;
@@ -86,7 +81,6 @@ public class UpdateRecordErrorHandlingTest {
 
     @BeforeEach
     void setup() {
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true).thenReturn(true);
         lenient().when(telemetryClient.getContext()).thenReturn(telemetryContext);
         lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
     }
