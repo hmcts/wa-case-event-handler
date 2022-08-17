@@ -53,7 +53,7 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
 
         String messageId = randomMessageId();
         String eventInstanceId = UUID.randomUUID().toString();
-        LocalDateTime timeStamp = LocalDateTime.now().withNano(400);
+        LocalDateTime timeStamp = LocalDateTime.now();
         String timeStampString = timeStamp.toString().replaceAll("/(0+$)/g","");
         EventInformation eventInformation = buildEventInformation(eventInstanceId, caseIdForTask,
                                                                   "wa-dlq-user@fake.hmcts.net", timeStamp);
@@ -93,8 +93,8 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", is("Asylum"))
-            .body("jurisdiction.value", is("IA"))
+            .body("caseTypeId.value".toLowerCase(), is("asylum"))
+            .body("jurisdiction.value".toLowerCase(), is("ia"))
             .body("idempotencyKey.value", is(idempotencyKey))
             .body("dueDate.value", CoreMatchers.notNullValue())
             .body("taskState.value", is("unassigned"))
