@@ -38,8 +38,8 @@ public class ResetProblemMessageTest {
         List<String> caseEventMessages = problemMessageService.process(JobName.RESET_PROBLEM_MESSAGES);
         Assertions.assertThat(caseEventMessages.isEmpty()).isFalse();
         Assertions.assertThat(caseEventMessages.size()).isEqualTo(2);
-        Assertions.assertThat(caseEventMessages.get(0)).isEqualTo("8d6cc5cf-c973-11eb-bdba-0242ac111001");
-        Assertions.assertThat(caseEventMessages.get(1)).isEqualTo("8d6cc5cf-c973-11eb-bdba-0242ac111002");
+        Assertions.assertThat(caseEventMessages.get(0)).isEqualTo("ID:d257fa4f-73ad-4a82-a30e-9acc377f593d:1:1:1-2704");
+        Assertions.assertThat(caseEventMessages.get(1)).isEqualTo("ID:ce8467a0-cea9-4a65-99dd-3ae9a94a4453:16:1:1-811");
 
 
         List<CaseEventMessageEntity> messages = caseEventMessageRepository.findByMessageId(caseEventMessages);
