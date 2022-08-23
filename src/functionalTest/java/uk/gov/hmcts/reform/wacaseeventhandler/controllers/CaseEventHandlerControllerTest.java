@@ -1207,6 +1207,7 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         //cleanup
         taskIdStatusMap.put(caseId1Task1Id, "completed");
+        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders(), "WA");
     }
 
     public void completeTask(String taskId, String status) {
