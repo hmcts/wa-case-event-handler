@@ -25,6 +25,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -257,10 +258,10 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
 
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", is("Asylum"))
+            .and().contentType(APPLICATION_JSON_VALUE)
+            .body("caseTypeId.value".toLowerCase(), is("asylum"))
             .body("idempotencyKey.value", notNullValue())
-            .body("jurisdiction.value", is("IA"))
+            .body("jurisdiction.value".toLowerCase(), is("ia"))
             .body("dueDate.value", notNullValue())
             .body("taskState.value", is("unassigned"))
             .body("hasWarnings.value", is(false))
