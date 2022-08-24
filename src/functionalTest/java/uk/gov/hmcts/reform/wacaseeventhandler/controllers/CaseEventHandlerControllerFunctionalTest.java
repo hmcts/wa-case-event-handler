@@ -25,7 +25,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
@@ -34,6 +33,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.awaitility.Awaitility.await;
+import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -44,7 +44,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
 @Slf4j
-public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest {
+public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunctionalBaseTest {
 
     protected Map<String, String> taskIdStatusMap;
     protected String caseId1Task1Id;
@@ -259,9 +259,9 @@ public class CaseEventHandlerControllerTest extends SpringBootFunctionalBaseTest
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value".toLowerCase(), is("asylum"))
+            .body("caseTypeId.value", containsStringIgnoringCase("asylum"))
             .body("idempotencyKey.value", notNullValue())
-            .body("jurisdiction.value".toLowerCase(), is("ia"))
+            .body("jurisdiction.value", containsStringIgnoringCase("ia"))
             .body("dueDate.value", notNullValue())
             .body("taskState.value", is("unassigned"))
             .body("hasWarnings.value", is(false))

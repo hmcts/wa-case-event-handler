@@ -29,7 +29,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
 @Slf4j
-public class ProblemMessageControllerTest extends MessagingTests {
+public class ProblemMessageControllerFunctionalTest extends MessagingTests {
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
         .setPropertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE)
         .registerModule(new JavaTimeModule())

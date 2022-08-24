@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
-public class WarningEventHandlerControllerTest extends CaseEventHandlerControllerTestHelper {
+public class WarningEventHandlerControllerTest extends CaseEventHandlerControllerFunctionalTestHelper {
 
     @Before
     public void setup() {
