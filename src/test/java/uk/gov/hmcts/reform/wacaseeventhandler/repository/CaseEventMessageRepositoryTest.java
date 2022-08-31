@@ -20,7 +20,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
