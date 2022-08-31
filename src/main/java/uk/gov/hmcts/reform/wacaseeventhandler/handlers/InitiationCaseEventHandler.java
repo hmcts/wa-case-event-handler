@@ -42,7 +42,8 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDe
 @Service
 @Order(4)
 @Slf4j
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports", "unchecked"})
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports",
+    "PMD.ReturnEmptyCollectionRatherThanNull", "unchecked"})
 public class InitiationCaseEventHandler implements CaseEventHandler {
 
     private final AuthTokenGenerator serviceAuthGenerator;
