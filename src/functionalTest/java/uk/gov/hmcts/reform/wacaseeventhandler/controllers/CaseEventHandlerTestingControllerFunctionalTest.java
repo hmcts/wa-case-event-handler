@@ -21,6 +21,7 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static net.serenitybdd.rest.SerenityRest.given;
+import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -31,7 +32,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
 @Slf4j
-public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalBaseTest {
+public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootFunctionalBaseTest {
 
     private static final Boolean FROM_DLQ = Boolean.TRUE;
     private static final Boolean NOT_FROM_DLQ = Boolean.FALSE;
@@ -54,6 +55,7 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
         String messageId = randomMessageId();
         String eventInstanceId = UUID.randomUUID().toString();
         LocalDateTime timeStamp = LocalDateTime.now();
+        String timeStampString = timeStamp.toString().replaceAll("/(0+$)/g","");
         EventInformation eventInformation = buildEventInformation(eventInstanceId, caseIdForTask,
                                                                   "wa-dlq-user@fake.hmcts.net", timeStamp);
         EventInformationRequest createRequest = createRequestWithAdditionalMetadata(eventInformation, null);
@@ -65,7 +67,7 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
             .body("MessageId", equalTo(messageId))
             .body("Sequence", notNullValue())
             .body("CaseId", equalTo(caseIdForTask))
-            .body("EventTimestamp", equalTo(timeStamp.toString()))
+            .body("EventTimestamp", equalTo(timeStampString))
             .body("FromDlq", equalTo(false))
             .body("State", equalTo(MessageState.NEW.name()))
             .body("MessageContent", equalTo(asJsonString(createRequest)))
@@ -92,8 +94,8 @@ public class CaseEventHandlerTestingControllerTest extends SpringBootFunctionalB
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", is("Asylum"))
-            .body("jurisdiction.value", is("IA"))
+            .body("caseTypeId.value", containsStringIgnoringCase("asylum"))
+            .body("jurisdiction.value", containsStringIgnoringCase("ia"))
             .body("idempotencyKey.value", is(idempotencyKey))
             .body("dueDate.value", CoreMatchers.notNullValue())
             .body("taskState.value", is("unassigned"))

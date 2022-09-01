@@ -32,7 +32,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
 @Slf4j
-public abstract class CaseEventHandlerControllerTestHelper extends SpringBootFunctionalBaseTest {
+public abstract class CaseEventHandlerControllerFunctionalTestHelper extends SpringBootFunctionalBaseTest {
 
     @Autowired
     private DueDateService dueDateService;

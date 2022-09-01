@@ -288,6 +288,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         //Wait for message processor run and process the second message
         await().ignoreException(AssertionError.class)
             .pollInterval(3, SECONDS)
+            .atMost(30, SECONDS)
             .until(
                 () -> {
                     final EventMessageQueryResponse messagesFromDb = getMessagesFromDb(caseId2, false);
@@ -295,9 +296,9 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                         final List<CaseEventMessage> caseEventMessages = messagesFromDb.getCaseEventMessages();
 
                         assertTrue(caseEventMessages.stream()
-                                       .anyMatch(x -> x.getCaseId().equals(caseId2)
-                                           && x.getMessageId().equals(msgId2)
-                                           && x.getState() == MessageState.PROCESSED));
+                                       .anyMatch(caseEventMessage -> caseEventMessage.getCaseId().equals(caseId2)
+                                           && caseEventMessage.getMessageId().equals(msgId2)
+                                           && caseEventMessage.getState() == MessageState.PROCESSED));
                         return true;
                     } else {
                         return false;
@@ -307,6 +308,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         //Assert that message for the case with unprocessable message is not processed
         await().ignoreException(AssertionError.class)
             .pollInterval(3, SECONDS)
+            .atMost(30, SECONDS)
             .until(
                 () -> {
                     final EventMessageQueryResponse messagesFromDb = getMessagesFromDb(caseId, false);
@@ -314,9 +316,9 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                         final List<CaseEventMessage> caseEventMessages = messagesFromDb.getCaseEventMessages();
 
                         assertTrue(caseEventMessages.stream()
-                                       .anyMatch(x -> x.getCaseId().equals(caseId)
-                                           && x.getMessageId().equals(msgId)
-                                           && x.getState() != MessageState.PROCESSED));
+                                       .anyMatch(caseEventMessage -> caseEventMessage.getCaseId().equals(caseId)
+                                           && caseEventMessage.getMessageId().equals(msgId)
+                                           && caseEventMessage.getState() != MessageState.PROCESSED));
                         return true;
                     } else {
                         return false;
