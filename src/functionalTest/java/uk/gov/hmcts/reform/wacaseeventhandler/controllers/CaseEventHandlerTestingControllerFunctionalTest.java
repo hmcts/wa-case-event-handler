@@ -21,7 +21,6 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static net.serenitybdd.rest.SerenityRest.given;
-import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -94,11 +93,11 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", containsStringIgnoringCase("asylum"))
-            .body("jurisdiction.value", containsStringIgnoringCase("ia"))
+            .body("caseTypeId.value", is("asylum"))
+            .body("jurisdiction.value", is("ia"))
             .body("idempotencyKey.value", is(idempotencyKey))
             .body("dueDate.value", CoreMatchers.notNullValue())
-            .body("taskState.value", is("unassigned"))
+            .body("taskState.value", is("unconfigured"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseIdForTask))
             .body("name.value", is("Follow-up non-standard direction"))
