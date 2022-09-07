@@ -112,12 +112,8 @@ public abstract class SpringBootFunctionalBaseTest {
         RestAssured.useRelaxedHTTPSValidation();
         s2sToken = authTokenGenerator.generate();
 
-
-
-        if (s2sToken == null || s2sToken.isEmpty()) {
+        if (s2sToken == null) {
             log.error("s2sToken has not been set correctly. API tests will fail");
-        } else {
-            log.info("s2sToken is: [" + s2sToken + "]");
         }
 
         if (applicationContext.containsBean("serviceBusSenderClient")) {
@@ -210,9 +206,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
     }
 
-    protected Response findTasksByCaseId(
-        String caseId, int expectedTaskAmount
-    ) {
+    protected Response findTasksByCaseId(String caseId, int expectedTaskAmount) {
 
         log.info("Finding task for caseId = {}", caseId);
         AtomicReference<Response> response = new AtomicReference<>();

@@ -4,6 +4,8 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.CoreMatchers;
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -13,7 +15,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationMetadata;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -40,6 +41,8 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     private LocalDateTime eventTimestamp1;
     private LocalDateTime eventTimestamp2;
     private LocalDateTime holdUntilTimestamp;
+
+    Matcher<String> stateMatcher = Matchers.oneOf("NEW", "READY", "PROCESSED");
 
     @Before
     public void setup() {
@@ -71,7 +74,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("CaseId", equalTo(caseIdForTask))
             .body("EventTimestamp", equalTo(timeStampString))
             .body("FromDlq", equalTo(false))
-            .body("State", equalTo(MessageState.NEW.name()))
+            .body("State", stateMatcher)
             .body("MessageContent", equalTo(asJsonString(createRequest)))
             .body("Received", notNullValue())
             .body("DeliveryCount", equalTo(0))
@@ -130,7 +133,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("CaseId", equalTo(caseIdForTask))
             .body("EventTimestamp", equalTo(eventTimestamp1.toString()))
             .body("FromDlq", equalTo(false))
-            .body("State", equalTo(MessageState.NEW.name()))
+            .body("State", stateMatcher)
             .body("MessageContent", equalTo(asJsonString(createRequest)))
             .body("Received", notNullValue())
             .body("DeliveryCount", equalTo(0))
@@ -173,7 +176,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("CaseId", equalTo(caseIdForTask))
             .body("EventTimestamp", equalTo(updatedEventTimestamp.toString())) // updated
             .body("FromDlq", equalTo(true)) // updated
-            .body("State", equalTo(MessageState.NEW.name()))
+            .body("State", stateMatcher)
             .body("MessageContent", equalTo(asJsonString(updateRequest))) // updated
             .body("Received", notNullValue())
             .body("DeliveryCount", equalTo(0))
@@ -232,7 +235,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("CaseId", equalTo(caseIdForTask))
             .body("EventTimestamp", equalTo(eventTimestamp1.toString()))
             .body("FromDlq", equalTo(false))
-            .body("State", equalTo(MessageState.NEW.name()))
+            .body("State", stateMatcher)
             .body("MessageContent", equalTo(asJsonString(createRequest)))
             .body("Received", notNullValue())
             .body("DeliveryCount", equalTo(0))
