@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler;
 
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResponse;
@@ -13,8 +14,7 @@ import java.util.UUID;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+
 
 public class AsbMessagesToDatabaseTest extends MessagingTests {
 
@@ -37,18 +37,21 @@ public class AsbMessagesToDatabaseTest extends MessagingTests {
         messageIds.forEach(msgId -> sendMessageToTopic(msgId, eventInformation));
 
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(30, SECONDS)
+            .pollInterval(3, SECONDS)
+            .atMost(120, SECONDS)
             .until(
                 () -> {
                     final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, false);
                     if (dlqMessagesFromDb != null) {
                         final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
-                        assertEquals(messageIds.size(), caseEventMessages.size());
-                        assertTrue(caseEventMessages.stream().map(CaseEventMessage::getState)
-                                       .allMatch(e -> MessageState.NEW == e));
-                        assertTrue(caseEventMessages.stream().noneMatch(CaseEventMessage::getFromDlq));
+                        Assertions.assertEquals(messageIds.size(), caseEventMessages.size(),
+                                                "Number of messages stored in database does not match");
+                        Assertions.assertTrue(caseEventMessages.stream().map(CaseEventMessage::getState)
+                                       .allMatch(e -> MessageState.NEW == e),
+                                              "Not all messages were in READY state: " + caseEventMessages);
+                        Assertions.assertTrue(caseEventMessages.stream().noneMatch(CaseEventMessage::getFromDlq),
+                                              "None of the messages stored in DB should be in DLQ state");
 
                         deleteMessagesFromDatabase(caseEventMessages);
                         return true;
@@ -81,8 +84,8 @@ public class AsbMessagesToDatabaseTest extends MessagingTests {
                 if (dlqMessagesFromDb != null) {
                     final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
-                    assertEquals(1, caseEventMessages.size());
-                    assertEquals(MessageState.UNPROCESSABLE, caseEventMessages.get(0).getState());
+                    Assertions.assertEquals(1, caseEventMessages.size());
+                    Assertions.assertEquals(MessageState.UNPROCESSABLE, caseEventMessages.get(0).getState());
                     deleteMessagesFromDatabase(caseEventMessages);
                     return true;
                 } else {
