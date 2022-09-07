@@ -102,7 +102,7 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
                                boolean sendDirectlyToDlq) {
         if (publisher != null) {
             publishMessageToTopic(eventInformation, sendDirectlyToDlq);
-            waitSeconds(15);
+            waitSeconds(3);
         } else {
             callRestEndpoint(s2sToken, eventInformation, sendDirectlyToDlq, messageId);
         }
