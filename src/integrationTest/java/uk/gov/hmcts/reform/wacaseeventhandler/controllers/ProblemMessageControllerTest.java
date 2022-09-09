@@ -18,30 +18,22 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.ResultMatcher;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DeadLetterQueuePeekService;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -61,11 +53,9 @@ class ProblemMessageControllerTest {
         .registerModule(new Jdk8Module());
 
     public static final String S2S_TOKEN = "Bearer s2s token";
-    public static final String CASE_REFERENCE = "some case reference";
     public static final String MESSAGE = "Response should not be null";
     public static final String MESSAGE_ENDPOINT = "/messages/";
     public static final String ENDPOINT_UNDER_TEST = "/messages/jobs/";
-
 
     @MockBean
     private AuthTokenGenerator authTokenGenerator;
@@ -98,48 +88,7 @@ class ProblemMessageControllerTest {
         return "some case id" + ThreadLocalRandom.current().nextLong(1000000);
     }
 
-    void should_return_a_ready_message_when_ready_message_timestamp_is_older_than_one_hour() throws Exception {
 
-        String messageId = randomMessageId();
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
-
-        when(deadLetterQueuePeekService.isDeadLetterQueueEmpty()).thenReturn(true);
-        LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(65);
-        postMessage(messageId, status().isCreated(), false,localDateTime);
-
-        await().pollInterval(600, MILLISECONDS)
-            .atMost(45, SECONDS)
-            .untilAsserted(() -> checkMessagesInState(List.of(messageId), MessageState.READY));
-
-        MvcResult mvcResult = postAJobRequest(JobName.FIND_PROBLEM_MESSAGES.name());
-        JobResponse response = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(),
-                                                       new TypeReference<>() {});
-
-        assertNotNull(mvcResult, MESSAGE);
-        assertTrue(response.getMessageIds().contains(messageId));
-    }
-
-    @Test
-    void should_not_return_ready_when_timestamp_is_less_than_one_hour() throws Exception {
-
-        String messageId = randomMessageId();
-
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
-
-        when(deadLetterQueuePeekService.isDeadLetterQueueEmpty()).thenReturn(true);
-        LocalDateTime localDateTime = LocalDateTime.now().minusMinutes(30);
-        postMessage(messageId, status().isCreated(), false,localDateTime);
-
-        await().pollInterval(600, MILLISECONDS)
-            .atMost(45, SECONDS)
-            .untilAsserted(() -> checkMessagesInState(List.of(messageId), MessageState.READY));
-
-        MvcResult mvcResult = postAJobRequest(JobName.FIND_PROBLEM_MESSAGES.name());
-        JobResponse response = OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(),
-                                                        new TypeReference<>() {});
-        assertFalse(response.getMessageIds().contains(messageId));
-    }
 
     @Test
     void should_return_unprocessable_message_when_case_id_is_null() throws Exception {
@@ -188,20 +137,6 @@ class ProblemMessageControllerTest {
         assertFalse(response.getMessageIds().contains(messageId));
     }
 
-
-    private void checkMessagesInState(List<String> messageIds, MessageState messageState) {
-        messageIds.forEach(msgId -> {
-            try {
-                mockMvc.perform(get(MESSAGE_ENDPOINT + msgId))
-                    .andExpect(status().isOk())
-                    .andExpect(content().json("{'State':'" + messageState.name() + "'}"))
-                    .andReturn();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-    }
-
     public static String getCaseEventMessage(String caseId,LocalDateTime eventTimestamp) {
         return "{\n"
                + "  \"EventInstanceId\" : \"some event instance Id\",\n"
@@ -218,16 +153,6 @@ class ProblemMessageControllerTest {
                + "}";
     }
 
-    @NotNull
-    private MvcResult postMessage(String messageId, ResultMatcher created, boolean fromDlq,
-                                  LocalDateTime eventTimestamp) throws Exception {
-        return mockMvc.perform(post(MESSAGE_ENDPOINT
-                                    + messageId + (fromDlq ? "?from_dlq=true" : "?from_dlq=false"))
-                                   .contentType(MediaType.APPLICATION_JSON)
-                                   .content(getCaseEventMessage(CASE_REFERENCE,eventTimestamp)))
-            .andExpect(created)
-            .andReturn();
-    }
 
     @NotNull
     private MvcResult postAJobRequest(String jobName) throws Exception {

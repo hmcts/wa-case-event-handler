@@ -210,15 +210,16 @@ class DatabaseMessageConsumerTest {
 
         databaseMessageConsumer.run();
 
-        verify(caseEventMessageRepository)
-            .updateMessageWithRetryDetails(retryCountCaptor.capture(), holdUntilCaptor.capture(), anyString());
-        LocalDateTime updatedHoldUntilValue = holdUntilCaptor.getValue();
-        assertTrue(updatedHoldUntilValue.isAfter(now));
-        assertEquals(
-            updatedHoldUntilValue.truncatedTo(ChronoUnit.SECONDS),
-            now.plusSeconds(holdUntilIncrement).truncatedTo(ChronoUnit.SECONDS)
-        );
-
+        synchronized (this) {
+            verify(caseEventMessageRepository)
+                .updateMessageWithRetryDetails(retryCountCaptor.capture(), holdUntilCaptor.capture(), anyString());
+            LocalDateTime updatedHoldUntilValue = holdUntilCaptor.getValue();
+            assertTrue(updatedHoldUntilValue.isAfter(now));
+            assertEquals(
+                updatedHoldUntilValue.truncatedTo(ChronoUnit.SECONDS),
+                now.plusSeconds(holdUntilIncrement).truncatedTo(ChronoUnit.SECONDS)
+            );
+        }
         assertEquals(retryCount, retryCountCaptor.getValue());
     }
 

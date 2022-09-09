@@ -37,6 +37,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -213,17 +214,17 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", is("asylum"))
-            .body("jurisdiction.value", is("ia"))
+            .body("caseTypeId.value", equalToIgnoringCase("asylum"))
+            .body("jurisdiction.value", equalToIgnoringCase("ia"))
             .body("dueDate.value", notNullValue())
-            .body("taskState.value", is("unconfigured"))
+            .body("taskState.value", equalToIgnoringCase("unassigned"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseId))
-            .body("name.value", is("Follow-up extended direction"))
+            .body("name.value", equalToIgnoringCase("Follow-up extended direction"))
             .body("workingDaysAllowed.value", is(2))
             .body("isDuplicate.value", is(false))
             .body("delayUntil.value", notNullValue())
-            .body("taskId.value", is("followUpExtendedDirection"))
+            .body("taskId.value", equalToIgnoringCase("followUpExtendedDirection"))
             .body("warningList.value", is("[]"));
 
     }
@@ -258,11 +259,11 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", is("asylum"))
+            .body("caseTypeId.value", equalToIgnoringCase("asylum"))
             .body("idempotencyKey.value", notNullValue())
-            .body("jurisdiction.value", is("ia"))
+            .body("jurisdiction.value", equalToIgnoringCase("ia"))
             .body("dueDate.value", notNullValue())
-            .body("taskState.value", is("unconfigured"))
+            .body("taskState.value", is("unassigned"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseId))
             .body("name.value", is("Review the appeal"))
@@ -305,18 +306,18 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", is("wacasetype"))
+            .body("caseTypeId.value", equalToIgnoringCase("wacasetype"))
             .body("idempotencyKey.value", notNullValue())
-            .body("jurisdiction.value", is("wa"))
+            .body("jurisdiction.value", equalToIgnoringCase("wa"))
             .body("dueDate.value", notNullValue())
-            .body("taskState.value", is("unconfigured"))
+            .body("taskState.value", equalToIgnoringCase("unassigned"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseId))
-            .body("name.value", is("Dummy Activity"))
+            .body("name.value", equalToIgnoringCase("Dummy Activity"))
             .body("workingDaysAllowed.value", is(2))
             .body("isDuplicate.value", is(false))
             .body("delayUntil.value", notNullValue())
-            .body("taskId.value", is("dummyActivity"))
+            .body("taskId.value", equalToIgnoringCase("dummyActivity"))
             .body("caseId.value", is(caseId))
             .body("__processCategory__caseProgression.value", is(true))
             .body("__processCategory__followUpOverdue.value", is(true))

@@ -4,6 +4,8 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.CoreMatchers;
+import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -13,7 +15,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationMetadata;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -21,12 +22,13 @@ import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static net.serenitybdd.rest.SerenityRest.given;
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.hamcrest.Matchers.greaterThan;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
@@ -39,6 +41,8 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     private LocalDateTime eventTimestamp1;
     private LocalDateTime eventTimestamp2;
     private LocalDateTime holdUntilTimestamp;
+
+    Matcher<String> stateMatcher = Matchers.oneOf("NEW", "READY", "PROCESSED");
 
     @Before
     public void setup() {
@@ -53,7 +57,9 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
 
         String messageId = randomMessageId();
         String eventInstanceId = UUID.randomUUID().toString();
+
         LocalDateTime timeStamp = LocalDateTime.now();
+
         String timeStampString = timeStamp.toString().replaceAll("/(0+$)/g","");
         EventInformation eventInformation = buildEventInformation(eventInstanceId, caseIdForTask,
                                                                   "wa-dlq-user@fake.hmcts.net", timeStamp);
@@ -68,7 +74,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("CaseId", equalTo(caseIdForTask))
             .body("EventTimestamp", equalTo(timeStampString))
             .body("FromDlq", equalTo(false))
-            .body("State", equalTo(MessageState.NEW.name()))
+            .body("State", stateMatcher)
             .body("MessageContent", equalTo(asJsonString(createRequest)))
             .body("Received", notNullValue())
             .body("DeliveryCount", equalTo(0))
@@ -93,18 +99,18 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", is("asylum"))
-            .body("jurisdiction.value", is("ia"))
+            .body("caseTypeId.value", equalToIgnoringCase("asylum"))
+            .body("jurisdiction.value", equalToIgnoringCase("ia"))
             .body("idempotencyKey.value", is(idempotencyKey))
-            .body("dueDate.value", CoreMatchers.notNullValue())
-            .body("taskState.value", is("unconfigured"))
+            .body("dueDate.value", notNullValue())
+            .body("taskState.value", equalToIgnoringCase("unassigned"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseIdForTask))
-            .body("name.value", is("Follow-up non-standard direction"))
+            .body("name.value", equalToIgnoringCase("Follow-up non-standard direction"))
             .body("workingDaysAllowed.value", is(2))
             .body("isDuplicate.value", is(false))
             .body("delayUntil.value", CoreMatchers.notNullValue())
-            .body("taskId.value", is("followUpNonStandardDirection"))
+            .body("taskId.value", equalToIgnoringCase("followUpNonStandardDirection"))
             .body("warningList.value", is("[]"));
     }
 
@@ -127,7 +133,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("CaseId", equalTo(caseIdForTask))
             .body("EventTimestamp", equalTo(eventTimestamp1.toString()))
             .body("FromDlq", equalTo(false))
-            .body("State", equalTo(MessageState.NEW.name()))
+            .body("State", stateMatcher)
             .body("MessageContent", equalTo(asJsonString(createRequest)))
             .body("Received", notNullValue())
             .body("DeliveryCount", equalTo(0))
@@ -170,7 +176,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("CaseId", equalTo(caseIdForTask))
             .body("EventTimestamp", equalTo(updatedEventTimestamp.toString())) // updated
             .body("FromDlq", equalTo(true)) // updated
-            .body("State", equalTo(MessageState.NEW.name()))
+            .body("State", stateMatcher)
             .body("MessageContent", equalTo(asJsonString(updateRequest))) // updated
             .body("Received", notNullValue())
             .body("DeliveryCount", equalTo(0))
@@ -229,7 +235,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("CaseId", equalTo(caseIdForTask))
             .body("EventTimestamp", equalTo(eventTimestamp1.toString()))
             .body("FromDlq", equalTo(false))
-            .body("State", equalTo(MessageState.NEW.name()))
+            .body("State", stateMatcher)
             .body("MessageContent", equalTo(asJsonString(createRequest)))
             .body("Received", notNullValue())
             .body("DeliveryCount", equalTo(0))
@@ -242,7 +248,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     }
 
     @Test
-    public void should_query_messages() throws Exception {
+    public void should_query_messages() {
         String caseId1 = RandomStringUtils.randomNumeric(16);
         String caseId2 = RandomStringUtils.randomNumeric(16);
         String messageId1 = createMessage(eventTimestamp1, caseId1, FROM_DLQ);
@@ -263,7 +269,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     }
 
     @Test
-    public void should_return_error_when_no_query_parameters_specified() throws Exception {
+    public void should_return_error_when_no_query_parameters_specified() {
         createMessage(eventTimestamp1, RandomStringUtils.randomNumeric(16), NOT_FROM_DLQ);
 
         getMessagesToRestEndpoint(null, null, null, null, s2sToken)
@@ -277,7 +283,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     }
 
     @Test
-    public void should_query_messages_when_there_are_no_messages_matching_my_query() throws Exception {
+    public void should_query_messages_when_there_are_no_messages_matching_my_query() {
         createMessage(eventTimestamp1, RandomStringUtils.randomNumeric(16), NOT_FROM_DLQ);
 
         getMessagesToRestEndpoint(null, RandomStringUtils.randomNumeric(16), null, null, s2sToken)
