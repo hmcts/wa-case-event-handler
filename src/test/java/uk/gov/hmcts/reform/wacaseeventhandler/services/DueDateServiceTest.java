@@ -17,6 +17,7 @@ import java.util.stream.Stream;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,6 +30,7 @@ class DueDateServiceTest {
     @BeforeEach
     void setUp() {
         holidayService = mock(HolidayService.class);
+        when(holidayService.isWeekend(any(ZonedDateTime.class))).thenCallRealMethod();
         underTest = new DueDateService(holidayService);
     }
 
