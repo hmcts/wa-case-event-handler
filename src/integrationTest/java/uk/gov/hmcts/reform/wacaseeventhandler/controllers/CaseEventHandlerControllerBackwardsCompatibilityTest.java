@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
-import com.microsoft.applicationinsights.TelemetryClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,8 +49,6 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
     private AuthTokenGenerator authTokenGenerator;
     @MockBean
     private WorkflowApiClient workflowApiClient;
-    @MockBean
-    private TelemetryClient telemetryClient;
 
     @Autowired
     private MockMvc mockMvc;
