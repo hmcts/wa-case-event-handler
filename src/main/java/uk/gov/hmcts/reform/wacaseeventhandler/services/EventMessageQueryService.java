@@ -67,6 +67,8 @@ public class EventMessageQueryService {
 
         String message = messages.isEmpty() ? NO_MATCHING_RECORDS_FOR_THE_QUERY
             : format(FOUND_MESSAGES, messages.size());
+
+        log.info("zzz output: " + message);
         return new EventMessageQueryResponse(message, numberOfAllMessages, messages.size(), messages);
     }
 

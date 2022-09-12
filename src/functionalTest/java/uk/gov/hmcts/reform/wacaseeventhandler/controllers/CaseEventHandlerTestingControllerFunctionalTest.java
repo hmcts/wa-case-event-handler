@@ -259,7 +259,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .then()
             .statusCode(HttpStatus.OK.value())
             .assertThat()
-            .body("message", containsString("Found"))
+            .body("message", containsString("No records"))
             .body("message", containsString("messages"))
             .body("totalNumberOfMessagesInTheDB", greaterThan(2))
             .body("numberOfMessagesMatchingTheQuery", equalTo(2))
