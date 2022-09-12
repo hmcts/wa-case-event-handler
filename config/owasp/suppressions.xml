@@ -37,6 +37,11 @@
     <notes>Suppressed due to unavailability of updated version of aunchdarkly-java-server-sdk</notes>
     <packageUrl regex="true">^pkg:maven/org\.yaml/snakeyaml@.*$</packageUrl>
     <cve>CVE-2022-25857</cve>
+  </suppress>
 
+  <suppress>
+    <cve>CVE-2022-38751</cve>
+    <cve>CVE-2022-38750</cve>
+    <cve>CVE-2022-38749</cve>
   </suppress>
 </suppressions>
