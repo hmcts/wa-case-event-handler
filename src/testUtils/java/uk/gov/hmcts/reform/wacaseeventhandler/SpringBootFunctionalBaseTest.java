@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler;
 
 import com.azure.messaging.servicebus.ServiceBusSenderClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.restassured.RestAssured;
@@ -42,8 +41,9 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.fasterxml.jackson.databind.PropertyNamingStrategy.LOWER_CAMEL_CASE;
-import static com.fasterxml.jackson.databind.PropertyNamingStrategy.SNAKE_CASE;
+import static com.fasterxml.jackson.databind.PropertyNamingStrategies.LOWER_CAMEL_CASE;
+import static com.fasterxml.jackson.databind.PropertyNamingStrategies.SNAKE_CASE;
+import static com.fasterxml.jackson.databind.PropertyNamingStrategies.UPPER_CAMEL_CASE;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
@@ -102,7 +102,7 @@ public abstract class SpringBootFunctionalBaseTest {
             .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
                 (type, s) -> {
                     ObjectMapper objectMapper = new ObjectMapper();
-                    objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE);
+                    objectMapper.setPropertyNamingStrategy(UPPER_CAMEL_CASE);
                     objectMapper.registerModule(new Jdk8Module());
                     objectMapper.registerModule(new JavaTimeModule());
                     return objectMapper;
@@ -111,6 +111,11 @@ public abstract class SpringBootFunctionalBaseTest {
         RestAssured.baseURI = testUrl;
         RestAssured.useRelaxedHTTPSValidation();
         s2sToken = authTokenGenerator.generate();
+
+        if (s2sToken == null) {
+            log.error("s2sToken has not been set correctly. API tests will fail");
+        }
+
         if (applicationContext.containsBean("serviceBusSenderClient")) {
             publisher = (ServiceBusSenderClient) applicationContext.getBean("serviceBusSenderClient");
         }
@@ -201,9 +206,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
     }
 
-    protected Response findTasksByCaseId(
-        String caseId, int expectedTaskAmount
-    ) {
+    protected Response findTasksByCaseId(String caseId, int expectedTaskAmount) {
 
         log.info("Finding task for caseId = {}", caseId);
         AtomicReference<Response> response = new AtomicReference<>();

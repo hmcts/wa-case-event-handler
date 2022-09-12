@@ -323,7 +323,6 @@ public abstract class CaseEventHandlerControllerFunctionalTestHelper extends Spr
             .when()
             .post(camundaUrl + "/task/{task-id}/complete", taskId);
 
-        assertTaskDeleteReason(taskId, status);
     }
 
     protected AdditionalData setAdditionalData(String appealType) {

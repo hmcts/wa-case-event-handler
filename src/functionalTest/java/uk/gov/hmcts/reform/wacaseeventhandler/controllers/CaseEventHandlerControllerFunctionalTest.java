@@ -33,11 +33,11 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -214,17 +214,17 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", is("Asylum"))
-            .body("jurisdiction.value", is("IA"))
+            .body("caseTypeId.value", equalToIgnoringCase("asylum"))
+            .body("jurisdiction.value", equalToIgnoringCase("ia"))
             .body("dueDate.value", notNullValue())
-            .body("taskState.value", is("unassigned"))
+            .body("taskState.value", equalToIgnoringCase("unassigned"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseId))
-            .body("name.value", is("Follow-up extended direction"))
+            .body("name.value", equalToIgnoringCase("Follow-up extended direction"))
             .body("workingDaysAllowed.value", is(2))
             .body("isDuplicate.value", is(false))
             .body("delayUntil.value", notNullValue())
-            .body("taskId.value", is("followUpExtendedDirection"))
+            .body("taskId.value", equalToIgnoringCase("followUpExtendedDirection"))
             .body("warningList.value", is("[]"));
 
     }
@@ -258,10 +258,10 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
-            .and().contentType(APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", containsStringIgnoringCase("asylum"))
+            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+            .body("caseTypeId.value", equalToIgnoringCase("asylum"))
             .body("idempotencyKey.value", notNullValue())
-            .body("jurisdiction.value", containsStringIgnoringCase("ia"))
+            .body("jurisdiction.value", equalToIgnoringCase("ia"))
             .body("dueDate.value", notNullValue())
             .body("taskState.value", is("unassigned"))
             .body("hasWarnings.value", is(false))
@@ -306,18 +306,18 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", is("WaCaseType"))
+            .body("caseTypeId.value", equalToIgnoringCase("wacasetype"))
             .body("idempotencyKey.value", notNullValue())
-            .body("jurisdiction.value", is("WA"))
+            .body("jurisdiction.value", equalToIgnoringCase("wa"))
             .body("dueDate.value", notNullValue())
-            .body("taskState.value", is("unassigned"))
+            .body("taskState.value", equalToIgnoringCase("unassigned"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseId))
-            .body("name.value", is("Dummy Activity"))
+            .body("name.value", equalToIgnoringCase("Dummy Activity"))
             .body("workingDaysAllowed.value", is(2))
             .body("isDuplicate.value", is(false))
             .body("delayUntil.value", notNullValue())
-            .body("taskId.value", is("dummyActivity"))
+            .body("taskId.value", equalToIgnoringCase("dummyActivity"))
             .body("caseId.value", is(caseId))
             .body("__processCategory__caseProgression.value", is(true))
             .body("__processCategory__followUpOverdue.value", is(true))
