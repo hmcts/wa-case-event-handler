@@ -89,6 +89,8 @@ public interface CaseEventMessageRepository extends CrudRepository<CaseEventMess
     String GET_NUMBER_MESSAGES_RECEIVED_IN_LAST_HOUR = "SELECT count(*) from "
                                                        + "wa_case_event_messages where received > :timestamp";
 
+    String GET_MESSAGES_IN_NEW_STATE = "SELECT count(*) from wa_case_event_messages msg where msg.state = 'NEW'";
+
     @Query("FROM CaseEventMessageEntity cem WHERE cem.messageId IN (:messageIds)")
     List<CaseEventMessageEntity> findByMessageId(List<String> messageIds);
 
@@ -114,4 +116,7 @@ public interface CaseEventMessageRepository extends CrudRepository<CaseEventMess
 
     @Query(value = GET_NUMBER_MESSAGES_RECEIVED_IN_LAST_HOUR, nativeQuery = true)
     int getNumberOfMessagesReceivedInLastHour(@Param("timestamp") LocalDateTime timestamp);
+
+    @Query(value = GET_MESSAGES_IN_NEW_STATE, nativeQuery = true)
+    int getNumberOfMessagesInNewState();
 }
