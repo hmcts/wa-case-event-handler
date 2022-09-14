@@ -13,7 +13,11 @@ import java.time.LocalDateTime;
 @Component("ccdMessagesReceived")
 public class ReceivedMessagesHealthEndpoint implements HealthIndicator {
 
-    private  static final String CASE_EVENT_HANDLER_MESSAGE_HEALTH = "Case Event Handler Message Health";
+    protected static final String CASE_EVENT_HANDLER_MESSAGE_HEALTH = "caseEventHandlerMessageHealth";
+    protected static final String NO_MESSAGES_RECEIVED = "No messages received from CCD during the past hour";
+    protected static final String MESSAGES_RECEIVED = "Messages received from CCD during the past hour";
+
+    protected static final String NO_MESSAGE_CHECK = "Out Of Hours, no check for messages";
 
     @Autowired
     private CaseEventMessageRepository repository;
@@ -40,17 +44,23 @@ public class ReceivedMessagesHealthEndpoint implements HealthIndicator {
                     .down()
                     .withDetail(
                         CASE_EVENT_HANDLER_MESSAGE_HEALTH,
-                        "No messages received from CCD during the past hour")
+                        NO_MESSAGES_RECEIVED
+                    )
                     .build();
             } else {
                 return Health
                     .up()
                     .withDetail(CASE_EVENT_HANDLER_MESSAGE_HEALTH,
-                                "Messages received from CCD during the past hour")
+                                MESSAGES_RECEIVED
+                    )
                     .build();
             }
         } else {
-            return Health.up().build();
+            return Health
+                .up()
+                .withDetail(CASE_EVENT_HANDLER_MESSAGE_HEALTH,
+                            NO_MESSAGE_CHECK)
+                .build();
         }
     }
 

@@ -32,6 +32,10 @@ import static org.springframework.boot.actuate.health.Status.DOWN;
 import static org.springframework.boot.actuate.health.Status.UP;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.CASE_EVENT_HANDLER_MESSAGE_HEALTH;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.MESSAGES_RECEIVED;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.NO_MESSAGES_RECEIVED;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.NO_MESSAGE_CHECK;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
@@ -63,7 +67,7 @@ public class ReceivedMessagesHealthEndpointIT {
         setClock(LocalDateTime.of(2022, 8, 26, 17,15));
 
         //THEN
-        assertReceivedMessagesHealthStatus(DOWN);
+        assertReceivedMessagesHealthStatus(DOWN, NO_MESSAGES_RECEIVED);
     }
 
     @Test
@@ -72,7 +76,7 @@ public class ReceivedMessagesHealthEndpointIT {
         setClock(LocalDateTime.of(2022, 8, 26, 12,15));
 
         // THEN
-        assertReceivedMessagesHealthStatus(UP);
+        assertReceivedMessagesHealthStatus(UP, MESSAGES_RECEIVED);
     }
 
     @Test
@@ -82,7 +86,7 @@ public class ReceivedMessagesHealthEndpointIT {
         setClock(localDateTime);
 
         // THEN
-        assertReceivedMessagesHealthStatus(UP);
+        assertReceivedMessagesHealthStatus(UP, NO_MESSAGE_CHECK);
 
         verify(holidayService).isWeekend(localDateTime.toLocalDate());
         verify(caseEventMessageRepository, never()).getNumberOfMessagesReceivedInLastHour(any());
@@ -95,7 +99,7 @@ public class ReceivedMessagesHealthEndpointIT {
         setClock(localDateTime);
 
         // THEN
-        assertReceivedMessagesHealthStatus(UP);
+        assertReceivedMessagesHealthStatus(UP, NO_MESSAGE_CHECK);
 
         verify(holidayService).isHoliday(localDateTime.toLocalDate());
         verify(caseEventMessageRepository, never()).getNumberOfMessagesReceivedInLastHour(any());
@@ -107,7 +111,7 @@ public class ReceivedMessagesHealthEndpointIT {
         setClock(LocalDateTime.of(2022, 8, 26, 9,29));
 
         // THEN
-        assertReceivedMessagesHealthStatus(UP);
+        assertReceivedMessagesHealthStatus(UP, NO_MESSAGE_CHECK);
 
         verify(caseEventMessageRepository, never()).getNumberOfMessagesReceivedInLastHour(any());
     }
@@ -118,16 +122,18 @@ public class ReceivedMessagesHealthEndpointIT {
         setClock(LocalDateTime.of(2022, 8, 26, 18,31));
 
         // THEN
-        assertReceivedMessagesHealthStatus(UP);
+        assertReceivedMessagesHealthStatus(UP, NO_MESSAGE_CHECK);
 
         verify(caseEventMessageRepository, never()).getNumberOfMessagesReceivedInLastHour(any());
     }
 
-    private void assertReceivedMessagesHealthStatus(Status status) throws Exception {
+    private void assertReceivedMessagesHealthStatus(Status status, String details) throws Exception {
         mockMvc.perform(get("/health"))
             .andExpect(
                 jsonPath("$.components.ccdMessagesReceived.status")
-                    .value(status.toString()));
+                    .value(status.toString()))
+            .andExpect(jsonPath("$.components.ccdMessagesReceived.details." + CASE_EVENT_HANDLER_MESSAGE_HEALTH)
+                           .value(details));
     }
 
     private void setClock(LocalDateTime localDateTime) {
