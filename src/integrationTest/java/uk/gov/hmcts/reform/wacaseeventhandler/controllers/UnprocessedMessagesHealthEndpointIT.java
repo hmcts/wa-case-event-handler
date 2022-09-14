@@ -31,6 +31,7 @@ public class UnprocessedMessagesHealthEndpointIT {
         assertReceivedMessagesHealthStatus(DOWN, 3);
     }
 
+    @Sql("classpath:sql/delete_from_case_event_messages.sql")
     @Test
     void testHealthReportsDownIfMessagesInNewStateFewerThanThreshold() throws Exception {
         assertReceivedMessagesHealthStatus(UP, 0);
