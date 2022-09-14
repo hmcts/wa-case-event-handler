@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.actuate.health.Health;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates.HolidayService;
 
@@ -26,6 +27,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.actuate.health.Status.DOWN;
 import static org.springframework.boot.actuate.health.Status.UP;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.CASE_EVENT_HANDLER_MESSAGE_HEALTH;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.MESSAGES_RECEIVED;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.NO_MESSAGES_RECEIVED;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.NO_MESSAGE_CHECK;
 
 @ExtendWith(MockitoExtension.class)
 class ReceivedMessagesHealthEndpointTest {
@@ -49,45 +54,77 @@ class ReceivedMessagesHealthEndpointTest {
 
     @Test
     void testHealthReportsErrorIfNoMessagesReceivedInLastHour() {
+        // GIVEN
         when(caseEventMessageRepository.getNumberOfMessagesReceivedInLastHour(any())).thenReturn(0);
-        assertEquals(DOWN, receivedMessagesHealthEndpoint.health().getStatus());
+
+        // WHEN
+        Health health = receivedMessagesHealthEndpoint.health();
+
+        // THEN
+        assertEquals(DOWN, health.getStatus());
+        assertEquals(NO_MESSAGES_RECEIVED, health.getDetails().get(CASE_EVENT_HANDLER_MESSAGE_HEALTH));
     }
 
     @Test
     void testHealthReportsSuccessIfMessagesReceivedInLastHour() {
+        // GIVEN
         when(caseEventMessageRepository.getNumberOfMessagesReceivedInLastHour(any())).thenReturn(1);
-        assertEquals(UP, receivedMessagesHealthEndpoint.health().getStatus());
+
+        // WHEN
+        Health health = receivedMessagesHealthEndpoint.health();
+
+        // THEN
+        assertEquals(UP, health.getStatus());
+        assertEquals(MESSAGES_RECEIVED, health.getDetails().get(CASE_EVENT_HANDLER_MESSAGE_HEALTH));
     }
 
     @Test
     void testHealthDoesNotCallRepositoryIfNonWorkingDayHoliday() {
+        // GIVEN
         when(holidayService.isHoliday(any(LocalDate.class))).thenReturn(true);
 
-        assertEquals(UP, receivedMessagesHealthEndpoint.health().getStatus());
+        // WHEN
+        Health health = receivedMessagesHealthEndpoint.health();
 
+        // THEN
+        assertEquals(UP, health.getStatus());
+        assertEquals(NO_MESSAGE_CHECK, health.getDetails().get(CASE_EVENT_HANDLER_MESSAGE_HEALTH));
         verify(caseEventMessageRepository, never()).getNumberOfMessagesReceivedInLastHour(any());
     }
 
     @Test
     void testHealthDoesNotCallRepositoryIfNonWorkingDayWeekend() {
+        // GIVEN
         when(holidayService.isWeekend(any(LocalDate.class))).thenReturn(true);
-        assertEquals(UP, receivedMessagesHealthEndpoint.health().getStatus());
+
+        // WHEN
+        Health health = receivedMessagesHealthEndpoint.health();
+
+        // THEN
+        assertEquals(UP, health.getStatus());
+        assertEquals(NO_MESSAGE_CHECK, health.getDetails().get(CASE_EVENT_HANDLER_MESSAGE_HEALTH));
         verify(caseEventMessageRepository, never()).getNumberOfMessagesReceivedInLastHour(any());
     }
 
     @ParameterizedTest
     @MethodSource(value = "nonWorkingHoursScenarioProvider")
     void testHealthDoesNotCallRepositoryIfWorkingDayTimeIsOutOfWorkingHours(LocalDateTime outOfWorkingHoursDate) {
+        // GIVEN
         setupMockClock(outOfWorkingHoursDate);
 
-        receivedMessagesHealthEndpoint.health();
+        // WHEN
+        Health health = receivedMessagesHealthEndpoint.health();
 
+        // THEN
+        assertEquals(UP, health.getStatus());
+        assertEquals(NO_MESSAGE_CHECK, health.getDetails().get(CASE_EVENT_HANDLER_MESSAGE_HEALTH));
         verify(caseEventMessageRepository, never()).getNumberOfMessagesReceivedInLastHour(outOfWorkingHoursDate);
     }
 
     @ParameterizedTest
     @MethodSource(value = "workingHoursScenarioProvider")
     void testHealthCallsRepositoryIfWorkingDayTimeIsWithinWorkingHours(LocalDateTime withinWorkingHoursDate) {
+        // GIVEN
         setupMockClock(withinWorkingHoursDate);
 
         receivedMessagesHealthEndpoint.health();
@@ -108,7 +145,7 @@ class ReceivedMessagesHealthEndpointTest {
     private static Stream<LocalDateTime> nonWorkingHoursScenarioProvider() {
         return Stream.of(
             LocalDateTime.of(2022, Month.SEPTEMBER, 01, 8, 29),
-            LocalDateTime.of(2022, Month.SEPTEMBER, 01, 17, 31),
+            LocalDateTime.of(2022, Month.SEPTEMBER, 01, 18, 31),
             LocalDateTime.of(2022, Month.SEPTEMBER, 01, 0, 0)
 
         );
