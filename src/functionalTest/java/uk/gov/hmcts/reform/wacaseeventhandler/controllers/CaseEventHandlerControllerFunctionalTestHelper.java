@@ -3,7 +3,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 import com.azure.messaging.servicebus.ServiceBusMessage;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
