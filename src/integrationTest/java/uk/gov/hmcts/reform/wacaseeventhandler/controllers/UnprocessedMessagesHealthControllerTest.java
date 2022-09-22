@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles(profiles = {"db", "integration"})
 @TestPropertySource(properties = {"azure.servicebus.enableASB-DLQ=false",
     "management.endpoint.health.newMessageStateThreshold=2"})
-public class UnprocessedMessagesHealthEndpointIT {
+public class UnprocessedMessagesHealthControllerTest {
 
     @Autowired
     private MockMvc mockMvc;

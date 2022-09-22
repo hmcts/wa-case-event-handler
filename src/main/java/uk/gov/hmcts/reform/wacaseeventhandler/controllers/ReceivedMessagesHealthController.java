@@ -11,7 +11,7 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 
 @Component("ccdMessagesReceived")
-public class ReceivedMessagesHealthEndpoint implements HealthIndicator {
+public class ReceivedMessagesHealthController implements HealthIndicator {
 
     protected static final String CASE_EVENT_HANDLER_MESSAGE_HEALTH = "caseEventHandlerMessageHealth";
     protected static final String NO_MESSAGES_RECEIVED = "No messages received from CCD during the past hour";

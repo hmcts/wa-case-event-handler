@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
 @Component("ccdMessagesInNewState")
-public class UnprocessedMessagesHealthEndpoint implements HealthIndicator {
+public class UnprocessedMessagesHealthController implements HealthIndicator {
 
     public static final String RETRIEVED_NUMBER_OF_MESSAGES_IN_NEW_STATE = "%s messages in NEW state";
 

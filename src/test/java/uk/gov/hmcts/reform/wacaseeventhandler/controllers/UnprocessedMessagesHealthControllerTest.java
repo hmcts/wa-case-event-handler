@@ -15,10 +15,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.actuate.health.Status.DOWN;
 import static org.springframework.boot.actuate.health.Status.UP;
-import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.UnprocessedMessagesHealthEndpoint.RETRIEVED_NUMBER_OF_MESSAGES_IN_NEW_STATE;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.UnprocessedMessagesHealthController.RETRIEVED_NUMBER_OF_MESSAGES_IN_NEW_STATE;
 
 @ExtendWith(MockitoExtension.class)
-class UnprocessedMessagesHealthEndpointTest {
+class UnprocessedMessagesHealthControllerTest {
 
     private static final Integer THRESHOLD = 10;
 
@@ -26,11 +26,11 @@ class UnprocessedMessagesHealthEndpointTest {
     private CaseEventMessageRepository caseEventMessageRepository;
 
     @InjectMocks
-    private UnprocessedMessagesHealthEndpoint unprocessedMessagesHealthEndpoint;
+    private UnprocessedMessagesHealthController unprocessedMessagesHealthController;
 
     @BeforeEach
     void setup() {
-        ReflectionTestUtils.setField(unprocessedMessagesHealthEndpoint, "newMessageStateThreshold", THRESHOLD);
+        ReflectionTestUtils.setField(unprocessedMessagesHealthController, "newMessageStateThreshold", THRESHOLD);
     }
 
     @Test
@@ -38,7 +38,7 @@ class UnprocessedMessagesHealthEndpointTest {
         int underThresholdValue = THRESHOLD - 1;
         when(caseEventMessageRepository.getNumberOfMessagesInNewState()).thenReturn(underThresholdValue);
 
-        Health health = unprocessedMessagesHealthEndpoint.health();
+        Health health = unprocessedMessagesHealthController.health();
 
         assertEquals(UP, health.getStatus());
         assertTrue(health.getDetails()
@@ -50,7 +50,7 @@ class UnprocessedMessagesHealthEndpointTest {
         int overThresholdValue = THRESHOLD + 1;
         when(caseEventMessageRepository.getNumberOfMessagesInNewState()).thenReturn(overThresholdValue);
 
-        Health health = unprocessedMessagesHealthEndpoint.health();
+        Health health = unprocessedMessagesHealthController.health();
 
         assertEquals(DOWN, health.getStatus());
         assertTrue(health.getDetails()

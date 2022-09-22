@@ -27,13 +27,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.actuate.health.Status.DOWN;
 import static org.springframework.boot.actuate.health.Status.UP;
-import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.CASE_EVENT_HANDLER_MESSAGE_HEALTH;
-import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.MESSAGES_RECEIVED;
-import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.NO_MESSAGES_RECEIVED;
-import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.NO_MESSAGE_CHECK;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.CASE_EVENT_HANDLER_MESSAGE_HEALTH;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.MESSAGES_RECEIVED;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.NO_MESSAGES_RECEIVED;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.NO_MESSAGE_CHECK;
 
 @ExtendWith(MockitoExtension.class)
-class ReceivedMessagesHealthEndpointTest {
+class ReceivedMessagesHealthControllerTest {
 
     @Mock
     private CaseEventMessageRepository caseEventMessageRepository;
@@ -45,7 +45,7 @@ class ReceivedMessagesHealthEndpointTest {
     private HolidayService holidayService;
 
     @InjectMocks
-    private ReceivedMessagesHealthEndpoint receivedMessagesHealthEndpoint;
+    private ReceivedMessagesHealthController receivedMessagesHealthController;
 
     @BeforeEach
     void setup() {
@@ -58,7 +58,7 @@ class ReceivedMessagesHealthEndpointTest {
         when(caseEventMessageRepository.getNumberOfMessagesReceivedInLastHour(any())).thenReturn(0);
 
         // WHEN
-        Health health = receivedMessagesHealthEndpoint.health();
+        Health health = receivedMessagesHealthController.health();
 
         // THEN
         assertEquals(DOWN, health.getStatus());
@@ -71,7 +71,7 @@ class ReceivedMessagesHealthEndpointTest {
         when(caseEventMessageRepository.getNumberOfMessagesReceivedInLastHour(any())).thenReturn(1);
 
         // WHEN
-        Health health = receivedMessagesHealthEndpoint.health();
+        Health health = receivedMessagesHealthController.health();
 
         // THEN
         assertEquals(UP, health.getStatus());
@@ -84,7 +84,7 @@ class ReceivedMessagesHealthEndpointTest {
         when(holidayService.isHoliday(any(LocalDate.class))).thenReturn(true);
 
         // WHEN
-        Health health = receivedMessagesHealthEndpoint.health();
+        Health health = receivedMessagesHealthController.health();
 
         // THEN
         assertEquals(UP, health.getStatus());
@@ -98,7 +98,7 @@ class ReceivedMessagesHealthEndpointTest {
         when(holidayService.isWeekend(any(LocalDate.class))).thenReturn(true);
 
         // WHEN
-        Health health = receivedMessagesHealthEndpoint.health();
+        Health health = receivedMessagesHealthController.health();
 
         // THEN
         assertEquals(UP, health.getStatus());
@@ -113,7 +113,7 @@ class ReceivedMessagesHealthEndpointTest {
         setupMockClock(outOfWorkingHoursDate);
 
         // WHEN
-        Health health = receivedMessagesHealthEndpoint.health();
+        Health health = receivedMessagesHealthController.health();
 
         // THEN
         assertEquals(UP, health.getStatus());
@@ -127,7 +127,7 @@ class ReceivedMessagesHealthEndpointTest {
         // GIVEN
         setupMockClock(withinWorkingHoursDate);
 
-        receivedMessagesHealthEndpoint.health();
+        receivedMessagesHealthController.health();
 
         verify(caseEventMessageRepository).getNumberOfMessagesReceivedInLastHour(withinWorkingHoursDate.minusHours(1));
     }

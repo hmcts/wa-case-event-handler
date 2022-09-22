@@ -32,17 +32,17 @@ import static org.springframework.boot.actuate.health.Status.DOWN;
 import static org.springframework.boot.actuate.health.Status.UP;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.CASE_EVENT_HANDLER_MESSAGE_HEALTH;
-import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.MESSAGES_RECEIVED;
-import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.NO_MESSAGES_RECEIVED;
-import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.NO_MESSAGE_CHECK;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.CASE_EVENT_HANDLER_MESSAGE_HEALTH;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.MESSAGES_RECEIVED;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.NO_MESSAGES_RECEIVED;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.NO_MESSAGE_CHECK;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles(profiles = {"db", "integration"})
 @TestPropertySource(properties = {"azure.servicebus.enableASB-DLQ=false"})
 @Sql({"classpath:sql/delete_from_case_event_messages.sql", "classpath:scripts/insert_case_event_messages.sql"})
-public class ReceivedMessagesHealthEndpointIT {
+public class ReceivedMessagesHealthControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
