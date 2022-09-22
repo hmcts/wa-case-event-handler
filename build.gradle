@@ -212,6 +212,7 @@ dependencyCheck {
 ext['snakeyaml.version'] = '1.31'
 dependencyManagement {
   dependencies {
+    dependency group: 'com.github.docker-java', name: 'docker-java', version: '3.2.13'
     dependency group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.68'
     dependency group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
     // CVE-2018-10237 - Unbounded memory allocation
