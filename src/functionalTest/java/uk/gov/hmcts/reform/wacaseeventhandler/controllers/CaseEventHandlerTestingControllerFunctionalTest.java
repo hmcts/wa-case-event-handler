@@ -10,6 +10,7 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.TestUtils;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationMetadata;
@@ -51,6 +52,8 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
         holdUntilTimestamp = LocalDateTime.parse("2020-03-27T12:56:10.403975").plusDays(10);
     }
 
+
+
     @Test
     public void given_post_event_using_test_rest_endpoints_should_create_task() {
         String caseIdForTask = getCaseId();
@@ -60,7 +63,6 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
 
         LocalDateTime timeStamp = LocalDateTime.now();
 
-        String timeStampString = timeStamp.toString().replaceAll("/(0+$)/g","");
         EventInformation eventInformation = buildEventInformation(eventInstanceId, caseIdForTask,
                                                                   "wa-dlq-user@fake.hmcts.net", timeStamp);
         EventInformationRequest createRequest = createRequestWithAdditionalMetadata(eventInformation, null);
@@ -72,7 +74,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("MessageId", equalTo(messageId))
             .body("Sequence", notNullValue())
             .body("CaseId", equalTo(caseIdForTask))
-            .body("EventTimestamp", equalTo(timeStampString))
+            .body("EventTimestamp", equalTo(TestUtils.removeTrailingZeroes(timeStamp)))
             .body("FromDlq", equalTo(false))
             .body("State", stateMatcher)
             .body("MessageContent", equalTo(asJsonString(createRequest)))
@@ -130,13 +132,13 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("MessageId", equalTo(messageId))
             .body("Sequence", notNullValue())
             .body("CaseId", equalTo(caseIdForTask))
-            .body("EventTimestamp", equalTo(eventTimestamp1.toString()))
+            .body("EventTimestamp", equalTo(TestUtils.removeTrailingZeroes(eventTimestamp1)))
             .body("FromDlq", equalTo(false))
             .body("State", stateMatcher)
             .body("MessageContent", equalTo(asJsonString(createRequest)))
             .body("Received", notNullValue())
             .body("DeliveryCount", equalTo(0))
-            .body("HoldUntil", equalTo(holdUntilTimestamp.toString()))
+            .body("HoldUntil", equalTo(TestUtils.removeTrailingZeroes(holdUntilTimestamp)))
             .body("RetryCount", equalTo(0))
             .rootPath("MessageProperties")
             .body("messageProperty1", equalTo("value1"))
@@ -172,13 +174,13 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("MessageId", equalTo(messageId))
             .body("Sequence", equalTo(sequence))
             .body("CaseId", equalTo(caseIdForTask))
-            .body("EventTimestamp", equalTo(updatedEventTimestamp.toString())) // updated
+            .body("EventTimestamp", equalTo(TestUtils.removeTrailingZeroes(updatedEventTimestamp))) // updated
             .body("FromDlq", equalTo(true)) // updated
             .body("State", stateMatcher)
             .body("MessageContent", equalTo(asJsonString(updateRequest))) // updated
             .body("Received", notNullValue())
             .body("DeliveryCount", equalTo(0))
-            .body("HoldUntil", equalTo(holdUntilTimestamp.toString()))
+            .body("HoldUntil", equalTo(TestUtils.removeTrailingZeroes(holdUntilTimestamp)))
             .body("RetryCount", equalTo(0))
 
             .rootPath("MessageProperties")
@@ -231,13 +233,13 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("MessageId", equalTo(messageId))
             .body("Sequence", equalTo(sequence))
             .body("CaseId", equalTo(caseIdForTask))
-            .body("EventTimestamp", equalTo(eventTimestamp1.toString()))
+            .body("EventTimestamp", equalTo(TestUtils.removeTrailingZeroes(eventTimestamp1)))
             .body("FromDlq", equalTo(false))
             .body("State", stateMatcher)
             .body("MessageContent", equalTo(asJsonString(createRequest)))
             .body("Received", notNullValue())
             .body("DeliveryCount", equalTo(0))
-            .body("HoldUntil", equalTo(holdUntilTimestamp.toString()))
+            .body("HoldUntil", equalTo(TestUtils.removeTrailingZeroes(holdUntilTimestamp)))
             .body("RetryCount", equalTo(0))
 
             .rootPath("MessageProperties")
