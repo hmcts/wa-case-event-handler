@@ -101,28 +101,28 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .until(
                 () -> {
                     Response response = findTaskDetailsForGivenTaskId(taskId);
-                        String idempotencyKey = idempotencyKeyGenerator.generateIdempotencyKey(
-                            eventInformation.getEventInstanceId(),
-                            "followUpNonStandardDirection"
-                        );
+                    String idempotencyKey = idempotencyKeyGenerator.generateIdempotencyKey(
+                        eventInformation.getEventInstanceId(),
+                        "followUpNonStandardDirection"
+                    );
 
-                        response.then().assertThat()
-                            .statusCode(HttpStatus.OK.value())
-                            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-                            .body("caseTypeId.value", equalToIgnoringCase("asylum"))
-                            .body("jurisdiction.value", equalToIgnoringCase("ia"))
-                            .body("idempotencyKey.value", is(idempotencyKey))
-                            .body("dueDate.value", notNullValue())
-                            .body("taskState.value", equalToIgnoringCase("unassigned"))
-                            .body("hasWarnings.value", is(false))
-                            .body("caseId.value", is(caseIdForTask))
-                            .body("name.value", equalToIgnoringCase("Follow-up non-standard direction"))
-                            .body("workingDaysAllowed.value", is(2))
-                            .body("isDuplicate.value", is(false))
-                            .body("delayUntil.value", CoreMatchers.notNullValue())
-                            .body("taskId.value", equalToIgnoringCase("followUpNonStandardDirection"))
-                            .body("warningList.value", is("[]"));
-                        return true;
+                    response.then().assertThat()
+                        .statusCode(HttpStatus.OK.value())
+                        .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .body("caseTypeId.value", equalToIgnoringCase("asylum"))
+                        .body("jurisdiction.value", equalToIgnoringCase("ia"))
+                        .body("idempotencyKey.value", is(idempotencyKey))
+                        .body("dueDate.value", notNullValue())
+                        .body("taskState.value", equalToIgnoringCase("unassigned"))
+                        .body("hasWarnings.value", is(false))
+                        .body("caseId.value", is(caseIdForTask))
+                        .body("name.value", equalToIgnoringCase("Follow-up non-standard direction"))
+                        .body("workingDaysAllowed.value", is(2))
+                        .body("isDuplicate.value", is(false))
+                        .body("delayUntil.value", CoreMatchers.notNullValue())
+                        .body("taskId.value", equalToIgnoringCase("followUpNonStandardDirection"))
+                        .body("warningList.value", is("[]"));
+                    return true;
                 });
 
 
