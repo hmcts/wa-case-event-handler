@@ -105,7 +105,6 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
                         eventInformation.getEventInstanceId(),
                         "followUpNonStandardDirection"
                     );
-
                     response.then().assertThat()
                         .statusCode(HttpStatus.OK.value())
                         .and().contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -124,7 +123,6 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
                         .body("warningList.value", is("[]"));
                     return true;
                 });
-
 
     }
 
