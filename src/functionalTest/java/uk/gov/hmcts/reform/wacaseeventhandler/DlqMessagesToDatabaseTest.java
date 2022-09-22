@@ -1,19 +1,20 @@
 package uk.gov.hmcts.reform.wacaseeventhandler;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.reform.wacaseeventhandler.MessagingTests;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
@@ -22,6 +23,18 @@ import static org.junit.Assert.assertTrue;
 @Slf4j
 @ActiveProfiles(profiles = {"local", "functional"})
 public class DlqMessagesToDatabaseTest extends MessagingTests {
+
+    public static List<CaseEventMessage> caseEventMessages = new ArrayList<>();
+
+    @Before
+    public void setup() {
+        caseEventMessages = new ArrayList<>();
+    }
+
+    @After
+    public void tearDown() {
+        deleteMessagesFromDatabase(caseEventMessages);
+    }
 
     @Test
     public void should_store_dlq_messages_in_database() {
@@ -44,18 +57,17 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
         );
 
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(30, SECONDS)
+            .pollInterval(2, SECONDS)
+            .atMost(60, SECONDS)
             .until(
                 () -> {
                     final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
                     if (dlqMessagesFromDb != null) {
-                        final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
+                        caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
                         assertEquals(messageIds.size(), caseEventMessages.size());
                         assertTrue(caseEventMessages.stream().allMatch(CaseEventMessage::getFromDlq));
 
-                        deleteMessagesFromDatabase(caseEventMessages);
                         return true;
                     } else {
                         return false;
@@ -80,17 +92,16 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
         sendMessageToDlq(randomMessageId(), eventInformation);
 
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(30, SECONDS)
+            .pollInterval(2, SECONDS)
+            .atMost(60, SECONDS)
             .until(() -> {
                 final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
                 if (dlqMessagesFromDb != null) {
-                    final List<CaseEventMessage> caseEventMessages
-                        = dlqMessagesFromDb.getCaseEventMessages();
+                    caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
                     assertEquals(1, caseEventMessages.size());
                     assertEquals(MessageState.UNPROCESSABLE, caseEventMessages.get(0).getState());
-                    deleteMessagesFromDatabase(caseEventMessages);
+
                     return true;
                 } else {
                     return false;
