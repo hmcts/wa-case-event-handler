@@ -26,9 +26,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalToIgnoringCase;
-import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
@@ -104,7 +102,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("jurisdiction.value", equalToIgnoringCase("ia"))
             .body("idempotencyKey.value", is(idempotencyKey))
             .body("dueDate.value", notNullValue())
-            .body("taskState.value", equalToIgnoringCase("unassigned"))
+            .body("taskState.value", either(equalToIgnoringCase("unconfigured")).or(equalToIgnoringCase("unassigned")))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseIdForTask))
             .body("name.value", equalToIgnoringCase("Follow-up non-standard direction"))
