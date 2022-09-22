@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.test.context.ActiveProfiles;
@@ -34,6 +34,19 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
     private List<String> caseIdToDelete = new ArrayList<>();
 
+    @Before
+    public void before() {
+        caseIdToDelete = new ArrayList<>();
+    }
+
+    @After
+    public void tearDown() {
+        if (caseIdToDelete != null) {
+            caseIdToDelete.forEach(this::deleteMessagesFromDatabaseByMsgIds);
+        }
+        caseIdToDelete = new ArrayList<>();
+    }
+
     @Test
     public void should_process_message_with_the_lowest_event_timestamp_for_that_case() {
         List<String> messageIds = List.of(randomMessageId(), randomMessageId(), randomMessageId());
@@ -60,8 +73,8 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         });
 
         await().ignoreException(AssertionError.class)
-            .pollInterval(3, SECONDS)
-            .atMost(120, SECONDS)
+            .pollInterval(2, SECONDS)
+            .atMost(180, SECONDS)
             .until(
                 () -> {
                     final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, false);
@@ -110,8 +123,8 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 eventInformationBuilder.caseId(caseId).eventTimeStamp(LocalDateTime.now().plusHours(1)).build());
 
         await().ignoreException(AssertionError.class)
-                .pollInterval(3, SECONDS)
-                .atMost(120, SECONDS)
+                .pollInterval(2, SECONDS)
+                .atMost(180, SECONDS)
                 .until(
                     () -> {
                         final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(dlqCaseId, true);
@@ -157,8 +170,8 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                            eventInformationBuilder.eventTimeStamp(LocalDateTime.now().plusMinutes(1)).build());
 
         await().ignoreException(AssertionError.class)
-            .pollInterval(3, SECONDS)
-            .atMost(120, SECONDS)
+            .pollInterval(2, SECONDS)
+            .atMost(180, SECONDS)
             .until(
                 () -> {
                     final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
@@ -203,8 +216,8 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         AtomicReference<List<CaseEventMessage>> collect = new AtomicReference<>(new ArrayList<>());
 
         await().ignoreException(AssertionError.class)
-                .pollInterval(3, SECONDS)
-                .atMost(120, SECONDS)
+                .pollInterval(2, SECONDS)
+                .atMost(180, SECONDS)
                 .until(
                     () -> {
                         final EventMessageQueryResponse messagesInUnprocessableState
@@ -232,7 +245,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         caseIdToDelete.add(caseId2);
         String unprocessableMsgId = randomMessageId();
 
-        // Sending message without time stamp will cause validation to fail and message will be stored with
+        // Sending message without time stamp will cause validation to fail and message should be stored with
         // UNPROCESSABLE state
         final EventInformation eventInformation = EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
@@ -248,11 +261,10 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         log.info("should_not_process_any_message_after_unprocessable_message_for_same_case_id "
                      + "unprocessable message ID " + unprocessableMsgId);
         sendMessageToTopic(unprocessableMsgId, eventInformation);
-        waitSeconds(3);
 
         await().ignoreException(AssertionError.class)
-            .pollInterval(3, SECONDS)
-            .atMost(120, SECONDS)
+            .pollInterval(2, SECONDS)
+            .atMost(180, SECONDS)
             .until(
                 () -> {
                     final EventMessageQueryResponse unprocessableMsg = getMessagesFromDb(caseId, false);
@@ -289,8 +301,8 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
         //Wait for message processor run and process the second message
         await().ignoreException(AssertionError.class)
-            .pollInterval(3, SECONDS)
-            .atMost(30, SECONDS)
+            .pollInterval(2, SECONDS)
+            .atMost(180, SECONDS)
             .until(
                 () -> {
                     final EventMessageQueryResponse messagesFromDb = getMessagesFromDb(caseId2, false);
@@ -309,8 +321,8 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
         //Assert that message for the case with unprocessable message is not processed
         await().ignoreException(AssertionError.class)
-            .pollInterval(3, SECONDS)
-            .atMost(30, SECONDS)
+            .pollInterval(2, SECONDS)
+            .atMost(180, SECONDS)
             .until(
                 () -> {
                     final EventMessageQueryResponse messagesFromDb = getMessagesFromDb(caseId, false);
@@ -345,7 +357,6 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
     }
 
     @Test
-    @Ignore
     public void should_not_process_dlq_message_unless_other_messages_exist_with_same_case_id() {
         String msgId = randomMessageId();
         String caseId = getCaseId();
@@ -370,11 +381,12 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         waitSeconds(3);
 
         await().ignoreException(AssertionError.class)
-                .pollInterval(3, SECONDS)
-                .atMost(120, SECONDS)
+                .pollInterval(2, SECONDS)
+                .atMost(180, SECONDS)
                 .until(
                     () -> {
-                        final EventMessageQueryResponse messagesInReadyState = getMessagesFromDb(MessageState.READY);
+                        final EventMessageQueryResponse messagesInReadyState =
+                            getMessagesFromDb(MessageState.UNPROCESSABLE);
                         if (messagesInReadyState != null) {
 
                             List<CaseEventMessage> returnedCase = messagesInReadyState.getCaseEventMessages().stream()
