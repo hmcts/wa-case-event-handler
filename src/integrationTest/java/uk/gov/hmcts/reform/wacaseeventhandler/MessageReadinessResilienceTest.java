@@ -48,8 +48,8 @@ import static org.mockito.Mockito.when;
     "azure.servicebus.retry-duration=2"})
 public class MessageReadinessResilienceTest {
 
-    private final static String WARN_MESSAGE = "An error occurred when running message readiness check. "
-                                               + "Catching exception continuing execution";
+    private static String WARNING_MESSAGE = "An error occurred when running message readiness check. "
+                                            + "Catching exception continuing execution";
     @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
@@ -89,7 +89,7 @@ public class MessageReadinessResilienceTest {
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
                 assertThat(output.getOut().contains("An error occurred when getting all message in new state"));
-                count.set(StringUtils.countMatches(output.getOut(), WARN_MESSAGE));
+                count.set(StringUtils.countMatches(output.getOut(), WARNING_MESSAGE));
                 assertTrue(count.get() > 1);
             });
     }
@@ -114,7 +114,7 @@ public class MessageReadinessResilienceTest {
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
                 assertThat(output.getOut().contains("An error occurred when updating message state"));
-                count.set(StringUtils.countMatches(output.getOut(), WARN_MESSAGE));
+                count.set(StringUtils.countMatches(output.getOut(), WARNING_MESSAGE));
                 assertTrue(count.get() > 1);
             });
     }
