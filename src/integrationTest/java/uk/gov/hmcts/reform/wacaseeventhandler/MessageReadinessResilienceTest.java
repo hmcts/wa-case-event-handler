@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler;
 
-import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.applicationinsights.extensibility.context.OperationContext;
 import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import org.apache.commons.lang3.StringUtils;
@@ -53,9 +52,6 @@ public class MessageReadinessResilienceTest {
     @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
-    @MockBean
-    private TelemetryClient telemetryClient;
-
     @Mock
     private TelemetryContext telemetryContext;
 
@@ -73,7 +69,6 @@ public class MessageReadinessResilienceTest {
     @BeforeEach
     void setup() {
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
-        lenient().when(telemetryClient.getContext()).thenReturn(telemetryContext);
         lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
         count = new AtomicInteger(0);
     }
