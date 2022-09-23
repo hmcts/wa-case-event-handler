@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler;
 
-import com.microsoft.applicationinsights.TelemetryClient;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -53,9 +52,6 @@ public class MessageReadinessTest {
 
     @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
-
-    @MockBean
-    private TelemetryClient telemetryClient;
 
     @Autowired
     private MockMvc mockMvc;
