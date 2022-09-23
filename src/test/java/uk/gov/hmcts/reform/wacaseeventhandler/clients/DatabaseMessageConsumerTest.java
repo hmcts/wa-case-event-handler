@@ -2,8 +2,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.microsoft.applicationinsights.extensibility.context.OperationContext;
-import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import feign.FeignException;
 import feign.Request;
 import org.jetbrains.annotations.NotNull;
@@ -43,7 +41,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -74,12 +71,6 @@ class DatabaseMessageConsumerTest {
     @Mock
     private PlatformTransactionManager platformTransactionManager;
 
-    @Mock
-    private TelemetryContext telemetryContext;
-
-    @Mock
-    private OperationContext operationContext;
-
     @InjectMocks
     private DatabaseMessageConsumer databaseMessageConsumer;
 
@@ -92,7 +83,6 @@ class DatabaseMessageConsumerTest {
     @BeforeEach
     public void setup() {
         transactionTemplate.setTransactionManager(platformTransactionManager);
-        lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
     }
 
     @NotNull
