@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.config;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.applicationinsights.extensibility.context.OperationContext;
 import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,9 +46,6 @@ class CcdMessageProcessorExecutorTest {
     @MockBean
     private LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
-    @MockBean
-    private TelemetryClient telemetryClient;
-
     @Mock
     private TelemetryContext telemetryContext;
 
@@ -70,7 +66,6 @@ class CcdMessageProcessorExecutorTest {
         caseEventMessageEntity.setCaseId(CASE_ID);
         when(caseEventMessageRepository.getNextAvailableMessageReadyToProcess()).thenReturn(caseEventMessageEntity);
         when(featureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
-        lenient().when(telemetryClient.getContext()).thenReturn(telemetryContext);
         lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
     }
 

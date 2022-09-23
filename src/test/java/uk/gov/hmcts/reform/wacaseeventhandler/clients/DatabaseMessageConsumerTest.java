@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.applicationinsights.extensibility.context.OperationContext;
 import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import feign.FeignException;
@@ -76,9 +75,6 @@ class DatabaseMessageConsumerTest {
     private PlatformTransactionManager platformTransactionManager;
 
     @Mock
-    private TelemetryClient telemetryClient;
-
-    @Mock
     private TelemetryContext telemetryContext;
 
     @Mock
@@ -96,7 +92,6 @@ class DatabaseMessageConsumerTest {
     @BeforeEach
     public void setup() {
         transactionTemplate.setTransactionManager(platformTransactionManager);
-        lenient().when(telemetryClient.getContext()).thenReturn(telemetryContext);
         lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
     }
 
