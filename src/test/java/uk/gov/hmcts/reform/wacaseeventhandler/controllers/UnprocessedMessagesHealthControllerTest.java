@@ -34,7 +34,7 @@ class UnprocessedMessagesHealthControllerTest {
     }
 
     @Test
-    void healthReturnsUpWhenNewMessageCountLessThanThreshold() {
+    void health_returns_up_when_new_message_count_less_than_threshold() {
         int underThresholdValue = THRESHOLD - 1;
         when(caseEventMessageRepository.getNumberOfMessagesInNewState()).thenReturn(underThresholdValue);
 
@@ -46,7 +46,7 @@ class UnprocessedMessagesHealthControllerTest {
     }
 
     @Test
-    void healthReturnsDownWhenNewMessageCountGreaterThanThreshold() {
+    void health_returns_down_when_new_message_count_greater_than_threshold() {
         int overThresholdValue = THRESHOLD + 1;
         when(caseEventMessageRepository.getNumberOfMessagesInNewState()).thenReturn(overThresholdValue);
 

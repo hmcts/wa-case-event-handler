@@ -53,7 +53,7 @@ class ReceivedMessagesHealthControllerTest {
     }
 
     @Test
-    void testHealthReportsErrorIfNoMessagesReceivedInLastHour() {
+    void test_health_reports_error_if_no_messages_received_in_last_hour() {
         // GIVEN
         when(caseEventMessageRepository.getNumberOfMessagesReceivedInLastHour(any())).thenReturn(0);
 
@@ -66,7 +66,7 @@ class ReceivedMessagesHealthControllerTest {
     }
 
     @Test
-    void testHealthReportsSuccessIfMessagesReceivedInLastHour() {
+    void test_health_reports_success_if_messages_received_in_last_hour() {
         // GIVEN
         when(caseEventMessageRepository.getNumberOfMessagesReceivedInLastHour(any())).thenReturn(1);
 
@@ -79,7 +79,7 @@ class ReceivedMessagesHealthControllerTest {
     }
 
     @Test
-    void testHealthDoesNotCallRepositoryIfNonWorkingDayHoliday() {
+    void test_health_does_not_call_repository_if_non_working_day_holiday() {
         // GIVEN
         when(holidayService.isHoliday(any(LocalDate.class))).thenReturn(true);
 
@@ -93,7 +93,7 @@ class ReceivedMessagesHealthControllerTest {
     }
 
     @Test
-    void testHealthDoesNotCallRepositoryIfNonWorkingDayWeekend() {
+    void test_health_does_not_call_repository_if_non_working_day_weekend() {
         // GIVEN
         when(holidayService.isWeekend(any(LocalDate.class))).thenReturn(true);
 
@@ -108,7 +108,8 @@ class ReceivedMessagesHealthControllerTest {
 
     @ParameterizedTest
     @MethodSource(value = "nonWorkingHoursScenarioProvider")
-    void testHealthDoesNotCallRepositoryIfWorkingDayTimeIsOutOfWorkingHours(LocalDateTime outOfWorkingHoursDate) {
+    void test_health_does_not_call_repository_if_working_day_time_is_out_of_working_hours(
+        LocalDateTime outOfWorkingHoursDate) {
         // GIVEN
         setupMockClock(outOfWorkingHoursDate);
 
@@ -123,7 +124,8 @@ class ReceivedMessagesHealthControllerTest {
 
     @ParameterizedTest
     @MethodSource(value = "workingHoursScenarioProvider")
-    void testHealthCallsRepositoryIfWorkingDayTimeIsWithinWorkingHours(LocalDateTime withinWorkingHoursDate) {
+    void test_health_calls_repository_if_working_day_time_is_within_working_hours(
+        LocalDateTime withinWorkingHoursDate) {
         // GIVEN
         setupMockClock(withinWorkingHoursDate);
 

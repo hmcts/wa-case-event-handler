@@ -27,13 +27,13 @@ public class UnprocessedMessagesHealthControllerTest {
 
     @Sql({"classpath:sql/delete_from_case_event_messages.sql", "classpath:scripts/insert_case_event_messages.sql"})
     @Test
-    void testHealthReportsDownIfMessagesInNewStateGreaterThanThreshold() throws Exception {
+    void test_health_reports_down_if_messages_in_new_state_greater_than_threshold() throws Exception {
         assertReceivedMessagesHealthStatus(DOWN, 3);
     }
 
     @Sql("classpath:sql/delete_from_case_event_messages.sql")
     @Test
-    void testHealthReportsDownIfMessagesInNewStateFewerThanThreshold() throws Exception {
+    void test_health_reports_down_if_messages_in_new_state_fewer_than_threshold() throws Exception {
         assertReceivedMessagesHealthStatus(UP, 0);
     }
 
