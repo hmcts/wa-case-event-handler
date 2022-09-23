@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
-import com.microsoft.applicationinsights.TelemetryClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -50,8 +49,6 @@ class CaseEventHandlerControllerSecurityTest {
     private WarningCaseEventHandler warningCaseEventHandler;
     @MockBean
     private ReconfigurationCaseEventHandler reconfigurationCaseEventHandler;
-    @MockBean
-    private TelemetryClient telemetryClient;
 
     @Autowired
     private WebApplicationContext context;

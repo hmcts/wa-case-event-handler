@@ -23,7 +23,7 @@ class DueDateServiceTest {
 
     @Mock
     HolidayService holidayService;
-    
+
     private DueDateService dueDateService;
 
     @BeforeEach
@@ -52,7 +52,7 @@ class DueDateServiceTest {
         ZonedDateTime actualDateTime = dueDateService.calculateDueDate(eventDateTime, workingDaysAllowed);
 
         assertThat(actualDateTime, is(expectedDueDateTime));
-        verify(holidayService, times(3)).isHoliday(any());
+        verify(holidayService, times(3)).isHoliday(any(ZonedDateTime.class));
     }
 
     @Test
@@ -74,7 +74,7 @@ class DueDateServiceTest {
         ZonedDateTime actualDateTime = dueDateService.calculateDelayUntil(eventDateTime, delayDuration);
 
         assertThat(actualDateTime, is(expectedDelayDateTime));
-        verify(holidayService, times(2)).isHoliday(any());
+        verify(holidayService, times(2)).isHoliday(any(ZonedDateTime.class));
     }
 
 

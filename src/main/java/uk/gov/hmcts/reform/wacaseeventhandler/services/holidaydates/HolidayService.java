@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates;
 
 import org.springframework.stereotype.Component;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -16,5 +17,17 @@ public class HolidayService {
 
     public boolean isHoliday(ZonedDateTime zonedDateTime) {
         return holidays.contains(zonedDateTime.toLocalDate());
+    }
+
+    public boolean isHoliday(LocalDate localDate) {
+        return holidays.contains(localDate);
+    }
+
+    public boolean isWeekend(ZonedDateTime date) {
+        return date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY;
+    }
+
+    public boolean isWeekend(LocalDate localDate) {
+        return localDate.getDayOfWeek() == DayOfWeek.SATURDAY || localDate.getDayOfWeek() == DayOfWeek.SUNDAY;
     }
 }

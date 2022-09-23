@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates.HolidayService;
 
-import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 
@@ -38,7 +37,7 @@ public class DueDateService {
         }
 
         ZonedDateTime newDate = dueDate.plusDays(1);
-        if (isWeekend(newDate) || holidayService.isHoliday(newDate)) {
+        if (holidayService.isWeekend(newDate) || holidayService.isHoliday(newDate)) {
             return addWorkingDays(newDate, numberOfDays);
         } else {
             return addWorkingDays(newDate, numberOfDays - 1);
@@ -49,15 +48,11 @@ public class DueDateService {
 
         ZonedDateTime newDate = eventDate.plusDays(delayDuration);
 
-        if (isWeekend(newDate) || holidayService.isHoliday(newDate)) {
+        if (holidayService.isWeekend(newDate) || holidayService.isHoliday(newDate)) {
             return addWorkingDaysForDelayDuration(eventDate, delayDuration + 1);
         }
-        
-        return newDate;
-    }
 
-    private boolean isWeekend(ZonedDateTime date) {
-        return date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY;
+        return newDate;
     }
 
     private ZonedDateTime resetTo4PmTime(ZonedDateTime eventDateTime) {
