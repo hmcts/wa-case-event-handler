@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.microsoft.applicationinsights.TelemetryClient;
 import com.microsoft.applicationinsights.extensibility.context.OperationContext;
 import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import feign.FeignException;
@@ -73,9 +72,6 @@ class MessageProcessorTest {
     @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
-    @MockBean
-    private TelemetryClient telemetryClient;
-
     @Mock
     private TelemetryContext telemetryContext;
 
@@ -117,7 +113,6 @@ class MessageProcessorTest {
         logger.addAppender(listAppender);
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true).thenReturn(true);
-        lenient().when(telemetryClient.getContext()).thenReturn(telemetryContext);
         lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
     }
 
