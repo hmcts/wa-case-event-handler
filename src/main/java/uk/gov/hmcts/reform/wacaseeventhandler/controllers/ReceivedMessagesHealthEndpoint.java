@@ -1,17 +1,24 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.HealthIndicator;
-import org.springframework.stereotype.Component;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates.HolidayService;
 
 import java.time.Clock;
 import java.time.LocalDateTime;
 
-@Component("ccdMessagesReceived")
-public class ReceivedMessagesHealthEndpoint implements HealthIndicator {
+@RestController
+public class ReceivedMessagesHealthEndpoint {
 
     protected static final String CASE_EVENT_HANDLER_MESSAGE_HEALTH = "caseEventHandlerMessageHealth";
     protected static final String NO_MESSAGES_RECEIVED = "No messages received from CCD during the past hour";
@@ -28,12 +35,13 @@ public class ReceivedMessagesHealthEndpoint implements HealthIndicator {
     @Autowired
     private HolidayService holidayService;
 
-    @Override
-    public Health getHealth(boolean includeDetails) {
-        return HealthIndicator.super.getHealth(includeDetails);
-    }
-
-    @Override
+    @Operation(description = "Query case event message db to find problematic messages by job name")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK", content = {
+            @Content(mediaType = "application/json", schema = @Schema(implementation = Health.class))})
+    })
+    @GetMapping(path = "/ccdMessagesReceived/health")
+    @ResponseStatus(HttpStatus.OK)
     public Health health() {
 
         LocalDateTime now = LocalDateTime.now(clock).minusHours(1);

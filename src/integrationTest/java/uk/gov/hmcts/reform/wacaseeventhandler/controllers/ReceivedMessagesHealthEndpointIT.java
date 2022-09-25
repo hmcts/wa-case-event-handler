@@ -128,11 +128,11 @@ public class ReceivedMessagesHealthEndpointIT {
     }
 
     private void assertReceivedMessagesHealthStatus(Status status, String details) throws Exception {
-        mockMvc.perform(get("/health"))
+        mockMvc.perform(get("/ccdMessagesReceived/health"))
             .andExpect(
-                jsonPath("$.components.ccdMessagesReceived.status")
+                jsonPath("$.status")
                     .value(status.toString()))
-            .andExpect(jsonPath("$.components.ccdMessagesReceived.details." + CASE_EVENT_HANDLER_MESSAGE_HEALTH)
+            .andExpect(jsonPath("$.details." + CASE_EVENT_HANDLER_MESSAGE_HEALTH)
                            .value(details));
     }
 
