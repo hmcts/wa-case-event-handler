@@ -101,7 +101,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .until(
                 () -> {
                     Response response = findTaskDetailsForGivenTaskId(taskId);
-                    if (response !=null){
+                    if (response != null) {
                         String idempotencyKey = idempotencyKeyGenerator.generateIdempotencyKey(
                             eventInformation.getEventInstanceId(),
                             "followUpNonStandardDirection"
