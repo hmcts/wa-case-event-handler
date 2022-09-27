@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,6 +29,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.TestConfigurationIntegrationTest.MAX_WAIT;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.TestConfigurationIntegrationTest.POLL_INT;
 
 
 @SpringBootTest
@@ -105,8 +106,8 @@ public class MessageReadinessTest {
         postMessage(messageId);
         postMessage(messageId2);
 
-        await().pollInterval(500, MILLISECONDS)
-                .atMost(45, SECONDS)
+        await().pollInterval(POLL_INT, SECONDS)
+                .atMost(MAX_WAIT, SECONDS)
                 .untilAsserted(() -> checkMessagesInState(List.of(messageId, messageId2), expectedState));
     }
 

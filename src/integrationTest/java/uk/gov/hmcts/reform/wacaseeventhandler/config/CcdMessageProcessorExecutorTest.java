@@ -18,8 +18,8 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -79,7 +79,7 @@ class CcdMessageProcessorExecutorTest {
 
     @Test
     void test_create_database_message_consumer_triggers_database_message_consumer_repeatedly() {
-        await().atMost(11, TimeUnit.SECONDS).until(
+        await().atMost(11, SECONDS).until(
             () -> getLogMessageOccurrenceCount(SELECT_LOG_MESSAGE) >= 3L
                   && getLogMessageOccurrenceCount(PROCESS_LOG_MESSAGE) >= 3L
         );

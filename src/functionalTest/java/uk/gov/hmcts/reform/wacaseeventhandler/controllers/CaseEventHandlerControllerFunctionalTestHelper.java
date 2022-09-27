@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.awaitility.Awaitility.await;
@@ -30,6 +29,8 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.TestConfigurationFunctionalTest.MAX_WAIT;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.TestConfigurationFunctionalTest.POLL_INT;
 
 @Slf4j
 public abstract class CaseEventHandlerControllerFunctionalTestHelper extends SpringBootFunctionalBaseTest {
@@ -59,8 +60,8 @@ public abstract class CaseEventHandlerControllerFunctionalTestHelper extends Spr
 
     protected void assertTaskDoesNotExist(String caseId, String taskId) {
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(30, SECONDS)
+            .pollInterval(POLL_INT, SECONDS)
+            .atMost(MAX_WAIT, SECONDS)
             .until(
                 () -> {
                     given()
@@ -83,8 +84,8 @@ public abstract class CaseEventHandlerControllerFunctionalTestHelper extends Spr
     protected void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
         log.info("Finding warnings task for caseId = {} and taskId = {}", caseId, taskId);
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
+            .pollInterval(POLL_INT, SECONDS)
+            .atMost(MAX_WAIT, SECONDS)
             .until(
                 () -> {
 
@@ -241,8 +242,8 @@ public abstract class CaseEventHandlerControllerFunctionalTestHelper extends Spr
         log.info("Finding task for caseId = {}", caseId);
         AtomicReference<Response> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
-            .pollInterval(1000, MILLISECONDS)
-            .atMost(60, SECONDS)
+            .pollInterval(POLL_INT, SECONDS)
+            .atMost(MAX_WAIT, SECONDS)
             .until(
                 () -> {
                     Response result = given()
@@ -286,8 +287,8 @@ public abstract class CaseEventHandlerControllerFunctionalTestHelper extends Spr
 
         AtomicReference<String> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
+            .pollInterval(POLL_INT, SECONDS)
+            .atMost(MAX_WAIT, SECONDS)
             .until(
                 () -> {
 
