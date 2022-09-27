@@ -215,22 +215,26 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .until(
                 () -> {
                     Response response = findTaskDetailsForGivenTaskId(caseId1Task1Id);
-                    response.then().assertThat()
-                        .statusCode(HttpStatus.OK.value())
-                        .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .body("caseTypeId.value", equalToIgnoringCase("asylum"))
-                        .body("jurisdiction.value", equalToIgnoringCase("ia"))
-                        .body("dueDate.value", notNullValue())
-                        .body("taskState.value", equalToIgnoringCase("unassigned"))
-                        .body("hasWarnings.value", is(false))
-                        .body("caseId.value", is(caseId))
-                        .body("name.value", equalToIgnoringCase("Follow-up extended direction"))
-                        .body("workingDaysAllowed.value", is(2))
-                        .body("isDuplicate.value", is(false))
-                        .body("delayUntil.value", notNullValue())
-                        .body("taskId.value", equalToIgnoringCase("followUpExtendedDirection"))
-                        .body("warningList.value", is("[]"));
-                    return true;
+                    if (response != null){
+                        response.then().assertThat()
+                            .statusCode(HttpStatus.OK.value())
+                            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .body("caseTypeId.value", equalToIgnoringCase("asylum"))
+                            .body("jurisdiction.value", equalToIgnoringCase("ia"))
+                            .body("dueDate.value", notNullValue())
+                            .body("taskState.value", equalToIgnoringCase("unassigned"))
+                            .body("hasWarnings.value", is(false))
+                            .body("caseId.value", is(caseId))
+                            .body("name.value", equalToIgnoringCase("Follow-up extended direction"))
+                            .body("workingDaysAllowed.value", is(2))
+                            .body("isDuplicate.value", is(false))
+                            .body("delayUntil.value", notNullValue())
+                            .body("taskId.value", equalToIgnoringCase("followUpExtendedDirection"))
+                            .body("warningList.value", is("[]"));
+                        return true;
+                    } else {
+                        return false;
+                    }
                 });
 
     }
@@ -266,28 +270,31 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .until(
                 () -> {
                     Response response = findTaskDetailsForGivenTaskId(caseId1Task1Id);
-                    response.then().assertThat()
-                        .statusCode(HttpStatus.OK.value())
-                        .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .body("caseTypeId.value", equalToIgnoringCase("asylum"))
-                        .body("idempotencyKey.value", notNullValue())
-                        .body("jurisdiction.value", equalToIgnoringCase("ia"))
-                        .body("dueDate.value", notNullValue())
-                        .body("taskState.value", is("unassigned"))
-                        .body("hasWarnings.value", is(false))
-                        .body("caseId.value", is(caseId))
-                        .body("name.value", is("Review the appeal"))
-                        .body("workingDaysAllowed.value", is(2))
-                        .body("isDuplicate.value", is(false))
-                        .body("delayUntil.value", notNullValue())
-                        .body("taskId.value", is("reviewTheAppeal"))
-                        .body("caseId.value", is(caseId))
-                        .body("__processCategory__caseProgression.value", is(true))
-                        .body("hasWarnings.value", is(false))
-                        .body("warningList.value", is("[]"));
-                    return true;
+                    if(response != null){
+                        response.then().assertThat()
+                            .statusCode(HttpStatus.OK.value())
+                            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .body("caseTypeId.value", equalToIgnoringCase("asylum"))
+                            .body("idempotencyKey.value", notNullValue())
+                            .body("jurisdiction.value", equalToIgnoringCase("ia"))
+                            .body("dueDate.value", notNullValue())
+                            .body("taskState.value", is("unassigned"))
+                            .body("hasWarnings.value", is(false))
+                            .body("caseId.value", is(caseId))
+                            .body("name.value", is("Review the appeal"))
+                            .body("workingDaysAllowed.value", is(2))
+                            .body("isDuplicate.value", is(false))
+                            .body("delayUntil.value", notNullValue())
+                            .body("taskId.value", is("reviewTheAppeal"))
+                            .body("caseId.value", is(caseId))
+                            .body("__processCategory__caseProgression.value", is(true))
+                            .body("hasWarnings.value", is(false))
+                            .body("warningList.value", is("[]"));
+                        return true;
+                    } else {
+                        return false;
+                    }
                 });
-
     }
 
     @Test
@@ -318,29 +325,32 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .until(
                 () -> {
                     Response response = findTaskDetailsForGivenTaskId(caseId1Task1Id);
-                    response.then().assertThat()
-                        .statusCode(HttpStatus.OK.value())
-                        .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .body("caseTypeId.value", equalToIgnoringCase("wacasetype"))
-                        .body("idempotencyKey.value", notNullValue())
-                        .body("jurisdiction.value", equalToIgnoringCase("wa"))
-                        .body("dueDate.value", notNullValue())
-                        .body("taskState.value", equalToIgnoringCase("unassigned"))
-                        .body("hasWarnings.value", is(false))
-                        .body("caseId.value", is(caseId))
-                        .body("name.value", equalToIgnoringCase("Dummy Activity"))
-                        .body("workingDaysAllowed.value", is(2))
-                        .body("isDuplicate.value", is(false))
-                        .body("delayUntil.value", notNullValue())
-                        .body("taskId.value", equalToIgnoringCase("dummyActivity"))
-                        .body("caseId.value", is(caseId))
-                        .body("__processCategory__caseProgression.value", is(true))
-                        .body("__processCategory__followUpOverdue.value", is(true))
-                        .body("hasWarnings.value", is(false))
-                        .body("warningList.value", is("[]"));
-                    return true;
+                    if (response != null){
+                        response.then().assertThat()
+                            .statusCode(HttpStatus.OK.value())
+                            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .body("caseTypeId.value", equalToIgnoringCase("wacasetype"))
+                            .body("idempotencyKey.value", notNullValue())
+                            .body("jurisdiction.value", equalToIgnoringCase("wa"))
+                            .body("dueDate.value", notNullValue())
+                            .body("taskState.value", equalToIgnoringCase("unassigned"))
+                            .body("hasWarnings.value", is(false))
+                            .body("caseId.value", is(caseId))
+                            .body("name.value", equalToIgnoringCase("Dummy Activity"))
+                            .body("workingDaysAllowed.value", is(2))
+                            .body("isDuplicate.value", is(false))
+                            .body("delayUntil.value", notNullValue())
+                            .body("taskId.value", equalToIgnoringCase("dummyActivity"))
+                            .body("caseId.value", is(caseId))
+                            .body("__processCategory__caseProgression.value", is(true))
+                            .body("__processCategory__followUpOverdue.value", is(true))
+                            .body("hasWarnings.value", is(false))
+                            .body("warningList.value", is("[]"));
+                        return true;
+                    } else {
+                        return false;
+                    }
                 });
-
     }
 
     @Test
