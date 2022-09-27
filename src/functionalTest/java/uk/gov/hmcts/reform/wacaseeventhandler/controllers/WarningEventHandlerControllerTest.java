@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.Warning;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.WarningValues;
 
 import java.time.LocalDateTime;
@@ -17,6 +18,7 @@ import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
@@ -728,7 +730,11 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
                     final String warningList = result.jsonPath().getString("warningList.value");
                     WarningValues actualWarningValues = new WarningValues(warningList);
 
-                    assertEquals(expectedWarningValues, actualWarningValues);
+                    assertEquals(expectedWarningValues.getValues().size(), actualWarningValues.getValues().size());
+                    for (Warning warning : expectedWarningValues.getValues()) {
+                        assertTrue(actualWarningValues.getValues().contains(warning.getWarningCode()));
+                        assertTrue(actualWarningValues.getValues().contains(warning.getWarningText()));
+                    }
 
                     return true;
                 });
