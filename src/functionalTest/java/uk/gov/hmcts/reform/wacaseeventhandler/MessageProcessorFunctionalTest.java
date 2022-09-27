@@ -38,7 +38,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
     public void should_process_message_with_the_lowest_event_timestamp_for_that_case() {
         List<String> messageIds = List.of(randomMessageId(), randomMessageId(), randomMessageId());
 
-        String caseId = randomCaseId();
+        String caseId = getCaseId();
         caseIdToDelete.add(caseId);
 
         final EventInformation.EventInformationBuilder eventInformationBuilder = EventInformation.builder()
@@ -96,7 +96,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 + "using event timestamp from hour ago "
                 + messageIdFromHourAgo);
 
-        String dlqCaseId = randomCaseId();
+        String dlqCaseId = getCaseId();
         caseIdToDelete.add(dlqCaseId);
 
         sendMessageToDlq(dlqMessageId, eventInformationBuilder
@@ -104,7 +104,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             .eventTimeStamp(LocalDateTime.now())
             .build());
 
-        String caseId = randomCaseId();
+        String caseId = getCaseId();
         caseIdToDelete.add(caseId);
         sendMessageToTopic(messageIdFromHourAgo,
                 eventInformationBuilder.caseId(caseId).eventTimeStamp(LocalDateTime.now().plusHours(1)).build());
@@ -130,7 +130,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
     @Test
     public void should_process_dlq_msg_if_processed_or_ready_messages_with_same_case_id_exist() {
-        String caseId = randomCaseId();
+        String caseId = getCaseId();
 
         final EventInformation.EventInformationBuilder eventInformationBuilder = EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
@@ -226,8 +226,8 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
     @Test
     public void should_not_process_any_message_after_unprocessable_message_for_same_case_id() {
-        String caseId = randomCaseId();
-        String caseId2 = randomCaseId();
+        String caseId = getCaseId();
+        String caseId2 = getCaseId();
         caseIdToDelete.add(caseId);
         caseIdToDelete.add(caseId2);
         String unprocessableMsgId = randomMessageId();
@@ -348,7 +348,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
     @Ignore
     public void should_not_process_dlq_message_unless_other_messages_exist_with_same_case_id() {
         String msgId = randomMessageId();
-        String caseId = randomCaseId();
+        String caseId = getCaseId();
 
         caseIdToDelete.add(caseId);
 
