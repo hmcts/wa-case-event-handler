@@ -19,6 +19,8 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.TestConfigurationFunctionalTest.MAX_WAIT;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.TestConfigurationFunctionalTest.POLL_INT;
 
 @Slf4j
 @ActiveProfiles(profiles = {"local", "functional"})
@@ -57,8 +59,8 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
         );
 
         await().ignoreException(AssertionError.class)
-            .pollInterval(2, SECONDS)
-            .atMost(60, SECONDS)
+            .pollInterval(POLL_INT, SECONDS)
+            .atMost(MAX_WAIT, SECONDS)
             .until(
                 () -> {
                     final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
@@ -92,8 +94,8 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
         sendMessageToDlq(randomMessageId(), eventInformation);
 
         await().ignoreException(AssertionError.class)
-            .pollInterval(2, SECONDS)
-            .atMost(60, SECONDS)
+            .pollInterval(POLL_INT, SECONDS)
+            .atMost(MAX_WAIT, SECONDS)
             .until(() -> {
                 final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
                 if (dlqMessagesFromDb != null) {

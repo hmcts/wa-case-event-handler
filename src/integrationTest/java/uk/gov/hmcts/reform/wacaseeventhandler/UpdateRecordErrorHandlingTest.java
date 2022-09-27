@@ -42,6 +42,7 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.lenient;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.TestConfigurationIntegrationTest.MAX_WAIT;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
@@ -89,7 +90,7 @@ public class UpdateRecordErrorHandlingTest {
         doThrow(new TransactionTimedOutException("Time out")).when(caseEventMessageRepository)
             .updateMessageState(eq(MessageState.PROCESSED), Mockito.<String>anyList());
         await()
-            .atMost(60, SECONDS)
+            .atMost(MAX_WAIT, SECONDS)
             .untilAsserted(() -> {
                         assertEquals(1, getMessagesInDbFromQuery(PROCESSED_STATE_QUERY).size());
                     }
@@ -113,7 +114,7 @@ public class UpdateRecordErrorHandlingTest {
             .updateMessageWithRetryDetails(eq(1), any(LocalDateTime.class), eq(MESSAGE_ID));
 
         await()
-            .atMost(60, SECONDS)
+            .atMost(MAX_WAIT, SECONDS)
             .untilAsserted(() -> {
                     assertEquals(2, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
                     assertEquals(1, getMessageById(MESSAGE_ID).getRetryCount());
@@ -135,7 +136,7 @@ public class UpdateRecordErrorHandlingTest {
             .updateMessageState(eq(MessageState.PROCESSED), Mockito.<String>anyList());
 
         await()
-            .atMost(60, SECONDS)
+            .atMost(MAX_WAIT, SECONDS)
             .untilAsserted(() -> {
                     assertEquals(1, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
                     assertEquals(MessageState.PROCESSED, getMessageById(MESSAGE_ID_2).getState());
@@ -152,7 +153,7 @@ public class UpdateRecordErrorHandlingTest {
         doThrow(new TransactionTimedOutException("Time out")).when(caseEventMessageRepository)
             .updateMessageState(eq(MessageState.UNPROCESSABLE), Mockito.<String>anyList());
         await()
-            .atMost(60, SECONDS)
+            .atMost(MAX_WAIT, SECONDS)
             .untilAsserted(() -> {
                     assertEquals(1, getMessagesInDbFromQuery(UNPROCESSABLE_STATE_QUERY).size());
                     }

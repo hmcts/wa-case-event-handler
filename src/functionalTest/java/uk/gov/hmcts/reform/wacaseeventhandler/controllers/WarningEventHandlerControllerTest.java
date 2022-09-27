@@ -10,7 +10,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.WarningValues;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.awaitility.Awaitility.await;
@@ -18,6 +17,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.TestConfigurationFunctionalTest.MAX_WAIT;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.TestConfigurationFunctionalTest.POLL_INT;
 
 @Slf4j
 public class WarningEventHandlerControllerTest extends CaseEventHandlerControllerFunctionalTestHelper {
@@ -178,7 +179,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
      */
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
-    public void given_caseId_and_multiple_tasks_and_different_ctg_when_warning_raised_then_mark_tasks_with_warnings() {
+    public void given_caseId_and_multiple_tasks_and_different_ctg_some_have_warnings() {
 
         String caseIdForTask1 = getCaseId();
 
@@ -237,7 +238,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         response = findTasksByCaseId(
             caseIdForTask1, 3);
 
-        String caseId1Task3Id = response
+        String caseId1TaskId = response
             .then()
             .body("size()", is(3))
             .assertThat().body("[2].id", notNullValue())
@@ -269,13 +270,13 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         assertTaskHasMultipleWarnings(caseIdForTask1, caseId1Task1Id, timeExtensionWarningValues);
         assertTaskHasMultipleWarnings(caseIdForTask1, caseId1Task2Id, overdueWarningValues);
 
-        // task3Id should not contain any warnings because the category is not correlated
-        assertTaskWithoutWarnings(caseIdForTask1, caseId1Task3Id, false);
+        // taskId should not contain any warnings because the category is not correlated
+        assertTaskWithoutWarnings(caseIdForTask1, caseId1TaskId, false);
 
         // tear down all tasks
         taskIdStatusMap.put(caseId1Task1Id, "completed");
         taskIdStatusMap.put(caseId1Task2Id, "completed");
-        taskIdStatusMap.put(caseId1Task3Id, "completed");
+        taskIdStatusMap.put(caseId1TaskId, "completed");
     }
 
     /**
@@ -709,8 +710,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
                                               WarningValues expectedWarningValues) {
         log.info("Finding warnings task for caseId = {} and taskId = {}", caseId, taskId);
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
+            .pollInterval(POLL_INT, SECONDS)
+            .atMost(MAX_WAIT, SECONDS)
             .until(
                 () -> {
 
@@ -737,8 +738,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
     private void assertTaskWithoutWarnings(String caseId, String taskId, boolean hasWarnings) {
         log.info("Finding warnings task for caseId = {} and taskId = {}", caseId, taskId);
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
+            .pollInterval(POLL_INT, SECONDS)
+            .atMost(MAX_WAIT, SECONDS)
             .until(
                 () -> {
 

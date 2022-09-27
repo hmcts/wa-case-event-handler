@@ -14,9 +14,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.TestConfigurationFunctionalTest.MAX_WAIT;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.TestConfigurationFunctionalTest.POLL_INT;
 
 
 public class AsbMessagesToDatabaseTest extends MessagingTests {
@@ -52,8 +53,8 @@ public class AsbMessagesToDatabaseTest extends MessagingTests {
         messageIds.forEach(msgId -> sendMessageToTopic(msgId, eventInformation));
 
         await().ignoreException(AssertionError.class)
-            .pollInterval(3, SECONDS)
-            .atMost(120, SECONDS)
+            .pollInterval(POLL_INT, SECONDS)
+            .atMost(MAX_WAIT, SECONDS)
             .until(
                 () -> {
                     final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, false);
@@ -94,8 +95,8 @@ public class AsbMessagesToDatabaseTest extends MessagingTests {
         sendMessageToTopic(randomMessageId(), eventInformation);
 
         await().ignoreException(AssertionError.class)
-            .pollInterval(3, MILLISECONDS)
-            .atMost(120, SECONDS)
+            .pollInterval(POLL_INT, SECONDS)
+            .atMost(MAX_WAIT, SECONDS)
             .until(() -> {
                 final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, false);
                 if (dlqMessagesFromDb != null) {

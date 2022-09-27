@@ -139,6 +139,17 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
         return getMessages(params);
     }
 
+    protected EventMessageQueryResponse getMessagesFromDb(List<MessageState> states) {
+        Map<String, Object> params = new HashMap<>();
+        StringBuilder sb = new StringBuilder();
+        for (MessageState state : states) {
+            sb.append(state.name());
+            sb.append(",");
+        }
+        params.put("states", sb.toString());
+        return getMessages(params);
+    }
+
     private EventMessageQueryResponse getMessages(Map<String, Object> queryParameters) {
         final Response response = given()
             .log()

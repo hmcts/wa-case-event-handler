@@ -58,6 +58,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.TestConfigurationIntegrationTest.MAX_WAIT;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
@@ -124,7 +125,7 @@ class MessageProcessorTest {
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(false);
 
         await()
-                .atMost(20, SECONDS)
+                .atMost(MAX_WAIT, SECONDS)
                 .untilAsserted(() -> assertLogMessageContains("No message returned from database for processing"));
 
         verify(ccdEventProcessor, never()).processMessage(any(CaseEventMessage.class));
@@ -136,7 +137,7 @@ class MessageProcessorTest {
     @Test
     void should_not_process_messages_if_database_empty() throws JsonProcessingException {
         await()
-            .atMost(20, SECONDS)
+            .atMost(MAX_WAIT, SECONDS)
             .untilAsserted(
                 () -> assertLogMessageContains("Selecting next message for processing from the database")
             );
@@ -151,7 +152,7 @@ class MessageProcessorTest {
     @Test
     void should_not_process_messages_if_no_messages_in_ready_state_exist_in_database() throws JsonProcessingException {
         await()
-                .atMost(20, SECONDS)
+                .atMost(MAX_WAIT, SECONDS)
                 .untilAsserted(() ->
                     assertLogMessageContains("Selecting next message for processing from the database")
             );
@@ -180,7 +181,7 @@ class MessageProcessorTest {
                 .when(ccdEventProcessor)
                 .processMessage(any(CaseEventMessage.class));
         await()
-                .atMost(20, SECONDS)
+                .atMost(MAX_WAIT, SECONDS)
                 .untilAsserted(() -> {
                         assertEquals(2, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
                         assertEquals(1, getMessageById(MESSAGE_ID).getRetryCount());
@@ -195,7 +196,7 @@ class MessageProcessorTest {
     @Test
     void should_set_message_state_to_unprocessable_when_non_retryable_error_occurs() throws JsonProcessingException {
         doThrow(FeignException.NotFound.class).when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
-        await().atMost(20, SECONDS)
+        await().atMost(MAX_WAIT, SECONDS)
             .untilAsserted(() -> {
                     assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
                                                     MESSAGE_ID, CASE_ID));
@@ -210,7 +211,7 @@ class MessageProcessorTest {
     @Test
     void should_set_message_state_to_unprocessable_when_exception_occurs() throws JsonProcessingException {
         doThrow(IllegalArgumentException.class).when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
-        await().atMost(20, SECONDS)
+        await().atMost(MAX_WAIT, SECONDS)
             .untilAsserted(() -> {
                     assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
                                                     MESSAGE_ID, CASE_ID));
@@ -225,7 +226,7 @@ class MessageProcessorTest {
     @Test
     void should_set_message_state_to_processed_when_message_processed_succesfully() throws JsonProcessingException {
         doNothing().when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
-        await().atMost(20, SECONDS)
+        await().atMost(MAX_WAIT, SECONDS)
             .untilAsserted(() -> {
                     assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
                                                     MESSAGE_ID, CASE_ID));
@@ -241,7 +242,7 @@ class MessageProcessorTest {
     void should_set_message_state_to_processed_when_message_exist_ltr_than_30min_and_dlq_message_processed_succesfully()
         throws JsonProcessingException {
         doNothing().when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
-        await().atMost(20, SECONDS)
+        await().atMost(MAX_WAIT, SECONDS)
             .untilAsserted(() -> {
                     assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
                                                     MESSAGE_ID, CASE_ID));
@@ -257,7 +258,7 @@ class MessageProcessorTest {
     void should_set_message_state_to_processed_when_message_exist_with_same_case_id_and_dlq_message_processed()
         throws JsonProcessingException {
         doNothing().when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
-        await().atMost(20, SECONDS)
+        await().atMost(MAX_WAIT, SECONDS)
             .untilAsserted(() -> {
                     assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
                                                     MESSAGE_ID, CASE_ID));
@@ -279,7 +280,7 @@ class MessageProcessorTest {
         executorService.execute(databaseMessageConsumer);
 
         await()
-                .atMost(20, SECONDS)
+                .atMost(MAX_WAIT, SECONDS)
                 .untilAsserted(() -> {
                             assertEquals(2, getMessagesInDbFromQuery(PROCESSED_STATE_QUERY).size());
                         }

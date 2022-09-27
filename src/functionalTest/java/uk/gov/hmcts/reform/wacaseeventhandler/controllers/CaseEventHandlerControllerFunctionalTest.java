@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.awaitility.Awaitility.await;
@@ -42,6 +41,8 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.TestConfigurationFunctionalTest.MAX_WAIT;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.TestConfigurationFunctionalTest.POLL_INT;
 
 @Slf4j
 public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunctionalBaseTest {
@@ -179,7 +180,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
     @After
     public void cleanUp() {
-        taskIdStatusMap.forEach((key, value) -> completeTask(key, value));
+        taskIdStatusMap.forEach(this::completeTaskCleanup);
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
         common.cleanUpTask(caseworkerCredentials.getHeaders(), caseIds);
     }
@@ -798,13 +799,13 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         response = findTasksByCaseId(caseIdForTask1, 3);
 
-        String caseId1Task3Id = response
+        String caseId1TaskId = response
             .then().assertThat()
             .body("[2].id", notNullValue())
             .extract()
             .path("[2].id");
 
-        taskIdStatusMap.put(caseId1Task3Id, "completed");
+        taskIdStatusMap.put(caseId1TaskId, "completed");
 
         // check for warnings flag on both the tasks
         assertTaskHasWarnings(caseIdForTask1, caseId1Task1Id, true);
@@ -1211,6 +1212,16 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         common.clearAllRoleAssignments(caseworkerCredentials.getHeaders(), "WA");
     }
 
+    public void completeTaskCleanup(String taskId, String status) {
+        log.info(String.format("Completing task : %s", taskId));
+        given()
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .accept(APPLICATION_JSON_VALUE)
+            .contentType(APPLICATION_JSON_VALUE)
+            .when()
+            .post(camundaUrl + "/task/{task-id}/complete", taskId);
+    }
+
     public void completeTask(String taskId, String status) {
         log.info(String.format("Completing task : %s", taskId));
         given()
@@ -1237,8 +1248,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
     private void assertTaskDoesNotExist(String caseId, String taskId) {
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(30, SECONDS)
+            .pollInterval(POLL_INT, SECONDS)
+            .atMost(MAX_WAIT, SECONDS)
             .until(
                 () -> {
                     given()
@@ -1261,8 +1272,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
     private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
         log.info("Finding warnings task for caseId = {} and taskId = {}", caseId, taskId);
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
+            .pollInterval(POLL_INT, SECONDS)
+            .atMost(MAX_WAIT, SECONDS)
             .until(
                 () -> {
 
@@ -1348,8 +1359,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         AtomicReference<String> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
+            .pollInterval(POLL_INT, SECONDS)
+            .atMost(MAX_WAIT, SECONDS)
             .until(
                 () -> {
 

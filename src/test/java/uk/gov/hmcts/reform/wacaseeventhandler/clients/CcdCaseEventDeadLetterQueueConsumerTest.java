@@ -17,8 +17,7 @@ import reactor.core.scheduler.Schedulers;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.ServiceBusConfiguration;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageReceiverService;
 
-import java.util.concurrent.TimeUnit;
-
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
@@ -121,7 +120,7 @@ class CcdCaseEventDeadLetterQueueConsumerTest {
         consumer.start();
 
         await()
-            .atMost(1, TimeUnit.SECONDS)
+            .atMost(1, SECONDS)
             .untilAsserted(() -> verify(receiverClient, atLeastOnce()).receiveMessages(1));
         underTest.stop();
     }
