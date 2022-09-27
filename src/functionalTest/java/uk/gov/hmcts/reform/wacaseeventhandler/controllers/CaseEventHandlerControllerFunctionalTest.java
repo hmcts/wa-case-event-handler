@@ -215,7 +215,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .until(
                 () -> {
                     Response response = findTaskDetailsForGivenTaskId(caseId1Task1Id);
-                    if (response != null){
+                    if (response != null) {
                         response.then().assertThat()
                             .statusCode(HttpStatus.OK.value())
                             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -236,7 +236,6 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
                         return false;
                     }
                 });
-
     }
 
     @Test
@@ -270,7 +269,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .until(
                 () -> {
                     Response response = findTaskDetailsForGivenTaskId(caseId1Task1Id);
-                    if(response != null){
+                    if (response != null) {
                         response.then().assertThat()
                             .statusCode(HttpStatus.OK.value())
                             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -325,7 +324,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .until(
                 () -> {
                     Response response = findTaskDetailsForGivenTaskId(caseId1Task1Id);
-                    if (response != null){
+                    if (response != null) {
                         response.then().assertThat()
                             .statusCode(HttpStatus.OK.value())
                             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
