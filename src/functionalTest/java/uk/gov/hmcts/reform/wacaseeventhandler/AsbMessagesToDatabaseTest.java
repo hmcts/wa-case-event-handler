@@ -37,7 +37,7 @@ public class AsbMessagesToDatabaseTest extends MessagingTests {
     public void should_store_messages_in_database() {
         List<String> messageIds = List.of(randomMessageId(), randomMessageId(), randomMessageId());
 
-        String caseId = randomCaseId();
+        String caseId = getCaseId();
 
         final EventInformation eventInformation = EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
@@ -79,7 +79,7 @@ public class AsbMessagesToDatabaseTest extends MessagingTests {
 
     @Test
     public void should_store_messages_missing_mandatory_fields_in_database_as_unprocessable() {
-        var caseId = randomCaseId();
+        var caseId = getCaseId();
 
         //eventTimeStamp deliberately missing field
         final EventInformation eventInformation = EventInformation.builder()
