@@ -14,11 +14,11 @@ import java.util.HashMap;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
@@ -731,9 +731,15 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
                     WarningValues actualWarningValues = new WarningValues(warningList);
 
                     assertEquals(expectedWarningValues.getValues().size(), actualWarningValues.getValues().size());
+
                     for (Warning warning : expectedWarningValues.getValues()) {
-                        assertTrue(actualWarningValues.getValues().contains(warning.getWarningCode()));
-                        assertTrue(actualWarningValues.getValues().contains(warning.getWarningText()));
+                        assertThat(actualWarningValues.getValues())
+                            .extracting(Warning::getWarningCode)
+                            .containsExactlyInAnyOrder(warning.getWarningCode());
+
+                        assertThat(actualWarningValues.getValues())
+                            .extracting(Warning::getWarningText)
+                            .containsExactlyInAnyOrder(warning.getWarningText());
                     }
 
                     return true;
