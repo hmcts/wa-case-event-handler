@@ -10,15 +10,17 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.WarningValues;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
@@ -732,15 +734,26 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
                     assertEquals(expectedWarningValues.getValues().size(), actualWarningValues.getValues().size());
 
-                    for (Warning warning : expectedWarningValues.getValues()) {
-                        assertThat(actualWarningValues.getValues())
-                            .extracting(Warning::getWarningCode)
-                            .containsExactlyInAnyOrder(warning.getWarningCode());
+                    List<String> expectedWarningCodes = expectedWarningValues.getValues()
+                        .stream()
+                        .map(Warning::getWarningCode)
+                        .collect(Collectors.toList());
+                    List<String> expectedWarningText = expectedWarningValues.getValues()
+                        .stream()
+                        .map(Warning::getWarningText)
+                        .collect(Collectors.toList());
 
-                        assertThat(actualWarningValues.getValues())
-                            .extracting(Warning::getWarningText)
-                            .containsExactlyInAnyOrder(warning.getWarningText());
-                    }
+                    List<String> actualWarningCodes = actualWarningValues.getValues()
+                        .stream()
+                        .map(Warning::getWarningCode)
+                        .collect(Collectors.toList());
+                    List<String> actualWarningText = actualWarningValues.getValues()
+                        .stream()
+                        .map(Warning::getWarningText)
+                        .collect(Collectors.toList());
+
+                    assertTrue(expectedWarningCodes.containsAll(actualWarningCodes));
+                    assertTrue(expectedWarningText.containsAll(actualWarningText));
 
                     return true;
                 });
