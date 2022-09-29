@@ -278,9 +278,9 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         assertTaskWithoutWarnings(caseIdForTask1, caseId1Task3Id, false);
 
         // tear down all tasks
-        //taskIdStatusMap.put(caseId1Task1Id, "completed");
-        //taskIdStatusMap.put(caseId1Task2Id, "completed");
-        //taskIdStatusMap.put(caseId1Task3Id, "completed");
+        taskIdStatusMap.put(caseId1Task1Id, "completed");
+        taskIdStatusMap.put(caseId1Task2Id, "completed");
+        taskIdStatusMap.put(caseId1Task3Id, "completed");
     }
 
     /**
