@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,8 +9,10 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.Warning;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.WarningValues;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -753,10 +754,16 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
                         .map(Warning::getWarningText)
                         .collect(Collectors.toList());
 
-                    assertTrue(CollectionUtils.isEqualCollection(expectedWarningCodes, actualWarningCodes));
-                    assertTrue(CollectionUtils.isEqualCollection(expectedWarningText, actualWarningText));
+                    assertTrue(isEqualCollection(expectedWarningCodes, actualWarningCodes));
+                    assertTrue(isEqualCollection(expectedWarningText, actualWarningText));
                     return true;
                 });
+    }
+
+    static boolean isEqualCollection(Collection<?> a, Collection<?> b) {
+        return a == b || (a != null && b != null && a.size() == b.size()
+                          && a.stream().collect(Collectors.toMap(Function.identity(), s -> 1L, Long::sum))
+                              .equals(b.stream().collect(Collectors.toMap(Function.identity(), s -> 1L, Long::sum))));
     }
 
     private void assertTaskWithoutWarnings(String caseId, String taskId, boolean hasWarnings) {
