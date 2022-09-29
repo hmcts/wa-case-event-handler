@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -277,9 +278,9 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         assertTaskWithoutWarnings(caseIdForTask1, caseId1Task3Id, false);
 
         // tear down all tasks
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
-        taskIdStatusMap.put(caseId1Task2Id, "completed");
-        taskIdStatusMap.put(caseId1Task3Id, "completed");
+        //taskIdStatusMap.put(caseId1Task1Id, "completed");
+        //taskIdStatusMap.put(caseId1Task2Id, "completed");
+        //taskIdStatusMap.put(caseId1Task3Id, "completed");
     }
 
     /**
@@ -752,9 +753,8 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
                         .map(Warning::getWarningText)
                         .collect(Collectors.toList());
 
-                    assertTrue(expectedWarningCodes.containsAll(actualWarningCodes));
-                    assertTrue(expectedWarningText.containsAll(actualWarningText));
-
+                    assertTrue(CollectionUtils.isEqualCollection(expectedWarningCodes, actualWarningCodes));
+                    assertTrue(CollectionUtils.isEqualCollection(expectedWarningText, actualWarningText));
                     return true;
                 });
     }
