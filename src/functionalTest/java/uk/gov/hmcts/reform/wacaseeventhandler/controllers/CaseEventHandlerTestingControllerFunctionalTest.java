@@ -104,7 +104,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("jurisdiction.value", equalToIgnoringCase("ia"))
             .body("idempotencyKey.value", is(idempotencyKey))
             .body("dueDate.value", notNullValue())
-            .body("taskState.value", equalToIgnoringCase("unassigned"))
+            .body("taskState.value", equalToIgnoringCase("unconfigured"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseIdForTask))
             .body("name.value", equalToIgnoringCase("Follow-up non-standard direction"))
