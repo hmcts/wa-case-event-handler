@@ -318,6 +318,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .path("[0].id");
 
         taskIdStatusMap.put(caseId1Task1Id, "completed");
+
         await().ignoreException(AssertionError.class)
             .pollInterval(2, SECONDS)
             .atMost(180, SECONDS)
