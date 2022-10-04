@@ -697,8 +697,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .until(
                 () -> {
                     Response taskFound = findTasksByCaseId(caseIdForTask1, 2);
-
-                    if (taskFound != null){
+                    if (taskFound != null) {
                         caseId1Task2Id = taskFound
                             .then().assertThat()
                             .body("[1].id", notNullValue())
@@ -713,8 +712,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
                         return false;
                     }
 
-                }
-            );
+                });
     }
 
     @Test
@@ -793,8 +791,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
                         return false;
                     }
 
-                }
-            );
+                });
 
     }
 
@@ -853,8 +850,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .until(
                 () -> {
                     response.set(findTasksByCaseId(caseIdForTask1, 3));
-
-                    if (response.get() != null){
+                    if (response.get() != null) {
                         String caseId1Task3Id = response.get()
                             .then().assertThat()
                             .body("[2].id", notNullValue())
@@ -871,8 +867,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
                     } else {
                         return false;
                     }
-            });
-
+                });
     }
 
     @Test
@@ -1027,7 +1022,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .until(
                 () -> {
                     taskFound.set(findTasksByCaseId(caseId2, 2));
-                    if (taskFound.get() != null){
+                    if (taskFound.get() != null) {
                         caseId2Task2Id = taskFound.get()
                             .then().assertThat()
                             .body("[1].id", notNullValue())
@@ -1043,8 +1038,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
                     } else {
                         return false;
                     }
-                }
-            );
+                });
     }
 
     @Test
