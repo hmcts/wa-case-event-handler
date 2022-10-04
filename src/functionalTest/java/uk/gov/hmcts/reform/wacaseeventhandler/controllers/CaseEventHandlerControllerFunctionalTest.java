@@ -105,6 +105,23 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         }
     }
 
+    protected void sendMessageWithAdditionalDataForWA(String caseId, String event, String previousStateId,
+                                                 String newStateId, boolean taskDelay) {
+
+        if (taskDelay) {
+            eventTimeStamp = LocalDateTime.now().plusSeconds(2);
+        }
+        EventInformation eventInformation = getEventInformationWithAdditionalDataForWA(
+                caseId, event, previousStateId, newStateId, eventTimeStamp
+        );
+
+        if (publisher != null) {
+            publishMessageToTopic(eventInformation);
+        } else {
+            callRestEndpoint(s2sToken, eventInformation);
+        }
+    }
+
     protected String createTaskWithId(String caseId,
                                       String eventId,
                                       String previousStateId,
@@ -420,7 +437,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         String caseId = getWaCaseId();
 
-        sendMessageWithAdditionalData(
+        sendMessageWithAdditionalDataForWA(
             caseId,
             "dummySubmitAppeal",
             "",
@@ -1308,14 +1325,30 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .build();
     }
 
+    private EventInformation getEventInformationWithAdditionalDataForWA(
+            String caseId, String event, String previousStateId, String newStateId, LocalDateTime localDateTime) {
+        return EventInformation.builder()
+                .eventInstanceId(UUID.randomUUID().toString())
+                .eventTimeStamp(localDateTime)
+                .caseId(caseId)
+                .jurisdictionId("WA")
+                .caseTypeId("WaCaseType")
+                .eventId(event)
+                .newStateId(newStateId)
+                .previousStateId(previousStateId)
+                .additionalData(setAdditionalData(""))
+                .userId("some user Id")
+                .build();
+    }
+
     private EventInformation getEventInformationWithAdditionalData(String caseId, String event, String previousStateId,
                                                                    String newStateId, LocalDateTime localDateTime) {
         return EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
             .eventTimeStamp(localDateTime)
             .caseId(caseId)
-            .jurisdictionId("WA")
-            .caseTypeId("WaCaseType")
+            .jurisdictionId("IA")
+            .caseTypeId("Asylum")
             .eventId(event)
             .newStateId(newStateId)
             .previousStateId(previousStateId)
