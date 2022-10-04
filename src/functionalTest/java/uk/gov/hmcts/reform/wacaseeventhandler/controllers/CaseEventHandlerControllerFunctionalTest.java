@@ -706,7 +706,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .atMost(180, SECONDS)
             .until(
                 () -> {
-                    Response taskFound = findTasksByCaseId(caseIdForTask1, 3);
+                    Response taskFound = findTasksByCaseId(caseIdForTask1, 2);
                     if (taskFound != null) {
                         caseId1Task2Id = taskFound
                             .then().assertThat()
@@ -782,7 +782,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .until(
                 () -> {
                     response.set(findTasksByCaseId(
-                        caseIdForTask1, 4));
+                        caseIdForTask1, 3));
                     if (response.get() != null) {
                         final String caseId1Task3Id = response.get()
                             .then()
@@ -859,7 +859,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .atMost(180, SECONDS)
             .until(
                 () -> {
-                    response.set(findTasksByCaseId(caseIdForTask1, 4));
+                    response.set(findTasksByCaseId(caseIdForTask1, 3));
                     if (response.get() != null) {
                         String caseId1Task3Id = response.get()
                             .then().assertThat()
@@ -1031,7 +1031,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .atMost(180, SECONDS)
             .until(
                 () -> {
-                    taskFound.set(findTasksByCaseId(caseId2, 3));
+                    taskFound.set(findTasksByCaseId(caseId2, 2));
                     if (taskFound.get() != null) {
                         caseId2Task2Id = taskFound.get()
                             .then().assertThat()
