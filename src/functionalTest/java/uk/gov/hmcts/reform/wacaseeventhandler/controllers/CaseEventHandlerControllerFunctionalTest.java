@@ -65,8 +65,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
                                String newStateId,
                                boolean taskDelay,
                                String jurisdictionId,
-                               String caseTypeId,
-                               String appealType) {
+                               String caseTypeId) {
 
         if (taskDelay) {
             eventTimeStamp = LocalDateTime.now().plusSeconds(2);
@@ -78,8 +77,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             newStateId,
             eventTimeStamp,
             jurisdictionId,
-            caseTypeId,
-            appealType);
+            caseTypeId
+        );
 
         if (publisher != null) {
             publishMessageToTopic(eventInformation);
@@ -90,13 +89,14 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
     }
 
     protected void sendMessageWithAdditionalData(String caseId, String event, String previousStateId,
-                                                 String newStateId, boolean taskDelay, String appealType) {
+                                                 String newStateId, boolean taskDelay) {
 
         if (taskDelay) {
             eventTimeStamp = LocalDateTime.now().plusSeconds(2);
         }
         EventInformation eventInformation = getEventInformationWithAdditionalData(
-            caseId, event, previousStateId, newStateId, eventTimeStamp, appealType);
+            caseId, event, previousStateId, newStateId, eventTimeStamp
+        );
 
         if (publisher != null) {
             publishMessageToTopic(eventInformation);
@@ -114,8 +114,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
                                       String jurisdictionId,
                                       String caseTypeId) {
 
-        sendMessage(caseId, eventId, previousStateId, newStateId, delayUntil, jurisdictionId, caseTypeId,
-                "deprivation");
+        sendMessage(caseId, eventId, previousStateId, newStateId, delayUntil, jurisdictionId, caseTypeId);
 
         // if the delayUntil is true, then the taskCreation process waits for delayUntil timer
         // to expire. The task is delayed for 2 seconds,
@@ -191,14 +190,14 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         String caseId = getCaseId();
 
         sendMessage(
-                caseId,
-                "changeDirectionDueDate",
-                "",
-                "",
-                false,
-                "IA",
-                "Asylum",
-                "deprivation");
+            caseId,
+            "changeDirectionDueDate",
+            "",
+            "",
+            false,
+            "IA",
+            "Asylum"
+        );
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
@@ -242,8 +241,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "appealSubmitted",
             false,
             "IA",
-            "Asylum",
-                "deprivation");
+            "Asylum"
+        );
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
@@ -289,8 +288,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "dummyEventForMultipleCategories",
             "IN_PROGRESS",
             "DONE",
-            false, "WA", "WaCaseType",
-                "deprivation");
+            false, "WA", "WaCaseType"
+        );
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
@@ -337,8 +336,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "dummyEventForMultipleCategories",
             "IN_PROGRESS",
             "DONE",
-            false, "WA", "WaCaseType",
-                "deprivation");
+            false, "WA", "WaCaseType"
+        );
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
@@ -355,8 +354,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "dummyEventForMultipleCategoriesCancel",
             "IN_PROGRESS",
             "DONE",
-            false, "WA", "WaCaseType",
-                "deprivation");
+            false, "WA", "WaCaseType"
+        );
 
         // Assert the task was deleted
         assertTaskDoesNotExist(caseId, "testTaskIdForMultipleCategories");
@@ -373,8 +372,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "dummyEventForMultipleCategories",
             "IN_PROGRESS",
             "DONE",
-            false, "WA", "WaCaseType",
-                "deprivation");
+            false, "WA", "WaCaseType"
+        );
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
@@ -391,8 +390,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "makeAnApplication",
             "",
             "",
-            false, "WA", "WaCaseType",
-                "");
+            false, "WA", "WaCaseType"
+        );
 
         taskFound = findTasksByCaseId(caseId, 2);
 
@@ -426,8 +425,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "dummySubmitAppeal",
             "",
             "",
-            false,
-                "deprivation");
+            false
+        );
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
@@ -493,8 +492,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         String eventToCancelTask = "submitReasonsForAppeal";
         String previousStateToCancelTask = "awaitingReasonsForAppeal";
         sendMessage(caseIdForTask1, eventToCancelTask, previousStateToCancelTask,
-            "", false, "IA", "Asylum",
-                "deprivation");
+            "", false, "IA", "Asylum"
+        );
 
         // Assert the task1 is deleted
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
@@ -522,7 +521,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         String eventToCancelTask = "uploadHomeOfficeBundle";
         String previousStateToCancelTask = "awaitingRespondentEvidence";
         sendMessage(caseIdForTask1, eventToCancelTask,
-            previousStateToCancelTask, "", false, "IA", "Asylum", "deprivation");
+            previousStateToCancelTask, "", false, "IA", "Asylum");
 
         waitSeconds(5);
         // Assert the task1 is deleted
@@ -553,7 +552,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         // Then cancel all tasks
         String eventToCancelTask = "removeAppealFromOnline";
         sendMessage(caseIdForTask1, eventToCancelTask,
-            "", "", false, "IA", "Asylum", "deprivation");
+            "", "", false, "IA", "Asylum");
 
         waitSeconds(5);
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
@@ -593,7 +592,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         // Then cancel all tasks
         String eventToCancelTask = "removeAppealFromOnline";
         sendMessage(caseIdForTask1, eventToCancelTask,
-            "", "", false, "IA", "Asylum", "deprivation");
+            "", "", false, "IA", "Asylum");
 
         waitSeconds(5);
         assertTaskDoesNotExist(caseIdForTask1, task1IdDmnColumn);
@@ -618,7 +617,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         // Then cancel the task1
         sendMessage(caseIdForTask1, "uploadHomeOfficeBundle",
-            "awaitingRespondentEvidence", "", false, "IA", "Asylum", "deprivation");
+            "awaitingRespondentEvidence", "", false, "IA", "Asylum");
 
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
 
@@ -639,7 +638,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         taskIdStatusMap.put(caseId1Task1Id, "deleted");
 
         // Then cancel the task1
-        sendMessage(caseIdForTask1, "buildCase", "caseBuilding", "", false, "IA", "Asylum", "deprivation");
+        sendMessage(caseIdForTask1, "buildCase", "caseBuilding", "", false, "IA", "Asylum");
 
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
         assertTaskDeleteReason(caseId1Task1Id, "deleted");
@@ -660,8 +659,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         taskIdStatusMap.put(caseId1Task1Id, "completed");
 
         sendMessage(caseIdForTask1, "makeAnApplication",
-            "", "", false, "IA", "Asylum",
-                "");
+            "", "", false, "IA", "Asylum"
+        );
 
         waitSeconds(5);
 
@@ -686,8 +685,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         // Initiate task1, category (Case progression)
         sendMessage(caseIdForTask1, "submitReasonsForAppeal", null,
-            "reasonsForAppealSubmitted", false, "IA", "Asylum",
-                "deprivation");
+            "reasonsForAppealSubmitted", false, "IA", "Asylum"
+        );
 
         Response response = findTasksByCaseId(caseIdForTask1, 1);
 
@@ -706,8 +705,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         // initiate task2, category (Case progression)
         sendMessage(caseIdForTask1, "draftHearingRequirements", null,
-            "listing", false, "IA", "Asylum",
-                "deprivation");
+            "listing", false, "IA", "Asylum"
+        );
 
         response = findTasksByCaseId(caseIdForTask1, 2);
 
@@ -721,9 +720,13 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         taskIdStatusMap.put(caseId1Task2Id, "completed");
 
         // send warning message
-        sendMessage(caseIdForTask1, "makeAnApplication", "",
-                "", false, "IA", "Asylum",
-                "");
+        sendMessageWithAdditionalData(
+            caseIdForTask1,
+            "makeAnApplication",
+            "",
+            "",
+            false
+        );
         waitSeconds(5);
 
         response = findTasksByCaseId(
@@ -752,8 +755,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         // Initiate task1 , category (caseProgression)
         sendMessage(caseIdForTask1, "requestRespondentEvidence", null,
-            "awaitingRespondentEvidence", false, "IA", "Asylum",
-                "deprivation");
+            "awaitingRespondentEvidence", false, "IA", "Asylum"
+        );
 
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
@@ -768,8 +771,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         // initiate task2, category (followUpOverdue)
         sendMessage(caseIdForTask1, "sendDirectionWithQuestions", "",
-            "awaitingClarifyingQuestionsAnswers", false, "IA", "Asylum",
-                "deprivation");
+            "awaitingClarifyingQuestionsAnswers", false, "IA", "Asylum"
+        );
 
         response = findTasksByCaseId(
             caseIdForTask1, 2);
@@ -784,9 +787,13 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         taskIdStatusMap.put(caseId1Task2Id, "completed");
 
         // send warning message
-        sendMessage(caseIdForTask1, "makeAnApplication", "",
-                "", false, "IA", "Asylum",
-                "");
+        sendMessageWithAdditionalData(
+            caseIdForTask1,
+            "makeAnApplication",
+            "",
+            "",
+            false
+        );
         waitSeconds(5);
 
         response = findTasksByCaseId(caseIdForTask1, 3);
@@ -892,10 +899,10 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         // Then cancel all tasks on both caseIDs
         String eventToCancelTask = "removeAppealFromOnline";
         sendMessage(caseId1, eventToCancelTask,
-            "", "", false, "IA", "Asylum", "deprivation");
+            "", "", false, "IA", "Asylum");
         waitSeconds(5);
         sendMessage(caseId2, eventToCancelTask,
-            "", "", false, "IA", "Asylum", "deprivation");
+            "", "", false, "IA", "Asylum");
         waitSeconds(5);
 
         assertTaskDoesNotExist(caseId1, taskIdDmnColumn);
@@ -932,7 +939,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         // Then cancel all tasks on both caseIDs
         sendMessage(caseId1, "makeAnApplication",
-            "", "", false, "IA", "Asylum", "");
+            "", "", false, "IA", "Asylum"
+        );
         waitSeconds(5);
 
         Response taskFound = findTasksByCaseId(caseId1, 2);
@@ -946,7 +954,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         taskIdStatusMap.put(caseId1Task2Id, "completed");
 
         sendMessage(caseId2, "makeAnApplication",
-            "", "", false, "IA", "Asylum", "");
+            "", "", false, "IA", "Asylum"
+        );
         waitSeconds(5);
 
         taskFound = findTasksByCaseId(caseId2, 2);
@@ -1060,7 +1069,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         // Then cancel all tasks on both caseIDs
         sendMessage(caseId1, "applyNocDecision",
-            "", "", false, "IA", "Asylum", "deprivation");
+            "", "", false, "IA", "Asylum");
 
         assertTaskDoesNotExist(caseId1, taskIdDmnColumn);
 
@@ -1102,8 +1111,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         //send update event to trigger reconfigure action
         sendMessage(caseIdForTask1, "UPDATE",
-            "", "", false, jurisdiction, caseType,
-                "deprivation");
+            "", "", false, jurisdiction, caseType
+        );
 
         waitSeconds(5);
 
@@ -1168,8 +1177,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         String jurisdiction = "WA";
         String caseType = "WaCaseType";
         sendMessage(caseIdForTask1, "UPDATE",
-            "", "", false, jurisdiction, caseType,
-                "deprivation");
+            "", "", false, jurisdiction, caseType
+        );
 
         waitSeconds(5);
 
@@ -1282,8 +1291,9 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
                                                  String newStateId,
                                                  LocalDateTime localDateTime,
                                                  String jurisdictionId,
-                                                 String caseTypeId,
-                                                 String appealType) {
+                                                 String caseTypeId) {
+        String appealType = event.equals("submitAppeal") ? "deprivation" : "";
+
         return EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
             .eventTimeStamp(localDateTime)
@@ -1299,8 +1309,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
     }
 
     private EventInformation getEventInformationWithAdditionalData(String caseId, String event, String previousStateId,
-                                                                   String newStateId, LocalDateTime localDateTime,
-                                                                   String appealType) {
+                                                                   String newStateId, LocalDateTime localDateTime) {
         return EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
             .eventTimeStamp(localDateTime)
@@ -1310,7 +1319,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .eventId(event)
             .newStateId(newStateId)
             .previousStateId(previousStateId)
-            .additionalData(setAdditionalData(appealType))
+            .additionalData(setAdditionalData(""))
             .userId("some user Id")
             .build();
     }
