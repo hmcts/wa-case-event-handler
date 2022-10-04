@@ -191,13 +191,13 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         String caseId = getCaseId();
 
         sendMessage(
-            caseId,
-            "changeDirectionDueDate",
-            "",
-            "",
-            false,
-            "IA",
-            "Asylum",
+                caseId,
+                "changeDirectionDueDate",
+                "",
+                "",
+                false,
+                "IA",
+                "Asylum",
                 "deprivation");
 
         Response taskFound = findTasksByCaseId(caseId, 1);
@@ -392,7 +392,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "",
             "",
             false, "WA", "WaCaseType",
-                "deprivation");
+                "");
 
         taskFound = findTasksByCaseId(caseId, 2);
 
@@ -661,7 +661,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         sendMessage(caseIdForTask1, "makeAnApplication",
             "", "", false, "IA", "Asylum",
-                "deprivation");
+                "");
 
         waitSeconds(5);
 
@@ -727,7 +727,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "",
             "",
             false,
-                "deprivation");
+                "");
         waitSeconds(5);
 
         response = findTasksByCaseId(
@@ -940,8 +940,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         // Then cancel all tasks on both caseIDs
         sendMessage(caseId1, "makeAnApplication",
-            "", "", false, "IA", "Asylum",
-                "deprivation");
+            "", "", false, "IA", "Asylum", "");
         waitSeconds(5);
 
         Response taskFound = findTasksByCaseId(caseId1, 2);
