@@ -691,18 +691,30 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         waitSeconds(5);
 
-        Response taskFound = findTasksByCaseId(caseIdForTask1, 2);
+        await().ignoreException(AssertionError.class)
+            .pollInterval(2,SECONDS)
+            .atMost(180, SECONDS)
+            .until(
+                () -> {
+                    Response taskFound = findTasksByCaseId(caseIdForTask1, 2);
 
-        caseId1Task2Id = taskFound
-            .then().assertThat()
-            .body("[1].id", notNullValue())
-            .extract()
-            .path("[1].id");
+                    if (taskFound != null){
+                        caseId1Task2Id = taskFound
+                            .then().assertThat()
+                            .body("[1].id", notNullValue())
+                            .extract()
+                            .path("[1].id");
 
-        taskIdStatusMap.put(caseId1Task2Id, "completed");
+                        taskIdStatusMap.put(caseId1Task2Id, "completed");
 
-        assertTaskHasWarnings(caseIdForTask1, caseId1Task1Id, true);
+                        assertTaskHasWarnings(caseIdForTask1, caseId1Task1Id, true);
+                        return true;
+                    } else {
+                        return false;
+                    }
 
+                }
+            );
     }
 
     @Test
@@ -715,9 +727,9 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "reasonsForAppealSubmitted", false, "IA", "Asylum"
         );
 
-        Response response = findTasksByCaseId(caseIdForTask1, 1);
+        AtomicReference<Response> response = new AtomicReference<>(findTasksByCaseId(caseIdForTask1, 1));
 
-        caseId1Task1Id = response
+        caseId1Task1Id = response.get()
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())
@@ -735,9 +747,9 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "listing", false, "IA", "Asylum"
         );
 
-        response = findTasksByCaseId(caseIdForTask1, 2);
+        response.set(findTasksByCaseId(caseIdForTask1, 2));
 
-        caseId1Task2Id = response
+        caseId1Task2Id = response.get()
             .then()
             .body("size()", is(2))
             .assertThat().body("[1].id", notNullValue())
@@ -756,21 +768,33 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         );
         waitSeconds(5);
 
-        response = findTasksByCaseId(
-            caseIdForTask1, 3);
+        await().ignoreException(AssertionError.class)
+            .pollInterval(2,SECONDS)
+            .atMost(180, SECONDS)
+            .until(
+                () -> {
+                    response.set(findTasksByCaseId(
+                        caseIdForTask1, 3));
+                    if (response.get() != null) {
+                        final String caseId1Task3Id = response.get()
+                            .then()
+                            .body("size()", is(3))
+                            .assertThat().body("[2].id", notNullValue())
+                            .extract()
+                            .path("[2].id");
 
-        final String caseId1Task3Id = response
-            .then()
-            .body("size()", is(3))
-            .assertThat().body("[2].id", notNullValue())
-            .extract()
-            .path("[2].id");
+                        taskIdStatusMap.put(caseId1Task3Id, "completed");
 
-        taskIdStatusMap.put(caseId1Task3Id, "completed");
+                        // check for warnings flag on both the tasks
+                        assertTaskHasWarnings(caseIdForTask1, caseId1Task1Id, true);
+                        assertTaskHasWarnings(caseIdForTask1, caseId1Task2Id, true);
+                        return true;
+                    } else {
+                        return false;
+                    }
 
-        // check for warnings flag on both the tasks
-        assertTaskHasWarnings(caseIdForTask1, caseId1Task1Id, true);
-        assertTaskHasWarnings(caseIdForTask1, caseId1Task2Id, true);
+                }
+            );
 
     }
 
@@ -785,10 +809,10 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "awaitingRespondentEvidence", false, "IA", "Asylum"
         );
 
-        Response response = findTasksByCaseId(
-            caseIdForTask1, 1);
+        AtomicReference<Response> response = new AtomicReference<>(findTasksByCaseId(
+            caseIdForTask1, 1));
 
-        caseId1Task1Id = response
+        caseId1Task1Id = response.get()
             .then()
             .assertThat().body("[0].id", notNullValue())
             .extract()
@@ -801,10 +825,10 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "awaitingClarifyingQuestionsAnswers", false, "IA", "Asylum"
         );
 
-        response = findTasksByCaseId(
-            caseIdForTask1, 2);
+        response.set(findTasksByCaseId(
+            caseIdForTask1, 2));
 
-        caseId1Task2Id = response
+        caseId1Task2Id = response.get()
             .then()
             .body("size()", is(2))
             .assertThat().body("[1].id", notNullValue())
@@ -823,19 +847,31 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         );
         waitSeconds(5);
 
-        response = findTasksByCaseId(caseIdForTask1, 3);
+        await().ignoreException(AssertionError.class)
+            .pollInterval(2,SECONDS)
+            .atMost(180, SECONDS)
+            .until(
+                () -> {
+                    response.set(findTasksByCaseId(caseIdForTask1, 3));
 
-        String caseId1Task3Id = response
-            .then().assertThat()
-            .body("[2].id", notNullValue())
-            .extract()
-            .path("[2].id");
+                    if (response.get() != null){
+                        String caseId1Task3Id = response.get()
+                            .then().assertThat()
+                            .body("[2].id", notNullValue())
+                            .extract()
+                            .path("[2].id");
 
-        taskIdStatusMap.put(caseId1Task3Id, "completed");
+                        taskIdStatusMap.put(caseId1Task3Id, "completed");
 
-        // check for warnings flag on both the tasks
-        assertTaskHasWarnings(caseIdForTask1, caseId1Task1Id, true);
-        assertTaskHasWarnings(caseIdForTask1, caseId1Task2Id, true);
+                        // check for warnings flag on both the tasks
+                        assertTaskHasWarnings(caseIdForTask1, caseId1Task1Id, true);
+                        assertTaskHasWarnings(caseIdForTask1, caseId1Task2Id, true);
+
+                        return true;
+                    } else {
+                        return false;
+                    }
+            });
 
     }
 
@@ -970,9 +1006,9 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         );
         waitSeconds(5);
 
-        Response taskFound = findTasksByCaseId(caseId1, 2);
+        AtomicReference<Response> taskFound = new AtomicReference<>(findTasksByCaseId(caseId1, 2));
 
-        caseId1Task2Id = taskFound
+        caseId1Task2Id = taskFound.get()
             .then().assertThat()
             .body("[1].id", notNullValue())
             .extract()
@@ -985,20 +1021,30 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         );
         waitSeconds(5);
 
-        taskFound = findTasksByCaseId(caseId2, 2);
+        await().ignoreException(AssertionError.class)
+            .pollInterval(2,SECONDS)
+            .atMost(180, SECONDS)
+            .until(
+                () -> {
+                    taskFound.set(findTasksByCaseId(caseId2, 2));
+                    if (taskFound.get() != null){
+                        caseId2Task2Id = taskFound.get()
+                            .then().assertThat()
+                            .body("[1].id", notNullValue())
+                            .extract()
+                            .path("[1].id");
 
-        caseId2Task2Id = taskFound
-            .then().assertThat()
-            .body("[1].id", notNullValue())
-            .extract()
-            .path("[1].id");
+                        taskIdStatusMap.put(caseId2Task2Id, "completed");
 
-        taskIdStatusMap.put(caseId2Task2Id, "completed");
-
-        // check for warnings flag on both the tasks
-        assertTaskHasWarnings(caseId1, caseId1Task1Id, true);
-        assertTaskHasWarnings(caseId2, caseId2Task1Id, true);
-
+                        // check for warnings flag on both the tasks
+                        assertTaskHasWarnings(caseId1, caseId1Task1Id, true);
+                        assertTaskHasWarnings(caseId2, caseId2Task1Id, true);
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+            );
     }
 
     @Test
