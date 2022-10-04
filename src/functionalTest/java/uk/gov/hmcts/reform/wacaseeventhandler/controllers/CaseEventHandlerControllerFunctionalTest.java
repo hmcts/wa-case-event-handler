@@ -721,12 +721,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         taskIdStatusMap.put(caseId1Task2Id, "completed");
 
         // send warning message
-        sendMessageWithAdditionalData(
-            caseIdForTask1,
-            "makeAnApplication",
-            "",
-            "",
-            false,
+        sendMessage(caseIdForTask1, "makeAnApplication", "",
+                "", false, "IA", "Asylum",
                 "");
         waitSeconds(5);
 
@@ -788,12 +784,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         taskIdStatusMap.put(caseId1Task2Id, "completed");
 
         // send warning message
-        sendMessageWithAdditionalData(
-            caseIdForTask1,
-            "makeAnApplication",
-            "",
-            "",
-            false,
+        sendMessage(caseIdForTask1, "makeAnApplication", "",
+                "", false, "IA", "Asylum",
                 "");
         waitSeconds(5);
 
