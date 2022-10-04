@@ -958,7 +958,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         );
         waitSeconds(5);
 
-        taskFound = findTasksByCaseId(caseId2, 2);
+        taskFound = findTasksByCaseId(caseId2, 3);
 
         caseId2Task2Id = taskFound
             .then().assertThat()
