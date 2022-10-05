@@ -800,7 +800,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
                     if (response.get() != null) {
                         final String caseId1Task3Id = response.get()
                             .then()
-                            .body("size()", is(3))
+                            .body("size()", is(4))
                             .assertThat().body("[2].id", notNullValue())
                             .extract()
                             .path("[2].id");
