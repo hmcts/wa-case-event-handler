@@ -239,7 +239,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         String caseId1Task3Id = response
             .then()
-            .body("size()", is(3))
+            .body("size()", is(4))
             .assertThat().body("[2].id", notNullValue())
             .extract()
             .path("[2].id");
@@ -444,11 +444,11 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         );
 
         response = findTasksByCaseId(
-            caseIdForTask1, 2);
+            caseIdForTask1, 3);
 
         caseId1Task2Id = response
             .then()
-            .body("size()", is(2))
+            .body("size()", is(3))
             .assertThat().body("[1].id", notNullValue())
             .extract()
             .path("[1].id");
@@ -572,7 +572,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         caseId1Task1Id = response
             .then()
-            .body("size()", is(1))
+            .body("size()", is(2))
             .assertThat().body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
