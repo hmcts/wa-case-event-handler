@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
@@ -132,7 +131,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     @Test
     public void should_save_ccd_event_using_test_rest_endpoints() {
         String messageId = randomMessageId();
-        String caseIdForTask = RandomStringUtils.randomNumeric(16);
+        String caseIdForTask = getCaseId();
         String eventInstanceId = UUID.randomUUID().toString();
 
         EventInformation eventInformation = buildEventInformation(eventInstanceId, caseIdForTask);
@@ -161,7 +160,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     @Test
     public void should_update_ccd_event_using_test_rest_endpoints() {
         String messageId = randomMessageId();
-        String caseIdForTask = RandomStringUtils.randomNumeric(16);
+        String caseIdForTask = getCaseId();
         String eventInstanceId = UUID.randomUUID().toString();
         LocalDateTime updatedEventTimestamp = eventTimestamp1.minusDays(10);
 
@@ -204,7 +203,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     @Test
     public void should_update_ccd_event_using_test_rest_endpoints_when_from_dlq_not_specified() {
         String messageId = randomMessageId();
-        String caseIdForTask = RandomStringUtils.randomNumeric(16);
+        String caseIdForTask = getCaseId();
         String eventInstanceId = UUID.randomUUID().toString();
         LocalDateTime updatedEventTimestamp = eventTimestamp1.minusDays(10);
 
@@ -227,7 +226,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     @Test
     public void should_get_ccd_event_using_test_rest_endpoints() {
         String messageId = randomMessageId();
-        String caseIdForTask = RandomStringUtils.randomNumeric(16);
+        String caseIdForTask = getCaseId();
         String eventInstanceId = UUID.randomUUID().toString();
 
         EventInformation eventInformation = buildEventInformation(eventInstanceId, caseIdForTask);
@@ -262,8 +261,8 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
 
     @Test
     public void messages_should_be_created() {
-        String caseId1 = RandomStringUtils.randomNumeric(16);
-        String caseId2 = RandomStringUtils.randomNumeric(16);
+        String caseId1 = getCaseId();
+        String caseId2 = getCaseId();
         String messageId1 = createMessage(eventTimestamp1, caseId1, FROM_DLQ);
         String messageId2 = createMessage(eventTimestamp2, caseId1, FROM_DLQ);
         createMessage(eventTimestamp2, caseId2, NOT_FROM_DLQ);
@@ -283,7 +282,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
 
     @Test
     public void should_return_error_when_no_query_parameters_specified() {
-        createMessage(eventTimestamp1, RandomStringUtils.randomNumeric(16), NOT_FROM_DLQ);
+        createMessage(eventTimestamp1, getCaseId(), NOT_FROM_DLQ);
 
         getMessagesFromRestEndpoint(null, null, null, null, s2sToken)
             .then()
@@ -297,9 +296,9 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
 
     @Test
     public void should_query_messages_when_there_are_no_messages_matching_my_query() {
-        createMessage(eventTimestamp1, RandomStringUtils.randomNumeric(16), NOT_FROM_DLQ);
+        createMessage(eventTimestamp1, getCaseId(), NOT_FROM_DLQ);
 
-        getMessagesFromRestEndpoint(null, RandomStringUtils.randomNumeric(16), null, null, s2sToken)
+        getMessagesFromRestEndpoint(null, getCaseId(), null, null, s2sToken)
             .then()
             .statusCode(HttpStatus.OK.value())
             .assertThat()
@@ -311,7 +310,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
 
     @Test
     public void should_delete_message() {
-        String caseId1 = RandomStringUtils.randomNumeric(16);
+        String caseId1 = getCaseId();
         String messageToDelete = createMessage(eventTimestamp1, caseId1, FROM_DLQ);
         String messageToKeep = createMessage(eventTimestamp2, caseId1, FROM_DLQ);
 
@@ -332,7 +331,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
 
     @Test
     public void should_delete_message_and_get_404_if_not_found() {
-        String messageId1 = RandomStringUtils.randomNumeric(16);
+        String messageId1 = getCaseId();
 
         deleteEventToRestEndpoint(messageId1, s2sToken)
             .then()
