@@ -681,7 +681,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         waitSeconds(5);
 
-        Response taskFound = findTasksByCaseId(caseIdForTask1, 3);
+        Response taskFound = findTasksByCaseId(caseIdForTask1, 2);
 
         caseId1Task2Id = taskFound
             .then().assertThat()
@@ -747,11 +747,11 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         waitSeconds(5);
 
         response = findTasksByCaseId(
-            caseIdForTask1, 4);
+            caseIdForTask1, 3);
 
         final String caseId1Task3Id = response
             .then()
-            .body("size()", is(4))
+            .body("size()", is(3))
             .assertThat().body("[2].id", notNullValue())
             .extract()
             .path("[2].id");
@@ -813,7 +813,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         );
         waitSeconds(5);
 
-        response = findTasksByCaseId(caseIdForTask1, 4);
+        response = findTasksByCaseId(caseIdForTask1, 3);
 
         String caseId1Task3Id = response
             .then().assertThat()
@@ -960,7 +960,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         );
         waitSeconds(5);
 
-        Response taskFound = findTasksByCaseId(caseId1, 3);
+        Response taskFound = findTasksByCaseId(caseId1, 2);
 
         caseId1Task2Id = taskFound
             .then().assertThat()
