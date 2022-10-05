@@ -716,14 +716,12 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "", "", false, "IA", "Asylum"
         );
 
-        waitSeconds(5);
-
         await().ignoreException(AssertionError.class)
             .pollInterval(2,SECONDS)
             .atMost(180, SECONDS)
             .until(
                 () -> {
-                    Response taskFound = findTasksByCaseId(caseIdForTask1, 2);
+                    Response taskFound = findTasksByCaseId(caseIdForTask1, 3);
                     if (taskFound != null) {
                         caseId1Task2Id = taskFound
                             .then().assertThat()
@@ -791,7 +789,6 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "",
             false
         );
-        waitSeconds(5);
 
         await().ignoreException(AssertionError.class)
             .pollInterval(2,SECONDS)
@@ -799,7 +796,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .until(
                 () -> {
                     response.set(findTasksByCaseId(
-                        caseIdForTask1, 3));
+                        caseIdForTask1, 4));
                     if (response.get() != null) {
                         final String caseId1Task3Id = response.get()
                             .then()
@@ -869,14 +866,13 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "",
             false
         );
-        waitSeconds(5);
 
         await().ignoreException(AssertionError.class)
             .pollInterval(2,SECONDS)
             .atMost(180, SECONDS)
             .until(
                 () -> {
-                    response.set(findTasksByCaseId(caseIdForTask1, 3));
+                    response.set(findTasksByCaseId(caseIdForTask1, 4));
                     if (response.get() != null) {
                         String caseId1Task3Id = response.get()
                             .then().assertThat()
@@ -1026,9 +1022,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         sendMessage(caseId1, "makeAnApplication",
             "", "", false, "IA", "Asylum"
         );
-        waitSeconds(5);
 
-        AtomicReference<Response> taskFound = new AtomicReference<>(findTasksByCaseId(caseId1, 2));
+        AtomicReference<Response> taskFound = new AtomicReference<>(findTasksByCaseId(caseId1, 3));
 
         caseId1Task2Id = taskFound.get()
             .then().assertThat()
