@@ -65,6 +65,8 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
                                                                   "wa-dlq-user@fake.hmcts.net", timeStamp);
         EventInformationRequest createRequest = createRequestWithAdditionalMetadata(eventInformation, null);
 
+        String timeStampString = timeStamp.toString().replaceAll("/(0+$)/g","");
+
         postEventToRestEndpoint(messageId, s2sToken, createRequest)
             .then()
             .statusCode(HttpStatus.CREATED.value())
@@ -72,7 +74,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("MessageId", equalTo(messageId))
             .body("Sequence", notNullValue())
             .body("CaseId", equalTo(caseIdForTask))
-            .body("EventTimestamp", equalTo(timeStamp.toString()))
+            .body("EventTimestamp", equalTo(timeStampString))
             .body("FromDlq", equalTo(false))
             .body("State", stateMatcher)
             .body("MessageContent", equalTo(asJsonString(createRequest)))
