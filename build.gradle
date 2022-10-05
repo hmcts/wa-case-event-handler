@@ -375,7 +375,7 @@ dependencies {
   implementation group: 'com.zaxxer', name: 'HikariCP', version: '5.0.1'
   implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.14.0'
 
-  implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.10.3'
+  implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.14.0-rc1'
 
   runtimeOnly group: 'org.postgresql', name: 'postgresql', version: '42.4.1'
 }
