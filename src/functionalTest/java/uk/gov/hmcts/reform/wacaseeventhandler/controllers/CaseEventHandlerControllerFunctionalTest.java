@@ -747,11 +747,11 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         waitSeconds(5);
 
         response = findTasksByCaseId(
-            caseIdForTask1, 3);
+            caseIdForTask1, 4);
 
         final String caseId1Task3Id = response
             .then()
-            .body("size()", is(3))
+            .body("size()", is(4))
             .assertThat().body("[2].id", notNullValue())
             .extract()
             .path("[2].id");
