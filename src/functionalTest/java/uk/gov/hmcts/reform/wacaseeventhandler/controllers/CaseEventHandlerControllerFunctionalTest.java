@@ -1043,7 +1043,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .atMost(180, SECONDS)
             .until(
                 () -> {
-                    taskFound.set(findTasksByCaseId(caseId2, 2));
+                    taskFound.set(findTasksByCaseId(caseId2, 3));
                     if (taskFound.get() != null) {
                         caseId2Task2Id = taskFound.get()
                             .then().assertThat()

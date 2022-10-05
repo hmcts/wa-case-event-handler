@@ -235,7 +235,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         );
 
         response = findTasksByCaseId(
-            caseIdForTask1, 3);
+            caseIdForTask1, 4);
 
         String caseId1Task3Id = response
             .then()
@@ -568,7 +568,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             "WaCaseType"
         );
 
-        Response response = findTasksByCaseId(caseIdForTask1, 1);
+        Response response = findTasksByCaseId(caseIdForTask1, 2);
 
         caseId1Task1Id = response
             .then()
