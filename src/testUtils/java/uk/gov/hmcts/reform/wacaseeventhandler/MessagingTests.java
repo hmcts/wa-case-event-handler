@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler;
 import com.azure.messaging.servicebus.ServiceBusMessage;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
@@ -26,10 +25,6 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
 
     protected String randomMessageId() {
         return "" + ThreadLocalRandom.current().nextLong(1000000);
-    }
-
-    protected String randomCaseId() {
-        return RandomStringUtils.randomNumeric(16);
     }
 
     private AdditionalData additionalData() {
