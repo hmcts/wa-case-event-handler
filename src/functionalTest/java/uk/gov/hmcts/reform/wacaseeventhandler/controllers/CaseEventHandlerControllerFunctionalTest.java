@@ -105,6 +105,23 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         }
     }
 
+    protected void sendMessageWithAdditionalDataForWA(String caseId, String event, String previousStateId,
+                                                 String newStateId, boolean taskDelay) {
+
+        if (taskDelay) {
+            eventTimeStamp = LocalDateTime.now().plusSeconds(2);
+        }
+        EventInformation eventInformation = getEventInformationWithAdditionalDataForWA(
+                caseId, event, previousStateId, newStateId, eventTimeStamp
+        );
+
+        if (publisher != null) {
+            publishMessageToTopic(eventInformation);
+        } else {
+            callRestEndpoint(s2sToken, eventInformation);
+        }
+    }
+
     protected String createTaskWithId(String caseId,
                                       String eventId,
                                       String previousStateId,
@@ -217,7 +234,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .body("caseTypeId.value", equalToIgnoringCase("asylum"))
             .body("jurisdiction.value", equalToIgnoringCase("ia"))
             .body("dueDate.value", notNullValue())
-            .body("taskState.value", equalToIgnoringCase("unassigned"))
+            .body("taskState.value", equalToIgnoringCase("unconfigured"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseId))
             .body("name.value", equalToIgnoringCase("Follow-up extended direction"))
@@ -263,7 +280,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .body("idempotencyKey.value", notNullValue())
             .body("jurisdiction.value", equalToIgnoringCase("ia"))
             .body("dueDate.value", notNullValue())
-            .body("taskState.value", is("unassigned"))
+            .body("taskState.value", is("unconfigured"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseId))
             .body("name.value", is("Review the appeal"))
@@ -310,7 +327,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .body("idempotencyKey.value", notNullValue())
             .body("jurisdiction.value", equalToIgnoringCase("wa"))
             .body("dueDate.value", notNullValue())
-            .body("taskState.value", equalToIgnoringCase("unassigned"))
+            .body("taskState.value", equalToIgnoringCase("unconfigured"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseId))
             .body("name.value", equalToIgnoringCase("Dummy Activity"))
@@ -420,7 +437,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         String caseId = getWaCaseId();
 
-        sendMessageWithAdditionalData(
+        sendMessageWithAdditionalDataForWA(
             caseId,
             "dummySubmitAppeal",
             "",
@@ -1292,6 +1309,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
                                                  LocalDateTime localDateTime,
                                                  String jurisdictionId,
                                                  String caseTypeId) {
+        String appealType = event.equals("submitAppeal") ? "deprivation" : "";
+
         return EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
             .eventTimeStamp(localDateTime)
@@ -1301,9 +1320,25 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .eventId(event)
             .newStateId(newStateId)
             .previousStateId(previousStateId)
-            .additionalData(setAdditionalData())
+            .additionalData(setAdditionalData(appealType))
             .userId("some user Id")
             .build();
+    }
+
+    private EventInformation getEventInformationWithAdditionalDataForWA(
+            String caseId, String event, String previousStateId, String newStateId, LocalDateTime localDateTime) {
+        return EventInformation.builder()
+                .eventInstanceId(UUID.randomUUID().toString())
+                .eventTimeStamp(localDateTime)
+                .caseId(caseId)
+                .jurisdictionId("WA")
+                .caseTypeId("WaCaseType")
+                .eventId(event)
+                .newStateId(newStateId)
+                .previousStateId(previousStateId)
+                .additionalData(setAdditionalData(""))
+                .userId("some user Id")
+                .build();
     }
 
     private EventInformation getEventInformationWithAdditionalData(String caseId, String event, String previousStateId,
@@ -1312,12 +1347,12 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .eventInstanceId(UUID.randomUUID().toString())
             .eventTimeStamp(localDateTime)
             .caseId(caseId)
-            .jurisdictionId("WA")
-            .caseTypeId("WaCaseType")
+            .jurisdictionId("IA")
+            .caseTypeId("Asylum")
             .eventId(event)
             .newStateId(newStateId)
             .previousStateId(previousStateId)
-            .additionalData(setAdditionalData())
+            .additionalData(setAdditionalData(""))
             .userId("some user Id")
             .build();
     }
@@ -1376,14 +1411,14 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         return response.get();
     }
 
-    private AdditionalData setAdditionalData() {
+    private AdditionalData setAdditionalData(String appealType) {
         Map<String, Object> dataMap = Map.of(
             "lastModifiedDirection", Map.of(
                 "dateDue", "",
                 "uniqueId", "",
                 "directionType", ""
             ),
-            "appealType", "deprivation",
+            "appealType", appealType,
             "lastModifiedApplication", Map.of("type", "Adjourn",
                                               "decision", "")
 
