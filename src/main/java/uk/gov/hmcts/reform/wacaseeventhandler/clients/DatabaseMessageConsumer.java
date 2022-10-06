@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
-import com.microsoft.applicationinsights.TelemetryClient;
 import feign.FeignException;
 import feign.RetryableException;
 import lombok.extern.slf4j.Slf4j;
@@ -41,21 +40,17 @@ public class DatabaseMessageConsumer implements Runnable {
     private final UpdateRecordErrorHandlingService updateRecordErrorHandlingService;
     private final TransactionTemplate transactionTemplate;
     protected static final Map<Integer, Integer> RETRY_COUNT_TO_DELAY_MAP = new ConcurrentHashMap<>();
-    private final TelemetryClient telemetryClient;
-
 
     public DatabaseMessageConsumer(CaseEventMessageRepository caseEventMessageRepository,
                                    CaseEventMessageMapper caseEventMessageMapper,
                                    CcdEventProcessor ccdEventProcessor,
                                    UpdateRecordErrorHandlingService updateRecordErrorHandlingService,
-                                   PlatformTransactionManager transactionManager,
-                                   TelemetryClient telemetryClient) {
+                                   PlatformTransactionManager transactionManager) {
         this.caseEventMessageRepository = caseEventMessageRepository;
         this.caseEventMessageMapper = caseEventMessageMapper;
         this.ccdEventProcessor = ccdEventProcessor;
         this.updateRecordErrorHandlingService = updateRecordErrorHandlingService;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
-        this.telemetryClient = telemetryClient;
     }
 
     static {

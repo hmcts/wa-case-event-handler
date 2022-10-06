@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.microsoft.applicationinsights.TelemetryClient;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -74,9 +73,6 @@ class CaseEventHandlerControllerEndpointTest {
 
     @MockBean
     private WorkflowApiClient workflowApiClient;
-
-    @MockBean
-    private TelemetryClient telemetryClient;
 
     @Autowired
     private MockMvc mockMvc;

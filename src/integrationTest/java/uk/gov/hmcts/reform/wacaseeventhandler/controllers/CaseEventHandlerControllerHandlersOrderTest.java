@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
-import com.microsoft.applicationinsights.TelemetryClient;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,9 +50,6 @@ class CaseEventHandlerControllerHandlersOrderTest {
 
     @MockBean
     private EventMessageReceiverService eventMessageReceiverService;
-
-    @MockBean
-    private TelemetryClient telemetryClient;
 
     @Autowired
     private CaseEventHandlerController controller;

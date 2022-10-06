@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
@@ -42,6 +41,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     private LocalDateTime eventTimestamp2;
     private LocalDateTime holdUntilTimestamp;
 
+    //should match valid values from MessageState Enum
     Matcher<String> stateMatcher = Matchers.oneOf("NEW", "READY", "PROCESSED");
 
     @Before
@@ -103,7 +103,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("jurisdiction.value", equalToIgnoringCase("ia"))
             .body("idempotencyKey.value", is(idempotencyKey))
             .body("dueDate.value", notNullValue())
-            .body("taskState.value", equalToIgnoringCase("unassigned"))
+            .body("taskState.value", equalToIgnoringCase("unconfigured"))
             .body("hasWarnings.value", is(false))
             .body("caseId.value", is(caseIdForTask))
             .body("name.value", equalToIgnoringCase("Follow-up non-standard direction"))
@@ -117,15 +117,14 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     @Test
     public void should_save_ccd_event_using_test_rest_endpoints() {
         String messageId = randomMessageId();
-        String caseIdForTask = RandomStringUtils.randomNumeric(16);
+        String caseIdForTask = getCaseId();
         String eventInstanceId = UUID.randomUUID().toString();
 
         EventInformation eventInformation = buildEventInformation(eventInstanceId, caseIdForTask);
 
         EventInformationRequest createRequest = createRequestWithAdditionalMetadata(eventInformation);
 
-        postEventToRestEndpoint(messageId, s2sToken, createRequest)
-            .then()
+        postEventToRestEndpoint(messageId, s2sToken, createRequest).then()
             .statusCode(HttpStatus.CREATED.value())
             .assertThat()
             .body("MessageId", equalTo(messageId))
@@ -139,7 +138,6 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("DeliveryCount", equalTo(0))
             .body("HoldUntil", equalTo(holdUntilTimestamp.toString()))
             .body("RetryCount", equalTo(0))
-
             .rootPath("MessageProperties")
             .body("messageProperty1", equalTo("value1"))
             .body("messageProperty2", equalTo("value2"));
@@ -148,7 +146,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     @Test
     public void should_update_ccd_event_using_test_rest_endpoints() {
         String messageId = randomMessageId();
-        String caseIdForTask = RandomStringUtils.randomNumeric(16);
+        String caseIdForTask = getCaseId();
         String eventInstanceId = UUID.randomUUID().toString();
         LocalDateTime updatedEventTimestamp = eventTimestamp1.minusDays(10);
 
@@ -191,7 +189,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     @Test
     public void should_update_ccd_event_using_test_rest_endpoints_when_from_dlq_not_specified() {
         String messageId = randomMessageId();
-        String caseIdForTask = RandomStringUtils.randomNumeric(16);
+        String caseIdForTask = getCaseId();
         String eventInstanceId = UUID.randomUUID().toString();
         LocalDateTime updatedEventTimestamp = eventTimestamp1.minusDays(10);
 
@@ -214,7 +212,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     @Test
     public void should_get_ccd_event_using_test_rest_endpoints() {
         String messageId = randomMessageId();
-        String caseIdForTask = RandomStringUtils.randomNumeric(16);
+        String caseIdForTask = getCaseId();
         String eventInstanceId = UUID.randomUUID().toString();
 
         EventInformation eventInformation = buildEventInformation(eventInstanceId, caseIdForTask);
@@ -226,7 +224,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .extract()
             .path("Sequence");
 
-        getEventToRestEndpoint(messageId, s2sToken)
+        getMessageFromRestEndpoint(messageId, s2sToken)
             .then()
             .statusCode(HttpStatus.OK.value())
             .assertThat()
@@ -248,14 +246,14 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     }
 
     @Test
-    public void should_query_messages() {
-        String caseId1 = RandomStringUtils.randomNumeric(16);
-        String caseId2 = RandomStringUtils.randomNumeric(16);
+    public void messages_should_be_created() {
+        String caseId1 = getCaseId();
+        String caseId2 = getCaseId();
         String messageId1 = createMessage(eventTimestamp1, caseId1, FROM_DLQ);
         String messageId2 = createMessage(eventTimestamp2, caseId1, FROM_DLQ);
         createMessage(eventTimestamp2, caseId2, NOT_FROM_DLQ);
 
-        getMessagesToRestEndpoint("NEW,UNPROCESSABLE", caseId1, null, "true", s2sToken)
+        getMessagesFromRestEndpoint("NEW,READY,PROCESSED,UNPROCESSABLE", caseId1, null, "true", s2sToken)
             .then()
             .statusCode(HttpStatus.OK.value())
             .assertThat()
@@ -270,9 +268,9 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
 
     @Test
     public void should_return_error_when_no_query_parameters_specified() {
-        createMessage(eventTimestamp1, RandomStringUtils.randomNumeric(16), NOT_FROM_DLQ);
+        createMessage(eventTimestamp1, getCaseId(), NOT_FROM_DLQ);
 
-        getMessagesToRestEndpoint(null, null, null, null, s2sToken)
+        getMessagesFromRestEndpoint(null, null, null, null, s2sToken)
             .then()
             .statusCode(HttpStatus.OK.value())
             .assertThat()
@@ -284,9 +282,9 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
 
     @Test
     public void should_query_messages_when_there_are_no_messages_matching_my_query() {
-        createMessage(eventTimestamp1, RandomStringUtils.randomNumeric(16), NOT_FROM_DLQ);
+        createMessage(eventTimestamp1, getCaseId(), NOT_FROM_DLQ);
 
-        getMessagesToRestEndpoint(null, RandomStringUtils.randomNumeric(16), null, null, s2sToken)
+        getMessagesFromRestEndpoint(null, getCaseId(), null, null, s2sToken)
             .then()
             .statusCode(HttpStatus.OK.value())
             .assertThat()
@@ -297,16 +295,16 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     }
 
     @Test
-    public void should_delete_message() throws Exception {
-        String caseId1 = RandomStringUtils.randomNumeric(16);
-        String messageId1 = createMessage(eventTimestamp1, caseId1, FROM_DLQ);
-        String messageId2 = createMessage(eventTimestamp2, caseId1, FROM_DLQ);
+    public void should_delete_message() {
+        String caseId1 = getCaseId();
+        String messageToDelete = createMessage(eventTimestamp1, caseId1, FROM_DLQ);
+        String messageToKeep = createMessage(eventTimestamp2, caseId1, FROM_DLQ);
 
-        deleteEventToRestEndpoint(messageId1, s2sToken)
+        deleteEventToRestEndpoint(messageToDelete, s2sToken)
             .then()
             .statusCode(HttpStatus.OK.value());
 
-        getMessagesToRestEndpoint("NEW,UNPROCESSABLE", caseId1, null, "true", s2sToken)
+        getMessagesFromRestEndpoint("NEW,READY,PROCESSED,UNPROCESSABLE", caseId1, null, "true", s2sToken)
             .then()
             .statusCode(HttpStatus.OK.value())
             .assertThat()
@@ -314,12 +312,12 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("message", containsString("messages"))
             .body("numberOfMessagesMatchingTheQuery", equalTo(1))
             .body("caseEventMessages.size()", equalTo(1))
-            .body("caseEventMessages.MessageId", hasItem(equalTo(messageId2)));
+            .body("caseEventMessages.MessageId", hasItem(equalTo(messageToKeep)));
     }
 
     @Test
-    public void should_delete_message_and_get_404_if_not_found() throws Exception {
-        String messageId1 = RandomStringUtils.randomNumeric(16);
+    public void should_delete_message_and_get_404_if_not_found() {
+        String messageId1 = getCaseId();
 
         deleteEventToRestEndpoint(messageId1, s2sToken)
             .then()
@@ -420,11 +418,11 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
         return "" + ThreadLocalRandom.current().nextLong(1000000);
     }
 
-    private Response getMessagesToRestEndpoint(String states,
-                                               String caseId,
-                                               String eventTimestamp,
-                                               String fromDlq,
-                                               String s2sToken) {
+    private Response getMessagesFromRestEndpoint(String states,
+                                                 String caseId,
+                                                 String eventTimestamp,
+                                                 String fromDlq,
+                                                 String s2sToken) {
         return given()
             .contentType(APPLICATION_JSON_VALUE)
             .header(SERVICE_AUTHORIZATION, s2sToken)
@@ -436,8 +434,8 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .get("/messages/query");
     }
 
-    private Response getEventToRestEndpoint(String messageId,
-                                            String s2sToken) {
+    private Response getMessageFromRestEndpoint(String messageId,
+                                                String s2sToken) {
         return given()
             .contentType(APPLICATION_JSON_VALUE)
             .header(SERVICE_AUTHORIZATION, s2sToken)
