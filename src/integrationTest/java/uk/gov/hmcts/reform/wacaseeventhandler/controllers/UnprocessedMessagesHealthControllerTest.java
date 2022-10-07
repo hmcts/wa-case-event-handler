@@ -19,7 +19,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles(profiles = {"db", "integration"})
 @TestPropertySource(properties = {"azure.servicebus.enableASB-DLQ=false",
-    "management.endpoint.health.newMessageStateThreshold=2"})
+    "management.endpoint.health.newMessageStateThreshold=2",
+    "environment=test",
+    "management.endpoint.health.newMessageStateCheckEnvEnabled=test"})
 public class UnprocessedMessagesHealthControllerTest {
 
     @Autowired

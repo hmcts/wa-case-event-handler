@@ -7,14 +7,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.actuate.health.Health;
-import org.springframework.test.util.ReflectionTestUtils;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.actuate.health.Status.DOWN;
 import static org.springframework.boot.actuate.health.Status.UP;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.UnprocessedMessagesHealthController.CHECK_DISABLED_MESSAGE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.UnprocessedMessagesHealthController.RETRIEVED_NUMBER_OF_MESSAGES_IN_NEW_STATE;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,7 +33,9 @@ class UnprocessedMessagesHealthControllerTest {
 
     @BeforeEach
     void setup() {
-        ReflectionTestUtils.setField(unprocessedMessagesHealthController, "newMessageStateThreshold", THRESHOLD);
+        setField(unprocessedMessagesHealthController, "newMessageStateThreshold", THRESHOLD);
+        setField(unprocessedMessagesHealthController, "newMessageStateCheckEnvEnabled", "validEnvironment,test");
+        setField(unprocessedMessagesHealthController, "environment", "validEnvironment");
     }
 
     @Test
@@ -56,4 +61,18 @@ class UnprocessedMessagesHealthControllerTest {
         assertTrue(health.getDetails()
                        .containsValue(String.format(RETRIEVED_NUMBER_OF_MESSAGES_IN_NEW_STATE, overThresholdValue)));
     }
+
+    @Test
+    void health_returns_up_when_check_disabled_in_current_environment() {
+        String environment = "invalidEnvironment";
+        setField(unprocessedMessagesHealthController, "environment", environment);
+
+        Health health = unprocessedMessagesHealthController.health();
+
+        verify(caseEventMessageRepository, never()).getNumberOfMessagesInNewState();
+        assertEquals(UP, health.getStatus());
+        assertTrue(health.getDetails()
+                       .containsValue(String.format(CHECK_DISABLED_MESSAGE, environment)));
+    }
+
 }
