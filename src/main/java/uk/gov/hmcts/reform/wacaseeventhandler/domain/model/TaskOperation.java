@@ -1,11 +1,11 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain.model;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+
 
 @Schema(
     name = "TaskOperation",
@@ -16,14 +16,21 @@ import lombok.ToString;
 public class TaskOperation {
 
     @Schema(required = true)
+    @JsonProperty("name")
     private final TaskOperationName name;
 
+    @JsonProperty("run_id")
     private final String runId;
 
+    @JsonProperty("max_time_limit")
+    private final long maxTimeLimit;
+
     @JsonCreator
-    public TaskOperation(TaskOperationName name, @JsonProperty("runId") @JsonAlias("run_id") String runId) {
+    public TaskOperation(@JsonProperty("name") TaskOperationName name,@JsonProperty("run_id") String runId,
+                         @JsonProperty("max_time_limit") long maxTimeLimit) {
         this.name = name;
         this.runId = runId;
+        this.maxTimeLimit = maxTimeLimit;
     }
 
     public TaskOperationName getName() {
@@ -32,5 +39,9 @@ public class TaskOperation {
 
     public String getRunId() {
         return runId;
+    }
+
+    public long getMaxTimeLimit() {
+        return maxTimeLimit;
     }
 }
