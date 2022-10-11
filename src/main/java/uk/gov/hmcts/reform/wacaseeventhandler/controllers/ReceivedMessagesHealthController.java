@@ -47,8 +47,6 @@ public class ReceivedMessagesHealthController implements HealthIndicator {
     @Override
     public Health health() {
 
-        LocalDateTime now = LocalDateTime.now(clock).minusHours(1);
-
         if (isNotEnabledForEnvironment(environment)) {
             return Health
                 .up()
@@ -56,7 +54,10 @@ public class ReceivedMessagesHealthController implements HealthIndicator {
                             String.format(CHECK_DISABLED_MESSAGE, environment)
                 )
                 .build();
-        } else if (isDateWithinWorkingHours(now)) {
+        }
+
+        LocalDateTime now = LocalDateTime.now(clock).minusHours(1);
+        if (isDateWithinWorkingHours(now)) {
             if (repository.getNumberOfMessagesReceivedInLastHour(now) == 0) {
                 return Health
                     .down()

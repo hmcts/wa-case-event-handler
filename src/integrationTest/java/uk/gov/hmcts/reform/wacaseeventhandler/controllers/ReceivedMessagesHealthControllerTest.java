@@ -40,7 +40,9 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessage
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles(profiles = {"db", "integration"})
-@TestPropertySource(properties = {"azure.servicebus.enableASB-DLQ=false"})
+@TestPropertySource(properties = {"azure.servicebus.enableASB-DLQ=false",
+    "environment=test",
+    "management.endpoint.health.receivedMessageCheckEnvEnabled=test"})
 @Sql({"classpath:sql/delete_from_case_event_messages.sql", "classpath:scripts/insert_case_event_messages.sql"})
 public class ReceivedMessagesHealthControllerTest {
 

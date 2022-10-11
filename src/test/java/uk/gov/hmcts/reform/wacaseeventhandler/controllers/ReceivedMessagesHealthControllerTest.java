@@ -52,7 +52,6 @@ class ReceivedMessagesHealthControllerTest {
 
     @BeforeEach
     void setup() {
-        setupDefaultMockClock();
         setField(receivedMessagesHealthController, "receivedMessageCheckEnvEnabled", "validEnvironment,test");
         setField(receivedMessagesHealthController, "environment", "validEnvironment");
     }
@@ -60,6 +59,7 @@ class ReceivedMessagesHealthControllerTest {
     @Test
     void test_health_reports_error_if_no_messages_received_in_last_hour() {
         // GIVEN
+        setupDefaultMockClock();
         when(caseEventMessageRepository.getNumberOfMessagesReceivedInLastHour(any())).thenReturn(0);
 
         // WHEN
@@ -71,25 +71,9 @@ class ReceivedMessagesHealthControllerTest {
     }
 
     @Test
-    void test_health_reports_success_if_messages_check_disabled_in_current_environment() {
-        // GIVEN
-        setField(receivedMessagesHealthController, "environment", "invalidEnvironment");
-
-        // WHEN
-        Health health = receivedMessagesHealthController.health();
-
-        // THEN
-        assertEquals(UP, health.getStatus());
-        assertEquals(String.format(CHECK_DISABLED_MESSAGE, "invalidEnvironment"),
-                     health.getDetails().get(CASE_EVENT_HANDLER_MESSAGE_HEALTH));
-        verifyNoInteractions(holidayService);
-        verifyNoInteractions(caseEventMessageRepository);
-
-    }
-
-    @Test
     void test_health_reports_success_if_messages_received_in_last_hour() {
         // GIVEN
+        setupDefaultMockClock();
         when(caseEventMessageRepository.getNumberOfMessagesReceivedInLastHour(any())).thenReturn(1);
 
         // WHEN
@@ -103,6 +87,7 @@ class ReceivedMessagesHealthControllerTest {
     @Test
     void test_health_does_not_call_repository_if_non_working_day_holiday() {
         // GIVEN
+        setupDefaultMockClock();
         when(holidayService.isHoliday(any(LocalDate.class))).thenReturn(true);
 
         // WHEN
@@ -117,6 +102,7 @@ class ReceivedMessagesHealthControllerTest {
     @Test
     void test_health_does_not_call_repository_if_non_working_day_weekend() {
         // GIVEN
+        setupDefaultMockClock();
         when(holidayService.isWeekend(any(LocalDate.class))).thenReturn(true);
 
         // WHEN
@@ -154,6 +140,24 @@ class ReceivedMessagesHealthControllerTest {
         receivedMessagesHealthController.health();
 
         verify(caseEventMessageRepository).getNumberOfMessagesReceivedInLastHour(withinWorkingHoursDate.minusHours(1));
+    }
+
+    @Test
+    void test_health_reports_success_if_messages_check_disabled_in_current_environment() {
+        // GIVEN
+        setField(receivedMessagesHealthController, "environment", "invalidEnvironment");
+        setField(receivedMessagesHealthController, "receivedMessageCheckEnvEnabled", "validEnvironment,test");
+
+        // WHEN
+        Health health = receivedMessagesHealthController.health();
+
+        // THEN
+        assertEquals(UP, health.getStatus());
+        assertEquals(String.format(CHECK_DISABLED_MESSAGE, "invalidEnvironment"),
+                     health.getDetails().get(CASE_EVENT_HANDLER_MESSAGE_HEALTH));
+        verifyNoInteractions(clock);
+        verifyNoInteractions(holidayService);
+        verifyNoInteractions(caseEventMessageRepository);
     }
 
     private void setupDefaultMockClock() {
