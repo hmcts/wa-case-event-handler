@@ -172,7 +172,6 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         taskIdStatusMap.put(caseId1Task1Id, "completed");
     }
 
-
     /**
      * Scenario: 1 event creates 2 different warnings each for a different task type.
      */
