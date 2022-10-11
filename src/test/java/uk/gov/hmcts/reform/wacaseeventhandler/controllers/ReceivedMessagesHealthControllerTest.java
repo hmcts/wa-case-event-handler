@@ -24,10 +24,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.actuate.health.Status.DOWN;
 import static org.springframework.boot.actuate.health.Status.UP;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.CASE_EVENT_HANDLER_MESSAGE_HEALTH;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.CHECK_DISABLED_MESSAGE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.MESSAGES_RECEIVED;
 import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.NO_MESSAGES_RECEIVED;
 import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.NO_MESSAGE_CHECK;
@@ -50,6 +53,8 @@ class ReceivedMessagesHealthControllerTest {
     @BeforeEach
     void setup() {
         setupDefaultMockClock();
+        setField(receivedMessagesHealthController, "receivedMessageCheckEnvEnabled", "validEnvironment,test");
+        setField(receivedMessagesHealthController, "environment", "validEnvironment");
     }
 
     @Test
@@ -63,6 +68,23 @@ class ReceivedMessagesHealthControllerTest {
         // THEN
         assertEquals(DOWN, health.getStatus());
         assertEquals(NO_MESSAGES_RECEIVED, health.getDetails().get(CASE_EVENT_HANDLER_MESSAGE_HEALTH));
+    }
+
+    @Test
+    void test_health_reports_success_if_messages_check_disabled_in_current_environment() {
+        // GIVEN
+        setField(receivedMessagesHealthController, "environment", "invalidEnvironment");
+
+        // WHEN
+        Health health = receivedMessagesHealthController.health();
+
+        // THEN
+        assertEquals(UP, health.getStatus());
+        assertEquals(String.format(CHECK_DISABLED_MESSAGE, "invalidEnvironment"),
+                     health.getDetails().get(CASE_EVENT_HANDLER_MESSAGE_HEALTH));
+        verifyNoInteractions(holidayService);
+        verifyNoInteractions(caseEventMessageRepository);
+
     }
 
     @Test

@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
@@ -9,6 +10,9 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates.HolidayServi
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component("ccdMessagesReceived")
 public class ReceivedMessagesHealthController implements HealthIndicator {
@@ -18,6 +22,13 @@ public class ReceivedMessagesHealthController implements HealthIndicator {
     protected static final String MESSAGES_RECEIVED = "Messages received from CCD during the past hour";
 
     protected static final String NO_MESSAGE_CHECK = "Out Of Hours, no check for messages";
+    protected static final String CHECK_DISABLED_MESSAGE = "check disabled in %s";
+
+    @Value("${management.endpoint.health.receivedMessageCheckEnvEnabled}")
+    private String receivedMessageCheckEnvEnabled;
+
+    @Value("${environment}")
+    private String environment;
 
     @Autowired
     private CaseEventMessageRepository repository;
@@ -38,7 +49,14 @@ public class ReceivedMessagesHealthController implements HealthIndicator {
 
         LocalDateTime now = LocalDateTime.now(clock).minusHours(1);
 
-        if (isDateWithinWorkingHours(now)) {
+        if (isNotEnabledForEnvironment(environment)) {
+            return Health
+                .up()
+                .withDetail(CASE_EVENT_HANDLER_MESSAGE_HEALTH,
+                            String.format(CHECK_DISABLED_MESSAGE, environment)
+                )
+                .build();
+        } else if (isDateWithinWorkingHours(now)) {
             if (repository.getNumberOfMessagesReceivedInLastHour(now) == 0) {
                 return Health
                     .down()
@@ -81,5 +99,11 @@ public class ReceivedMessagesHealthController implements HealthIndicator {
 
         return (localDateTime.equals(workingHoursStartTime) || localDateTime.isAfter(workingHoursStartTime))
             && (localDateTime.equals(workingHoursEndTime) || localDateTime.isBefore(workingHoursEndTime));
+    }
+
+    private boolean isNotEnabledForEnvironment(String env) {
+        Set<String> envsToEnable = Arrays.stream(receivedMessageCheckEnvEnabled.split(","))
+            .map(String::trim).collect(Collectors.toSet());
+        return !envsToEnable.contains(env);
     }
 }
