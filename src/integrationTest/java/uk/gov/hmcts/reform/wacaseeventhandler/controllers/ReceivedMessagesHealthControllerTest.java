@@ -32,17 +32,19 @@ import static org.springframework.boot.actuate.health.Status.DOWN;
 import static org.springframework.boot.actuate.health.Status.UP;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.CASE_EVENT_HANDLER_MESSAGE_HEALTH;
-import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.MESSAGES_RECEIVED;
-import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.NO_MESSAGES_RECEIVED;
-import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.NO_MESSAGE_CHECK;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.CASE_EVENT_HANDLER_MESSAGE_HEALTH;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.MESSAGES_RECEIVED;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.NO_MESSAGES_RECEIVED;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.NO_MESSAGE_CHECK;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles(profiles = {"db", "integration"})
-@TestPropertySource(properties = {"azure.servicebus.enableASB-DLQ=false"})
+@TestPropertySource(properties = {"azure.servicebus.enableASB-DLQ=false",
+    "environment=test",
+    "management.endpoint.health.receivedMessageCheckEnvEnabled=test"})
 @Sql({"classpath:sql/delete_from_case_event_messages.sql", "classpath:scripts/insert_case_event_messages.sql"})
-public class ReceivedMessagesHealthEndpointIT {
+public class ReceivedMessagesHealthControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -62,7 +64,7 @@ public class ReceivedMessagesHealthEndpointIT {
     }
 
     @Test
-    void testHealthReportsDownIfNoMessagesReceivedInLastHourDuringWorkingHours() throws Exception {
+    void test_health_reports_down_if_no_messages_received_in_last_hour_during_working_hours() throws Exception {
         // GIVEN
         setClock(LocalDateTime.of(2022, 8, 26, 17,15));
 
@@ -71,7 +73,7 @@ public class ReceivedMessagesHealthEndpointIT {
     }
 
     @Test
-    void testHealthReportsUpIfMessagesReceivedInLastHourDuringWorkingHours() throws Exception {
+    void test_health_reports_up_if_messages_received_in_last_hour_during_working_hours() throws Exception {
         // GIVEN
         setClock(LocalDateTime.of(2022, 8, 26, 12,15));
 
@@ -80,7 +82,7 @@ public class ReceivedMessagesHealthEndpointIT {
     }
 
     @Test
-    void testHealthReportsUpIfNoMessagesReceivedInLastHourDuringWeekend() throws Exception {
+    void test_health_reports_up_if_no_messages_received_in_last_hour_during_weekend() throws Exception {
         // GIVEN
         LocalDateTime localDateTime = LocalDateTime.of(2022, 8, 28, 12, 15);
         setClock(localDateTime);
@@ -93,7 +95,7 @@ public class ReceivedMessagesHealthEndpointIT {
     }
 
     @Test
-    void testHealthReportsUpIfNoMessagesReceivedInLastHourDuringHoliday() throws Exception {
+    void test_health_reports_up_if_no_messages_received_in_last_hour_during_holiday() throws Exception {
         // GIVEN
         LocalDateTime localDateTime = LocalDateTime.of(2022, 8, 29, 12,15);
         setClock(localDateTime);
@@ -106,7 +108,7 @@ public class ReceivedMessagesHealthEndpointIT {
     }
 
     @Test
-    void testHealthReportsUpIfTimeOutsideOfWorkingHoursStartTime() throws Exception {
+    void test_health_reports_up_if_time_outside_of_working_hours_start_time() throws Exception {
         // GIVEN
         setClock(LocalDateTime.of(2022, 8, 26, 9,29));
 
@@ -117,7 +119,7 @@ public class ReceivedMessagesHealthEndpointIT {
     }
 
     @Test
-    void testHealthReportsUpIfTimeOutsideOfWorkingHoursEndTime() throws Exception {
+    void test_health_reports_up_if_time_outside_of_working_hours_end_time() throws Exception {
         // GIVEN
         setClock(LocalDateTime.of(2022, 8, 26, 18,31));
 
