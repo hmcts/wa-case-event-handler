@@ -5,7 +5,9 @@ management:
   endpoint:
     health:
       show-details: "always"
-
+      newMessageStateThreshold: ${NEW_MESSAGE_STATE_THRESHOLD:10}
+      newMessageStateCheckEnvEnabled: prod,aat
+      receivedMessageCheckEnvEnabled: prod,aat
   endpoints:
     web:
       base-path: /
