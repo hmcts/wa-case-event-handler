@@ -10,9 +10,7 @@ import io.restassured.config.RestAssuredConfig;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
-import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -62,7 +60,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttribu
 import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_TITLE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_TYPE;
 
-@RunWith(SpringIntegrationSerenityRunner.class)
+
 @SpringBootTest
 @ActiveProfiles(profiles = {"local", "functional"})
 @Slf4j
@@ -96,7 +94,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
     protected List<String> caseIds;
 
-    @Before
+    @BeforeEach
     public void setUp() throws IOException {
         RestAssured.config = RestAssuredConfig.config()
             .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(

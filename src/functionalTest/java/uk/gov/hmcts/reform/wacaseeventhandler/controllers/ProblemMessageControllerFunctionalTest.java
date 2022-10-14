@@ -7,8 +7,8 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wacaseeventhandler.MessagingTests;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
@@ -38,7 +38,7 @@ public class ProblemMessageControllerFunctionalTest extends MessagingTests {
     private LocalDateTime eventTimestamp1;
     private LocalDateTime holdUntilTimestamp;
 
-    @Before
+    @BeforeEach
     public void setup() {
         eventTimestamp1 = LocalDateTime.parse("2020-03-27T12:56:10.403975").minusDays(1);
         holdUntilTimestamp = LocalDateTime.parse("2020-03-27T12:56:10.403975").plusDays(10);

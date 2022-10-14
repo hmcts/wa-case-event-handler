@@ -2,9 +2,9 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.WarningValues;
 
 import java.time.LocalDateTime;
@@ -22,7 +22,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @Slf4j
 public class WarningEventHandlerControllerTest extends CaseEventHandlerControllerFunctionalTestHelper {
 
-    @Before
+    @BeforeEach
     public void setup() {
         eventTimeStamp = LocalDateTime.now().minusDays(1);
         caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
@@ -34,7 +34,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         caseId2Task2Id = "";
     }
 
-    @After
+    @AfterEach
     public void cleanUp() {
         taskIdStatusMap.forEach(this::completeTask);
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());

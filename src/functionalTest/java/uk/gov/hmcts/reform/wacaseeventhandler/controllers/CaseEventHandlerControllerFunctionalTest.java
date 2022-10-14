@@ -3,10 +3,10 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 import com.azure.messaging.servicebus.ServiceBusMessage;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -182,7 +182,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         );
     }
 
-    @Before
+    @BeforeEach
     public void setup() {
         eventTimeStamp = LocalDateTime.now().minusDays(1);
         caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
@@ -194,7 +194,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         caseId2Task2Id = "";
     }
 
-    @After
+    @AfterEach
     public void cleanUp() {
         taskIdStatusMap.forEach((key, value) -> completeTask(key, value));
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
@@ -1108,7 +1108,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
     }
 
     @Test
-    @Ignore("IA related test case for reconfiguration")
+    @Disabled("IA related test case for reconfiguration")
     public void given_initiate_tasks_then_reconfigure_task_to_mark_tasks_for_reconfiguration_for_IA() {
         String jurisdiction = "IA";
         String caseType = "Asylum";

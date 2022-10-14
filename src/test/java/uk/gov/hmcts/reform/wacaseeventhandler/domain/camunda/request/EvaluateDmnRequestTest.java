@@ -1,12 +1,10 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.request;
 
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.json.JsonContent;
-import org.springframework.test.context.junit4.SpringRunner;
 import pl.pojo.tester.api.assertion.Method;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
 
@@ -17,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnStringValue;
 
-@RunWith(SpringRunner.class)
+
 @JsonTest
 class EvaluateDmnRequestTest {
     @Autowired

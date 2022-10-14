@@ -4,10 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
@@ -25,8 +23,8 @@ import java.util.stream.Collectors;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @ActiveProfiles(profiles = {"local", "functional"})
@@ -345,7 +343,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
     }
 
     @Test
-    @Ignore
+    @Disabled
     public void should_not_process_dlq_message_unless_other_messages_exist_with_same_case_id() {
         String msgId = randomMessageId();
         String caseId = getCaseId();
@@ -380,7 +378,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                             List<CaseEventMessage> returnedCase = messagesInReadyState.getCaseEventMessages().stream()
                                 .filter(c -> c.getMessageId().equals(caseId)).collect(Collectors.toList());
 
-                            Assertions.assertEquals(1, returnedCase.size(),
+                            assertEquals(1, returnedCase.size(),
                                                     "Number of messages in database did not match");
 
                             return true;
@@ -390,7 +388,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                     });
     }
 
-    @After
+    @Disabled
     public void teardown() {
         if (caseIdToDelete != null) {
             caseIdToDelete.forEach(this::deleteMessagesFromDatabaseByMsgIds);

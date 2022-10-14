@@ -1,7 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wacaseeventhandler.MessagingTests;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;

@@ -5,8 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
@@ -44,7 +44,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     //should match valid values from MessageState Enum
     Matcher<String> stateMatcher = Matchers.oneOf("NEW", "READY", "PROCESSED");
 
-    @Before
+    @BeforeEach
     public void setup() {
         eventTimestamp1 = LocalDateTime.parse("2020-03-27T12:56:10.403975").minusDays(1);
         eventTimestamp2 = LocalDateTime.parse("2020-03-27T12:56:10.403975").minusDays(2);
