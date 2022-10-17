@@ -231,7 +231,7 @@ dependencyManagement {
       entry 'logback-classic'
       entry 'logback-core'
     }
-    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.77.Final') {
+    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.84.Final') {
       entry 'netty-buffer'
       entry 'netty-codec'
       entry 'netty-codec-dns'
