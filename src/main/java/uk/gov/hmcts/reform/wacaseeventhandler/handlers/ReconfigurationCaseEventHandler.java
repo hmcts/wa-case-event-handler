@@ -117,7 +117,7 @@ public class ReconfigurationCaseEventHandler implements CaseEventHandler {
 
     private TaskOperationRequest buildTaskOperationRequest(String caseReference) {
         TaskOperation operation = new TaskOperation(
-            TaskOperationName.MARK_TO_RECONFIGURE, UUID.randomUUID().toString()
+            TaskOperationName.MARK_TO_RECONFIGURE, UUID.randomUUID().toString(),120
         );
         TaskFilter<?> filter = new MarkTaskToReconfigureTaskFilter(
             "case_id", List.of(caseReference), TaskFilterOperator.IN
