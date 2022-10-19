@@ -63,108 +63,9 @@ public class GivensBuilder {
 
     }
 
-    public String createCcdCase(String jurisdictionId, String caseType) {
-        TestAuthenticationCredentials lawFirmCredentials = authorizationProvider.getNewLawFirm();
-        String userToken = lawFirmCredentials.getHeaders().getValue(AUTHORIZATION);
-        String serviceToken = lawFirmCredentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(userToken);
-
-        Document document = documentManagementFiles.getDocumentAs(NOTICE_OF_APPEAL_PDF, lawFirmCredentials);
-
-        StartEventResponse startCase = coreCaseDataApi.startForCaseworker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            jurisdictionId,
-            caseType,
-            "startAppeal"
-        );
-
-        String resourceFilename = "requests/ccd/case_data.json";
-
-        Map data = null;
-        try {
-            String caseDataString =
-                FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename), "UTF-8");
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
-                document.getDocumentUrl()
-            );
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_NAME}",
-                document.getDocumentFilename()
-            );
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL_BINARY}",
-                document.getDocumentBinaryUrl()
-            );
-
-            data = new ObjectMapper().readValue(caseDataString, Map.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        CaseDataContent caseDataContent = CaseDataContent.builder()
-            .eventToken(startCase.getToken())
-            .event(Event.builder()
-                .id(startCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
-            .data(data)
-            .build();
-
-        //Fire submit event
-        CaseDetails caseDetails = coreCaseDataApi.submitForCaseworker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            jurisdictionId,
-            caseType,
-            true,
-            caseDataContent
-        );
-
-        log.info("Created case [" + caseDetails.getId() + "]");
-
-        StartEventResponse submitCase = coreCaseDataApi.startEventForCaseWorker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            jurisdictionId,
-            caseType,
-            caseDetails.getId().toString(),
-            "submitAppeal"
-        );
-
-        CaseDataContent submitCaseDataContent = CaseDataContent.builder()
-            .eventToken(submitCase.getToken())
-            .event(Event.builder()
-                .id(submitCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
-            .data(data)
-            .build();
-
-        coreCaseDataApi.submitEventForCaseWorker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            jurisdictionId,
-            caseType,
-            caseDetails.getId().toString(),
-            true,
-            submitCaseDataContent
-        );
-        log.info("Submitted case [" + caseDetails.getId() + "]");
-
-        return caseDetails.getId().toString();
-    }
-
     public String createWaCcdCase() {
         TestAuthenticationCredentials lawFirmCredentials =
-            authorizationProvider.getWaCaseworkerAAuthorizationOnly("wa-ft-test-r2-");
+                authorizationProvider.getWaCaseworkerAAuthorizationOnly("wa-ft-test-r2-");
         String userToken = lawFirmCredentials.getHeaders().getValue(AUTHORIZATION);
         String serviceToken = lawFirmCredentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(userToken);
@@ -172,12 +73,12 @@ public class GivensBuilder {
         Document document = documentManagementFiles.getDocumentAs(NOTICE_OF_APPEAL_PDF, lawFirmCredentials);
 
         StartEventResponse startCase = coreCaseDataApi.startForCaseworker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            "WA",
-            "WaCaseType",
-            "CREATE"
+                userToken,
+                serviceToken,
+                userInfo.getUid(),
+                "WA",
+                "WaCaseType",
+                "CREATE"
         );
 
         String resourceFilename = "requests/ccd/wa_case_data.json";
@@ -185,18 +86,18 @@ public class GivensBuilder {
         Map data = null;
         try {
             String caseDataString =
-                FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename), "UTF-8");
+                    FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename), "UTF-8");
             caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
-                document.getDocumentUrl()
+                    "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
+                    document.getDocumentUrl()
             );
             caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_NAME}",
-                document.getDocumentFilename()
+                    "{NOTICE_OF_DECISION_DOCUMENT_NAME}",
+                    document.getDocumentFilename()
             );
             caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL_BINARY}",
-                document.getDocumentBinaryUrl()
+                    "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL_BINARY}",
+                    document.getDocumentBinaryUrl()
             );
 
             data = new ObjectMapper().readValue(caseDataString, Map.class);
@@ -205,57 +106,57 @@ public class GivensBuilder {
         }
 
         CaseDataContent caseDataContent = CaseDataContent.builder()
-            .eventToken(startCase.getToken())
-            .event(Event.builder()
-                       .id(startCase.getEventId())
-                       .summary("summary")
-                       .description("description")
-                       .build())
-            .data(data)
-            .build();
+                .eventToken(startCase.getToken())
+                .event(Event.builder()
+                        .id(startCase.getEventId())
+                        .summary("summary")
+                        .description("description")
+                        .build())
+                .data(data)
+                .build();
 
         //Fire submit event
         CaseDetails caseDetails = coreCaseDataApi.submitForCaseworker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            "WA",
-            "WaCaseType",
-            true,
-            caseDataContent
+                userToken,
+                serviceToken,
+                userInfo.getUid(),
+                "WA",
+                "WaCaseType",
+                true,
+                caseDataContent
         );
 
         log.info("Created case [" + caseDetails.getId() + "]");
 
         StartEventResponse submitCase = coreCaseDataApi.startEventForCaseWorker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            "WA",
-            "WaCaseType",
-            caseDetails.getId().toString(),
-            "START_PROGRESS"
+                userToken,
+                serviceToken,
+                userInfo.getUid(),
+                "WA",
+                "WaCaseType",
+                caseDetails.getId().toString(),
+                "START_PROGRESS"
         );
 
         CaseDataContent submitCaseDataContent = CaseDataContent.builder()
-            .eventToken(submitCase.getToken())
-            .event(Event.builder()
-                       .id(submitCase.getEventId())
-                       .summary("summary")
-                       .description("description")
-                       .build())
-            .data(data)
-            .build();
+                .eventToken(submitCase.getToken())
+                .event(Event.builder()
+                        .id(submitCase.getEventId())
+                        .summary("summary")
+                        .description("description")
+                        .build())
+                .data(data)
+                .build();
 
         coreCaseDataApi.submitEventForCaseWorker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            "WA",
-            "WaCaseType",
-            caseDetails.getId().toString(),
-            true,
-            submitCaseDataContent
+                userToken,
+                serviceToken,
+                userInfo.getUid(),
+                "WA",
+                "WaCaseType",
+                caseDetails.getId().toString(),
+                true,
+                submitCaseDataContent
         );
         log.info("Submitted case [" + caseDetails.getId() + "]");
 
@@ -266,39 +167,39 @@ public class GivensBuilder {
         Map<String, CamundaValue<?>> processVariables = initiateProcessVariables(caseId);
 
         CamundaSendMessageRequest request = new CamundaSendMessageRequest(
-            CREATE_TASK_MESSAGE.toString(),
-            processVariables
+                CREATE_TASK_MESSAGE.toString(),
+                processVariables
         );
 
         Response result = camundaApiActions.post(
-            "message",
-            request,
-            authorizationProvider.getServiceAuthorizationHeader()
+                "message",
+                request,
+                authorizationProvider.getServiceAuthorizationHeader()
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+                .statusCode(HttpStatus.NO_CONTENT.value());
 
         return this;
     }
 
     public GivensBuilder createTaskWithCaseId(String caseId, boolean warnings, String jurisdiction, String caseType) {
         Map<String, CamundaValue<?>> processVariables
-            = initiateProcessVariables(caseId, warnings, jurisdiction, caseType);
+                = initiateProcessVariables(caseId, warnings, jurisdiction, caseType);
 
         CamundaSendMessageRequest request = new CamundaSendMessageRequest(
-            CREATE_TASK_MESSAGE.toString(),
-            processVariables
+                CREATE_TASK_MESSAGE.toString(),
+                processVariables
         );
 
         Response result = camundaApiActions.post(
-            "message",
-            request,
-            authorizationProvider.getServiceAuthorizationHeader()
+                "message",
+                request,
+                authorizationProvider.getServiceAuthorizationHeader()
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+                .statusCode(HttpStatus.NO_CONTENT.value());
 
         return this;
     }
@@ -318,31 +219,31 @@ public class GivensBuilder {
         Document document = documentManagementFiles.getDocumentAs(NOTICE_OF_APPEAL_PDF, credentials);
 
         StartEventResponse startCase = coreCaseDataApi.startForCaseworker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            jurisdiction,
-            caseType,
-            startEventId
+                userToken,
+                serviceToken,
+                userInfo.getUid(),
+                jurisdiction,
+                caseType,
+                startEventId
         );
 
         Map data = null;
         try {
             String caseDataString = FileUtils.readFileToString(
-                ResourceUtils.getFile("classpath:" + resourceFilename),
-                "UTF-8");
+                    ResourceUtils.getFile("classpath:" + resourceFilename),
+                    "UTF-8");
 
             caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
-                document.getDocumentUrl()
+                    "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
+                    document.getDocumentUrl()
             );
             caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_NAME}",
-                document.getDocumentFilename()
+                    "{NOTICE_OF_DECISION_DOCUMENT_NAME}",
+                    document.getDocumentFilename()
             );
             caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL_BINARY}",
-                document.getDocumentBinaryUrl()
+                    "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL_BINARY}",
+                    document.getDocumentBinaryUrl()
             );
 
             data = new ObjectMapper().readValue(caseDataString, Map.class);
@@ -351,57 +252,57 @@ public class GivensBuilder {
         }
 
         CaseDataContent caseDataContent = CaseDataContent.builder()
-            .eventToken(startCase.getToken())
-            .event(Event.builder()
-                .id(startCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
-            .data(data)
-            .build();
+                .eventToken(startCase.getToken())
+                .event(Event.builder()
+                        .id(startCase.getEventId())
+                        .summary("summary")
+                        .description("description")
+                        .build())
+                .data(data)
+                .build();
 
         //Fire submit event
         CaseDetails caseDetails = coreCaseDataApi.submitForCaseworker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            jurisdiction,
-            caseType,
-            true,
-            caseDataContent
+                userToken,
+                serviceToken,
+                userInfo.getUid(),
+                jurisdiction,
+                caseType,
+                true,
+                caseDataContent
         );
 
         log.info("Created case [" + caseDetails.getId() + "]");
 
         StartEventResponse submitCase = coreCaseDataApi.startEventForCaseWorker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            jurisdiction,
-            caseType,
-            caseDetails.getId().toString(),
-            submitEventId
+                userToken,
+                serviceToken,
+                userInfo.getUid(),
+                jurisdiction,
+                caseType,
+                caseDetails.getId().toString(),
+                submitEventId
         );
 
         CaseDataContent submitCaseDataContent = CaseDataContent.builder()
-            .eventToken(submitCase.getToken())
-            .event(Event.builder()
-                .id(submitCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
-            .data(data)
-            .build();
+                .eventToken(submitCase.getToken())
+                .event(Event.builder()
+                        .id(submitCase.getEventId())
+                        .summary("summary")
+                        .description("description")
+                        .build())
+                .data(data)
+                .build();
 
         coreCaseDataApi.submitEventForCaseWorker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            jurisdiction,
-            caseType,
-            caseDetails.getId().toString(),
-            true,
-            submitCaseDataContent
+                userToken,
+                serviceToken,
+                userInfo.getUid(),
+                jurisdiction,
+                caseType,
+                caseDetails.getId().toString(),
+                true,
+                submitCaseDataContent
         );
         log.info("Submitted case [" + caseDetails.getId() + "]");
 
@@ -414,18 +315,18 @@ public class GivensBuilder {
         Map<String, CamundaValue<?>> processVariables = initiateProcessVariablesForDelayedTask(caseId);
 
         CamundaSendMessageRequest request = new CamundaSendMessageRequest(
-            CREATE_TASK_MESSAGE.toString(),
-            processVariables
+                CREATE_TASK_MESSAGE.toString(),
+                processVariables
         );
 
         Response result = camundaApiActions.post(
-            "message",
-            request,
-            authorizationProvider.getServiceAuthorizationHeader()
+                "message",
+                request,
+                authorizationProvider.getServiceAuthorizationHeader()
         );
 
         result.then().assertThat()
-            .statusCode(HttpStatus.NO_CONTENT.value());
+                .statusCode(HttpStatus.NO_CONTENT.value());
 
         return this;
     }
@@ -435,28 +336,28 @@ public class GivensBuilder {
 
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(60, SECONDS)
-            .until(
-                () -> {
-                    Response result = camundaApiActions.get(
-                        "/task" + filter,
-                        authorizationProvider.getServiceAuthorizationHeader()
-                    );
+                .pollInterval(1, SECONDS)
+                .atMost(60, SECONDS)
+                .until(
+                        () -> {
+                            Response result = camundaApiActions.get(
+                                    "/task" + filter,
+                                    authorizationProvider.getServiceAuthorizationHeader()
+                            );
 
-                    result.then().assertThat()
-                        .statusCode(HttpStatus.OK.value())
-                        .contentType(APPLICATION_JSON_VALUE)
-                        .body("size()", is(taskCount));
+                            result.then().assertThat()
+                                    .statusCode(HttpStatus.OK.value())
+                                    .contentType(APPLICATION_JSON_VALUE)
+                                    .body("size()", is(taskCount));
 
-                    response.set(
-                        result.then()
-                            .extract()
-                            .jsonPath().getList("", CamundaTask.class)
-                    );
+                            response.set(
+                                    result.then()
+                                            .extract()
+                                            .jsonPath().getList("", CamundaTask.class)
+                            );
 
-                    return true;
-                });
+                            return true;
+                        });
 
         return response.get();
     }
@@ -467,28 +368,28 @@ public class GivensBuilder {
 
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
-            .until(
-                () -> {
-                    Response result = camundaApiActions.get(
-                        "/task" + filter,
-                        authorizationProvider.getServiceAuthorizationHeader()
-                    );
+                .pollInterval(500, MILLISECONDS)
+                .atMost(60, SECONDS)
+                .until(
+                        () -> {
+                            Response result = camundaApiActions.get(
+                                    "/task" + filter,
+                                    authorizationProvider.getServiceAuthorizationHeader()
+                            );
 
-                    result.then().assertThat()
-                        .statusCode(HttpStatus.OK.value())
-                        .contentType(APPLICATION_JSON_VALUE)
-                        .body("size()", is(1));
+                            result.then().assertThat()
+                                    .statusCode(HttpStatus.OK.value())
+                                    .contentType(APPLICATION_JSON_VALUE)
+                                    .body("size()", is(1));
 
-                    response.set(
-                        result.then()
-                            .extract()
-                            .jsonPath().getList("", CamundaTask.class)
-                    );
+                            response.set(
+                                    result.then()
+                                            .extract()
+                                            .jsonPath().getList("", CamundaTask.class)
+                            );
 
-                    return true;
-                });
+                            return true;
+                        });
 
         return response.get();
     }
@@ -499,29 +400,29 @@ public class GivensBuilder {
 
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
-            .until(
-                () -> {
+                .pollInterval(500, MILLISECONDS)
+                .atMost(60, SECONDS)
+                .until(
+                        () -> {
 
-                    Response result = camundaApiActions.get(
-                        "process-instance" + filter,
-                        authorizationProvider.getServiceAuthorizationHeader()
-                    );
+                            Response result = camundaApiActions.get(
+                                    "process-instance" + filter,
+                                    authorizationProvider.getServiceAuthorizationHeader()
+                            );
 
-                    result.then().assertThat()
-                        .statusCode(HttpStatus.OK.value())
-                        .contentType(APPLICATION_JSON_VALUE)
-                        .body("size()", is(1));
+                            result.then().assertThat()
+                                    .statusCode(HttpStatus.OK.value())
+                                    .contentType(APPLICATION_JSON_VALUE)
+                                    .body("size()", is(1));
 
-                    response.set(
-                        result.then()
-                            .extract()
-                            .jsonPath().getList("", CamundaTask.class)
-                    );
+                            response.set(
+                                    result.then()
+                                            .extract()
+                                            .jsonPath().getList("", CamundaTask.class)
+                            );
 
-                    return true;
-                });
+                            return true;
+                        });
 
         return response.get();
     }
@@ -532,32 +433,32 @@ public class GivensBuilder {
 
     public Map<String, CamundaValue<?>> createDelayedTaskVariables(String caseId) {
         CamundaProcessVariables processVariables = processVariables()
-            .withProcessVariable("caseId", caseId)
-            .withProcessVariable("jurisdiction", "IA")
-            .withProcessVariable("caseTypeId", "Asylum")
-            .withProcessVariable("region", "1")
-            .withProcessVariable("location", "765324")
-            .withProcessVariable("locationName", "Taylor House")
-            .withProcessVariable("staffLocation", "Taylor House")
-            .withProcessVariable("securityClassification", "PUBLIC")
-            .withProcessVariable("group", "TCW")
-            .withProcessVariable("name", "task name")
-            .withProcessVariable("taskId", "reviewTheAppeal")
-            .withProcessVariable("taskAttributes", "")
-            .withProcessVariable("taskType", "reviewTheAppeal")
-            .withProcessVariable("taskCategory", "Case Progression")
-            .withProcessVariable("taskState", "unconfigured")
-            //for testing-purposes
-            .withProcessVariable("dueDate", now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariable("task-supervisor", "Read,Refer,Manage,Cancel")
-            .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("delayUntil", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariable("workingDaysAllowed", "2")
-            .withProcessVariableBoolean("hasWarnings", false)
-            .withProcessVariable("caseManagementCategory", "Protection")
-            .withProcessVariable("description", "aDescription")
-            .build();
+                .withProcessVariable("caseId", caseId)
+                .withProcessVariable("jurisdiction", "IA")
+                .withProcessVariable("caseTypeId", "Asylum")
+                .withProcessVariable("region", "1")
+                .withProcessVariable("location", "765324")
+                .withProcessVariable("locationName", "Taylor House")
+                .withProcessVariable("staffLocation", "Taylor House")
+                .withProcessVariable("securityClassification", "PUBLIC")
+                .withProcessVariable("group", "TCW")
+                .withProcessVariable("name", "task name")
+                .withProcessVariable("taskId", "reviewTheAppeal")
+                .withProcessVariable("taskAttributes", "")
+                .withProcessVariable("taskType", "reviewTheAppeal")
+                .withProcessVariable("taskCategory", "Case Progression")
+                .withProcessVariable("taskState", "unconfigured")
+                //for testing-purposes
+                .withProcessVariable("dueDate", now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER))
+                .withProcessVariable("task-supervisor", "Read,Refer,Manage,Cancel")
+                .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+                .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+                .withProcessVariable("delayUntil", now().plusDays(2).format(CAMUNDA_DATA_TIME_FORMATTER))
+                .withProcessVariable("workingDaysAllowed", "2")
+                .withProcessVariableBoolean("hasWarnings", false)
+                .withProcessVariable("caseManagementCategory", "Protection")
+                .withProcessVariable("description", "aDescription")
+                .build();
 
         return processVariables.getProcessVariablesMap();
     }
@@ -567,10 +468,10 @@ public class GivensBuilder {
     }
 
     private Map<String, CamundaValue<?>> initiateProcessVariables(
-        String caseId,
-        boolean warnings,
-        String jurisdiction,
-        String caseTypeId) {
+            String caseId,
+            boolean warnings,
+            String jurisdiction,
+            String caseTypeId) {
         if (warnings) {
             return createDefaultTaskVariablesWithWarnings(caseId, jurisdiction, caseTypeId);
         } else {
@@ -583,104 +484,104 @@ public class GivensBuilder {
     }
 
     public Map<String, CamundaValue<?>> createDefaultTaskVariablesWithWarnings(
-        String caseId,
-        String jurisdiction,
-        String caseTypeId
+            String caseId,
+            String jurisdiction,
+            String caseTypeId
     ) {
         String values = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
-                        + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
+                + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
 
         CamundaProcessVariables processVariables = processVariables()
-            .withProcessVariable("caseId", caseId)
-            .withProcessVariable("jurisdiction", jurisdiction)
-            .withProcessVariable("caseTypeId", caseTypeId)
-            .withProcessVariable("region", "1")
-            .withProcessVariable("location", "765324")
-            .withProcessVariable("locationName", "Taylor House")
-            .withProcessVariable("staffLocation", "Taylor House")
-            .withProcessVariable("securityClassification", "PUBLIC")
-            .withProcessVariable("name", "task name")
-            .withProcessVariable("taskId", "reviewTheAppeal")
-            .withProcessVariable("taskType", "reviewTheAppeal")
-            .withProcessVariable("taskCategory", "Case Progression")
-            .withProcessVariable("taskState", "unconfigured")
-            .withProcessVariable("dueDate", now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariable("task-supervisor", "Read,Refer,Manage,Cancel")
-            .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariable("workingDaysAllowed", "2")
-            .withProcessVariableBoolean("hasWarnings", true)
-            .withProcessVariable("warningList", values)
-            .withProcessVariable("caseManagementCategory", "Protection")
-            .withProcessVariable("description", "aDescription")
-            .build();
+                .withProcessVariable("caseId", caseId)
+                .withProcessVariable("jurisdiction", jurisdiction)
+                .withProcessVariable("caseTypeId", caseTypeId)
+                .withProcessVariable("region", "1")
+                .withProcessVariable("location", "765324")
+                .withProcessVariable("locationName", "Taylor House")
+                .withProcessVariable("staffLocation", "Taylor House")
+                .withProcessVariable("securityClassification", "PUBLIC")
+                .withProcessVariable("name", "task name")
+                .withProcessVariable("taskId", "reviewTheAppeal")
+                .withProcessVariable("taskType", "reviewTheAppeal")
+                .withProcessVariable("taskCategory", "Case Progression")
+                .withProcessVariable("taskState", "unconfigured")
+                .withProcessVariable("dueDate", now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER))
+                .withProcessVariable("task-supervisor", "Read,Refer,Manage,Cancel")
+                .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+                .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+                .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
+                .withProcessVariable("workingDaysAllowed", "2")
+                .withProcessVariableBoolean("hasWarnings", true)
+                .withProcessVariable("warningList", values)
+                .withProcessVariable("caseManagementCategory", "Protection")
+                .withProcessVariable("description", "aDescription")
+                .build();
 
         return processVariables.getProcessVariablesMap();
     }
 
     public Map<String, CamundaValue<?>> createDefaultTaskVariables(
-        String caseId,
-        String jurisdiction,
-        String caseTypeId) {
+            String caseId,
+            String jurisdiction,
+            String caseTypeId) {
         CamundaProcessVariables processVariables = processVariables()
-            .withProcessVariable("caseId", caseId)
-            .withProcessVariable("jurisdiction", jurisdiction)
-            .withProcessVariable("caseTypeId", caseTypeId)
-            .withProcessVariable("region", "1")
-            .withProcessVariable("location", "765324")
-            .withProcessVariable("locationName", "Taylor House")
-            .withProcessVariable("staffLocation", "Taylor House")
-            .withProcessVariable("securityClassification", "PUBLIC")
-            .withProcessVariable("name", "task name")
-            .withProcessVariable("taskId", "reviewTheAppeal")
-            .withProcessVariable("taskAttributes", "")
-            .withProcessVariable("taskType", "reviewTheAppeal")
-            .withProcessVariable("taskCategory", "Case Progression")
-            .withProcessVariable("taskState", "unconfigured")
-            //for testing-purposes
-            .withProcessVariable("dueDate", now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariable("task-supervisor", "Read,Refer,Manage,Cancel")
-            .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariable("workingDaysAllowed", "2")
-            .withProcessVariableBoolean("hasWarnings", false)
-            .withProcessVariable("warningList", (new WarningValues()).toString())
-            .withProcessVariable("caseManagementCategory", "Protection")
-            .withProcessVariable("description", "aDescription")
-            .build();
+                .withProcessVariable("caseId", caseId)
+                .withProcessVariable("jurisdiction", jurisdiction)
+                .withProcessVariable("caseTypeId", caseTypeId)
+                .withProcessVariable("region", "1")
+                .withProcessVariable("location", "765324")
+                .withProcessVariable("locationName", "Taylor House")
+                .withProcessVariable("staffLocation", "Taylor House")
+                .withProcessVariable("securityClassification", "PUBLIC")
+                .withProcessVariable("name", "task name")
+                .withProcessVariable("taskId", "reviewTheAppeal")
+                .withProcessVariable("taskAttributes", "")
+                .withProcessVariable("taskType", "reviewTheAppeal")
+                .withProcessVariable("taskCategory", "Case Progression")
+                .withProcessVariable("taskState", "unconfigured")
+                //for testing-purposes
+                .withProcessVariable("dueDate", now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER))
+                .withProcessVariable("task-supervisor", "Read,Refer,Manage,Cancel")
+                .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+                .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+                .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
+                .withProcessVariable("workingDaysAllowed", "2")
+                .withProcessVariableBoolean("hasWarnings", false)
+                .withProcessVariable("warningList", (new WarningValues()).toString())
+                .withProcessVariable("caseManagementCategory", "Protection")
+                .withProcessVariable("description", "aDescription")
+                .build();
 
         return processVariables.getProcessVariablesMap();
     }
 
     public Map<String, CamundaValue<?>> createDefaultTaskVariables(String caseId) {
         CamundaProcessVariables processVariables = processVariables()
-            .withProcessVariable("caseId", caseId)
-            .withProcessVariable("jurisdiction", "IA")
-            .withProcessVariable("caseTypeId", "Asylum")
-            .withProcessVariable("region", "1")
-            .withProcessVariable("location", "765324")
-            .withProcessVariable("locationName", "Taylor House")
-            .withProcessVariable("staffLocation", "Taylor House")
-            .withProcessVariable("securityClassification", "PUBLIC")
-            .withProcessVariable("name", "task name")
-            .withProcessVariable("taskId", "reviewTheAppeal")
-            .withProcessVariable("taskAttributes", "")
-            .withProcessVariable("taskType", "reviewTheAppeal")
-            .withProcessVariable("taskCategory", "Case Progression")
-            .withProcessVariable("taskState", "unconfigured")
-            //for testing-purposes
-            .withProcessVariable("dueDate", now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariable("task-supervisor", "Read,Refer,Manage,Cancel")
-            .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
-            .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
-            .withProcessVariable("workingDaysAllowed", "2")
-            .withProcessVariableBoolean("hasWarnings", false)
-            .withProcessVariable("caseManagementCategory", "Protection")
-            .withProcessVariable("description", "aDescription")
-            .build();
+                .withProcessVariable("caseId", caseId)
+                .withProcessVariable("jurisdiction", "IA")
+                .withProcessVariable("caseTypeId", "Asylum")
+                .withProcessVariable("region", "1")
+                .withProcessVariable("location", "765324")
+                .withProcessVariable("locationName", "Taylor House")
+                .withProcessVariable("staffLocation", "Taylor House")
+                .withProcessVariable("securityClassification", "PUBLIC")
+                .withProcessVariable("name", "task name")
+                .withProcessVariable("taskId", "reviewTheAppeal")
+                .withProcessVariable("taskAttributes", "")
+                .withProcessVariable("taskType", "reviewTheAppeal")
+                .withProcessVariable("taskCategory", "Case Progression")
+                .withProcessVariable("taskState", "unconfigured")
+                //for testing-purposes
+                .withProcessVariable("dueDate", now().plusDays(10).format(CAMUNDA_DATA_TIME_FORMATTER))
+                .withProcessVariable("task-supervisor", "Read,Refer,Manage,Cancel")
+                .withProcessVariable("tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+                .withProcessVariable("senior-tribunal-caseworker", "Read,Refer,Own,Manage,Cancel")
+                .withProcessVariable("delayUntil", now().format(CAMUNDA_DATA_TIME_FORMATTER))
+                .withProcessVariable("workingDaysAllowed", "2")
+                .withProcessVariableBoolean("hasWarnings", false)
+                .withProcessVariable("caseManagementCategory", "Protection")
+                .withProcessVariable("description", "aDescription")
+                .build();
 
         return processVariables.getProcessVariablesMap();
     }
