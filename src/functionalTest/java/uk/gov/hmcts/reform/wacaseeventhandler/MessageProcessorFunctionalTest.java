@@ -80,7 +80,6 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
     /**
      * CaseEventMessageRepository.LOCK_AND_GET_NEXT_MESSAGE_SQL
-     *
      * or exists (select 1 from wa_case_event_messages d "
      *     where d.event_timestamp > msg.event_timestamp + interval '30 minutes' "
      *     and not d.from_dlq "
@@ -138,7 +137,6 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
     /**
      * CaseEventMessageRepository.LOCK_AND_GET_NEXT_MESSAGE_SQL
-     *
      * exists (select 1 from wa_case_event_messages d "
      *     where d.case_id = msg.case_id "
      *     and d.event_timestamp > msg.event_timestamp "
