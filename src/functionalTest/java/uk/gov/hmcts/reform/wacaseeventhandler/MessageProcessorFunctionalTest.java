@@ -35,7 +35,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
     private List<String> caseIdToDelete = new ArrayList<>();
 
     @Test
-    public void should_process_message_with_the_lowest_event_timestamp_for_that_case() {
+    public void should_process_multiple_messages_for_that_case() {
         List<String> messageIds = List.of(randomMessageId(), randomMessageId(), randomMessageId());
 
         String caseId = getCaseId();
@@ -78,6 +78,14 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 });
     }
 
+    /**
+     * CaseEventMessageRepository.LOCK_AND_GET_NEXT_MESSAGE_SQL
+     *
+     * or exists (select 1 from wa_case_event_messages d "
+     *     where d.event_timestamp > msg.event_timestamp + interval '30 minutes' "
+     *     and not d.from_dlq "
+     *     and d.state in ('READY', 'PROCESSED'))))) "
+     */
     @Test
     public void should_process_dlq_msg_if_processed_or_ready_messages_with_timestamp_later_than_thirty_mins_exist() {
         final EventInformation.EventInformationBuilder eventInformationBuilder = EventInformation.builder()
@@ -107,7 +115,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         String caseId = getCaseId();
         caseIdToDelete.add(caseId);
         sendMessageToTopic(messageIdFromHourAgo,
-                eventInformationBuilder.caseId(caseId).eventTimeStamp(LocalDateTime.now().plusHours(1)).build());
+                eventInformationBuilder.caseId(caseId).eventTimeStamp(LocalDateTime.now().minusHours(1)).build());
 
         await().ignoreException(AssertionError.class)
                 .pollInterval(3, SECONDS)
@@ -128,6 +136,15 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                     });
     }
 
+    /**
+     * CaseEventMessageRepository.LOCK_AND_GET_NEXT_MESSAGE_SQL
+     *
+     * exists (select 1 from wa_case_event_messages d "
+     *     where d.case_id = msg.case_id "
+     *     and d.event_timestamp > msg.event_timestamp "
+     *     and not d.from_dlq "
+     *     and d.state = 'READY') "
+     */
     @Test
     public void should_process_dlq_msg_if_processed_or_ready_messages_with_same_case_id_exist() {
         String caseId = getCaseId();
@@ -142,19 +159,19 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             .caseTypeId("Asylum");
 
         String dlqMessageId = randomMessageId();
-        log.info("should_process_dlq_msg_if_processed_or_ready_messages_with_timestamp_later_than_thirty_mins_exist, "
+        log.info("should_process_dlq_msg_if_processed_or_ready_messages_with_same_case_id_exist, "
                      + "using message ID for DLQ message " + dlqMessageId);
-        String messageIdFromHourAgo =  randomMessageId();
-        log.info("should_process_dlq_msg_if_processed_or_ready_messages_with_timestamp_later_than_thirty_mins_exist, "
+        String messageIdFromFiveMinutesAgo =  randomMessageId();
+        log.info("should_process_dlq_msg_if_processed_or_ready_messages_with_same_case_id_exist, "
                      + "using event timestamp from hour ago "
-                     + messageIdFromHourAgo);
+                     + messageIdFromFiveMinutesAgo);
 
         caseIdToDelete.add(caseId);
 
         sendMessageToDlq(dlqMessageId, eventInformationBuilder.eventTimeStamp(LocalDateTime.now()).build());
 
-        sendMessageToTopic(messageIdFromHourAgo,
-                           eventInformationBuilder.eventTimeStamp(LocalDateTime.now().plusMinutes(1)).build());
+        sendMessageToTopic(messageIdFromFiveMinutesAgo,
+                           eventInformationBuilder.eventTimeStamp(LocalDateTime.now().minusMinutes(5)).build());
 
         await().ignoreException(AssertionError.class)
             .pollInterval(3, SECONDS)
@@ -345,7 +362,8 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
     }
 
     @Test
-    @Ignore
+    @Ignore("This test will fail if there is another message (from another test for example) with different caseId"
+        + "and MessageState PROCESSED in more than 30min")
     public void should_not_process_dlq_message_unless_other_messages_exist_with_same_case_id() {
         String msgId = randomMessageId();
         String caseId = getCaseId();
