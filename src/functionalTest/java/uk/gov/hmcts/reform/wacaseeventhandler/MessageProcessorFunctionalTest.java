@@ -108,13 +108,13 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
         sendMessageToDlq(dlqMessageId, eventInformationBuilder
             .caseId(dlqCaseId)
-            .eventTimeStamp(LocalDateTime.now())
+            .eventTimeStamp(LocalDateTime.now().minusHours(1))
             .build());
 
         String caseId = getCaseId();
         caseIdToDelete.add(caseId);
         sendMessageToTopic(messageIdFromHourAgo,
-                eventInformationBuilder.caseId(caseId).eventTimeStamp(LocalDateTime.now().minusHours(1)).build());
+                eventInformationBuilder.caseId(caseId).eventTimeStamp(LocalDateTime.now()).build());
 
         await().ignoreException(AssertionError.class)
                 .pollInterval(3, SECONDS)
@@ -159,17 +159,17 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         String dlqMessageId = randomMessageId();
         log.info("should_process_dlq_msg_if_processed_or_ready_messages_with_same_case_id_exist, "
                      + "using message ID for DLQ message " + dlqMessageId);
-        String messageIdFromFiveMinutesAgo =  randomMessageId();
+        String messageIdFromFiveMinutesFromNow =  randomMessageId();
         log.info("should_process_dlq_msg_if_processed_or_ready_messages_with_same_case_id_exist, "
                      + "using event timestamp from hour ago "
-                     + messageIdFromFiveMinutesAgo);
+                     + messageIdFromFiveMinutesFromNow);
 
         caseIdToDelete.add(caseId);
 
         sendMessageToDlq(dlqMessageId, eventInformationBuilder.eventTimeStamp(LocalDateTime.now()).build());
 
-        sendMessageToTopic(messageIdFromFiveMinutesAgo,
-                           eventInformationBuilder.eventTimeStamp(LocalDateTime.now().minusMinutes(5)).build());
+        sendMessageToTopic(messageIdFromFiveMinutesFromNow,
+                           eventInformationBuilder.eventTimeStamp(LocalDateTime.now().plusMinutes(5)).build());
 
         await().ignoreException(AssertionError.class)
             .pollInterval(3, SECONDS)
