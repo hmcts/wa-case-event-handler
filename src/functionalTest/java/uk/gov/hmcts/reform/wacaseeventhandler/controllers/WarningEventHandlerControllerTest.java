@@ -5,10 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.Warning;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.WarningValues;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -17,6 +22,7 @@ import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
@@ -728,10 +734,36 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
                     final String warningList = result.jsonPath().getString("warningList.value");
                     WarningValues actualWarningValues = new WarningValues(warningList);
 
-                    assertEquals(expectedWarningValues, actualWarningValues);
+                    assertEquals(expectedWarningValues.getValues().size(), actualWarningValues.getValues().size());
 
+                    List<String> expectedWarningCodes = expectedWarningValues.getValues()
+                        .stream()
+                        .map(Warning::getWarningCode)
+                        .collect(Collectors.toList());
+                    List<String> expectedWarningText = expectedWarningValues.getValues()
+                        .stream()
+                        .map(Warning::getWarningText)
+                        .collect(Collectors.toList());
+
+                    List<String> actualWarningCodes = actualWarningValues.getValues()
+                        .stream()
+                        .map(Warning::getWarningCode)
+                        .collect(Collectors.toList());
+                    List<String> actualWarningText = actualWarningValues.getValues()
+                        .stream()
+                        .map(Warning::getWarningText)
+                        .collect(Collectors.toList());
+
+                    assertTrue(isEqualCollection(expectedWarningCodes, actualWarningCodes));
+                    assertTrue(isEqualCollection(expectedWarningText, actualWarningText));
                     return true;
                 });
+    }
+
+    static boolean isEqualCollection(Collection<?> a, Collection<?> b) {
+        return a == b || (a != null && b != null && a.size() == b.size()
+                          && a.stream().collect(Collectors.toMap(Function.identity(), s -> 1L, Long::sum))
+                              .equals(b.stream().collect(Collectors.toMap(Function.identity(), s -> 1L, Long::sum))));
     }
 
     private void assertTaskWithoutWarnings(String caseId, String taskId, boolean hasWarnings) {

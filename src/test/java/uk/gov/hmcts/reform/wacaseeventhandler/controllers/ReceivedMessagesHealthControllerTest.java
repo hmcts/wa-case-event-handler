@@ -24,16 +24,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.actuate.health.Status.DOWN;
 import static org.springframework.boot.actuate.health.Status.UP;
-import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.CASE_EVENT_HANDLER_MESSAGE_HEALTH;
-import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.MESSAGES_RECEIVED;
-import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.NO_MESSAGES_RECEIVED;
-import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthEndpoint.NO_MESSAGE_CHECK;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.CASE_EVENT_HANDLER_MESSAGE_HEALTH;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.CHECK_DISABLED_MESSAGE;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.MESSAGES_RECEIVED;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.NO_MESSAGES_RECEIVED;
+import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.ReceivedMessagesHealthController.NO_MESSAGE_CHECK;
 
 @ExtendWith(MockitoExtension.class)
-class ReceivedMessagesHealthEndpointTest {
+class ReceivedMessagesHealthControllerTest {
 
     @Mock
     private CaseEventMessageRepository caseEventMessageRepository;
@@ -45,20 +48,22 @@ class ReceivedMessagesHealthEndpointTest {
     private HolidayService holidayService;
 
     @InjectMocks
-    private ReceivedMessagesHealthEndpoint receivedMessagesHealthEndpoint;
+    private ReceivedMessagesHealthController receivedMessagesHealthController;
 
     @BeforeEach
     void setup() {
-        setupDefaultMockClock();
+        setField(receivedMessagesHealthController, "receivedMessageCheckEnvEnabled", "validEnvironment,test");
+        setField(receivedMessagesHealthController, "environment", "validEnvironment");
     }
 
     @Test
-    void testHealthReportsErrorIfNoMessagesReceivedInLastHour() {
+    void test_health_reports_error_if_no_messages_received_in_last_hour() {
         // GIVEN
+        setupDefaultMockClock();
         when(caseEventMessageRepository.getNumberOfMessagesReceivedInLastHour(any())).thenReturn(0);
 
         // WHEN
-        Health health = receivedMessagesHealthEndpoint.health();
+        Health health = receivedMessagesHealthController.health();
 
         // THEN
         assertEquals(DOWN, health.getStatus());
@@ -66,12 +71,13 @@ class ReceivedMessagesHealthEndpointTest {
     }
 
     @Test
-    void testHealthReportsSuccessIfMessagesReceivedInLastHour() {
+    void test_health_reports_success_if_messages_received_in_last_hour() {
         // GIVEN
+        setupDefaultMockClock();
         when(caseEventMessageRepository.getNumberOfMessagesReceivedInLastHour(any())).thenReturn(1);
 
         // WHEN
-        Health health = receivedMessagesHealthEndpoint.health();
+        Health health = receivedMessagesHealthController.health();
 
         // THEN
         assertEquals(UP, health.getStatus());
@@ -79,12 +85,13 @@ class ReceivedMessagesHealthEndpointTest {
     }
 
     @Test
-    void testHealthDoesNotCallRepositoryIfNonWorkingDayHoliday() {
+    void test_health_does_not_call_repository_if_non_working_day_holiday() {
         // GIVEN
+        setupDefaultMockClock();
         when(holidayService.isHoliday(any(LocalDate.class))).thenReturn(true);
 
         // WHEN
-        Health health = receivedMessagesHealthEndpoint.health();
+        Health health = receivedMessagesHealthController.health();
 
         // THEN
         assertEquals(UP, health.getStatus());
@@ -93,12 +100,13 @@ class ReceivedMessagesHealthEndpointTest {
     }
 
     @Test
-    void testHealthDoesNotCallRepositoryIfNonWorkingDayWeekend() {
+    void test_health_does_not_call_repository_if_non_working_day_weekend() {
         // GIVEN
+        setupDefaultMockClock();
         when(holidayService.isWeekend(any(LocalDate.class))).thenReturn(true);
 
         // WHEN
-        Health health = receivedMessagesHealthEndpoint.health();
+        Health health = receivedMessagesHealthController.health();
 
         // THEN
         assertEquals(UP, health.getStatus());
@@ -108,12 +116,13 @@ class ReceivedMessagesHealthEndpointTest {
 
     @ParameterizedTest
     @MethodSource(value = "nonWorkingHoursScenarioProvider")
-    void testHealthDoesNotCallRepositoryIfWorkingDayTimeIsOutOfWorkingHours(LocalDateTime outOfWorkingHoursDate) {
+    void test_health_does_not_call_repository_if_working_day_time_is_out_of_working_hours(
+        LocalDateTime outOfWorkingHoursDate) {
         // GIVEN
         setupMockClock(outOfWorkingHoursDate);
 
         // WHEN
-        Health health = receivedMessagesHealthEndpoint.health();
+        Health health = receivedMessagesHealthController.health();
 
         // THEN
         assertEquals(UP, health.getStatus());
@@ -123,13 +132,32 @@ class ReceivedMessagesHealthEndpointTest {
 
     @ParameterizedTest
     @MethodSource(value = "workingHoursScenarioProvider")
-    void testHealthCallsRepositoryIfWorkingDayTimeIsWithinWorkingHours(LocalDateTime withinWorkingHoursDate) {
+    void test_health_calls_repository_if_working_day_time_is_within_working_hours(
+        LocalDateTime withinWorkingHoursDate) {
         // GIVEN
         setupMockClock(withinWorkingHoursDate);
 
-        receivedMessagesHealthEndpoint.health();
+        receivedMessagesHealthController.health();
 
         verify(caseEventMessageRepository).getNumberOfMessagesReceivedInLastHour(withinWorkingHoursDate.minusHours(1));
+    }
+
+    @Test
+    void test_health_reports_success_if_messages_check_disabled_in_current_environment() {
+        // GIVEN
+        setField(receivedMessagesHealthController, "environment", "invalidEnvironment");
+        setField(receivedMessagesHealthController, "receivedMessageCheckEnvEnabled", "validEnvironment,test");
+
+        // WHEN
+        Health health = receivedMessagesHealthController.health();
+
+        // THEN
+        assertEquals(UP, health.getStatus());
+        assertEquals(String.format(CHECK_DISABLED_MESSAGE, "invalidEnvironment"),
+                     health.getDetails().get(CASE_EVENT_HANDLER_MESSAGE_HEALTH));
+        verifyNoInteractions(clock);
+        verifyNoInteractions(holidayService);
+        verifyNoInteractions(caseEventMessageRepository);
     }
 
     private void setupDefaultMockClock() {

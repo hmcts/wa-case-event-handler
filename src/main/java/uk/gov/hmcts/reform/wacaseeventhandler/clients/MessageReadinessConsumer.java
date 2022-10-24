@@ -30,19 +30,26 @@ public class MessageReadinessConsumer implements Runnable {
     @Transactional
     public void run() {
         log.info("Running message readiness check");
-        final List<CaseEventMessageEntity> allMessageInNewState = caseEventMessageRepository.getAllMessagesInNewState();
+        try {
+            final List<CaseEventMessageEntity> allMessageInNewState =
+                caseEventMessageRepository.getAllMessagesInNewState();
 
-        log.info("Number of messages to check the readiness {}", allMessageInNewState.size());
+            log.info("Number of messages to check the readiness {}", allMessageInNewState.size());
 
-        allMessageInNewState.stream()
-                .forEach(this::checkMessageToMoveToReadyState);
+            allMessageInNewState.forEach(this::checkMessageToMoveToReadyState);
+
+        } catch (Exception e) {
+            log.warn("An error occurred when running message readiness check. "
+                     + "Catching exception continuing execution", e);
+        }
+
     }
 
     private void checkMessageToMoveToReadyState(CaseEventMessageEntity messageInNewState) {
         if (deadLetterQueuePeekService.isDeadLetterQueueEmpty()) {
             log.info("Updating following message to READY state {}", messageInNewState.getMessageId());
             caseEventMessageRepository.updateMessageState(MessageState.READY,
-                    List.of(messageInNewState.getMessageId()));
+                List.of(messageInNewState.getMessageId()));
         }
     }
 }
