@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.springframework.test.context.ActiveProfiles;
@@ -95,25 +94,25 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 .newStateId("appealSubmitted")
                 .caseTypeId("Asylum");
 
-        String dlqMessageId = randomMessageId();
+        String dlqMessageIdFromHourAgo = randomMessageId();
         log.info("should_process_dlq_msg_if_processed_or_ready_messages_with_timestamp_later_than_thirty_mins_exist, "
-                + "using message ID for DLQ message " + dlqMessageId);
-        String messageIdFromHourAgo =  randomMessageId();
+                + "using message ID for DLQ message " + dlqMessageIdFromHourAgo);
+        String messageId =  randomMessageId();
         log.info("should_process_dlq_msg_if_processed_or_ready_messages_with_timestamp_later_than_thirty_mins_exist, "
                 + "using event timestamp from hour ago "
-                + messageIdFromHourAgo);
+                + messageId);
 
         String dlqCaseId = getCaseId();
         caseIdToDelete.add(dlqCaseId);
 
-        sendMessageToDlq(dlqMessageId, eventInformationBuilder
+        sendMessageToDlq(dlqMessageIdFromHourAgo, eventInformationBuilder
             .caseId(dlqCaseId)
             .eventTimeStamp(LocalDateTime.now().minusHours(1))
             .build());
 
         String caseId = getCaseId();
         caseIdToDelete.add(caseId);
-        sendMessageToTopic(messageIdFromHourAgo,
+        sendMessageToTopic(messageId,
                 eventInformationBuilder.caseId(caseId).eventTimeStamp(LocalDateTime.now()).build());
 
         await().ignoreException(AssertionError.class)
@@ -122,7 +121,10 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 .until(
                     () -> {
                         final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(dlqCaseId, true);
+                        final EventMessageQueryResponse messagesFromDb = getMessagesFromDb(caseId);
                         if (dlqMessagesFromDb != null) {
+                            logMessagesState(dlqMessagesFromDb);
+                            logMessagesState(messagesFromDb);
                             final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
                             assertTrue(caseEventMessages.stream()
@@ -360,9 +362,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
     }
 
     @Test
-    @Ignore("This test will fail if there is another message (from another test for example) with different caseId"
-        + "and MessageState PROCESSED in more than 30min")
-    public void should_not_process_dlq_message_unless_other_messages_exist_with_same_case_id() {
+    public void should_not_process_dlq_message_if_no_processed_or_ready_messages_with_same_case_id_exist() {
         String msgId = randomMessageId();
         String caseId = getCaseId();
 
@@ -390,9 +390,10 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 .atMost(120, SECONDS)
                 .until(
                     () -> {
+                        final EventMessageQueryResponse messages = getMessagesFromDb(caseId);
                         final EventMessageQueryResponse messagesInReadyState = getMessagesFromDb(MessageState.READY);
                         if (messagesInReadyState != null) {
-
+                            logMessagesState(messages);
                             List<CaseEventMessage> returnedCase = messagesInReadyState.getCaseEventMessages().stream()
                                 .filter(c -> c.getMessageId().equals(caseId)).collect(Collectors.toList());
 
@@ -404,6 +405,17 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                             return false;
                         }
                     });
+    }
+
+    private void logMessagesState(EventMessageQueryResponse messages) {
+        String lineSeparator = System.getProperty("line.separator");
+        String data = messages == null ? "" : messages.getCaseEventMessages().stream()
+            .map(e -> "caseId: " + e.getCaseId()
+                + "msgId: " + e.getMessageId()
+                + "state: " + e.getState() + "dlq: "
+                + e.getFromDlq())
+            .collect(Collectors.joining(lineSeparator));
+        log.info("messages from db:" + lineSeparator + data);
     }
 
     @After
