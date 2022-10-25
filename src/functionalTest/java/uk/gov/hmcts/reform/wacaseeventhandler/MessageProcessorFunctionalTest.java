@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.opentest4j.AssertionFailedError;
 import org.slf4j.Logger;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
@@ -389,15 +390,13 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         sendMessageToDlq(msgId, eventInformation);
         waitSeconds(3);
 
-        await().ignoreExceptions()
+        await().ignoreException(AssertionFailedError.class)
                 .pollInterval(3, SECONDS)
                 .atMost(120, SECONDS)
                 .until(
                     () -> {
-                        final EventMessageQueryResponse messages = getMessagesFromDb(caseId);
                         final EventMessageQueryResponse messagesInReadyState = getMessagesFromDb(MessageState.READY);
                         if (messagesInReadyState != null) {
-                            logMessagesState(messages);
                             List<CaseEventMessage> returnedCase = messagesInReadyState.getCaseEventMessages().stream()
                                 .filter(c -> c.getMessageId().equals(caseId)).collect(Collectors.toList());
 
