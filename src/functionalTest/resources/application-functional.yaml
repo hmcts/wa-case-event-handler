@@ -41,3 +41,8 @@ spring:
           oidc:
             client-id: ${WA_IDAM_CLIENT_ID:wa}
             client-secret: ${WA_IDAM_CLIENT_SECRET:something}
+
+logging:
+  level:
+    root: INFO
+    uk.gov.hmcts.reform.wacaseeventhandler: DEBUG

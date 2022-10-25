@@ -22,6 +22,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
@@ -127,8 +128,8 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                             logMessagesState(messagesFromDb);
                             final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
-                            assertTrue(caseEventMessages.stream()
-                                    .anyMatch(x -> x.getCaseId().equals(dlqCaseId)
+                            assertTrue(format("no message with caseId: %s in PROCESSED state", dlqCaseId),
+                                       caseEventMessages.stream().anyMatch(x -> x.getCaseId().equals(dlqCaseId)
                                             && x.getState() == MessageState.PROCESSED));
                             return true;
                         } else {
@@ -398,7 +399,8 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                                 .filter(c -> c.getMessageId().equals(caseId)).collect(Collectors.toList());
 
                             Assertions.assertEquals(1, returnedCase.size(),
-                                                    "Number of messages in database did not match");
+                                                    format("Number of messages in database did not match"
+                                                               + " [msgId: %s, caseId: %s]", msgId, caseId));
 
                             return true;
                         } else {
