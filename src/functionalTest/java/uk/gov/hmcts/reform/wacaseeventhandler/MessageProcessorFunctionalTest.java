@@ -6,8 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
-import org.opentest4j.AssertionFailedError;
 import org.slf4j.Logger;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
@@ -63,7 +61,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             sendMessageToTopic(msgId, eventInformation);
         });
 
-        await().ignoreExceptions()
+        await().ignoreException(AssertionError.class)
             .pollInterval(3, SECONDS)
             .atMost(120, SECONDS)
             .until(
@@ -120,16 +118,14 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         sendMessageToTopic(messageId,
                 eventInformationBuilder.caseId(caseId).eventTimeStamp(LocalDateTime.now()).build());
 
-        await().ignoreExceptions()
+        await().ignoreException(AssertionError.class)
                 .pollInterval(3, SECONDS)
                 .atMost(120, SECONDS)
                 .until(
                     () -> {
                         final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(dlqCaseId, true);
-                        final EventMessageQueryResponse messagesFromDb = getMessagesFromDb(caseId);
                         if (dlqMessagesFromDb != null) {
                             logMessagesState(dlqMessagesFromDb);
-                            logMessagesState(messagesFromDb);
                             final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
                             assertTrue(format("no message with caseId: %s in PROCESSED state", dlqCaseId),
@@ -178,7 +174,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         sendMessageToTopic(messageIdFromFiveMinutesFromNow,
                            eventInformationBuilder.eventTimeStamp(LocalDateTime.now().plusMinutes(5)).build());
 
-        await().ignoreExceptions()
+        await().ignoreException(AssertionError.class)
             .pollInterval(3, SECONDS)
             .atMost(120, SECONDS)
             .until(
@@ -224,7 +220,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
         AtomicReference<List<CaseEventMessage>> collect = new AtomicReference<>(new ArrayList<>());
 
-        await().ignoreExceptions()
+        await().ignoreException(AssertionError.class)
                 .pollInterval(3, SECONDS)
                 .atMost(120, SECONDS)
                 .until(
@@ -272,7 +268,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         sendMessageToTopic(unprocessableMsgId, eventInformation);
         waitSeconds(3);
 
-        await().ignoreExceptions()
+        await().ignoreException(AssertionError.class)
             .pollInterval(3, SECONDS)
             .atMost(120, SECONDS)
             .until(
@@ -310,7 +306,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         sendMessageToTopic(msgId2, eventInformationBuilder.caseId(caseId2).build());
 
         //Wait for message processor run and process the second message
-        await().ignoreExceptions()
+        await().ignoreException(AssertionError.class)
             .pollInterval(3, SECONDS)
             .atMost(30, SECONDS)
             .until(
@@ -330,7 +326,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 });
 
         //Assert that message for the case with unprocessable message is not processed
-        await().ignoreExceptions()
+        await().ignoreException(AssertionError.class)
             .pollInterval(3, SECONDS)
             .atMost(30, SECONDS)
             .until(
@@ -385,12 +381,12 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 .build();
 
 
-        LOG.info("should_not_process_dlq_message_unless_other_messages_exist_with_same_case_id using dlq message id "
+        log.info("should_not_process_dlq_message_unless_other_messages_exist_with_same_case_id using dlq message id "
                 + msgId);
         sendMessageToDlq(msgId, eventInformation);
         waitSeconds(3);
 
-        await().ignoreException(AssertionFailedError.class)
+        await().ignoreException(AssertionError.class)
                 .pollInterval(3, SECONDS)
                 .atMost(120, SECONDS)
                 .until(
@@ -400,9 +396,9 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                             List<CaseEventMessage> returnedCase = messagesInReadyState.getCaseEventMessages().stream()
                                 .filter(c -> c.getMessageId().equals(caseId)).collect(Collectors.toList());
 
-                            Assertions.assertEquals(1, returnedCase.size(),
-                                                    format("Number of messages in database did not match"
-                                                               + " [msgId: %s, caseId: %s]", msgId, caseId));
+                            assertEquals(format("Number of messages in database did not match"
+                                                    + " [msgId: %s, caseId: %s]", msgId, caseId),
+                                         1, returnedCase.size());
 
                             return true;
                         } else {
