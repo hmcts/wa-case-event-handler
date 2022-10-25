@@ -62,7 +62,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             sendMessageToTopic(msgId, eventInformation);
         });
 
-        await().ignoreException(AssertionError.class)
+        await().ignoreExceptions()
             .pollInterval(3, SECONDS)
             .atMost(120, SECONDS)
             .until(
@@ -119,7 +119,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         sendMessageToTopic(messageId,
                 eventInformationBuilder.caseId(caseId).eventTimeStamp(LocalDateTime.now()).build());
 
-        await().ignoreException(AssertionError.class)
+        await().ignoreExceptions()
                 .pollInterval(3, SECONDS)
                 .atMost(120, SECONDS)
                 .until(
@@ -177,7 +177,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         sendMessageToTopic(messageIdFromFiveMinutesFromNow,
                            eventInformationBuilder.eventTimeStamp(LocalDateTime.now().plusMinutes(5)).build());
 
-        await().ignoreException(AssertionError.class)
+        await().ignoreExceptions()
             .pollInterval(3, SECONDS)
             .atMost(120, SECONDS)
             .until(
@@ -223,7 +223,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
         AtomicReference<List<CaseEventMessage>> collect = new AtomicReference<>(new ArrayList<>());
 
-        await().ignoreException(AssertionError.class)
+        await().ignoreExceptions()
                 .pollInterval(3, SECONDS)
                 .atMost(120, SECONDS)
                 .until(
@@ -271,7 +271,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         sendMessageToTopic(unprocessableMsgId, eventInformation);
         waitSeconds(3);
 
-        await().ignoreException(AssertionError.class)
+        await().ignoreExceptions()
             .pollInterval(3, SECONDS)
             .atMost(120, SECONDS)
             .until(
@@ -309,7 +309,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         sendMessageToTopic(msgId2, eventInformationBuilder.caseId(caseId2).build());
 
         //Wait for message processor run and process the second message
-        await().ignoreException(AssertionError.class)
+        await().ignoreExceptions()
             .pollInterval(3, SECONDS)
             .atMost(30, SECONDS)
             .until(
@@ -329,7 +329,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 });
 
         //Assert that message for the case with unprocessable message is not processed
-        await().ignoreException(AssertionError.class)
+        await().ignoreExceptions()
             .pollInterval(3, SECONDS)
             .atMost(30, SECONDS)
             .until(
@@ -389,7 +389,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         sendMessageToDlq(msgId, eventInformation);
         waitSeconds(3);
 
-        await().ignoreException(AssertionError.class)
+        await().ignoreExceptions()
                 .pollInterval(3, SECONDS)
                 .atMost(120, SECONDS)
                 .until(
