@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.slf4j.Logger;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
@@ -27,12 +28,14 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.slf4j.LoggerFactory.getLogger;
 
 @Slf4j
 @ActiveProfiles(profiles = {"local", "functional"})
 public class MessageProcessorFunctionalTest extends MessagingTests {
 
     private List<String> caseIdToDelete = new ArrayList<>();
+    private static final Logger LOG = getLogger(MessageProcessorFunctionalTest.class);
 
     @Test
     public void should_process_multiple_messages_for_that_case() {
@@ -55,7 +58,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                     eventInformationBuilder
                             .eventTimeStamp(LocalDateTime.now())
                             .build();
-            log.info("should_process_message_with_the_lowest_event_timestamp_for_that_case, using message ID " + msgId);
+            LOG.info("should_process_message_with_the_lowest_event_timestamp_for_that_case, using message ID " + msgId);
             sendMessageToTopic(msgId, eventInformation);
         });
 
@@ -96,10 +99,10 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 .caseTypeId("Asylum");
 
         String dlqMessageIdFromHourAgo = randomMessageId();
-        log.info("should_process_dlq_msg_if_processed_or_ready_messages_with_timestamp_later_than_thirty_mins_exist, "
+        LOG.info("should_process_dlq_msg_if_processed_or_ready_messages_with_timestamp_later_than_thirty_mins_exist, "
                 + "using message ID for DLQ message " + dlqMessageIdFromHourAgo);
         String messageId =  randomMessageId();
-        log.info("should_process_dlq_msg_if_processed_or_ready_messages_with_timestamp_later_than_thirty_mins_exist, "
+        LOG.info("should_process_dlq_msg_if_processed_or_ready_messages_with_timestamp_later_than_thirty_mins_exist, "
                 + "using event timestamp from hour ago "
                 + messageId);
 
@@ -160,10 +163,10 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             .caseTypeId("Asylum");
 
         String dlqMessageId = randomMessageId();
-        log.info("should_process_dlq_msg_if_processed_or_ready_messages_with_same_case_id_exist, "
+        LOG.info("should_process_dlq_msg_if_processed_or_ready_messages_with_same_case_id_exist, "
                      + "using message ID for DLQ message " + dlqMessageId);
         String messageIdFromFiveMinutesFromNow =  randomMessageId();
-        log.info("should_process_dlq_msg_if_processed_or_ready_messages_with_same_case_id_exist, "
+        LOG.info("should_process_dlq_msg_if_processed_or_ready_messages_with_same_case_id_exist, "
                      + "using event timestamp from hour ago "
                      + messageIdFromFiveMinutesFromNow);
 
@@ -213,7 +216,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 .build();
 
         messageIds.forEach(msgId -> {
-            log.info("should_not_process_message_unless_in_ready_state using message ID " + msgId);
+            LOG.info("should_not_process_message_unless_in_ready_state using message ID " + msgId);
             sendMessageToTopic(msgId, eventInformation);
             waitSeconds(3);
         });
@@ -263,7 +266,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             .caseTypeId("Asylum").build();
 
 
-        log.info("should_not_process_any_message_after_unprocessable_message_for_same_case_id "
+        LOG.info("should_not_process_any_message_after_unprocessable_message_for_same_case_id "
                      + "unprocessable message ID " + unprocessableMsgId);
         sendMessageToTopic(unprocessableMsgId, eventInformation);
         waitSeconds(3);
@@ -300,7 +303,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             .eventTimeStamp(LocalDateTime.now())
             .caseTypeId("Asylum");
 
-        log.info("should_not_process_any_message_after_unprocessable_message_for_same_case_id "
+        LOG.info("should_not_process_any_message_after_unprocessable_message_for_same_case_id "
                      + "unprocessable message ID " + unprocessableMsgId);
         sendMessageToTopic(msgId, eventInformationBuilder.caseId(caseId).build());
         sendMessageToTopic(msgId2, eventInformationBuilder.caseId(caseId2).build());
@@ -381,7 +384,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 .build();
 
 
-        log.info("should_not_process_dlq_message_unless_other_messages_exist_with_same_case_id using dlq message id "
+        LOG.info("should_not_process_dlq_message_unless_other_messages_exist_with_same_case_id using dlq message id "
                 + msgId);
         sendMessageToDlq(msgId, eventInformation);
         waitSeconds(3);
@@ -417,7 +420,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 + "state: " + e.getState() + "dlq: "
                 + e.getFromDlq())
             .collect(Collectors.joining(lineSeparator));
-        log.info("messages from db:" + lineSeparator + data);
+        LOG.info("messages from db:" + lineSeparator + data);
     }
 
     @After
