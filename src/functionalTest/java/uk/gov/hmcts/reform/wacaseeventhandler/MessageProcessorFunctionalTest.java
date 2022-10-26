@@ -34,6 +34,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class MessageProcessorFunctionalTest extends MessagingTests {
 
     private List<String> caseIdToDelete = new ArrayList<>();
+    private Integer testExecution = 0;
     private static final Logger LOG = getLogger(MessageProcessorFunctionalTest.class);
 
     @Test
@@ -385,7 +386,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 + msgId);
         sendMessageToDlq(msgId, eventInformation);
         waitSeconds(3);
-
+        testExecution = 0;
         await().ignoreException(AssertionError.class)
                 .pollInterval(3, SECONDS)
                 .atMost(120, SECONDS)
@@ -397,7 +398,8 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                                 .filter(c -> c.getMessageId().equals(caseId)).collect(Collectors.toList());
 
                             assertEquals(format("Number of messages in database did not match"
-                                                    + " [msgId: %s, caseId: %s]", msgId, caseId),
+                                                    + " [msgId: %s, caseId: %s, execution: %d]",
+                                                msgId, caseId, ++testExecution),
                                          1, returnedCase.size());
 
                             return true;
