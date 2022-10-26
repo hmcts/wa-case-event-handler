@@ -37,6 +37,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
     private static final Logger LOG = getLogger(MessageProcessorFunctionalTest.class);
     private List<String> caseIdToDelete = new ArrayList<>();
     private Integer testExecution = 0;
+    private Integer isReadyExecution = 0;
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Test
@@ -128,7 +129,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                     () -> {
                         final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(dlqCaseId, true);
                         if (dlqMessagesFromDb != null) {
-                            logMessagesState(dlqMessagesFromDb);
+                            logMessagesQueryResults(dlqMessagesFromDb);
                             final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
                             assertTrue(format("no message with caseId: %s in PROCESSED state", dlqCaseId),
@@ -383,30 +384,31 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 .eventTimeStamp(LocalDateTime.now())
                 .build();
 
-
-        log.info("should_not_process_dlq_message_unless_other_messages_exist_with_same_case_id using dlq message id "
-                + msgId);
+        log.info("should_not_process_dlq_message_if_no_processed_or_ready_messages_with_same_case_id_exist using dlq "
+                     + "message id " + msgId);
         sendMessageToDlq(msgId, eventInformation);
         waitSeconds(3);
         testExecution = 0;
+        isReadyExecution = 0;
         await().ignoreException(AssertionError.class)
                 .pollInterval(3, SECONDS)
                 .atMost(120, SECONDS)
                 .until(
                     () -> {
-                        final EventMessageQueryResponse messagesInReadyState = getMessagesFromDb(caseId);
-                        if (messagesInReadyState != null) {
-                            List<CaseEventMessage> returnedCase = messagesInReadyState.getCaseEventMessages().stream()
-                                .filter(c -> c.getMessageId().equals(caseId)).collect(Collectors.toList());
+                        final EventMessageQueryResponse messagesFromDb = getMessagesFromDb(caseId, true);
+                        logMessagesQueryResults(messagesFromDb);
+                        if (messagesFromDb != null) {
                             testExecution++;
-                            System.out.println(format("Testing system out if it will appear on the Jenkins pipeline: "
-                                                          + " [msgId: %s, caseId: %s, execution: %d, time: %s]",
-                                                      msgId, caseId, testExecution,
-                                                      LocalDateTime.now().format(formatter)));
-                            assertEquals(format("Number of messages in database did not match"
-                                                    + " [msgId: %s, caseId: %s, execution: %d, time: %s]",
-                                                msgId, caseId, testExecution, LocalDateTime.now().format(formatter)),
-                                         1, returnedCase.size());
+
+                            // store the execution number when message gets to a READY state
+                            if (isReadyExecution == 0 && messagesFromDb.getCaseEventMessages().stream()
+                                .filter(c -> c.getState().equals(MessageState.READY)).count() == 1) {
+                                isReadyExecution = testExecution;
+                            }
+                            // give it few seconds and check it hasn't been processed using few pollIntervals
+                            assertTrue("", messagesFromDb.getCaseEventMessages().stream()
+                                .filter(c -> c.getState().equals(MessageState.READY)).count() == 1
+                                && testExecution > isReadyExecution + 3);
 
                             return true;
                         } else {
@@ -415,13 +417,13 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                     });
     }
 
-    private void logMessagesState(EventMessageQueryResponse messages) {
+    private void logMessagesQueryResults(EventMessageQueryResponse queryResponse) {
         String lineSeparator = System.getProperty("line.separator");
-        String data = messages == null ? "" : messages.getCaseEventMessages().stream()
+        String data = queryResponse == null ? "" : queryResponse.getCaseEventMessages().stream()
             .map(e -> "caseId: " + e.getCaseId()
-                + "msgId: " + e.getMessageId()
-                + "state: " + e.getState() + "dlq: "
-                + e.getFromDlq())
+                + " msgId: " + e.getMessageId()
+                + " state: " + e.getState()
+                + " dlq: " + e.getFromDlq())
             .collect(Collectors.joining(lineSeparator));
         LOG.info("messages from db:" + lineSeparator + data);
     }
