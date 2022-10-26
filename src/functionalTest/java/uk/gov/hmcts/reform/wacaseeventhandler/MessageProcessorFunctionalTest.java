@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResp
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,9 +34,10 @@ import static org.slf4j.LoggerFactory.getLogger;
 @ActiveProfiles(profiles = {"local", "functional"})
 public class MessageProcessorFunctionalTest extends MessagingTests {
 
+    private static final Logger LOG = getLogger(MessageProcessorFunctionalTest.class);
     private List<String> caseIdToDelete = new ArrayList<>();
     private Integer testExecution = 0;
-    private static final Logger LOG = getLogger(MessageProcessorFunctionalTest.class);
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Test
     public void should_process_multiple_messages_for_that_case() {
@@ -392,14 +394,18 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 .atMost(120, SECONDS)
                 .until(
                     () -> {
-                        final EventMessageQueryResponse messagesInReadyState = getMessagesFromDb(MessageState.READY);
+                        final EventMessageQueryResponse messagesInReadyState = getMessagesFromDb(caseId);
                         if (messagesInReadyState != null) {
                             List<CaseEventMessage> returnedCase = messagesInReadyState.getCaseEventMessages().stream()
                                 .filter(c -> c.getMessageId().equals(caseId)).collect(Collectors.toList());
-
+                            testExecution++;
+                            System.out.println(format("Testing system out if it will appear on the Jenkins pipeline: "
+                                                          + " [msgId: %s, caseId: %s, execution: %d, time: %s]",
+                                                      msgId, caseId, testExecution,
+                                                      LocalDateTime.now().format(formatter)));
                             assertEquals(format("Number of messages in database did not match"
-                                                    + " [msgId: %s, caseId: %s, execution: %d]",
-                                                msgId, caseId, ++testExecution),
+                                                    + " [msgId: %s, caseId: %s, execution: %d, time: %s]",
+                                                msgId, caseId, testExecution, LocalDateTime.now().format(formatter)),
                                          1, returnedCase.size());
 
                             return true;
