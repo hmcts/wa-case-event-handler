@@ -231,7 +231,7 @@ dependencyManagement {
       entry 'logback-classic'
       entry 'logback-core'
     }
-    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.77.Final') {
+    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.84.Final') {
       entry 'netty-buffer'
       entry 'netty-codec'
       entry 'netty-codec-dns'
@@ -376,7 +376,7 @@ dependencies {
   implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.20.0'
 
   implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.10.3'
-
+  implementation group: 'io.projectreactor.netty', name: 'reactor-netty', version: '1.0.24'
   runtimeOnly group: 'org.postgresql', name: 'postgresql', version: '42.4.1'
 }
 
