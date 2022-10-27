@@ -62,22 +62,24 @@ public class AuthorizationProvider {
 
     public Header getServiceAuthorizationHeader() {
         String serviceToken = tokens.computeIfAbsent(
-                SERVICE_AUTHORIZATION,
-                user -> serviceAuthTokenGenerator.generate()
+            SERVICE_AUTHORIZATION,
+            user -> serviceAuthTokenGenerator.generate()
         );
 
         return new Header(SERVICE_AUTHORIZATION, serviceToken);
     }
 
     public TestAuthenticationCredentials getWaCaseworkerAAuthorizationOnly(String emailPrefix) {
-        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-wa-task-officer"),
-                new RoleCode("payments"),
-                new RoleCode("caseworker-wa"));
+        List<RoleCode> requiredRoles = asList(
+            new RoleCode("caseworker-wa-task-officer"),
+            new RoleCode("payments"),
+            new RoleCode("caseworker-wa")
+        );
         TestAccount testAccount = generateIdamTestAccount(emailPrefix, requiredRoles);
 
         Headers authenticationHeaders = new Headers(
-                getAuthorizationOnly(testAccount),
-                getServiceAuthorizationHeader()
+            getAuthorizationOnly(testAccount),
+            getServiceAuthorizationHeader()
         );
 
 
@@ -91,8 +93,8 @@ public class AuthorizationProvider {
 
     public UserInfo getUserInfo(String userToken) {
         return userInfo.computeIfAbsent(
-                userToken,
-                user -> idamWebApi.userInfo(userToken)
+            userToken,
+            user -> idamWebApi.userInfo(userToken)
         );
 
     }
@@ -109,17 +111,19 @@ public class AuthorizationProvider {
         TestAccount caseworker = getIdamWaTribunalCaseworkerCredentials(emailPrefix);
 
         Headers authenticationHeaders = new Headers(
-                getAuthorizationOnly(caseworker),
-                getServiceAuthorizationHeader()
+            getAuthorizationOnly(caseworker),
+            getServiceAuthorizationHeader()
         );
 
         return new TestAuthenticationCredentials(caseworker, authenticationHeaders);
     }
 
     private TestAccount getIdamWaTribunalCaseworkerCredentials(String emailPrefix) {
-        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-wa-task-officer"),
-                new RoleCode("payments"),
-                new RoleCode("caseworker-wa"));
+        List<RoleCode> requiredRoles = asList(
+            new RoleCode("caseworker-wa-task-officer"),
+            new RoleCode("payments"),
+            new RoleCode("caseworker-wa")
+        );
         return generateIdamTestAccount(emailPrefix, requiredRoles);
     }
 
@@ -128,8 +132,8 @@ public class AuthorizationProvider {
         MultiValueMap<String, String> body = createIdamRequest(username, password);
 
         String accessToken = tokens.computeIfAbsent(
-                username,
-                user -> "Bearer " + idamWebApi.token(body).getAccessToken()
+            username,
+            user -> "Bearer " + idamWebApi.token(body).getAccessToken()
         );
 
         return new Header(AUTHORIZATION, accessToken);

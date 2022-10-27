@@ -2,9 +2,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler;
 
 import com.azure.messaging.servicebus.ServiceBusSenderClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import static com.fasterxml.jackson.databind.PropertyNamingStrategies.LOWER_CAMEL_CASE;
-import static com.fasterxml.jackson.databind.PropertyNamingStrategies.SNAKE_CASE;
-import static com.fasterxml.jackson.databind.PropertyNamingStrategies.UPPER_CAMEL_CASE;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.restassured.RestAssured;
@@ -12,24 +9,8 @@ import io.restassured.config.ObjectMapperConfig;
 import io.restassured.config.RestAssuredConfig;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
-import java.io.IOException;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import static java.time.format.DateTimeFormatter.ofPattern;
-import java.util.ArrayList;
-import static java.util.Arrays.asList;
-import java.util.List;
-import static java.util.Objects.requireNonNull;
-import java.util.concurrent.TimeUnit;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
-import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
 import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
-import static net.serenitybdd.rest.SerenityRest.given;
-import static org.awaitility.Awaitility.await;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.equalTo;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,19 +18,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
-import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.InitiateTaskOperation.INITIATION;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttribute;
-import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_TYPE;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.DocumentManagementFiles;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.GivensBuilder;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.RestApiActions;
@@ -59,6 +32,35 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.IdamService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.IdempotencyKeyGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.RoleAssignmentServiceApi;
 import uk.gov.hmcts.reform.wacaseeventhandler.utils.Common;
+
+import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static com.fasterxml.jackson.databind.PropertyNamingStrategies.LOWER_CAMEL_CASE;
+import static com.fasterxml.jackson.databind.PropertyNamingStrategies.SNAKE_CASE;
+import static com.fasterxml.jackson.databind.PropertyNamingStrategies.UPPER_CAMEL_CASE;
+import static java.time.format.DateTimeFormatter.ofPattern;
+import static java.util.Arrays.asList;
+import static java.util.Objects.requireNonNull;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static net.serenitybdd.rest.SerenityRest.given;
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.Matchers.equalTo;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.InitiateTaskOperation.INITIATION;
+import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_CASE_ID;
+import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_CREATED;
+import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_DUE_DATE;
+import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_NAME;
+import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_TITLE;
+import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_TYPE;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
@@ -108,15 +110,15 @@ public abstract class SpringBootFunctionalBaseTest {
     @Before
     public void setUp() throws IOException {
         RestAssured.config = RestAssuredConfig.config()
-                .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
-                        (type, s) -> {
-                            ObjectMapper objectMapper = new ObjectMapper();
-                            objectMapper.setPropertyNamingStrategy(UPPER_CAMEL_CASE);
-                            objectMapper.registerModule(new Jdk8Module());
-                            objectMapper.registerModule(new JavaTimeModule());
-                            return objectMapper;
-                        }
-                ));
+            .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
+                (type, s) -> {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.setPropertyNamingStrategy(UPPER_CAMEL_CASE);
+                    objectMapper.registerModule(new Jdk8Module());
+                    objectMapper.registerModule(new JavaTimeModule());
+                    return objectMapper;
+                }
+            ));
         RestAssured.baseURI = testUrl;
         RestAssured.useRelaxedHTTPSValidation();
         s2sToken = authTokenGenerator.generate();
@@ -135,20 +137,20 @@ public abstract class SpringBootFunctionalBaseTest {
         documentManagementFiles.prepare();
 
         given = new GivensBuilder(
-                camundaApiActions,
-                restApiActions,
-                authorizationProvider,
-                coreCaseDataApi,
-                documentManagementFiles
+            camundaApiActions,
+            restApiActions,
+            authorizationProvider,
+            coreCaseDataApi,
+            documentManagementFiles
         );
 
         common = new Common(
-                given,
-                camundaApiActions,
-                restApiActions,
-                authorizationProvider,
-                idamService,
-                roleAssignmentServiceApi
+            given,
+            camundaApiActions,
+            restApiActions,
+            authorizationProvider,
+            idamService,
+            roleAssignmentServiceApi
         );
 
         caseIds = new ArrayList<>();
@@ -171,27 +173,27 @@ public abstract class SpringBootFunctionalBaseTest {
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
         InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-                new TaskAttribute(TASK_TYPE, taskType),
-                new TaskAttribute(TASK_NAME, taskName),
-                new TaskAttribute(TASK_TITLE, taskTitle),
-                new TaskAttribute(TASK_CASE_ID, caseId),
-                new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-                new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
+            new TaskAttribute(TASK_TYPE, taskType),
+            new TaskAttribute(TASK_NAME, taskName),
+            new TaskAttribute(TASK_TITLE, taskTitle),
+            new TaskAttribute(TASK_CASE_ID, caseId),
+            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
+            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
         ));
 
         Response result = restApiActions.post(
-                TASK_ENDPOINT,
-                taskId,
-                req,
-                authenticationHeaders
+            TASK_ENDPOINT,
+            taskId,
+            req,
+            authenticationHeaders
         );
 
         result.then().assertThat()
-                .statusCode(HttpStatus.CREATED.value())
-                .and()
-                .contentType(APPLICATION_JSON_VALUE)
-                .body("task_id", equalTo(taskId))
-                .body("case_id", equalTo(caseId));
+            .statusCode(HttpStatus.CREATED.value())
+            .and()
+            .contentType(APPLICATION_JSON_VALUE)
+            .body("task_id", equalTo(taskId))
+            .body("case_id", equalTo(caseId));
     }
 
     public String getWaCaseId() {
@@ -208,28 +210,28 @@ public abstract class SpringBootFunctionalBaseTest {
         log.info("Finding task for caseId = {}", caseId);
         AtomicReference<Response> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
-                .pollInterval(1000, MILLISECONDS)
-                .atMost(60, SECONDS)
-                .until(
-                        () -> {
-                            Response result = given()
-                                    .relaxedHTTPSValidation()
-                                    .header(SERVICE_AUTHORIZATION, s2sToken)
-                                    .contentType(APPLICATION_JSON_VALUE)
-                                    .baseUri(camundaUrl)
-                                    .basePath("/task")
-                                    .param("processVariables", "caseId_eq_" + caseId)
-                                    .when()
-                                    .get();
+            .pollInterval(1000, MILLISECONDS)
+            .atMost(60, SECONDS)
+            .until(
+                () -> {
+                    Response result = given()
+                        .relaxedHTTPSValidation()
+                        .header(SERVICE_AUTHORIZATION, s2sToken)
+                        .contentType(APPLICATION_JSON_VALUE)
+                        .baseUri(camundaUrl)
+                        .basePath("/task")
+                        .param("processVariables", "caseId_eq_" + caseId)
+                        .when()
+                        .get();
 
-                            result
-                                    .then().assertThat()
-                                    .statusCode(HttpStatus.OK.value())
-                                    .body("size()", is(expectedTaskAmount));
+                    result
+                        .then().assertThat()
+                        .statusCode(HttpStatus.OK.value())
+                        .body("size()", is(expectedTaskAmount));
 
-                            response.set(result);
-                            return true;
-                        });
+                    response.set(result);
+                    return true;
+                });
 
         return response.get();
     }
@@ -238,11 +240,11 @@ public abstract class SpringBootFunctionalBaseTest {
         log.info("Attempting to retrieve task details with taskId = {}", taskId);
 
         return given()
-                .header(SERVICE_AUTHORIZATION, s2sToken)
-                .contentType(APPLICATION_JSON_VALUE)
-                .baseUri(camundaUrl)
-                .basePath("/task/" + taskId + "/variables")
-                .when()
-                .get();
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .contentType(APPLICATION_JSON_VALUE)
+            .baseUri(camundaUrl)
+            .basePath("/task/" + taskId + "/variables")
+            .when()
+            .get();
     }
 }

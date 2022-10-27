@@ -5,15 +5,12 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.TaskManagementTestClient;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TerminateInfo;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TerminateTaskRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestAuthenticationCredentials;
@@ -1091,62 +1088,6 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         assertTaskDeleteReason(caseId1Task1Id, "deleted");
 
-    }
-
-    @Test
-    @Ignore("IA related test case for reconfiguration")
-    public void given_initiate_tasks_then_reconfigure_task_to_mark_tasks_for_reconfiguration_for_IA() {
-        String jurisdiction = "WA";
-        String caseType = "WaCaseType";
-        // create task in camunda
-        String caseIdForTask1 = getWaCaseId();
-        caseId1Task1Id = createTaskWithId(
-            caseIdForTask1,
-            "requestCaseBuilding",
-            "", "caseBuilding", false,
-            "followUpOverdueCaseBuilding", jurisdiction, caseType
-        );
-
-        //initiate task
-        common.setupCftOrganisationalRoleAssignment(caseworkerCredentials.getHeaders(), jurisdiction);
-        initiateTask(caseworkerCredentials.getHeaders(), caseIdForTask1, caseId1Task1Id,
-            "followUpOverdueCaseBuilding", "Follow-up overdue case building", "Follow-up overdue case building");
-
-        //send update event to trigger reconfigure action
-        sendMessage(caseIdForTask1, "UPDATE",
-            "", "", false, jurisdiction, caseType
-        );
-
-        waitSeconds(5);
-
-        //assert task in camunda
-        Response taskFound = findTasksByCaseId(caseIdForTask1, 1);
-        caseId1Task2Id = taskFound
-            .then().assertThat()
-            .body("[0].id", notNullValue())
-            .extract()
-            .path("[0].id");
-
-        waitSeconds(5);
-
-        //get task from CFT
-        Response result = restApiActions.get(
-            TASK_ENDPOINT,
-            caseId1Task1Id,
-            caseworkerCredentials.getHeaders()
-        );
-
-        //assert reconfigure request time
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and()
-            .body("task.id", equalTo(caseId1Task1Id))
-            .body("task.reconfigure_request_time", notNullValue());
-
-        //cleanup
-        TerminateTaskRequest request = new TerminateTaskRequest(new TerminateInfo("deleted"));
-        taskManagementTestClient.terminateTask(s2sToken, caseId1Task1Id, request);
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
     }
 
     @Test
