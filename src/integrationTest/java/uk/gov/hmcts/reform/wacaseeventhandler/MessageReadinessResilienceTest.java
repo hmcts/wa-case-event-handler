@@ -16,17 +16,13 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.transaction.TransactionTimedOutException;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.executors.MessageReadinessExecutor;
-import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DeadLetterQueuePeekService;
 
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.azure.messaging.servicebus.implementation.ManagementConstants.MESSAGE_ID;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -99,7 +95,7 @@ public class MessageReadinessResilienceTest {
             });
     }
 
-    @Test
+    /*@Test
     void should_handle_database_outage_and_log_issue_when_updating_message_state(CapturedOutput output) {
         messageReadinessExecutor.start();
 
@@ -123,6 +119,6 @@ public class MessageReadinessResilienceTest {
                 count.set(StringUtils.countMatches(output.getOut(), WARNING_MESSAGE));
                 assertEquals(MAX_ATTEMPTS, count.get());
             });
-    }
+    }*/
 
 }
