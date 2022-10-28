@@ -138,10 +138,3 @@ job:
     #number of minutes
     message-time-limit: ${PROBLEM_MESSAGE_TIME_LIMIT:60}
     message-id-list: ${PROBLEM_MESSAGE_RESET_ID_LIST:}
-
-retry:
-  maxAttempts: ${RESILIENCE_RETRY_MAX_ATTEMPTS:10}
-  backOff:
-    delay: ${RESILIENCE_RETRY_BACK_OFF_DELAY:30000}
-    maxDelay: ${RESILIENCE_RETRY_BACK_OFF_MAX_DELAY:60000}
-    random: ${RESILIENCE_RETRY_BACK_OFF_RANDOM:true}
