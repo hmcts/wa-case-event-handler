@@ -29,7 +29,7 @@ public class MessageReadinessConsumer implements Runnable {
     }
 
     /**
-     * Spring Uniform Random Backoff Policy used for retry mechanism
+     * Spring Uniform Random Backoff Policy used for retry mechanism.
      *
      * @see <a href="https://docs.spring.io/spring-retry/docs/api/current/index.html?org/springframework/retry/annotation/Backoff.html">spring.docs</a>
      */
