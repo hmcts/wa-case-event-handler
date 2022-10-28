@@ -36,10 +36,10 @@ import static org.mockito.Mockito.when;
     "azure.servicebus.subscription-name=test",
     "azure.servicebus.ccd-case-events-subscription-name=test",
     "azure.servicebus.retry-duration=2",
-    "retry.maxAttempts=5",
-    "retry.backOff.delay=1000",
-    "retry.backOff.maxDelay=3000",
-    "retry.backOff.random=true"
+    //"retry.maxAttempts=5",
+    //"retry.backOff.delay=1000",
+    //"retry.backOff.maxDelay=3000",
+    //"retry.backOff.random=true"
 })
 public class MessageReadinessResilienceTest {
 
