@@ -26,19 +26,6 @@ public class MessageReadinessConsumer implements Runnable {
         this.caseEventMessageRepository = caseEventMessageRepository;
     }
 
-    /**
-     * Spring Uniform Random Backoff Policy used for retry mechanism.
-     *
-     * @see <a href="https://docs.spring.io/spring-retry/docs/api/current/index.html?org/springframework/retry/annotation/Backoff.html">spring.docs</a>
-     */
-    /*@Retryable(
-        maxAttemptsExpression = "${retry.maxAttempts}",
-        backoff = @Backoff(
-            delayExpression = "${retry.backOff.delay}",
-            maxDelayExpression = "${retry.backOff.maxDelay}",
-            randomExpression = "${retry.backOff.random}"
-        )
-    )*/
     @Override
     @Transactional
     public void run() {
@@ -51,10 +38,9 @@ public class MessageReadinessConsumer implements Runnable {
 
             allMessageInNewState.forEach(this::checkMessageToMoveToReadyState);
 
-        } catch (Exception ex) {
+        } catch (Exception e) {
             log.warn("An error occurred when running message readiness check. "
-                     + "Catching exception continuing execution", ex);
-            throw ex;
+                     + "Catching exception continuing execution", e);
         }
 
     }
