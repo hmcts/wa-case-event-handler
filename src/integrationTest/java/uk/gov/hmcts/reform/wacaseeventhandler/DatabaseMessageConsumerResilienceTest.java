@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -16,24 +15,18 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.transaction.TransactionTimedOutException;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
-import uk.gov.hmcts.reform.wacaseeventhandler.config.executors.MessageReadinessExecutor;
-import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DeadLetterQueuePeekService;
 
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.azure.messaging.servicebus.implementation.ManagementConstants.MESSAGE_ID;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
@@ -45,80 +38,50 @@ import static org.mockito.Mockito.when;
     "azure.servicebus.topic-name=test",
     "azure.servicebus.subscription-name=test",
     "azure.servicebus.ccd-case-events-subscription-name=test",
-    "azure.servicebus.retry-duration=2",
+    "azure.servicebus.retry-duration=5",
     "retry.maxAttempts=5",
     "retry.backOff.delay=1000",
     "retry.backOff.maxDelay=3000",
     "retry.backOff.random=true"
 })
-public class MessageReadinessResilienceTest {
+public class DatabaseMessageConsumerResilienceTest {
 
-    private static String WARNING_MESSAGE = "An error occurred when running message readiness check. "
-                                            + "Catching exception continuing execution";
+    private static final String WARNING_MESSAGE = "An error occurred when running database message consumer. "
+                                                  + "Catching exception continuing execution";
     private static final int MAX_ATTEMPTS = 5;
-
-    @MockBean
-    private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Mock
     private TelemetryContext telemetryContext;
-
     @Mock
     private OperationContext operationContext;
-
     @MockBean
     private DeadLetterQueuePeekService deadLetterQueuePeekService;
-
     @MockBean
-    private CaseEventMessageRepository caseEventMessageRepository;
+    CaseEventMessageRepository caseEventMessageRepository;
+    @Mock
+    private PlatformTransactionManager platformTransactionManager;
+    @Mock
+    private TransactionTemplate transactionTemplate;
 
     AtomicInteger count;
 
-    @Autowired
-    private MessageReadinessExecutor messageReadinessExecutor;
-
     @BeforeEach
     void setup() {
-        when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
+        transactionTemplate.setTransactionManager(platformTransactionManager);
         lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
         count = new AtomicInteger(0);
     }
 
     @Test
-    void should_handle_database_outage_and_log_issue_when_getting_all_messages_in_new_state(CapturedOutput output) {
-        doThrow(new JDBCConnectionException("An error occurred when getting all message in new state", null))
+    void should_handle_database_outage_and_log_issue_when_database_message_consumer_running(CapturedOutput output) {
+
+        doThrow(new JDBCConnectionException("An error occurred when running database message consumer.", null))
             .when(caseEventMessageRepository)
-            .getAllMessagesInNewState();
+            .getNextAvailableMessageReadyToProcess();
 
         await().ignoreException(Exception.class)
             .pollInterval(5, SECONDS)
             .atMost(60, SECONDS)
-            .untilAsserted(() -> {
-                count.set(StringUtils.countMatches(output.getOut(), WARNING_MESSAGE));
-                assertEquals(MAX_ATTEMPTS, count.get());
-            });
-    }
-
-    @Test
-    void should_handle_database_outage_and_log_issue_when_updating_message_state(CapturedOutput output) {
-        messageReadinessExecutor.start();
-
-        CaseEventMessageEntity caseEventMessageEntity = new CaseEventMessageEntity();
-        caseEventMessageEntity.setMessageId(MESSAGE_ID);
-        when(caseEventMessageRepository.getAllMessagesInNewState())
-            .thenReturn(List.of(caseEventMessageEntity));
-
-        when(deadLetterQueuePeekService.isDeadLetterQueueEmpty())
-            .thenReturn(true);
-
-        doThrow(new TransactionTimedOutException("An error occurred when updating message state"))
-            .when(caseEventMessageRepository)
-            .updateMessageState(any(), any());
-
-
-        await().ignoreException(Exception.class)
-            .pollInterval(5, SECONDS)
-            .atMost(120, SECONDS)
             .untilAsserted(() -> {
                 count.set(StringUtils.countMatches(output.getOut(), WARNING_MESSAGE));
                 assertEquals(MAX_ATTEMPTS, count.get());

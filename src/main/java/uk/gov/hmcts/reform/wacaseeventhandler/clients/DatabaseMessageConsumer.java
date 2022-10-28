@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +54,61 @@ public class DatabaseMessageConsumer implements Runnable {
         this.updateRecordErrorHandlingService = updateRecordErrorHandlingService;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
     }
+    
+    /**
+     * Spring Uniform Random Backoff Policy used for retry mechanism
+     *
+     * @see <a href="https://docs.spring.io/spring-retry/docs/api/current/index.html?org/springframework/retry/annotation/Backoff.html">spring.docs</a>
+     */
+    @Retryable(
+        maxAttemptsExpression = "${retry.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.backOff.delay}",
+            maxDelayExpression = "${retry.backOff.maxDelay}",
+            randomExpression = "${retry.backOff.random}"
+        )
+    )
+    @Override
+    @SuppressWarnings("squid:S2189")
+    public void run() {
+        log.info("Running database message consumer");
+
+        try {
+            Optional<MessageUpdateRetry> updateRetry = transactionTemplate.execute(status -> {
+
+                CaseEventMessageEntity caseEventMessageEntity = selectNextMessage();
+
+                if (caseEventMessageEntity == null) {
+                    log.trace("No message returned from database for processing");
+                } else {
+                    log.info("Start message processing");
+
+                    final CaseEventMessage caseEventMessage = caseEventMessageMapper
+                        .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
+                    Optional<MessageUpdateRetry> updatable = processMessage(caseEventMessage);
+
+                    //if record state update failed, Rollback the transaction
+                    updatable.ifPresent(r -> status.setRollbackOnly());
+                    return updatable;
+
+                }
+                return Optional.empty();
+            });
+
+            //Retry updating the record state
+            updateRetry.ifPresent(msg ->
+                updateRecordErrorHandlingService.handleUpdateError(msg.getState(),
+                    msg.getMessageId(),
+                    msg.getRetryCount(),
+                    msg.getHoldUntil())
+            );
+        } catch (Exception ex) {
+            log.warn("An error occurred when running database message consumer. "
+                     + "Catching exception continuing execution", ex);
+            throw ex;
+        }
+
+    }
 
     static {
         RETRY_COUNT_TO_DELAY_MAP.put(1, 5);
@@ -62,40 +119,6 @@ public class DatabaseMessageConsumer implements Runnable {
         RETRY_COUNT_TO_DELAY_MAP.put(6, 900);
         RETRY_COUNT_TO_DELAY_MAP.put(7, 1800);
         RETRY_COUNT_TO_DELAY_MAP.put(8, 3600);
-    }
-
-    @Override
-    @SuppressWarnings("squid:S2189")
-    public void run() {
-        Optional<MessageUpdateRetry> updateRetry = transactionTemplate.execute(status -> {
-
-            CaseEventMessageEntity caseEventMessageEntity = selectNextMessage();
-
-            if (caseEventMessageEntity == null) {
-                log.trace("No message returned from database for processing");
-            } else {
-                log.info("Start message processing");
-
-                final CaseEventMessage caseEventMessage = caseEventMessageMapper
-                    .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
-                Optional<MessageUpdateRetry> updatable = processMessage(caseEventMessage);
-
-                //if record state update failed, Rollback the transaction
-                updatable.ifPresent(r -> status.setRollbackOnly());
-                return updatable;
-
-            }
-            return Optional.empty();
-        });
-
-        //Retry updating the record state
-        updateRetry.ifPresent(msg ->
-            updateRecordErrorHandlingService.handleUpdateError(msg.getState(),
-                msg.getMessageId(),
-                msg.getRetryCount(),
-                msg.getHoldUntil())
-        );
-
     }
 
     private CaseEventMessageEntity selectNextMessage() {
