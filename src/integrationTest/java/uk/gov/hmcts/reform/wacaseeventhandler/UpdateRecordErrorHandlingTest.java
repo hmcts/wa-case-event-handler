@@ -90,10 +90,7 @@ public class UpdateRecordErrorHandlingTest {
             .updateMessageState(eq(MessageState.PROCESSED), Mockito.<String>anyList());
         await()
             .atMost(60, SECONDS)
-            .untilAsserted(() -> {
-                    assertEquals(1, getMessagesInDbFromQuery(PROCESSED_STATE_QUERY).size());
-                }
-            );
+            .untilAsserted(() -> assertEquals(1, getMessagesInDbFromQuery(PROCESSED_STATE_QUERY).size()));
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -115,11 +112,10 @@ public class UpdateRecordErrorHandlingTest {
         await()
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
-                    assertEquals(2, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
-                    assertEquals(1, getMessageById(MESSAGE_ID).getRetryCount());
-                    assertNotNull(getMessageById(MESSAGE_ID).getHoldUntil());
-                }
-            );
+                assertEquals(2, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
+                assertEquals(1, getMessageById(MESSAGE_ID).getRetryCount());
+                assertNotNull(getMessageById(MESSAGE_ID).getHoldUntil());
+            });
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -137,10 +133,9 @@ public class UpdateRecordErrorHandlingTest {
         await()
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
-                    assertEquals(1, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
-                    assertEquals(MessageState.PROCESSED, getMessageById(MESSAGE_ID_2).getState());
-                }
-            );
+                assertEquals(1, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
+                assertEquals(MessageState.PROCESSED, getMessageById(MESSAGE_ID_2).getState());
+            });
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -153,10 +148,7 @@ public class UpdateRecordErrorHandlingTest {
             .updateMessageState(eq(MessageState.UNPROCESSABLE), Mockito.<String>anyList());
         await()
             .atMost(60, SECONDS)
-            .untilAsserted(() -> {
-                    assertEquals(1, getMessagesInDbFromQuery(UNPROCESSABLE_STATE_QUERY).size());
-                }
-            );
+            .untilAsserted(() -> assertEquals(1, getMessagesInDbFromQuery(UNPROCESSABLE_STATE_QUERY).size()));
     }
 
     private List<CaseEventMessage> getMessagesInDbFromQuery(String queryString) {
