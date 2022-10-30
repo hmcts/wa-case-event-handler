@@ -85,6 +85,8 @@ public class UpdateRecordErrorHandlingTest {
     @BeforeEach
     void setup() {
         lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
+        messageReadinessExecutor.start();
+        ccdMessageProcessorExecutor.start();
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -132,8 +134,7 @@ public class UpdateRecordErrorHandlingTest {
     @Test
     void should_set_message_state_to_processed_when_message_update_failed_in_second_time_onwards()
         throws JsonProcessingException {
-        messageReadinessExecutor.start();
-        ccdMessageProcessorExecutor.start();
+
         String caseId = "9140931237014412";
 
         doNothing().when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
