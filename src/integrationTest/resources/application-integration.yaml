@@ -29,3 +29,10 @@ scheduledExecutors:
 job:
   problem-message:
     message-id-list: ID:c05439ca-ddb2-47d0-a0a6-ba9db76a3064:58:1:1-10, ID:d257fa4f-73ad-4a82-a30e-9acc377f593d:1:1:1-2704, ID:ce8467a0-cea9-4a65-99dd-3ae9a94a4453:16:1:1-811, ID:04b1809e-c7ca-47d2-90ff-fc95c2e110ab:54:1:1-781, ID:d257fa4f-73ad-4a82-a30e-9acc377f593d:1:1:1-1675
+
+retry:
+  maxAttempts: ${RESILIENCE_RETRY_MAX_ATTEMPTS:5}
+  backOff:
+    delay: ${RESILIENCE_RETRY_BACK_OFF_DELAY:5000}
+    maxDelay: ${RESILIENCE_RETRY_BACK_OFF_MAX_DELAY:10000}
+    random: ${RESILIENCE_RETRY_BACK_OFF_RANDOM:true}
