@@ -122,7 +122,7 @@ public class UpdateRecordErrorHandlingTest {
             });
     }
 
-    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+    /*@Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
         scripts = {"classpath:sql/delete_from_case_event_messages.sql",
             "classpath:sql/insert_case_event_messages_for_processing_ready_msgs.sql"})
     @Test
@@ -141,7 +141,7 @@ public class UpdateRecordErrorHandlingTest {
                 assertEquals(1, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
                 assertEquals(MessageState.PROCESSED, getMessageById(MESSAGE_ID_2).getState());
             });
-    }
+    }*/
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
         scripts = {"classpath:sql/delete_from_case_event_messages.sql",
