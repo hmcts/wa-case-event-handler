@@ -55,7 +55,7 @@ public class MessageReadinessConsumer implements Runnable {
     @Transactional
     public void run() {
         //log.info("Running message readiness check");
-        log.info("MessageReadinessConsumer retry parameters:{}-{}-{}-{}", maxAttempts, delay, maxAttempts, random);
+        log.info("MessageReadinessConsumer retry parameters:{}-{}-{}-{}", maxAttempts, delay, maxDelay, random);
         log.info("Running message readiness check-{}", ++count);
         try {
             final List<CaseEventMessageEntity> allMessageInNewState =

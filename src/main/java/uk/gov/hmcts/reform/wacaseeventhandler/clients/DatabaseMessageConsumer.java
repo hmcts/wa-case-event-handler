@@ -82,7 +82,7 @@ public class DatabaseMessageConsumer implements Runnable {
     @Override
     @SuppressWarnings("squid:S2189")
     public void run() {
-        log.info("DatabaseMessageConsumer retry parameters:{}-{}-{}-{}", maxAttempts, delay, maxAttempts, random);
+        log.info("DatabaseMessageConsumer retry parameters:{}-{}-{}-{}", maxAttempts, delay, maxDelay, random);
         //log.info("Running database message consumer");
         log.info("Running database message consumer-{}", ++count);
 
