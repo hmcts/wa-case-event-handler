@@ -45,7 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-@ActiveProfiles("db")
+@ActiveProfiles(profiles = {"db", "integration"})
 public class UpdateRecordErrorHandlingTest {
 
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
@@ -91,8 +91,8 @@ public class UpdateRecordErrorHandlingTest {
         await()
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
-                        assertEquals(1, getMessagesInDbFromQuery(PROCESSED_STATE_QUERY).size());
-                    }
+                    assertEquals(1, getMessagesInDbFromQuery(PROCESSED_STATE_QUERY).size());
+                }
             );
     }
 
@@ -118,7 +118,7 @@ public class UpdateRecordErrorHandlingTest {
                     assertEquals(2, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
                     assertEquals(1, getMessageById(MESSAGE_ID).getRetryCount());
                     assertNotNull(getMessageById(MESSAGE_ID).getHoldUntil());
-                    }
+                }
             );
     }
 
@@ -139,7 +139,7 @@ public class UpdateRecordErrorHandlingTest {
             .untilAsserted(() -> {
                     assertEquals(1, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
                     assertEquals(MessageState.PROCESSED, getMessageById(MESSAGE_ID_2).getState());
-                    }
+                }
             );
     }
 
@@ -155,7 +155,7 @@ public class UpdateRecordErrorHandlingTest {
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
                     assertEquals(1, getMessagesInDbFromQuery(UNPROCESSABLE_STATE_QUERY).size());
-                    }
+                }
             );
     }
 
@@ -168,7 +168,7 @@ public class UpdateRecordErrorHandlingTest {
 
             final EventMessageQueryResponse eventMessageQueryResponse =
                 OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(),
-                                        EventMessageQueryResponse.class);
+                    EventMessageQueryResponse.class);
 
             return eventMessageQueryResponse.getCaseEventMessages();
         } catch (Exception e) {
@@ -184,6 +184,6 @@ public class UpdateRecordErrorHandlingTest {
 
 
         return OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(),
-                                       CaseEventMessage.class);
+            CaseEventMessage.class);
     }
 }
