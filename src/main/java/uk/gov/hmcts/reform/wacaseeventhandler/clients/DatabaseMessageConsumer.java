@@ -4,6 +4,7 @@ import feign.FeignException;
 import feign.RetryableException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.retry.annotation.Backoff;
@@ -43,6 +44,15 @@ public class DatabaseMessageConsumer implements Runnable {
     private final TransactionTemplate transactionTemplate;
     protected static final Map<Integer, Integer> RETRY_COUNT_TO_DELAY_MAP = new ConcurrentHashMap<>();
 
+    @Value("${retry.maxAttempts}")
+    int maxAttempts;
+    @Value("${retry.backOff.delay}")
+    int delay;
+    @Value("${retry.backOff.maxDelay}")
+    int maxDelay;
+    @Value("${retry.backOff.random}")
+    boolean random;
+
     public DatabaseMessageConsumer(CaseEventMessageRepository caseEventMessageRepository,
                                    CaseEventMessageMapper caseEventMessageMapper,
                                    CcdEventProcessor ccdEventProcessor,
@@ -72,6 +82,7 @@ public class DatabaseMessageConsumer implements Runnable {
     @Override
     @SuppressWarnings("squid:S2189")
     public void run() {
+        log.info("DatabaseMessageConsumer retry parameters:{}-{}-{}-{}", maxAttempts, delay, maxAttempts, random);
         //log.info("Running database message consumer");
         log.info("Running database message consumer-{}", ++count);
 
