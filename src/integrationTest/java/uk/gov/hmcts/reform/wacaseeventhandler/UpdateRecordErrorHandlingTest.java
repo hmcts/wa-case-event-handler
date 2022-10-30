@@ -21,6 +21,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.TransactionTimedOutException;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.executors.CcdMessageProcessorExecutor;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
@@ -45,7 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-@ActiveProfiles(profiles = {"db", "integration"})
+@ActiveProfiles("db")
 public class UpdateRecordErrorHandlingTest {
 
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
@@ -69,6 +70,9 @@ public class UpdateRecordErrorHandlingTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private CcdMessageProcessorExecutor ccdMessageProcessorExecutor;
 
     private static final String STATE_TEMPLATE = "states=%s";
     private static final String PROCESSED_STATE_QUERY = format(STATE_TEMPLATE, MessageState.PROCESSED.name());
@@ -124,6 +128,7 @@ public class UpdateRecordErrorHandlingTest {
     @Test
     void should_set_message_state_to_processed_when_message_update_failed_in_second_time_onwards()
         throws JsonProcessingException {
+        ccdMessageProcessorExecutor.start();
         String caseId = "9140931237014412";
 
         doNothing().when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
