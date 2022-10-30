@@ -2,8 +2,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
@@ -32,14 +30,14 @@ public class MessageReadinessConsumer implements Runnable {
      *
      * @see <a href="https://docs.spring.io/spring-retry/docs/api/current/index.html?org/springframework/retry/annotation/Backoff.html">spring.docs</a>
      */
-    @Retryable(
+    /*@Retryable(
         maxAttemptsExpression = "${retry.maxAttempts}",
         backoff = @Backoff(
             delayExpression = "${retry.backOff.delay}",
             maxDelayExpression = "${retry.backOff.maxDelay}",
             randomExpression = "${retry.backOff.random}"
         )
-    )
+    )*/
     @Override
     @Transactional
     public void run() {
