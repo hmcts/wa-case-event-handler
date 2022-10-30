@@ -18,7 +18,7 @@ import java.util.List;
 @SuppressWarnings("PMD.DoNotUseThreads")
 @ConditionalOnProperty("azure.servicebus.enableASB-DLQ")
 public class MessageReadinessConsumer implements Runnable {
-    private static int COUNT = 0;
+    private static int count;
     private final DeadLetterQueuePeekService deadLetterQueuePeekService;
     private final CaseEventMessageRepository caseEventMessageRepository;
 
@@ -45,8 +45,7 @@ public class MessageReadinessConsumer implements Runnable {
     @Transactional
     public void run() {
         //log.info("Running message readiness check");
-        COUNT++;
-        log.info("Running message readiness check-{}", COUNT);
+        log.info("Running message readiness check-{}", ++count);
         try {
             final List<CaseEventMessageEntity> allMessageInNewState =
                 caseEventMessageRepository.getAllMessagesInNewState();
