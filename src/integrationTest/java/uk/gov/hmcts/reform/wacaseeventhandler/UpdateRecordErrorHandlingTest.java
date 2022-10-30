@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.TransactionTimedOutException;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.executors.CcdMessageProcessorExecutor;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.executors.MessageReadinessExecutor;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
@@ -74,6 +75,9 @@ public class UpdateRecordErrorHandlingTest {
     @Autowired
     private CcdMessageProcessorExecutor ccdMessageProcessorExecutor;
 
+    @Autowired
+    private MessageReadinessExecutor messageReadinessExecutor;
+
     private static final String STATE_TEMPLATE = "states=%s";
     private static final String PROCESSED_STATE_QUERY = format(STATE_TEMPLATE, MessageState.PROCESSED.name());
     private static final String UNPROCESSABLE_STATE_QUERY = format(STATE_TEMPLATE, MessageState.UNPROCESSABLE.name());
@@ -122,12 +126,13 @@ public class UpdateRecordErrorHandlingTest {
             });
     }
 
-    /*@Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
         scripts = {"classpath:sql/delete_from_case_event_messages.sql",
             "classpath:sql/insert_case_event_messages_for_processing_ready_msgs.sql"})
     @Test
     void should_set_message_state_to_processed_when_message_update_failed_in_second_time_onwards()
         throws JsonProcessingException {
+        messageReadinessExecutor.start();
         ccdMessageProcessorExecutor.start();
         String caseId = "9140931237014412";
 
@@ -141,7 +146,7 @@ public class UpdateRecordErrorHandlingTest {
                 assertEquals(1, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
                 assertEquals(MessageState.PROCESSED, getMessageById(MESSAGE_ID_2).getState());
             });
-    }*/
+    }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
         scripts = {"classpath:sql/delete_from_case_event_messages.sql",
