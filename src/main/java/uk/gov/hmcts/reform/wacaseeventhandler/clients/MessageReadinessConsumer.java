@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
@@ -19,18 +18,8 @@ import java.util.List;
 @SuppressWarnings("PMD.DoNotUseThreads")
 @ConditionalOnProperty("azure.servicebus.enableASB-DLQ")
 public class MessageReadinessConsumer implements Runnable {
-    private static int count;
     private final DeadLetterQueuePeekService deadLetterQueuePeekService;
     private final CaseEventMessageRepository caseEventMessageRepository;
-
-    @Value("${retry.maxAttempts}")
-    int maxAttempts;
-    @Value("${retry.backOff.delay}")
-    int delay;
-    @Value("${retry.backOff.maxDelay}")
-    int maxDelay;
-    @Value("${retry.backOff.random}")
-    boolean random;
 
     public MessageReadinessConsumer(DeadLetterQueuePeekService deadLetterQueuePeekService,
                                     CaseEventMessageRepository caseEventMessageRepository) {
@@ -54,9 +43,7 @@ public class MessageReadinessConsumer implements Runnable {
     @Override
     @Transactional
     public void run() {
-        //log.info("Running message readiness check");
-        log.info("MessageReadinessConsumer retry parameters:{}-{}-{}-{}", maxAttempts, delay, maxDelay, random);
-        log.info("Running message readiness check-{}", ++count);
+        log.info("Running message readiness check");
         try {
             final List<CaseEventMessageEntity> allMessageInNewState =
                 caseEventMessageRepository.getAllMessagesInNewState();
@@ -68,7 +55,6 @@ public class MessageReadinessConsumer implements Runnable {
         } catch (Exception ex) {
             log.warn("An error occurred when running message readiness check. "
                      + "Catching exception continuing execution", ex);
-            //throw ex;
         }
 
     }

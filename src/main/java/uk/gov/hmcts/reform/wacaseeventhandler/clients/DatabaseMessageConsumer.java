@@ -4,7 +4,6 @@ import feign.FeignException;
 import feign.RetryableException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.retry.annotation.Backoff;
@@ -36,7 +35,6 @@ import static org.springframework.transaction.annotation.Propagation.NOT_SUPPORT
 @Transactional(propagation = NOT_SUPPORTED)
 @Profile("!functional & !local")
 public class DatabaseMessageConsumer implements Runnable {
-    private static int count;
     private final CaseEventMessageRepository caseEventMessageRepository;
     private final CaseEventMessageMapper caseEventMessageMapper;
     private final CcdEventProcessor ccdEventProcessor;
@@ -44,14 +42,16 @@ public class DatabaseMessageConsumer implements Runnable {
     private final TransactionTemplate transactionTemplate;
     protected static final Map<Integer, Integer> RETRY_COUNT_TO_DELAY_MAP = new ConcurrentHashMap<>();
 
-    @Value("${retry.maxAttempts}")
-    int maxAttempts;
-    @Value("${retry.backOff.delay}")
-    int delay;
-    @Value("${retry.backOff.maxDelay}")
-    int maxDelay;
-    @Value("${retry.backOff.random}")
-    boolean random;
+    static {
+        RETRY_COUNT_TO_DELAY_MAP.put(1, 5);
+        RETRY_COUNT_TO_DELAY_MAP.put(2, 15);
+        RETRY_COUNT_TO_DELAY_MAP.put(3, 30);
+        RETRY_COUNT_TO_DELAY_MAP.put(4, 60);
+        RETRY_COUNT_TO_DELAY_MAP.put(5, 300);
+        RETRY_COUNT_TO_DELAY_MAP.put(6, 900);
+        RETRY_COUNT_TO_DELAY_MAP.put(7, 1800);
+        RETRY_COUNT_TO_DELAY_MAP.put(8, 3600);
+    }
 
     public DatabaseMessageConsumer(CaseEventMessageRepository caseEventMessageRepository,
                                    CaseEventMessageMapper caseEventMessageMapper,
@@ -82,9 +82,7 @@ public class DatabaseMessageConsumer implements Runnable {
     @Override
     @SuppressWarnings("squid:S2189")
     public void run() {
-        log.info("DatabaseMessageConsumer retry parameters:{}-{}-{}-{}", maxAttempts, delay, maxDelay, random);
-        //log.info("Running database message consumer");
-        log.info("Running database message consumer-{}", ++count);
+        log.info("Running database message consumer");
 
         try {
             Optional<MessageUpdateRetry> updateRetry = transactionTemplate.execute(status -> {
@@ -118,20 +116,8 @@ public class DatabaseMessageConsumer implements Runnable {
         } catch (Exception ex) {
             log.warn("An error occurred when running database message consumer. "
                      + "Catching exception continuing execution", ex);
-            //throw ex;
         }
 
-    }
-
-    static {
-        RETRY_COUNT_TO_DELAY_MAP.put(1, 5);
-        RETRY_COUNT_TO_DELAY_MAP.put(2, 15);
-        RETRY_COUNT_TO_DELAY_MAP.put(3, 30);
-        RETRY_COUNT_TO_DELAY_MAP.put(4, 60);
-        RETRY_COUNT_TO_DELAY_MAP.put(5, 300);
-        RETRY_COUNT_TO_DELAY_MAP.put(6, 900);
-        RETRY_COUNT_TO_DELAY_MAP.put(7, 1800);
-        RETRY_COUNT_TO_DELAY_MAP.put(8, 3600);
     }
 
     private CaseEventMessageEntity selectNextMessage() {
