@@ -231,7 +231,7 @@ dependencyManagement {
       entry 'logback-classic'
       entry 'logback-core'
     }
-    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.77.Final') {
+    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.84.Final') {
       entry 'netty-buffer'
       entry 'netty-codec'
       entry 'netty-codec-dns'
@@ -321,8 +321,9 @@ dependencies {
   implementation group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.0'
   implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '3.1.2'
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.7.5'
-  implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.4.2'
-
+  implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.12.1'
+  implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.0.24'
+  implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.0.24'
   implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: versions.log4j
   implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: versions.log4j
 
@@ -373,10 +374,9 @@ dependencies {
 
   implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.5.0'
   implementation group: 'com.zaxxer', name: 'HikariCP', version: '5.0.1'
-  implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.14.0'
+  implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.20.0'
 
   implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.10.3'
-
   runtimeOnly group: 'org.postgresql', name: 'postgresql', version: '42.4.1'
 }
 
