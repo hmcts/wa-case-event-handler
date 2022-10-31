@@ -4,6 +4,7 @@ import com.microsoft.applicationinsights.extensibility.context.OperationContext;
 import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.JDBCConnectionException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -84,6 +85,11 @@ public class MessageReadinessResilienceTest {
         count = new AtomicInteger(0);
     }
 
+    @AfterEach
+    void tearDown() {
+        messageReadinessExecutor.start();
+    }
+
     @Test
     void should_handle_database_outage_and_log_issue_when_getting_all_messages_in_new_state(CapturedOutput output) {
         doThrow(new JDBCConnectionException("An error occurred when getting all message in new state", null))
@@ -101,7 +107,6 @@ public class MessageReadinessResilienceTest {
 
     @Test
     void should_handle_database_outage_and_log_issue_when_updating_message_state(CapturedOutput output) {
-        messageReadinessExecutor.start();
 
         CaseEventMessageEntity caseEventMessageEntity = new CaseEventMessageEntity();
         caseEventMessageEntity.setMessageId(MESSAGE_ID);

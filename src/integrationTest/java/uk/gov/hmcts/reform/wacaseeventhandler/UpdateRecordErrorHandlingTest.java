@@ -21,7 +21,6 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.TransactionTimedOutException;
-import uk.gov.hmcts.reform.wacaseeventhandler.config.executors.CcdMessageProcessorExecutor;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
@@ -71,9 +70,6 @@ public class UpdateRecordErrorHandlingTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private CcdMessageProcessorExecutor ccdMessageProcessorExecutor;
-
     private static final String STATE_TEMPLATE = "states=%s";
     private static final String PROCESSED_STATE_QUERY = format(STATE_TEMPLATE, MessageState.PROCESSED.name());
     private static final String UNPROCESSABLE_STATE_QUERY = format(STATE_TEMPLATE, MessageState.UNPROCESSABLE.name());
@@ -81,7 +77,6 @@ public class UpdateRecordErrorHandlingTest {
     @BeforeEach
     void setup() {
         lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
-        ccdMessageProcessorExecutor.start();
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -95,7 +90,10 @@ public class UpdateRecordErrorHandlingTest {
             .updateMessageState(eq(MessageState.PROCESSED), Mockito.<String>anyList());
         await()
             .atMost(60, SECONDS)
-            .untilAsserted(() -> assertEquals(1, getMessagesInDbFromQuery(PROCESSED_STATE_QUERY).size()));
+            .untilAsserted(() -> {
+                    assertEquals(1, getMessagesInDbFromQuery(PROCESSED_STATE_QUERY).size());
+                }
+            );
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -117,10 +115,11 @@ public class UpdateRecordErrorHandlingTest {
         await()
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
-                assertEquals(2, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
-                assertEquals(1, getMessageById(MESSAGE_ID).getRetryCount());
-                assertNotNull(getMessageById(MESSAGE_ID).getHoldUntil());
-            });
+                    assertEquals(2, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
+                    assertEquals(1, getMessageById(MESSAGE_ID).getRetryCount());
+                    assertNotNull(getMessageById(MESSAGE_ID).getHoldUntil());
+                }
+            );
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -129,7 +128,6 @@ public class UpdateRecordErrorHandlingTest {
     @Test
     void should_set_message_state_to_processed_when_message_update_failed_in_second_time_onwards()
         throws JsonProcessingException {
-
         String caseId = "9140931237014412";
 
         doNothing().when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
@@ -139,9 +137,10 @@ public class UpdateRecordErrorHandlingTest {
         await()
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
-                assertEquals(1, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
-                assertEquals(MessageState.PROCESSED, getMessageById(MESSAGE_ID_2).getState());
-            });
+                    assertEquals(1, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
+                    assertEquals(MessageState.PROCESSED, getMessageById(MESSAGE_ID_2).getState());
+                }
+            );
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -154,7 +153,10 @@ public class UpdateRecordErrorHandlingTest {
             .updateMessageState(eq(MessageState.UNPROCESSABLE), Mockito.<String>anyList());
         await()
             .atMost(60, SECONDS)
-            .untilAsserted(() -> assertEquals(1, getMessagesInDbFromQuery(UNPROCESSABLE_STATE_QUERY).size()));
+            .untilAsserted(() -> {
+                    assertEquals(1, getMessagesInDbFromQuery(UNPROCESSABLE_STATE_QUERY).size());
+                }
+            );
     }
 
     private List<CaseEventMessage> getMessagesInDbFromQuery(String queryString) {

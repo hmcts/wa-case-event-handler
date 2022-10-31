@@ -4,10 +4,12 @@ import com.microsoft.applicationinsights.extensibility.context.OperationContext;
 import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.JDBCConnectionException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -17,6 +19,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.executors.CcdMessageProcessorExecutor;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DeadLetterQueuePeekService;
 
@@ -63,6 +66,9 @@ public class DatabaseMessageConsumerResilienceTest {
     @Mock
     private TransactionTemplate transactionTemplate;
 
+    @Autowired
+    private CcdMessageProcessorExecutor ccdMessageProcessorExecutor;
+
     AtomicInteger count;
 
     @BeforeEach
@@ -72,6 +78,11 @@ public class DatabaseMessageConsumerResilienceTest {
         count = new AtomicInteger(0);
     }
 
+    @AfterEach
+    void tearDown() {
+        ccdMessageProcessorExecutor.start();
+    }
+    
     @Test
     void should_handle_database_outage_and_log_issue_when_database_message_consumer_running(CapturedOutput output) {
 
