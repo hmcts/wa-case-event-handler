@@ -4,8 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.opentest4j.AssertionFailedError;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
@@ -24,8 +25,8 @@ import java.util.stream.Collectors;
 import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @ActiveProfiles(profiles = {"local", "functional"})
@@ -60,7 +61,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             sendMessageToTopic(msgId, eventInformation);
         });
 
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(3, SECONDS)
             .atMost(120, SECONDS)
             .until(
@@ -117,7 +118,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         sendMessageToTopic(messageId,
                 eventInformationBuilder.caseId(caseId).eventTimeStamp(LocalDateTime.now()).build());
 
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
                 .pollInterval(3, SECONDS)
                 .atMost(120, SECONDS)
                 .until(
@@ -127,9 +128,9 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                             logMessageQueryResults(dlqMessagesFromDb);
                             final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
-                            assertTrue(format("no message with caseId: %s in PROCESSED state", dlqCaseId),
-                                       caseEventMessages.stream().anyMatch(x -> x.getCaseId().equals(dlqCaseId)
-                                            && x.getState() == MessageState.PROCESSED));
+                            assertTrue(caseEventMessages.stream().anyMatch(x -> x.getCaseId().equals(dlqCaseId)
+                                            && x.getState() == MessageState.PROCESSED),
+                                       format("no message with caseId: %s in PROCESSED state", dlqCaseId));
                             return true;
                         } else {
                             return false;
@@ -173,7 +174,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         sendMessageToTopic(messageIdFromFiveMinutesFromNow,
                            eventInformationBuilder.eventTimeStamp(LocalDateTime.now().plusMinutes(5)).build());
 
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(3, SECONDS)
             .atMost(120, SECONDS)
             .until(
@@ -219,7 +220,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
         AtomicReference<List<CaseEventMessage>> collect = new AtomicReference<>(new ArrayList<>());
 
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
                 .pollInterval(3, SECONDS)
                 .atMost(120, SECONDS)
                 .until(
@@ -267,7 +268,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         sendMessageToTopic(unprocessableMsgId, eventInformation);
         waitSeconds(3);
 
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(3, SECONDS)
             .atMost(120, SECONDS)
             .until(
@@ -305,7 +306,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         sendMessageToTopic(msgId2, eventInformationBuilder.caseId(caseId2).build());
 
         //Wait for message processor run and process the second message
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(3, SECONDS)
             .atMost(30, SECONDS)
             .until(
@@ -325,7 +326,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 });
 
         //Assert that message for the case with unprocessable message is not processed
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(3, SECONDS)
             .atMost(30, SECONDS)
             .until(
@@ -401,7 +402,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                                 isReadyExecution = testExecution;
                             }
                             // give it few seconds and check it hasn't been processed using few pollIntervals
-                            assertTrue("", messagesFromDb.getCaseEventMessages().stream()
+                            assertTrue(messagesFromDb.getCaseEventMessages().stream()
                                 .filter(c -> c.getState().equals(MessageState.READY)).count() == 1
                                 && testExecution > isReadyExecution + 3);
 
@@ -423,7 +424,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         log.info("messages from db:" + lineSeparator + data);
     }
 
-    @After
+    @AfterEach
     public void teardown() {
         if (caseIdToDelete != null) {
             caseIdToDelete.forEach(this::deleteMessagesFromDatabaseByMsgIds);

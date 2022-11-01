@@ -1,9 +1,9 @@
 package uk.gov.hmcts.reform.wacaseeventhandler;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.opentest4j.AssertionFailedError;
 import org.springframework.test.context.ActiveProfiles;
-import uk.gov.hmcts.reform.wacaseeventhandler.MessagingTests;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResponse;
@@ -16,8 +16,8 @@ import java.util.UUID;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Slf4j
 @ActiveProfiles(profiles = {"local", "functional"})
@@ -43,7 +43,7 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
             sendMessageToDlq(msgId, eventInformation)
         );
 
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(500, MILLISECONDS)
             .atMost(30, SECONDS)
             .until(
@@ -79,7 +79,7 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
 
         sendMessageToDlq(randomMessageId(), eventInformation);
 
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(500, MILLISECONDS)
             .atMost(30, SECONDS)
             .until(() -> {

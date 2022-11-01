@@ -3,9 +3,10 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 import com.azure.messaging.servicebus.ServiceBusMessage;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -179,7 +180,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         );
     }
 
-    @Before
+    @BeforeEach
     public void setup() {
         eventTimeStamp = LocalDateTime.now().minusDays(1);
         caseworkerCredentials = authorizationProvider.getNewWaTribunalCaseworker("wa-ft-test-r2-");
@@ -191,7 +192,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         caseId2Task2Id = "";
     }
 
-    @After
+    @AfterEach
     public void cleanUp() {
         taskIdStatusMap.forEach((key, value) -> completeTask(key, value));
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
@@ -1180,7 +1181,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
     }
 
     private void assertTaskDoesNotExist(String caseId, String taskId) {
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(500, MILLISECONDS)
             .atMost(30, SECONDS)
             .until(
@@ -1204,7 +1205,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
     private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
         log.info("Finding warnings task for caseId = {} and taskId = {}", caseId, taskId);
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(500, MILLISECONDS)
             .atMost(60, SECONDS)
             .until(
@@ -1309,7 +1310,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         String filter = "?processVariables=caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn;
 
         AtomicReference<String> response = new AtomicReference<>();
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(500, MILLISECONDS)
             .atMost(60, SECONDS)
             .until(

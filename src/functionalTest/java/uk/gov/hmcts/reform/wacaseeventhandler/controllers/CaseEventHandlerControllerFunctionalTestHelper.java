@@ -4,6 +4,7 @@ import com.azure.messaging.servicebus.ServiceBusMessage;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
@@ -58,7 +59,7 @@ public abstract class CaseEventHandlerControllerFunctionalTestHelper extends Spr
     }
 
     protected void assertTaskDoesNotExist(String caseId, String taskId) {
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(500, MILLISECONDS)
             .atMost(30, SECONDS)
             .until(
@@ -82,7 +83,7 @@ public abstract class CaseEventHandlerControllerFunctionalTestHelper extends Spr
 
     protected void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
         log.info("Finding warnings task for caseId = {} and taskId = {}", caseId, taskId);
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(500, MILLISECONDS)
             .atMost(60, SECONDS)
             .until(
@@ -240,7 +241,7 @@ public abstract class CaseEventHandlerControllerFunctionalTestHelper extends Spr
 
         log.info("Finding task for caseId = {}", caseId);
         AtomicReference<Response> response = new AtomicReference<>();
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(1000, MILLISECONDS)
             .atMost(60, SECONDS)
             .until(
@@ -285,7 +286,7 @@ public abstract class CaseEventHandlerControllerFunctionalTestHelper extends Spr
         String filter = "?processVariables=caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn;
 
         AtomicReference<String> response = new AtomicReference<>();
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(500, MILLISECONDS)
             .atMost(60, SECONDS)
             .until(

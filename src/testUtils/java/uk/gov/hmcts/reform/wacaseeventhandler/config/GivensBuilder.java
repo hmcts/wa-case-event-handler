@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.opentest4j.AssertionFailedError;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
@@ -336,7 +337,7 @@ public class GivensBuilder {
         String filter = "?processVariables=" + key + "_eq_" + value;
 
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(1, SECONDS)
             .atMost(60, SECONDS)
             .until(
@@ -368,7 +369,7 @@ public class GivensBuilder {
         String filter = "?processVariables=" + key + "_eq_" + value;
 
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(500, MILLISECONDS)
             .atMost(60, SECONDS)
             .until(
@@ -400,7 +401,7 @@ public class GivensBuilder {
         String filter = "?variables=" + key + "_eq_" + value;
 
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(500, MILLISECONDS)
             .atMost(60, SECONDS)
             .until(

@@ -1,6 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.query;
 
-import org.assertj.core.api.Assertions;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices.FindProblemMe
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ActiveProfiles("integration")
 @DataJpaTest
@@ -40,7 +41,7 @@ public class FindProblemMessageUnhappyPathTest {
     @Test
     void should_not_retrieve_any_problem_messages() {
         List<String> caseEventMessages = problemMessageService.run();
-        Assertions.assertThat(caseEventMessages.isEmpty()).isTrue();
+        assertTrue(caseEventMessages.isEmpty());
     }
 }
 

@@ -10,9 +10,8 @@ import io.restassured.config.RestAssuredConfig;
 import io.restassured.http.Headers;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
-import net.serenitybdd.junit.spring.integration.SpringIntegrationSerenityRunner;
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -57,7 +56,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.InitiateTaskOperation.INITIATION;
 
-@RunWith(SpringIntegrationSerenityRunner.class)
+
 @SpringBootTest
 @ActiveProfiles(profiles = {"local", "functional"})
 @Slf4j
@@ -103,7 +102,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
     protected List<String> caseIds;
 
-    @Before
+    @BeforeEach
     public void setUp() throws IOException {
         RestAssured.config = RestAssuredConfig.config()
             .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
@@ -201,7 +200,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
         log.info("Finding task for caseId = {}", caseId);
         AtomicReference<Response> response = new AtomicReference<>();
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(1000, MILLISECONDS)
             .atMost(60, SECONDS)
             .until(

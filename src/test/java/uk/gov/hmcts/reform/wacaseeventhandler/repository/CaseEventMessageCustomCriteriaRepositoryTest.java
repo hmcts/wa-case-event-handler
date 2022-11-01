@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.repository;
 
-import org.junit.After;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +27,6 @@ class CaseEventMessageCustomCriteriaRepositoryTest {
     @Autowired
     protected DataSource db;
 
-    @After
     @AfterEach
     public void clearDownData() {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(db);

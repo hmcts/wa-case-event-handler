@@ -2,9 +2,10 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.opentest4j.AssertionFailedError;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.Warning;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.WarningValues;
 
@@ -28,7 +29,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @Slf4j
 public class WarningEventHandlerControllerTest extends CaseEventHandlerControllerFunctionalTestHelper {
 
-    @Before
+    @BeforeEach
     public void setup() {
         eventTimeStamp = LocalDateTime.now().minusDays(1);
         caseworkerCredentials = authorizationProvider.getNewWaTribunalCaseworker("wa-ft-test-r2-");
@@ -40,7 +41,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         caseId2Task2Id = "";
     }
 
-    @After
+    @AfterEach
     public void cleanUp() {
         taskIdStatusMap.forEach(this::completeTask);
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
@@ -714,7 +715,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
     public void assertTaskHasMultipleWarnings(String caseId, String taskId,
                                               WarningValues expectedWarningValues) {
         log.info("Finding warnings task for caseId = {} and taskId = {}", caseId, taskId);
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(500, MILLISECONDS)
             .atMost(60, SECONDS)
             .until(
@@ -768,7 +769,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
     private void assertTaskWithoutWarnings(String caseId, String taskId, boolean hasWarnings) {
         log.info("Finding warnings task for caseId = {} and taskId = {}", caseId, taskId);
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
             .pollInterval(500, MILLISECONDS)
             .atMost(60, SECONDS)
             .until(

@@ -1,11 +1,11 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.config;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class ServiceTokenGeneratorConfigurationTest extends SpringBootFunctionalBaseTest {
 
