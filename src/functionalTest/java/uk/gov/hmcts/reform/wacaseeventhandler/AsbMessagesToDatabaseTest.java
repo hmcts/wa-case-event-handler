@@ -1,9 +1,9 @@
 package uk.gov.hmcts.reform.wacaseeventhandler;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResponse;
@@ -21,14 +21,14 @@ import static org.awaitility.Awaitility.await;
 
 public class AsbMessagesToDatabaseTest extends MessagingTests {
 
-    public static List<CaseEventMessage> caseEventMessages = new ArrayList<>();
+    public static List<CaseEventMessage> caseEventMessages;
 
-    @After
+    @AfterEach
     public void tearDown() {
         deleteMessagesFromDatabase(caseEventMessages);
     }
 
-    @Before
+    @BeforeEach
     public void setup() {
         caseEventMessages = new ArrayList<>();
     }

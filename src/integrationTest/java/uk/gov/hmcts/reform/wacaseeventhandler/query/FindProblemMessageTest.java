@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.query;
 
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageReposit
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices.FindProblemMessageJob;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -29,6 +31,8 @@ public class FindProblemMessageTest {
 
     private FindProblemMessageJob findProblemMessageJob;
 
+    private List<String> caseEventMessages;
+
     @BeforeEach
     void setUp() {
         findProblemMessageJob = new FindProblemMessageJob(caseEventMessageRepository,
@@ -36,9 +40,14 @@ public class FindProblemMessageTest {
                                                           60);
     }
 
+    @AfterEach
+    void tearDown() {
+        caseEventMessages = new ArrayList<>();
+    }
+
     @Test
     void should_retrieve_an_ready_message() {
-        List<String> caseEventMessages = findProblemMessageJob.run();
+        caseEventMessages = findProblemMessageJob.run();
         Assertions.assertThat(caseEventMessages.isEmpty()).isFalse();
         Assertions.assertThat(caseEventMessages.size()).isEqualTo(3);
         Assertions.assertThat(caseEventMessages.get(0)).isEqualTo("ID:c05439ca-ddb2-47d0-a0a6-ba9db76a3064:58:1:1-10");
