@@ -650,7 +650,7 @@ class EventMessageReceiverServiceTest {
     private static String messageAsString() {
         return "{\n"
             + "  \"EventInstanceId\" : \"some event instance Id\",\n"
-            + "  \"EventTimeStamp\" : \"2020-12-07T17:39:22.232622\",\n"
+            + "  \"EventTimeStamp\" : \"2020-12-07T17:39:22.232620\",\n"
             + "  \"CaseId\" : \"12345\",\n"
             + "  \"JurisdictionId\" : \"ia\",\n"
             + "  \"CaseTypeId\" : \"asylum\",\n"
@@ -666,7 +666,7 @@ class EventMessageReceiverServiceTest {
     private static String messageNoUserAsString() {
         return "{\n"
                 + "  \"EventInstanceId\" : \"some event instance Id\",\n"
-                + "  \"EventTimeStamp\" : \"2020-12-07T17:39:22.232622\",\n"
+                + "  \"EventTimeStamp\" : \"2020-12-07T17:39:22.232620\",\n"
                 + "  \"CaseId\" : \"12345\",\n"
                 + "  \"JurisdictionId\" : \"ia\",\n"
                 + "  \"CaseTypeId\" : \"asylum\",\n"
