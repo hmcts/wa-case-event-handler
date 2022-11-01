@@ -79,15 +79,6 @@ public class Common {
         this.roleAssignmentServiceApi = roleAssignmentServiceApi;
     }
 
-
-    public TestVariables createCase(String jurisdictionId, String caseType) {
-
-        String caseId = given.createCcdCase(jurisdictionId, caseType);
-
-        return new TestVariables(caseId, null, null);
-    }
-
-
     public TestVariables createWaCase() {
 
         String caseId = given.createWaCcdCase();

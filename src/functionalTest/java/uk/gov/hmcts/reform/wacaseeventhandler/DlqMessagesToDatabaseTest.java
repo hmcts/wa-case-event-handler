@@ -27,11 +27,11 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
     public void should_store_dlq_messages_in_database() {
         List<String> messageIds = List.of(randomMessageId(), randomMessageId(), randomMessageId());
 
-        var caseId = getCaseId();
+        var caseId = getWaCaseId();
 
         final EventInformation eventInformation = EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
-            .jurisdictionId("IA")
+            .jurisdictionId("WA")
             .eventTimeStamp(LocalDateTime.now())
             .eventId("makeAnApplication")
             .caseId(caseId)
@@ -66,11 +66,11 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
     @Test
     public void should_store_dlq_messages_missing_mandatory_fields_in_database_as_unprocessable() {
 
-        var caseId = getCaseId();
+        var caseId = getWaCaseId();
 
         final EventInformation eventInformation = EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
-            .jurisdictionId("IA")
+            .jurisdictionId("WA")
             .eventId("makeAnApplication")
             .caseId(caseId)
             .userId("insert_true")
