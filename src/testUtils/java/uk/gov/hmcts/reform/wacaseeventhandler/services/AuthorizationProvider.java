@@ -30,10 +30,14 @@ public class AuthorizationProvider {
 
     private final Map<String, String> tokens = new ConcurrentHashMap<>();
     private final Map<String, UserInfo> userInfo = new ConcurrentHashMap<>();
-    @Value("${idam.redirectUrl}") protected String idamRedirectUrl;
-    @Value("${idam.scope}") protected String userScope;
-    @Value("${spring.security.oauth2.client.registration.oidc.client-id}") protected String idamClientId;
-    @Value("${spring.security.oauth2.client.registration.oidc.client-secret}") protected String idamClientSecret;
+    @Value("${idam.redirectUrl}")
+    protected String idamRedirectUrl;
+    @Value("${idam.scope}")
+    protected String userScope;
+    @Value("${spring.security.oauth2.client.registration.oidc.client-id}")
+    protected String idamClientId;
+    @Value("${spring.security.oauth2.client.registration.oidc.client-secret}")
+    protected String idamClientSecret;
     @Autowired
     private IdamWebApi idamWebApi;
 
@@ -65,39 +69,12 @@ public class AuthorizationProvider {
         return new Header(SERVICE_AUTHORIZATION, serviceToken);
     }
 
-    public TestAuthenticationCredentials getNewTribunalCaseworker(String emailPrefix) {
-        /*
-         * This user is used to assign role assignments to on a per test basis.
-         * A clean up before assigning new role assignments is needed.
-         */
-        TestAccount caseworker = getIdamLawFirmCredentials(emailPrefix);
-
-        Headers authenticationHeaders = new Headers(
-            getAuthorizationOnly(caseworker),
-            getServiceAuthorizationHeader()
-        );
-
-        return new TestAuthenticationCredentials(caseworker, authenticationHeaders);
-    }
-
-    public TestAuthenticationCredentials getNewLawFirm() {
-        /*
-         * This user is used to create cases in ccd
-         */
-        TestAccount lawfirm = getIdamLawFirmCredentials("wa-ft-lawfirm-");
-
-        Headers authenticationHeaders = new Headers(
-            getAuthorizationOnly(lawfirm),
-            getServiceAuthorizationHeader()
-        );
-
-        return new TestAuthenticationCredentials(lawfirm, authenticationHeaders);
-    }
-
     public TestAuthenticationCredentials getWaCaseworkerAAuthorizationOnly(String emailPrefix) {
-        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-wa-task-configuration"),
-                                              new RoleCode("payments"),
-                                              new RoleCode("caseworker-wa"));
+        List<RoleCode> requiredRoles = asList(
+            new RoleCode("caseworker-wa-task-officer"),
+            new RoleCode("payments"),
+            new RoleCode("caseworker-wa")
+        );
         TestAccount testAccount = generateIdamTestAccount(emailPrefix, requiredRoles);
 
         Headers authenticationHeaders = new Headers(
@@ -106,22 +83,7 @@ public class AuthorizationProvider {
         );
 
 
-
         return new TestAuthenticationCredentials(testAccount, authenticationHeaders);
-
-    }
-
-
-    public Header getCaseworkerAuthorizationOnly(String emailPrefix) {
-        TestAccount caseworker = getIdamCaseWorkerCredentials(emailPrefix);
-        return getAuthorization(caseworker.getUsername(), caseworker.getPassword());
-
-    }
-
-    public Header getLawFirmAuthorizationOnly() {
-
-        TestAccount lawfirm = getIdamLawFirmCredentials("wa-ft-lawfirm-");
-        return getAuthorization(lawfirm.getUsername(), lawfirm.getPassword());
 
     }
 
@@ -157,9 +119,11 @@ public class AuthorizationProvider {
     }
 
     private TestAccount getIdamWaTribunalCaseworkerCredentials(String emailPrefix) {
-        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-wa-task-configuration"),
+        List<RoleCode> requiredRoles = asList(
+            new RoleCode("caseworker-wa-task-officer"),
             new RoleCode("payments"),
-            new RoleCode("caseworker-wa"));
+            new RoleCode("caseworker-wa")
+        );
         return generateIdamTestAccount(emailPrefix, requiredRoles);
     }
 
@@ -173,19 +137,6 @@ public class AuthorizationProvider {
         );
 
         return new Header(AUTHORIZATION, accessToken);
-    }
-
-    private TestAccount getIdamCaseWorkerCredentials(String emailPrefix) {
-        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"), new RoleCode("caseworker-ia-caseofficer"));
-        return generateIdamTestAccount(emailPrefix, requiredRoles);
-    }
-
-    private TestAccount getIdamLawFirmCredentials(String emailPrefix) {
-        List<RoleCode> requiredRoles = asList(new RoleCode("caseworker-ia"),
-            new RoleCode("caseworker-ia-legalrep-solicitor"),
-            new RoleCode("payments")
-        );
-        return generateIdamTestAccount(emailPrefix, requiredRoles);
     }
 
     private MultiValueMap<String, String> createIdamRequest(String username, String password) {
