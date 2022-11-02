@@ -390,13 +390,27 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             false, "WA", "WaCaseType"
         );
 
-        Response taskFound = findTasksByCaseId(caseId, 1);
 
-        caseId1Task1Id = taskFound
-            .then().assertThat()
-            .body("[0].id", notNullValue())
-            .extract()
-            .path("[0].id");
+        await().ignoreException(AssertionError.class)
+            .pollInterval(3, SECONDS)
+            .atMost(120, SECONDS)
+            .until(
+                () -> {
+                    Response taskFound = findTasksByCaseId(caseId, 1);
+                    if (taskFound != null) {
+
+                        caseId1Task1Id = taskFound
+                            .then().assertThat()
+                            .body("[0].id", notNullValue())
+                            .extract()
+                            .path("[0].id");
+
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
+
 
         taskIdStatusMap.put(caseId1Task1Id, "completed");
 
@@ -408,13 +422,25 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             false, "WA", "WaCaseType"
         );
 
-        taskFound = findTasksByCaseId(caseId, 2);
+        await().ignoreException(AssertionError.class)
+            .pollInterval(3, SECONDS)
+            .atMost(120, SECONDS)
+            .until(
+                () -> {
+                    Response taskFound = findTasksByCaseId(caseId, 2);
+                    if (taskFound != null) {
 
-        caseId1Task2Id = taskFound
-            .then().assertThat()
-            .body("[1].id", notNullValue())
-            .extract()
-            .path("[1].id");
+                        caseId1Task2Id = taskFound
+                            .then().assertThat()
+                            .body("[1].id", notNullValue())
+                            .extract()
+                            .path("[1].id");
+
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
 
         taskIdStatusMap.put(caseId1Task2Id, "completed");
 

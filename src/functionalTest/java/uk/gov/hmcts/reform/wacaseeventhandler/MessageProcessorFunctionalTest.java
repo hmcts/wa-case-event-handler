@@ -386,7 +386,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         waitSeconds(3);
         testExecution = 0;
         isReadyExecution = 0;
-        await().ignoreException(AssertionError.class)
+        await().ignoreException(AssertionFailedError.class)
                 .pollInterval(3, SECONDS)
                 .atMost(120, SECONDS)
                 .until(
