@@ -1164,6 +1164,23 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
     }
 
     @Test
+    public void should_return_a_503_if_task_already_initiated_however_handled_gracefully() {
+        TestVariables defaultTaskVariables = common.setupWaTaskAndRetrieveIds();
+        caseId1Task1Id = defaultTaskVariables.getTaskId();
+        caseIds.add(caseId1Task1Id);
+        common.setupCftOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
+
+        String caseIdForTask1 = defaultTaskVariables.getCaseId();
+
+        //initiate task
+        initiateTask(caseworkerCredentials.getHeaders(), caseIdForTask1, caseId1Task1Id, "followUpOverdueCaseBuilding",
+                     "Follow-up overdue case building", "Follow-up overdue case building");
+        //Expect to get 503 for database conflict
+        initiateTask(caseworkerCredentials.getHeaders(), caseIdForTask1, caseId1Task1Id, "followUpOverdueCaseBuilding",
+                     "Follow-up overdue case building", "Follow-up overdue case building");
+    }
+
+    @Test
     public void given_initiate_tasks_then_reconfigure_task_to_mark_tasks_for_reconfiguration_for_WA() {
 
         TestVariables taskVariables = common.setupWaTaskAndRetrieveIds();
