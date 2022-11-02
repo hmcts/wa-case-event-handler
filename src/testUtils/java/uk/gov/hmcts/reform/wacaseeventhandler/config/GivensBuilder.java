@@ -63,105 +63,6 @@ public class GivensBuilder {
 
     }
 
-    public String createCcdCase(String jurisdictionId, String caseType) {
-        TestAuthenticationCredentials lawFirmCredentials = authorizationProvider.getNewLawFirm();
-        String userToken = lawFirmCredentials.getHeaders().getValue(AUTHORIZATION);
-        String serviceToken = lawFirmCredentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(userToken);
-
-        Document document = documentManagementFiles.getDocumentAs(NOTICE_OF_APPEAL_PDF, lawFirmCredentials);
-
-        StartEventResponse startCase = coreCaseDataApi.startForCaseworker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            jurisdictionId,
-            caseType,
-            "startAppeal"
-        );
-
-        String resourceFilename = "requests/ccd/case_data.json";
-
-        Map data = null;
-        try {
-            String caseDataString =
-                FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename), "UTF-8");
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
-                document.getDocumentUrl()
-            );
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_NAME}",
-                document.getDocumentFilename()
-            );
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL_BINARY}",
-                document.getDocumentBinaryUrl()
-            );
-
-            data = new ObjectMapper().readValue(caseDataString, Map.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        CaseDataContent caseDataContent = CaseDataContent.builder()
-            .eventToken(startCase.getToken())
-            .event(Event.builder()
-                .id(startCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
-            .data(data)
-            .build();
-
-        //Fire submit event
-        CaseDetails caseDetails = coreCaseDataApi.submitForCaseworker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            jurisdictionId,
-            caseType,
-            true,
-            caseDataContent
-        );
-
-        log.info("Created case [" + caseDetails.getId() + "]");
-
-        StartEventResponse submitCase = coreCaseDataApi.startEventForCaseWorker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            jurisdictionId,
-            caseType,
-            caseDetails.getId().toString(),
-            "submitAppeal"
-        );
-
-        CaseDataContent submitCaseDataContent = CaseDataContent.builder()
-            .eventToken(submitCase.getToken())
-            .event(Event.builder()
-                .id(submitCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
-            .data(data)
-            .build();
-
-        coreCaseDataApi.submitEventForCaseWorker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            jurisdictionId,
-            caseType,
-            caseDetails.getId().toString(),
-            true,
-            submitCaseDataContent
-        );
-        log.info("Submitted case [" + caseDetails.getId() + "]");
-
-        return caseDetails.getId().toString();
-    }
-
     public String createWaCcdCase() {
         TestAuthenticationCredentials lawFirmCredentials =
             authorizationProvider.getWaCaseworkerAAuthorizationOnly("wa-ft-test-r2-");
@@ -330,7 +231,8 @@ public class GivensBuilder {
         try {
             String caseDataString = FileUtils.readFileToString(
                 ResourceUtils.getFile("classpath:" + resourceFilename),
-                "UTF-8");
+                "UTF-8"
+            );
 
             caseDataString = caseDataString.replace(
                 "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
@@ -353,10 +255,10 @@ public class GivensBuilder {
         CaseDataContent caseDataContent = CaseDataContent.builder()
             .eventToken(startCase.getToken())
             .event(Event.builder()
-                .id(startCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
+                       .id(startCase.getEventId())
+                       .summary("summary")
+                       .description("description")
+                       .build())
             .data(data)
             .build();
 
@@ -386,10 +288,10 @@ public class GivensBuilder {
         CaseDataContent submitCaseDataContent = CaseDataContent.builder()
             .eventToken(submitCase.getToken())
             .event(Event.builder()
-                .id(submitCase.getEventId())
-                .summary("summary")
-                .description("description")
-                .build())
+                       .id(submitCase.getEventId())
+                       .summary("summary")
+                       .description("description")
+                       .build())
             .data(data)
             .build();
 
@@ -588,7 +490,7 @@ public class GivensBuilder {
         String caseTypeId
     ) {
         String values = "[{\"warningCode\":\"Code1\", \"warningText\":\"Text1\"}, "
-                        + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
+            + "{\"warningCode\":\"Code2\", \"warningText\":\"Text2\"}]";
 
         CamundaProcessVariables processVariables = processVariables()
             .withProcessVariable("caseId", caseId)
