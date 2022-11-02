@@ -24,6 +24,7 @@ import static net.serenitybdd.rest.SerenityRest.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
@@ -74,7 +75,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("CaseId", equalTo(caseIdForTask))
             .body("EventTimestamp", equalTo(timeStampString))
             .body("FromDlq", equalTo(false))
-            .body("State", stateMatcher)
+            .body("State",  is(not("UNPROCESSED")))
             .body("MessageContent", equalTo(asJsonString(createRequest)))
             .body("Received", notNullValue())
             .body("DeliveryCount", equalTo(0))
