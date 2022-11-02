@@ -74,9 +74,12 @@ public abstract class SpringBootFunctionalBaseTest {
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     protected static final String TASK_ENDPOINT = "/task/{task-id}";
 
-    @Value("${targets.instance}") protected String testUrl;
-    @Value("${targets.taskapi}") protected String taskManagementUrl;
-    @Value("${targets.camunda}") public String camundaUrl;
+    @Value("${targets.instance}")
+    protected String testUrl;
+    @Value("${targets.taskapi}")
+    protected String taskManagementUrl;
+    @Value("${targets.camunda}")
+    public String camundaUrl;
 
     public ServiceBusSenderClient publisher;
     public String s2sToken;
@@ -85,14 +88,22 @@ public abstract class SpringBootFunctionalBaseTest {
     protected RestApiActions camundaApiActions;
     protected RestApiActions restApiActions;
 
-    @Autowired protected AuthorizationProvider authorizationProvider;
-    @Autowired protected CoreCaseDataApi coreCaseDataApi;
-    @Autowired protected DocumentManagementFiles documentManagementFiles;
-    @Autowired protected IdamService idamService;
-    @Autowired protected RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @Autowired private AuthTokenGenerator authTokenGenerator;
-    @Autowired private ApplicationContext applicationContext;
-    @Autowired protected IdempotencyKeyGenerator idempotencyKeyGenerator;
+    @Autowired
+    protected AuthorizationProvider authorizationProvider;
+    @Autowired
+    protected CoreCaseDataApi coreCaseDataApi;
+    @Autowired
+    protected DocumentManagementFiles documentManagementFiles;
+    @Autowired
+    protected IdamService idamService;
+    @Autowired
+    protected RoleAssignmentServiceApi roleAssignmentServiceApi;
+    @Autowired
+    private AuthTokenGenerator authTokenGenerator;
+    @Autowired
+    private ApplicationContext applicationContext;
+    @Autowired
+    protected IdempotencyKeyGenerator idempotencyKeyGenerator;
 
     protected List<String> caseIds;
 
@@ -183,18 +194,6 @@ public abstract class SpringBootFunctionalBaseTest {
             .contentType(APPLICATION_JSON_VALUE)
             .body("task_id", equalTo(taskId))
             .body("case_id", equalTo(caseId));
-    }
-
-    public String getCaseId() {
-        return getCaseIdForJurisdictionAndCaseType("IA", "Asylum");
-    }
-
-    public String getCaseIdForJurisdictionAndCaseType(String jurisdictionId, String caseType) {
-        TestVariables taskVariables = common.createCase(jurisdictionId, caseType);
-        requireNonNull(taskVariables, "taskVariables is null");
-        requireNonNull(taskVariables.getCaseId(), "case id is null");
-        caseIds.add(taskVariables.getCaseId());
-        return taskVariables.getCaseId();
     }
 
     public String getWaCaseId() {

@@ -53,7 +53,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
 
     @Test
     public void given_post_event_using_test_rest_endpoints_should_create_task() {
-        String caseIdForTask = getCaseId();
+        String caseIdForTask = getWaCaseId();
 
         String messageId = randomMessageId();
         String eventInstanceId = UUID.randomUUID().toString();
@@ -99,8 +99,8 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", equalToIgnoringCase("asylum"))
-            .body("jurisdiction.value", equalToIgnoringCase("ia"))
+            .body("caseTypeId.value", equalToIgnoringCase("wacasetype"))
+            .body("jurisdiction.value", equalToIgnoringCase("wa"))
             .body("idempotencyKey.value", is(idempotencyKey))
             .body("dueDate.value", notNullValue())
             .body("taskState.value", equalToIgnoringCase("unconfigured"))
@@ -117,7 +117,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     @Test
     public void should_save_ccd_event_using_test_rest_endpoints() {
         String messageId = randomMessageId();
-        String caseIdForTask = getCaseId();
+        String caseIdForTask = getWaCaseId();
         String eventInstanceId = UUID.randomUUID().toString();
 
         EventInformation eventInformation = buildEventInformation(eventInstanceId, caseIdForTask);
@@ -146,7 +146,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     @Test
     public void should_update_ccd_event_using_test_rest_endpoints() {
         String messageId = randomMessageId();
-        String caseIdForTask = getCaseId();
+        String caseIdForTask = getWaCaseId();
         String eventInstanceId = UUID.randomUUID().toString();
         LocalDateTime updatedEventTimestamp = eventTimestamp1.minusDays(10);
 
@@ -189,7 +189,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     @Test
     public void should_update_ccd_event_using_test_rest_endpoints_when_from_dlq_not_specified() {
         String messageId = randomMessageId();
-        String caseIdForTask = getCaseId();
+        String caseIdForTask = getWaCaseId();
         String eventInstanceId = UUID.randomUUID().toString();
         LocalDateTime updatedEventTimestamp = eventTimestamp1.minusDays(10);
 
@@ -212,7 +212,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     @Test
     public void should_get_ccd_event_using_test_rest_endpoints() {
         String messageId = randomMessageId();
-        String caseIdForTask = getCaseId();
+        String caseIdForTask = getWaCaseId();
         String eventInstanceId = UUID.randomUUID().toString();
 
         EventInformation eventInformation = buildEventInformation(eventInstanceId, caseIdForTask);
@@ -247,8 +247,8 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
 
     @Test
     public void messages_should_be_created() {
-        String caseId1 = getCaseId();
-        String caseId2 = getCaseId();
+        String caseId1 = getWaCaseId();
+        String caseId2 = getWaCaseId();
         String messageId1 = createMessage(eventTimestamp1, caseId1, FROM_DLQ);
         String messageId2 = createMessage(eventTimestamp2, caseId1, FROM_DLQ);
         createMessage(eventTimestamp2, caseId2, NOT_FROM_DLQ);
@@ -268,7 +268,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
 
     @Test
     public void should_return_error_when_no_query_parameters_specified() {
-        createMessage(eventTimestamp1, getCaseId(), NOT_FROM_DLQ);
+        createMessage(eventTimestamp1, getWaCaseId(), NOT_FROM_DLQ);
 
         getMessagesFromRestEndpoint(null, null, null, null, s2sToken)
             .then()
@@ -282,9 +282,9 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
 
     @Test
     public void should_query_messages_when_there_are_no_messages_matching_my_query() {
-        createMessage(eventTimestamp1, getCaseId(), NOT_FROM_DLQ);
+        createMessage(eventTimestamp1, getWaCaseId(), NOT_FROM_DLQ);
 
-        getMessagesFromRestEndpoint(null, getCaseId(), null, null, s2sToken)
+        getMessagesFromRestEndpoint(null, getWaCaseId(), null, null, s2sToken)
             .then()
             .statusCode(HttpStatus.OK.value())
             .assertThat()
@@ -296,7 +296,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
 
     @Test
     public void should_delete_message() {
-        String caseId1 = getCaseId();
+        String caseId1 = getWaCaseId();
         String messageToDelete = createMessage(eventTimestamp1, caseId1, FROM_DLQ);
         String messageToKeep = createMessage(eventTimestamp2, caseId1, FROM_DLQ);
 
@@ -317,7 +317,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
 
     @Test
     public void should_delete_message_and_get_404_if_not_found() {
-        String messageId1 = getCaseId();
+        String messageId1 = getWaCaseId();
 
         deleteEventToRestEndpoint(messageId1, s2sToken)
             .then()
@@ -353,8 +353,8 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
                 .eventInstanceId(eventInstanceId)
                 .eventTimeStamp(updatedEventTimestamp)
                 .caseId(caseIdForTask)
-                .jurisdictionId("IA")
-                .caseTypeId("Asylum")
+                .jurisdictionId("WA")
+                .caseTypeId("WaCaseType")
                 .eventId("sendDirection")
                 .newStateId(null)
                 .previousStateId(null)
@@ -391,8 +391,8 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .eventInstanceId(eventInstanceId)
             .eventTimeStamp(eventTimeStamp)
             .caseId(caseIdForTask)
-            .jurisdictionId("IA")
-            .caseTypeId("Asylum")
+            .jurisdictionId("WA")
+            .caseTypeId("WaCaseType")
             .eventId("sendDirection")
             .newStateId(null)
             .previousStateId(null)
@@ -446,10 +446,11 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     private Response postEventToRestEndpoint(String messageId,
                                              String s2sToken,
                                              EventInformationRequest eventInformation) {
+        String body = asJsonString(eventInformation);
         return given()
             .contentType(APPLICATION_JSON_VALUE)
             .header(SERVICE_AUTHORIZATION, s2sToken)
-            .body(asJsonString(eventInformation))
+            .body(body)
             .when()
             .post("/messages/" + messageId);
     }
