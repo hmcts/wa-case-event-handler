@@ -53,4 +53,10 @@
     <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson\-databind@.*$</packageUrl>
     <vulnerabilityName>CVE-2022-42003</vulnerabilityName>
   </suppress>
+  <suppress>
+    <notes>False positive reactor-netty-http-1.0.24, already at the highest level (1.0.24)
+      https://tanzu.vmware.com/security/cve-2022-31684
+    </notes>
+    <cve>CVE-2022-31684</cve>
+  </suppress>
 </suppressions>
