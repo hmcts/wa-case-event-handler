@@ -17,8 +17,8 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformatio
 
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -42,7 +42,6 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     private LocalDateTime eventTimestamp2;
     private LocalDateTime holdUntilTimestamp;
 
-    private Random random = new Random(123456);
     //should match valid values from MessageState Enum
     Matcher<String> stateMatcher = Matchers.oneOf("NEW", "READY", "PROCESSED");
 
@@ -419,8 +418,8 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     }
 
     private String randomMessageId() {
-        return "" + this.random.nextInt(1000000);
-        // return "" + ThreadLocalRandom.current().nextLong(1000000);
+        // return "" + this.random.nextInt(1000000);
+        return "" + ThreadLocalRandom.current().nextLong(1000000);
     }
 
     private Response getMessagesFromRestEndpoint(String states,
