@@ -77,7 +77,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("CaseId", equalTo(caseIdForTask))
             .body("EventTimestamp", equalTo(timeStampString))
             .body("FromDlq", equalTo(false))
-            .body("State",  is(not("UNPROCESSED")))
+            .body("State",  is(not("UNPROCESSABLE")))
             .body("MessageContent", equalTo(asJsonString(createRequest)))
             .body("Received", notNullValue())
             .body("DeliveryCount", equalTo(0))
