@@ -33,6 +33,18 @@
     <cve>CVE-2022-38752</cve>
   </suppress>
   <suppress>
+    <notes>Temporary fix to be removed</notes>
+    <cve>CVE-2022-42252</cve>
+  </suppress>
+  <suppress>
+    <notes>Temporary fix to be removed</notes>
+    <cve>CVE-2022-31692</cve>
+  </suppress>
+  <suppress>
+    <notes>Temporary fix to be removed</notes>
+    <cve>CVE-2022-31690</cve>
+  </suppress>
+  <suppress>
     <notes><![CDATA[
    file name: jackson-databind-2.13.4.jar
    ]]></notes>
@@ -53,4 +65,5 @@
     <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson\-databind@.*$</packageUrl>
     <vulnerabilityName>CVE-2022-42003</vulnerabilityName>
   </suppress>
+
 </suppressions>
