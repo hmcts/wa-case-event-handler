@@ -274,16 +274,17 @@ repositories {
 }
 
 def versions = [
-  junit        : '5.8.2',
-  junitPlatform: '1.8.2',
-  reformLogging: '5.1.9',
-  springDoc    : '1.6.6',
-  springBoot   : '2.7.4',
-  serenity     : '3.1.20',
-  pitest       : '1.7.4',
-  logbook      : '2.6.2',
-  tomcat       : '9.0.64',
-  log4j        : '2.17.2'
+  junit          : '5.8.2',
+  junitPlatform  : '1.8.2',
+  reformLogging  : '5.1.9',
+  springDoc      : '1.6.6',
+  springBoot     : '2.7.5',
+  springSecurity : '5.7.5',
+  serenity       : '3.1.20',
+  pitest         : '1.7.4',
+  logbook        : '2.6.2',
+  tomcat         : '9.0.68',
+  log4j          : '2.17.2'
 ]
 
 ext.libraries = [
@@ -305,10 +306,14 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: versions.springBoot
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: versions.springBoot
-  implementation group: 'org.springframework.security', name: 'spring-security-test', version: '5.7.1'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: versions.springSecurity
+  implementation group: 'org.springframework.security', name: 'spring-security-test', version:  versions.springSecurity
+  implementation group: 'org.springframework.security', name: 'spring-security-core', version: versions.springSecurity
+  implementation group: 'org.springframework.security', name: 'spring-security-config', version: versions.springSecurity
+  implementation group: 'org.springframework.security', name: 'spring-security-web', version:  versions.springSecurity
+  implementation group: 'org.springframework.security', name: 'spring-security-crypto', version:  versions.springSecurity
   implementation group: 'org.springframework.security', name: 'spring-security-rsa', version: '1.0.11.RELEASE'
-
+  implementation 'org.springframework.boot:spring-boot-starter-security:2.7.5'
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.1.1'
 
   implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: versions.springDoc
