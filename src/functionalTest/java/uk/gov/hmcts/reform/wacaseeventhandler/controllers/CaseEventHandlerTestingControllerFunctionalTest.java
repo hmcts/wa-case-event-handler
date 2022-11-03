@@ -79,7 +79,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("FromDlq", equalTo(false))
             .body("State",  is(not("UNPROCESSABLE")))
             .body("MessageContent", equalTo(asJsonString(createRequest)))
-            .body("Received", notNullValue())
+            .body("Received", notNullValue())sp
             .body("DeliveryCount", equalTo(0))
             .body("RetryCount", equalTo(0))
 
