@@ -188,18 +188,6 @@ public abstract class SpringBootFunctionalBaseTest {
         assertResponse(result, caseId, taskId);
     }
 
-    public String getCaseId() {
-        return getCaseIdForJurisdictionAndCaseType("IA", "Asylum");
-    }
-
-    public String getCaseIdForJurisdictionAndCaseType(String jurisdictionId, String caseType) {
-        TestVariables taskVariables = common.createCase(jurisdictionId, caseType);
-        requireNonNull(taskVariables, "taskVariables is null");
-        requireNonNull(taskVariables.getCaseId(), "case id is null");
-        caseIds.add(taskVariables.getCaseId());
-        return taskVariables.getCaseId();
-    }
-
     public String getWaCaseId() {
         TestVariables taskVariables = common.createWaCase();
         requireNonNull(taskVariables, "taskVariables is null");
