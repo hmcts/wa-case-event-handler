@@ -35,7 +35,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmn
 })
 class CaseEventHandlerControllerHandlersOrderTest {
 
-    public static final String FIXED_DATE = "2020-12-07T17:39:22.232620";
+    public static final String FIXED_DATE = "2020-12-07T17:39:22.232622";
     @MockBean
     private CancellationCaseEventHandler cancellationTaskHandlerService;
 
