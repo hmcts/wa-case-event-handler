@@ -1,6 +1,6 @@
 {
   "EventInstanceId": "some event instance Id",
-  "EventTimeStamp": "2020-12-07T17:39:22.232622",
+  "EventTimeStamp": "2020-12-07T17:39:22.232620",
   "CaseId": "some case reference",
   "JurisdictionId": "ia",
   "CaseTypeId": "asylum",
