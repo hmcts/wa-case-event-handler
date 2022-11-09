@@ -76,7 +76,7 @@ class EventInformationTest {
     private EventInformation eventInformation(AdditionalData additionalData) {
         return EventInformation.builder()
             .eventInstanceId("some event instance Id")
-            .eventTimeStamp(LocalDateTime.parse("2020-12-07T17:39:22.232620"))
+            .eventTimeStamp(LocalDateTime.parse("2020-12-07T17:39:22.232622"))
             .caseId("some case reference")
             .jurisdictionId("ia")
             .caseTypeId("asylum")
