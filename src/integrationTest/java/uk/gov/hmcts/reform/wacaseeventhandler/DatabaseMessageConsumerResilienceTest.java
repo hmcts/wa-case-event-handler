@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
 
@@ -82,7 +82,7 @@ public class DatabaseMessageConsumerResilienceTest {
     void tearDown() {
         ccdMessageProcessorExecutor.start();
     }
-    
+
     @Test
     void should_handle_database_outage_and_log_issue_when_database_message_consumer_running(CapturedOutput output) {
 
@@ -95,7 +95,7 @@ public class DatabaseMessageConsumerResilienceTest {
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
                 count.set(StringUtils.countMatches(output.getOut(), WARNING_MESSAGE));
-                assertEquals(MAX_ATTEMPTS, count.get());
+                assertTrue(count.get() > MAX_ATTEMPTS);
             });
     }
 

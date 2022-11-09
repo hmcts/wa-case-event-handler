@@ -30,7 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.azure.messaging.servicebus.implementation.ManagementConstants.MESSAGE_ID;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
@@ -101,7 +101,7 @@ public class MessageReadinessResilienceTest {
             .atMost(60, SECONDS)
             .untilAsserted(() -> {
                 count.set(StringUtils.countMatches(output.getOut(), WARNING_MESSAGE));
-                assertEquals(MAX_ATTEMPTS, count.get());
+                assertTrue(count.get() > MAX_ATTEMPTS);
             });
     }
 
@@ -126,7 +126,7 @@ public class MessageReadinessResilienceTest {
             .atMost(120, SECONDS)
             .untilAsserted(() -> {
                 count.set(StringUtils.countMatches(output.getOut(), WARNING_MESSAGE));
-                assertEquals(MAX_ATTEMPTS, count.get());
+                assertTrue(count.get() > MAX_ATTEMPTS);
             });
     }
 
