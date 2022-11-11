@@ -30,8 +30,8 @@ public class MessageReadinessExecutor {
     @PostConstruct
     public void start() {
         log.info("Starting message readiness executor");
-        messageReadinessExecutorService.scheduleAtFixedRate(messageReadinessConsumer,5000, pollInterval,
-                                                            TimeUnit.MILLISECONDS);
+        messageReadinessExecutorService.scheduleWithFixedDelay(messageReadinessConsumer, 5000, pollInterval,
+            TimeUnit.MILLISECONDS);
     }
 
     @PreDestroy
