@@ -138,6 +138,7 @@ job:
     #number of minutes
     message-time-limit: ${PROBLEM_MESSAGE_TIME_LIMIT:60}
     message-id-list: ${PROBLEM_MESSAGE_RESET_ID_LIST:}
+    null-event-time-timestamp-message-id-list: ${PROBLEM_MESSAGE_RESET_NULL_EVENT_TIMESTAMP_ID_LIST:}
 
 retry:
   maxAttempts: ${RESILIENCE_RETRY_MAX_ATTEMPTS:3}
