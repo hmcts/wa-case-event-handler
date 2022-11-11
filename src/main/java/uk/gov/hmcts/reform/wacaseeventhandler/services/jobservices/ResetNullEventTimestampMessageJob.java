@@ -28,14 +28,13 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
     public ResetNullEventTimestampMessageJob(CaseEventMessageRepository caseEventMessageRepository,
                                   @Value("${job.problem-message.null-event-time-timestamp-message-id-list}")
                                       List<String> messageIds) {
-        log.info("#################################ResetNullEventTimestampMessageJob");
         this.caseEventMessageRepository = caseEventMessageRepository;
         this.messageIds = messageIds;
     }
 
     @Override
     public boolean canRun(JobName jobName) {
-        return false;
+        return RESET_NULL_EVENT_TIMESTAMP_MESSAGES.equals(jobName);
     }
 
     @Override
@@ -43,8 +42,7 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
         log.info("start resetNullEventTimestampMessage '{}'", this.messageIds);
         if(!this.messageIds.isEmpty()) {
             log.info("Resetting message with null eventTimestamp messages '{}'", this.messageIds);
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.registerModule(new JavaTimeModule());
+            ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
             List<CaseEventMessageEntity> messages = caseEventMessageRepository.findByMessageId(this.messageIds);
 
             List<CaseEventMessageEntity> nullEventTimestampMessageList = messages.stream()
