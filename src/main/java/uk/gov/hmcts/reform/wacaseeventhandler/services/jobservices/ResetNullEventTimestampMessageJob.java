@@ -26,7 +26,7 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
     private final List<String> messageIds;
 
     public ResetNullEventTimestampMessageJob(CaseEventMessageRepository caseEventMessageRepository,
-                                  @Value("${job.problem-message.null-event-time-timestamp-message-id-list}")
+                                  @Value("${job.problem-message.null-event-timestamp-message-id-list}")
                                       List<String> messageIds) {
         this.caseEventMessageRepository = caseEventMessageRepository;
         this.messageIds = messageIds;
