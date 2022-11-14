@@ -39,9 +39,9 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
 
     @Override
     public List<String> run() {
-        log.info("start resetNullEventTimestampMessage '{}'", this.messageIds);
+        log.info("start {}:'{}'", RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(), this.messageIds);
         if(!this.messageIds.isEmpty()) {
-            log.info("Resetting message with null eventTimestamp messages '{}'", this.messageIds);
+            log.info("Resetting message with null eventTimestamp messages");
             ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
             List<CaseEventMessageEntity> messages = caseEventMessageRepository.findByMessageId(this.messageIds);
 
@@ -57,15 +57,15 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
             for (CaseEventMessageEntity obj : nullEventTimestampMessageList) {
                 try {
                     EventInformation eventInformation = objectMapper.readValue(obj.getMessageContent(), EventInformation.class);
-                    log.info("######message info: message id:{}, case id:{}", obj.getMessageId(), obj.getCaseId());
-                    log.info("main eventTimeStamp:{}", obj.getEventTimestamp());
-                    log.info("messageContent eventTimeStamp:{}", eventInformation.getEventTimeStamp());
+                    log.info("{} message id:{}, case id:{}, main eventTimeStamp:{}, messageContent eventTimeStamp:{}",
+                             RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),obj.getMessageId(), obj.getCaseId(), obj.getEventTimestamp(), eventInformation.getEventTimeStamp());
 
                     if (eventInformation.getEventTimeStamp() != null ) {
                         obj.setEventTimestamp(eventInformation.getEventTimeStamp());
                     }
 
-                    log.info("Completed reset eventTimestamp for message id:{} and case id:{}", obj.getMessageId(), obj.getCaseId());
+                    log.info("{} Completed reset main eventTimestamp to {} for message id:{} and case id:{}",
+                             RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(), obj.getEventTimestamp(), obj.getMessageId(), obj.getCaseId());
                 } catch (JsonProcessingException jsonProcessingException) {
                     log.info("Cannot parse the message with null eventTimeStamp, message id:{} and case id:{}",
                              obj.getMessageId(),
