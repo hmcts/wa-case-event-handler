@@ -228,7 +228,7 @@ dependencyManagement {
     dependency group: 'org.glassfish', name: 'jakarta.el', version: '4.0.1'
 
     //CVE-2021-42550
-    dependencySet(group: 'ch.qos.logback', version: '1.2.10') {
+    dependencySet(group: 'ch.qos.logback', version: '1.4.4') {
       entry 'logback-classic'
       entry 'logback-core'
     }
