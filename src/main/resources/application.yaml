@@ -140,7 +140,6 @@ job:
     message-id-list: ${PROBLEM_MESSAGE_RESET_ID_LIST:}
     null-event-timestamp-message-id-list: ${PROBLEM_MESSAGE_RESET_NULL_EVENT_TIMESTAMP_ID_LIST:}
 
-
 retry:
   maxAttempts: ${RESILIENCE_RETRY_MAX_ATTEMPTS:3}
   backOff:
