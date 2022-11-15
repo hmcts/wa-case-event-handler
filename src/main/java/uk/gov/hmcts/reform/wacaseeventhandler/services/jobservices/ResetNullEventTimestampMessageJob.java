@@ -24,12 +24,15 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName.RESET_N
 public class ResetNullEventTimestampMessageJob implements MessageJob {
     private final CaseEventMessageRepository caseEventMessageRepository;
     private final List<String> messageIds;
+    private final ObjectMapper objectMapper;
 
     public ResetNullEventTimestampMessageJob(CaseEventMessageRepository caseEventMessageRepository,
-                                  @Value("${job.problem-message.null-event-timestamp-message-id-list}")
-                                      List<String> messageIds) {
+                                             @Value("${job.problem-message.null-event-timestamp-message-id-list}")
+                                             List<String> messageIds,
+                                             ObjectMapper objectMapper) {
         this.caseEventMessageRepository = caseEventMessageRepository;
         this.messageIds = messageIds;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -39,10 +42,13 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
 
     @Override
     public List<String> run() {
-        log.info("start {}:'{}'", RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(), this.messageIds);
+        if(!canRun(RESET_NULL_EVENT_TIMESTAMP_MESSAGES)){
+            log.info("{} Cannot pass canRun()", RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name());
+            return List.of();
+        }
+        log.info("Start {}:'{}'", RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(), this.messageIds);
         if(!this.messageIds.isEmpty()) {
             log.info("Resetting message with null eventTimestamp messages");
-            ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
             List<CaseEventMessageEntity> messages = caseEventMessageRepository.findByMessageId(this.messageIds);
 
             List<CaseEventMessageEntity> nullEventTimestampMessageList = messages.stream()
@@ -54,22 +60,22 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
                 return List.of();
             }
 
-            for (CaseEventMessageEntity obj : nullEventTimestampMessageList) {
+            for (CaseEventMessageEntity messageEntity : nullEventTimestampMessageList) {
                 try {
-                    EventInformation eventInformation = objectMapper.readValue(obj.getMessageContent(), EventInformation.class);
+                    EventInformation eventInformation = objectMapper.readValue(messageEntity.getMessageContent(), EventInformation.class);
                     log.info("{} message id:{}, case id:{}, main eventTimeStamp:{}, messageContent eventTimeStamp:{}",
-                             RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),obj.getMessageId(), obj.getCaseId(), obj.getEventTimestamp(), eventInformation.getEventTimeStamp());
+                             RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),messageEntity.getMessageId(), messageEntity.getCaseId(), messageEntity.getEventTimestamp(), eventInformation.getEventTimeStamp());
 
                     if (eventInformation.getEventTimeStamp() != null ) {
-                        obj.setEventTimestamp(eventInformation.getEventTimeStamp());
+                        messageEntity.setEventTimestamp(eventInformation.getEventTimeStamp());
                     }
 
                     log.info("{} Completed reset main eventTimestamp to {} for message id:{} and case id:{}",
-                             RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(), obj.getEventTimestamp(), obj.getMessageId(), obj.getCaseId());
+                             RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(), messageEntity.getEventTimestamp(), messageEntity.getMessageId(), messageEntity.getCaseId());
                 } catch (JsonProcessingException jsonProcessingException) {
                     log.info("Cannot parse the message with null eventTimeStamp, message id:{} and case id:{}",
-                             obj.getMessageId(),
-                             obj.getCaseId());
+                             messageEntity.getMessageId(),
+                             messageEntity.getCaseId());
                     jsonProcessingException.printStackTrace();
                 }
             }
