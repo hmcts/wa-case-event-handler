@@ -2,7 +2,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.microsoft.applicationinsights.extensibility.context.OperationContext;
@@ -21,6 +21,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.TransactionTimedOutException;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.executors.CcdMessageProcessorExecutor;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
@@ -45,11 +46,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
-@ActiveProfiles("db")
+@ActiveProfiles(profiles = {"db", "integration"})
 public class UpdateRecordErrorHandlingTest {
 
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-        .setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE)
+        .setPropertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE)
         .registerModule(new JavaTimeModule())
         .registerModule(new Jdk8Module());
     private static final String MESSAGE_ID = "MessageId_30915063-ec4b-4272-933d-91087b486195";
@@ -70,6 +71,9 @@ public class UpdateRecordErrorHandlingTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private CcdMessageProcessorExecutor ccdMessageProcessorExecutor;
+
     private static final String STATE_TEMPLATE = "states=%s";
     private static final String PROCESSED_STATE_QUERY = format(STATE_TEMPLATE, MessageState.PROCESSED.name());
     private static final String UNPROCESSABLE_STATE_QUERY = format(STATE_TEMPLATE, MessageState.UNPROCESSABLE.name());
@@ -77,6 +81,7 @@ public class UpdateRecordErrorHandlingTest {
     @BeforeEach
     void setup() {
         lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
+        ccdMessageProcessorExecutor.start();
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -89,11 +94,8 @@ public class UpdateRecordErrorHandlingTest {
         doThrow(new TransactionTimedOutException("Time out")).when(caseEventMessageRepository)
             .updateMessageState(eq(MessageState.PROCESSED), Mockito.<String>anyList());
         await()
-            .atMost(60, SECONDS)
-            .untilAsserted(() -> {
-                        assertEquals(1, getMessagesInDbFromQuery(PROCESSED_STATE_QUERY).size());
-                    }
-            );
+            .atMost(120, SECONDS)
+            .untilAsserted(() -> assertEquals(1, getMessagesInDbFromQuery(PROCESSED_STATE_QUERY).size()));
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -113,13 +115,12 @@ public class UpdateRecordErrorHandlingTest {
             .updateMessageWithRetryDetails(eq(1), any(LocalDateTime.class), eq(MESSAGE_ID));
 
         await()
-            .atMost(60, SECONDS)
+            .atMost(120, SECONDS)
             .untilAsserted(() -> {
-                    assertEquals(2, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
-                    assertEquals(1, getMessageById(MESSAGE_ID).getRetryCount());
-                    assertNotNull(getMessageById(MESSAGE_ID).getHoldUntil());
-                    }
-            );
+                assertEquals(2, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
+                assertEquals(1, getMessageById(MESSAGE_ID).getRetryCount());
+                assertNotNull(getMessageById(MESSAGE_ID).getHoldUntil());
+            });
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -135,12 +136,11 @@ public class UpdateRecordErrorHandlingTest {
             .updateMessageState(eq(MessageState.PROCESSED), Mockito.<String>anyList());
 
         await()
-            .atMost(60, SECONDS)
+            .atMost(120, SECONDS)
             .untilAsserted(() -> {
-                    assertEquals(1, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
-                    assertEquals(MessageState.PROCESSED, getMessageById(MESSAGE_ID_2).getState());
-                    }
-            );
+                assertEquals(1, getMessagesInDbFromQuery(format("case_id=%s", caseId)).size());
+                assertEquals(MessageState.PROCESSED, getMessageById(MESSAGE_ID_2).getState());
+            });
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -152,11 +152,8 @@ public class UpdateRecordErrorHandlingTest {
         doThrow(new TransactionTimedOutException("Time out")).when(caseEventMessageRepository)
             .updateMessageState(eq(MessageState.UNPROCESSABLE), Mockito.<String>anyList());
         await()
-            .atMost(60, SECONDS)
-            .untilAsserted(() -> {
-                    assertEquals(1, getMessagesInDbFromQuery(UNPROCESSABLE_STATE_QUERY).size());
-                    }
-            );
+            .atMost(120, SECONDS)
+            .untilAsserted(() -> assertEquals(1, getMessagesInDbFromQuery(UNPROCESSABLE_STATE_QUERY).size()));
     }
 
     private List<CaseEventMessage> getMessagesInDbFromQuery(String queryString) {
@@ -168,7 +165,7 @@ public class UpdateRecordErrorHandlingTest {
 
             final EventMessageQueryResponse eventMessageQueryResponse =
                 OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(),
-                                        EventMessageQueryResponse.class);
+                    EventMessageQueryResponse.class);
 
             return eventMessageQueryResponse.getCaseEventMessages();
         } catch (Exception e) {
@@ -184,6 +181,6 @@ public class UpdateRecordErrorHandlingTest {
 
 
         return OBJECT_MAPPER.readValue(mvcResult.getResponse().getContentAsString(),
-                                       CaseEventMessage.class);
+            CaseEventMessage.class);
     }
 }

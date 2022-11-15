@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,13 +35,23 @@ import static org.springframework.transaction.annotation.Propagation.NOT_SUPPORT
 @Transactional(propagation = NOT_SUPPORTED)
 @Profile("!functional & !local")
 public class DatabaseMessageConsumer implements Runnable {
-
     private final CaseEventMessageRepository caseEventMessageRepository;
     private final CaseEventMessageMapper caseEventMessageMapper;
     private final CcdEventProcessor ccdEventProcessor;
     private final UpdateRecordErrorHandlingService updateRecordErrorHandlingService;
     private final TransactionTemplate transactionTemplate;
     protected static final Map<Integer, Integer> RETRY_COUNT_TO_DELAY_MAP = new ConcurrentHashMap<>();
+
+    static {
+        RETRY_COUNT_TO_DELAY_MAP.put(1, 5);
+        RETRY_COUNT_TO_DELAY_MAP.put(2, 15);
+        RETRY_COUNT_TO_DELAY_MAP.put(3, 30);
+        RETRY_COUNT_TO_DELAY_MAP.put(4, 60);
+        RETRY_COUNT_TO_DELAY_MAP.put(5, 300);
+        RETRY_COUNT_TO_DELAY_MAP.put(6, 900);
+        RETRY_COUNT_TO_DELAY_MAP.put(7, 1800);
+        RETRY_COUNT_TO_DELAY_MAP.put(8, 3600);
+    }
 
     public DatabaseMessageConsumer(CaseEventMessageRepository caseEventMessageRepository,
                                    CaseEventMessageMapper caseEventMessageMapper,
@@ -53,48 +65,58 @@ public class DatabaseMessageConsumer implements Runnable {
         this.transactionTemplate = new TransactionTemplate(transactionManager);
     }
 
-    static {
-        RETRY_COUNT_TO_DELAY_MAP.put(1, 5);
-        RETRY_COUNT_TO_DELAY_MAP.put(2, 15);
-        RETRY_COUNT_TO_DELAY_MAP.put(3, 30);
-        RETRY_COUNT_TO_DELAY_MAP.put(4, 60);
-        RETRY_COUNT_TO_DELAY_MAP.put(5, 300);
-        RETRY_COUNT_TO_DELAY_MAP.put(6, 900);
-        RETRY_COUNT_TO_DELAY_MAP.put(7, 1800);
-        RETRY_COUNT_TO_DELAY_MAP.put(8, 3600);
-    }
 
+    /**
+     * Spring Uniform Random Backoff Policy used for retry mechanism.
+     *
+     * @see <a href="https://docs.spring.io/spring-retry/docs/api/current/index.html?org/springframework/retry/annotation/Backoff.html">spring.docs</a>
+     */
+    @Retryable(
+        maxAttemptsExpression = "${retry.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.backOff.delay}",
+            maxDelayExpression = "${retry.backOff.maxDelay}",
+            randomExpression = "${retry.backOff.random}"
+        )
+    )
     @Override
     @SuppressWarnings("squid:S2189")
     public void run() {
-        Optional<MessageUpdateRetry> updateRetry = transactionTemplate.execute(status -> {
+        log.info("Running database message consumer");
 
-            CaseEventMessageEntity caseEventMessageEntity = selectNextMessage();
+        try {
+            Optional<MessageUpdateRetry> updateRetry = transactionTemplate.execute(status -> {
 
-            if (caseEventMessageEntity == null) {
-                log.trace("No message returned from database for processing");
-            } else {
-                log.info("Start message processing");
+                CaseEventMessageEntity caseEventMessageEntity = selectNextMessage();
 
-                final CaseEventMessage caseEventMessage = caseEventMessageMapper
-                    .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
-                Optional<MessageUpdateRetry> updatable = processMessage(caseEventMessage);
+                if (caseEventMessageEntity == null) {
+                    log.trace("No message returned from database for processing");
+                } else {
+                    log.info("Start message processing");
 
-                //if record state update failed, Rollback the transaction
-                updatable.ifPresent(r -> status.setRollbackOnly());
-                return updatable;
+                    final CaseEventMessage caseEventMessage = caseEventMessageMapper
+                        .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
+                    Optional<MessageUpdateRetry> updatable = processMessage(caseEventMessage);
 
-            }
-            return Optional.empty();
-        });
+                    //if record state update failed, Rollback the transaction
+                    updatable.ifPresent(r -> status.setRollbackOnly());
+                    return updatable;
 
-        //Retry updating the record state
-        updateRetry.ifPresent(msg ->
-            updateRecordErrorHandlingService.handleUpdateError(msg.getState(),
-                msg.getMessageId(),
-                msg.getRetryCount(),
-                msg.getHoldUntil())
-        );
+                }
+                return Optional.empty();
+            });
+
+            //Retry updating the record state
+            updateRetry.ifPresent(msg ->
+                updateRecordErrorHandlingService.handleUpdateError(msg.getState(),
+                    msg.getMessageId(),
+                    msg.getRetryCount(),
+                    msg.getHoldUntil())
+            );
+        } catch (Exception ex) {
+            log.warn("An error occurred when running database message consumer. "
+                     + "Catching exception continuing execution", ex);
+        }
 
     }
 
