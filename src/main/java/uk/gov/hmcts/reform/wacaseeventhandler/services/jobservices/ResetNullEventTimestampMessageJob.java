@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -28,7 +27,7 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
 
     public ResetNullEventTimestampMessageJob(CaseEventMessageRepository caseEventMessageRepository,
                                              @Value("${job.problem-message.null-event-timestamp-message-id-list}")
-                                             List<String> messageIds,
+                                                 List<String> messageIds,
                                              ObjectMapper objectMapper) {
         this.caseEventMessageRepository = caseEventMessageRepository;
         this.messageIds = messageIds;
@@ -42,12 +41,12 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
 
     @Override
     public List<String> run() {
-        if(!canRun(RESET_NULL_EVENT_TIMESTAMP_MESSAGES)){
+        if (!canRun(RESET_NULL_EVENT_TIMESTAMP_MESSAGES)) {
             log.info("{} Cannot pass canRun()", RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name());
             return List.of();
         }
         log.info("Start {}:'{}'", RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(), this.messageIds);
-        if(!this.messageIds.isEmpty()) {
+        if (!this.messageIds.isEmpty()) {
             log.info("Resetting message with null eventTimestamp messages");
             List<CaseEventMessageEntity> messages = caseEventMessageRepository.findByMessageId(this.messageIds);
 
@@ -55,27 +54,44 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
                 .filter(msg -> (MessageState.UNPROCESSABLE.equals(msg.getState()) && msg.getEventTimestamp() == null))
                 .collect(Collectors.toList());
 
-            if(nullEventTimestampMessageList.isEmpty()){
-                log.info("{} There is no any UNPROCESSABLE message with null eventTimestamp", RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name());
+            if (nullEventTimestampMessageList.isEmpty()) {
+                log.info(
+                    "{} There is no any UNPROCESSABLE message with null eventTimestamp",
+                    RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name()
+                );
                 return List.of();
             }
 
             for (CaseEventMessageEntity messageEntity : nullEventTimestampMessageList) {
                 try {
-                    EventInformation eventInformation = objectMapper.readValue(messageEntity.getMessageContent(), EventInformation.class);
+                    EventInformation eventInformation = objectMapper.readValue(
+                        messageEntity.getMessageContent(),
+                        EventInformation.class
+                    );
                     log.info("{} message id:{}, case id:{}, main eventTimeStamp:{}, messageContent eventTimeStamp:{}",
-                             RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),messageEntity.getMessageId(), messageEntity.getCaseId(), messageEntity.getEventTimestamp(), eventInformation.getEventTimeStamp());
+                             RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),
+                             messageEntity.getMessageId(),
+                             messageEntity.getCaseId(),
+                             messageEntity.getEventTimestamp(),
+                             eventInformation.getEventTimeStamp()
+                    );
 
-                    if (eventInformation.getEventTimeStamp() != null ) {
+                    if (eventInformation.getEventTimeStamp() != null) {
                         messageEntity.setEventTimestamp(eventInformation.getEventTimeStamp());
                     }
 
                     log.info("{} Completed reset main eventTimestamp to {} for message id:{} and case id:{}",
-                             RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(), messageEntity.getEventTimestamp(), messageEntity.getMessageId(), messageEntity.getCaseId());
-                } catch (JsonProcessingException jsonProcessingException) {
-                    log.info("Cannot parse the message with null eventTimeStamp, message id:{} and case id:{}",
+                             RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),
+                             messageEntity.getEventTimestamp(),
                              messageEntity.getMessageId(),
-                             messageEntity.getCaseId());
+                             messageEntity.getCaseId()
+                    );
+                } catch (JsonProcessingException jsonProcessingException) {
+                    log.info(
+                        "Cannot parse the message with null eventTimeStamp, message id:{} and case id:{}",
+                        messageEntity.getMessageId(),
+                        messageEntity.getCaseId()
+                    );
                     jsonProcessingException.printStackTrace();
                 }
             }
