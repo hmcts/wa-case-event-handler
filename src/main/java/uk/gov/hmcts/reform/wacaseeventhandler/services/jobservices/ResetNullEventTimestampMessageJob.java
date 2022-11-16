@@ -51,7 +51,7 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
             List<CaseEventMessageEntity> messages = caseEventMessageRepository.findByMessageId(this.messageIds);
 
             List<CaseEventMessageEntity> nullEventTimestampMessageList = messages.stream()
-                .filter(msg -> (MessageState.UNPROCESSABLE.equals(msg.getState()) && msg.getEventTimestamp() == null))
+                .filter(msg -> MessageState.UNPROCESSABLE.equals(msg.getState()) && msg.getEventTimestamp() == null)
                 .collect(Collectors.toList());
 
             if (nullEventTimestampMessageList.isEmpty()) {
@@ -62,29 +62,31 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
                 return List.of();
             }
 
-            for (CaseEventMessageEntity messageEntity : nullEventTimestampMessageList) {
+            nullEventTimestampMessageList.stream().forEach(messageEntity ->{
                 try {
                     EventInformation eventInformation = objectMapper.readValue(
                         messageEntity.getMessageContent(),
                         EventInformation.class
                     );
-                    log.info("{} message id:{}, case id:{}, main eventTimeStamp:{}, messageContent eventTimeStamp:{}",
-                             RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),
-                             messageEntity.getMessageId(),
-                             messageEntity.getCaseId(),
-                             messageEntity.getEventTimestamp(),
-                             eventInformation.getEventTimeStamp()
+                    log.info(
+                        "{} message id:{}, case id:{}, main eventTimeStamp:{}, messageContent eventTimeStamp:{}",
+                        RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),
+                        messageEntity.getMessageId(),
+                        messageEntity.getCaseId(),
+                        messageEntity.getEventTimestamp(),
+                        eventInformation.getEventTimeStamp()
                     );
 
                     if (eventInformation.getEventTimeStamp() != null) {
                         messageEntity.setEventTimestamp(eventInformation.getEventTimeStamp());
                     }
 
-                    log.info("{} Completed reset main eventTimestamp to {} for message id:{} and case id:{}",
-                             RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),
-                             messageEntity.getEventTimestamp(),
-                             messageEntity.getMessageId(),
-                             messageEntity.getCaseId()
+                    log.info(
+                        "{} Completed reset main eventTimestamp to {} for message id:{} and case id:{}",
+                        RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),
+                        messageEntity.getEventTimestamp(),
+                        messageEntity.getMessageId(),
+                        messageEntity.getCaseId()
                     );
                 } catch (JsonProcessingException jsonProcessingException) {
                     log.info(
@@ -92,9 +94,8 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
                         messageEntity.getMessageId(),
                         messageEntity.getCaseId()
                     );
-                    jsonProcessingException.printStackTrace();
                 }
-            }
+            });
         }
         return this.messageIds;
     }
