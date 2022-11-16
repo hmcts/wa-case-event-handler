@@ -62,7 +62,7 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
                 return List.of();
             }
 
-            nullEventTimestampMessageList.stream().forEach(messageEntity ->{
+            nullEventTimestampMessageList.stream().forEach(messageEntity -> {
                 try {
                     EventInformation eventInformation = objectMapper.readValue(
                         messageEntity.getMessageContent(),
