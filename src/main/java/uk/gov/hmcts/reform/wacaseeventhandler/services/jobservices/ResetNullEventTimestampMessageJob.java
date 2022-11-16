@@ -41,62 +41,61 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
 
     @Override
     public List<String> run() {
-        if (!canRun(RESET_NULL_EVENT_TIMESTAMP_MESSAGES)) {
-            log.info("{} Cannot pass canRun()", RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name());
+        log.info("Start {}:'{}'", RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(), this.messageIds);
+
+        if (this.messageIds == null || this.messageIds.isEmpty() || !canRun(RESET_NULL_EVENT_TIMESTAMP_MESSAGES)) {
             return List.of();
         }
-        log.info("Start {}:'{}'", RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(), this.messageIds);
-        if (!this.messageIds.isEmpty()) {
-            log.info("Resetting message with null eventTimestamp messages");
-            List<CaseEventMessageEntity> messages = caseEventMessageRepository.findByMessageId(this.messageIds);
 
-            List<CaseEventMessageEntity> nullEventTimestampMessageList = messages.stream()
-                .filter(msg -> MessageState.UNPROCESSABLE.equals(msg.getState()) && msg.getEventTimestamp() == null)
-                .collect(Collectors.toList());
+        log.info("Resetting message with null eventTimestamp messages");
+        List<CaseEventMessageEntity> messages = caseEventMessageRepository.findByMessageId(this.messageIds);
 
-            if (nullEventTimestampMessageList.isEmpty()) {
-                log.info(
-                    "{} There is no any UNPROCESSABLE message with null eventTimestamp",
-                    RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name()
-                );
-                return List.of();
-            }
+        List<CaseEventMessageEntity> nullEventTimestampMessageListToReset = messages.stream()
+            .filter(msg -> MessageState.UNPROCESSABLE.equals(msg.getState()) && msg.getEventTimestamp() == null)
+            .collect(Collectors.toList());
 
-            nullEventTimestampMessageList.stream().forEach(messageEntity -> {
-                try {
-                    EventInformation eventInformation = objectMapper.readValue(
-                        messageEntity.getMessageContent(),
-                        EventInformation.class
-                    );
-                    log.info(
-                        "{} message id:{}, case id:{}, main eventTimeStamp:{}, messageContent eventTimeStamp:{}",
-                        RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),
-                        messageEntity.getMessageId(),
-                        messageEntity.getCaseId(),
-                        messageEntity.getEventTimestamp(),
-                        eventInformation.getEventTimeStamp()
-                    );
-
-                    if (eventInformation.getEventTimeStamp() != null) {
-                        messageEntity.setEventTimestamp(eventInformation.getEventTimeStamp());
-                    }
-
-                    log.info(
-                        "{} Completed reset main eventTimestamp to {} for message id:{} and case id:{}",
-                        RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),
-                        messageEntity.getEventTimestamp(),
-                        messageEntity.getMessageId(),
-                        messageEntity.getCaseId()
-                    );
-                } catch (JsonProcessingException jsonProcessingException) {
-                    log.info(
-                        "Cannot parse the message with null eventTimeStamp, message id:{} and case id:{}",
-                        messageEntity.getMessageId(),
-                        messageEntity.getCaseId()
-                    );
-                }
-            });
+        if (nullEventTimestampMessageListToReset.isEmpty()) {
+            log.info(
+                "{} There is no any UNPROCESSABLE message with null eventTimestamp",
+                RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name()
+            );
+            return List.of();
         }
+
+        nullEventTimestampMessageListToReset.stream().forEach(messageEntity -> {
+            try {
+                EventInformation eventInformation = objectMapper.readValue(
+                    messageEntity.getMessageContent(),
+                    EventInformation.class
+                );
+                log.info(
+                    "{} message id:{}, case id:{}, main eventTimeStamp:{}, messageContent eventTimeStamp:{}",
+                    RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),
+                    messageEntity.getMessageId(),
+                    messageEntity.getCaseId(),
+                    messageEntity.getEventTimestamp(),
+                    eventInformation.getEventTimeStamp()
+                );
+
+                if (eventInformation.getEventTimeStamp() != null) {
+                    messageEntity.setEventTimestamp(eventInformation.getEventTimeStamp());
+                }
+
+                log.info(
+                    "{} Completed reset main eventTimestamp to {} for message id:{} and case id:{}",
+                    RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),
+                    messageEntity.getEventTimestamp(),
+                    messageEntity.getMessageId(),
+                    messageEntity.getCaseId()
+                );
+            } catch (JsonProcessingException jsonProcessingException) {
+                log.info(
+                    "Cannot parse the message with null eventTimeStamp, message id:{} and case id:{}",
+                    messageEntity.getMessageId(),
+                    messageEntity.getCaseId()
+                );
+            }
+        });
         return this.messageIds;
     }
 }
