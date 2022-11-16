@@ -79,15 +79,15 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
 
                 if (eventInformation.getEventTimeStamp() != null) {
                     messageEntity.setEventTimestamp(eventInformation.getEventTimeStamp());
+                    log.info(
+                        "{} Completed reset main eventTimestamp to {} for message id:{} and case id:{}",
+                        RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),
+                        messageEntity.getEventTimestamp(),
+                        messageEntity.getMessageId(),
+                        messageEntity.getCaseId()
+                    );
                 }
 
-                log.info(
-                    "{} Completed reset main eventTimestamp to {} for message id:{} and case id:{}",
-                    RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),
-                    messageEntity.getEventTimestamp(),
-                    messageEntity.getMessageId(),
-                    messageEntity.getCaseId()
-                );
             } catch (JsonProcessingException jsonProcessingException) {
                 log.info(
                     "Cannot parse the message with null eventTimeStamp, message id:{} and case id:{}",
