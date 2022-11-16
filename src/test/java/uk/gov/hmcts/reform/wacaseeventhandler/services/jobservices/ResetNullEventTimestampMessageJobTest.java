@@ -1,18 +1,22 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -60,9 +64,35 @@ public class ResetNullEventTimestampMessageJobTest {
 
         when(caseEventMessageRepository.findByMessageId(messageIds))
             .thenReturn(List.of(buildMessageEntity("messageId_1", MessageState.NEW),
-                                buildMessageEntity("messageId_2", MessageState.READY),
-                                buildMessageEntity("messageId_3", MessageState.PROCESSED)));
+                                buildMessageEntity("messageId_2", MessageState.READY)));
         assertTrue(resetNullEventTimestampProblemMessageJob.run().isEmpty());
+    }
+
+    @Test
+    void should_return_message_id_list_response_for_handling_null_event_timestampe_messages()
+        throws JsonProcessingException {
+        EventInformation eventMessageFromEntity = getEventInformation();
+
+        CaseEventMessageEntity nullEventTimestampEntity = buildMessageEntity("messageId_3", MessageState.UNPROCESSABLE);
+        nullEventTimestampEntity.setMessageContent(eventMessageFromEntity.toString());
+
+        when(caseEventMessageRepository.findByMessageId(messageIds))
+            .thenReturn(List.of(nullEventTimestampEntity));
+        when(objectMapper.readValue(nullEventTimestampEntity.getMessageContent(), EventInformation.class))
+            .thenReturn(eventMessageFromEntity);
+
+        assertEquals(messageIds,resetNullEventTimestampProblemMessageJob.run());
+    }
+
+    private EventInformation getEventInformation() {
+        return EventInformation
+            .builder()
+            .userId("userId_3")
+            .jurisdictionId("jurisdictionId_3")
+            .caseTypeId("caseTypeId_3")
+            .caseId("caseId_3")
+            .eventTimeStamp(LocalDateTime.now())
+            .build();
     }
 
     private CaseEventMessageEntity buildMessageEntity(String id, MessageState state) {
