@@ -39,7 +39,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "azure.servicebus.connection-string="
                 + "Endpoint=sb://REPLACE_ME/;SharedAccessKeyName=REPLACE_ME;SharedAccessKey=REPLACE_ME",
         "azure.servicebus.topic-name=test",
-        "azure.servicebus.subscription-name=test",
         "azure.servicebus.ccd-case-events-subscription-name=test",
         "azure.servicebus.retry-duration=2"})
 public class MessageReadinessTest {
