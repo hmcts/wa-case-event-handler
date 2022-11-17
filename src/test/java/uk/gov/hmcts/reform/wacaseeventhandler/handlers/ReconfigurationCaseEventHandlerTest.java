@@ -311,6 +311,137 @@ class ReconfigurationCaseEventHandlerTest {
     }
 
     @Test
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_blank_warning_text() {
+
+        EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
+        EventInformation eventInfo = EventInformation.builder()
+            .eventId("ANY_EVENT")
+            .newStateId("")
+            .previousStateId("")
+            .jurisdictionId("ia")
+            .caseTypeId("asylum")
+            .caseId("some case reference")
+            .eventTimeStamp(LocalDateTime.now())
+            .build();
+
+        List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
+            dmnStringValue("Reconfigure"),
+            null,
+            dmnStringValue(""),
+            null,
+            null
+        ));
+
+        when(workflowApiClient.evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        )).thenReturn(new EvaluateDmnResponse<>(results));
+
+        List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInfo);
+
+        assertThat(actualResponse).isSameAs(results);
+
+        handlerService.handle(results, eventInformation);
+
+        verify(taskManagementApiClient, times(1)).performOperation(
+            anyString(),
+            any(TaskOperationRequest.class)
+        );
+
+        List<ILoggingEvent> logsList = listAppender.list;
+        assertEquals(0, logsList.size());
+        logsList.clear();
+    }
+
+    @Test
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_blank_warning_code() {
+        EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
+        EventInformation eventInfo = EventInformation.builder()
+            .eventId("ANY_EVENT")
+            .newStateId("")
+            .previousStateId("")
+            .jurisdictionId("ia")
+            .caseTypeId("asylum")
+            .caseId("some case reference")
+            .eventTimeStamp(LocalDateTime.now())
+            .build();
+
+        List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
+            dmnStringValue("Reconfigure"),
+            dmnStringValue(""), null,
+            null,
+            null
+        ));
+
+        when(workflowApiClient.evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        )).thenReturn(new EvaluateDmnResponse<>(results));
+
+        List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInfo);
+
+        assertThat(actualResponse).isSameAs(results);
+
+        handlerService.handle(results, eventInformation);
+
+        verify(taskManagementApiClient, times(1)).performOperation(
+            anyString(),
+            any(TaskOperationRequest.class)
+        );
+
+        List<ILoggingEvent> logsList = listAppender.list;
+        assertEquals(0, logsList.size());
+        logsList.clear();
+    }
+
+    @Test
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_blank_process_category() {
+        EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
+        EventInformation eventInfo = EventInformation.builder()
+            .eventId("ANY_EVENT")
+            .newStateId("")
+            .previousStateId("")
+            .jurisdictionId("ia")
+            .caseTypeId("asylum")
+            .caseId("some case reference")
+            .eventTimeStamp(LocalDateTime.now())
+            .build();
+
+        List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
+            dmnStringValue("Reconfigure"),
+            null, null,
+            null,
+            dmnStringValue("")
+        ));
+
+        when(workflowApiClient.evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        )).thenReturn(new EvaluateDmnResponse<>(results));
+
+        List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInfo);
+
+        assertThat(actualResponse).isSameAs(results);
+
+        handlerService.handle(results, eventInformation);
+
+        verify(taskManagementApiClient, times(1)).performOperation(
+            anyString(),
+            any(TaskOperationRequest.class)
+        );
+
+        List<ILoggingEvent> logsList = listAppender.list;
+        assertEquals(0, logsList.size());
+        logsList.clear();
+    }
+
+    @Test
     void should_evaluate_the_dmn_table_and_return_empty_results() {
 
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateDmnRequest();
