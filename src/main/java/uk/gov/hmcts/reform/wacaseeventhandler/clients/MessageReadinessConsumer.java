@@ -2,6 +2,8 @@ package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
@@ -16,7 +18,6 @@ import java.util.List;
 @SuppressWarnings("PMD.DoNotUseThreads")
 @ConditionalOnProperty("azure.servicebus.enableASB-DLQ")
 public class MessageReadinessConsumer implements Runnable {
-
     private final DeadLetterQueuePeekService deadLetterQueuePeekService;
     private final CaseEventMessageRepository caseEventMessageRepository;
 
@@ -26,23 +27,43 @@ public class MessageReadinessConsumer implements Runnable {
         this.caseEventMessageRepository = caseEventMessageRepository;
     }
 
+    /**
+     * Spring Uniform Random Backoff Policy used for retry mechanism.
+     *
+     * @see <a href="https://docs.spring.io/spring-retry/docs/api/current/index.html?org/springframework/retry/annotation/Backoff.html">spring.docs</a>
+     */
+    @Retryable(
+        maxAttemptsExpression = "${retry.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.backOff.delay}",
+            maxDelayExpression = "${retry.backOff.maxDelay}",
+            randomExpression = "${retry.backOff.random}"
+        )
+    )
     @Override
     @Transactional
     public void run() {
         log.info("Running message readiness check");
-        final List<CaseEventMessageEntity> allMessageInNewState = caseEventMessageRepository.getAllMessagesInNewState();
+        try {
+            final List<CaseEventMessageEntity> allMessageInNewState =
+                caseEventMessageRepository.getAllMessagesInNewState();
 
-        log.info("Number of messages to check the readiness {}", allMessageInNewState.size());
+            log.info("Number of messages to check the readiness {}", allMessageInNewState.size());
 
-        allMessageInNewState.stream()
-                .forEach(this::checkMessageToMoveToReadyState);
+            allMessageInNewState.forEach(this::checkMessageToMoveToReadyState);
+
+        } catch (Exception ex) {
+            log.warn("An error occurred when running message readiness check. "
+                     + "Catching exception continuing execution", ex);
+        }
+
     }
 
     private void checkMessageToMoveToReadyState(CaseEventMessageEntity messageInNewState) {
         if (deadLetterQueuePeekService.isDeadLetterQueueEmpty()) {
             log.info("Updating following message to READY state {}", messageInNewState.getMessageId());
             caseEventMessageRepository.updateMessageState(MessageState.READY,
-                    List.of(messageInNewState.getMessageId()));
+                List.of(messageInNewState.getMessageId()));
         }
     }
 }
