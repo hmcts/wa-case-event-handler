@@ -53,6 +53,13 @@ resource "azurerm_key_vault_secret" "ccd_shared_servicebus_connection_string" {
 // Create DB                  //
 ////////////////////////////////
 
+locals {
+  computed_tags = {
+    lastUpdated = "${timestamp()}"
+  }
+  common_tags = merge(var.common_tags, local.computed_tags)
+}
+
 module "wa_case_event_handler_database" {
   source             = "git@github.com:hmcts/cnp-module-postgres?ref=master"
   product            = "${var.product}"
@@ -62,7 +69,7 @@ module "wa_case_event_handler_database" {
   database_name      = "${var.postgresql_database_name}"
   postgresql_user    = "${var.postgresql_user}"
   postgresql_version = "11"
-  common_tags        = "${merge(var.common_tags, tomap("lastUpdated", "${timestamp()}"))}"
+  common_tags        = "${local.common_tags}"
   subscription       = "${var.subscription}"
 }
 
