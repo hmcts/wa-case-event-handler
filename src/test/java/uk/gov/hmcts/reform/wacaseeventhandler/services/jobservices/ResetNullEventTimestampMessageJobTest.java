@@ -1,5 +1,8 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices;
 
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.LoggerFactory;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
@@ -15,6 +19,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageReposit
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -23,18 +28,31 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith({MockitoExtension.class})
 public class ResetNullEventTimestampMessageJobTest {
+    private ListAppender<ILoggingEvent> listAppender;
+
     @Mock
     private CaseEventMessageRepository caseEventMessageRepository;
 
     @Mock
     private ObjectMapper objectMapper;
 
+    @Mock
+    private JsonProcessingException jsonProcessingException;
+
     private ResetNullEventTimestampMessageJob resetNullEventTimestampProblemMessageJob;
 
     private final List<String> messageIds = List.of("messageId_1", "messageId_2", "messageId_3");
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
+        Logger logger = (Logger) LoggerFactory.getLogger(ResetNullEventTimestampMessageJob.class);
+
+        listAppender = new ListAppender<>();
+        listAppender.start();
+
+        logger.addAppender(listAppender);
+
+
         resetNullEventTimestampProblemMessageJob = new ResetNullEventTimestampMessageJob(
             caseEventMessageRepository,
             messageIds,
@@ -84,6 +102,27 @@ public class ResetNullEventTimestampMessageJobTest {
         assertEquals(messageIds,resetNullEventTimestampProblemMessageJob.run());
     }
 
+    @Test
+    void should_return_json_processing_exception_when_format_is_incorrect() throws JsonProcessingException {
+
+        CaseEventMessageEntity nullEventTimestampEntity = buildMessageEntity("messageId_3", MessageState.UNPROCESSABLE);
+        nullEventTimestampEntity.setCaseId("caseId_3");
+        nullEventTimestampEntity.setMessageContent("{\"CaseId\":\"caseId_3\",\"EventTimeStamp\":\"ABC\"}");
+
+        when(caseEventMessageRepository.findByMessageId(messageIds))
+            .thenReturn(List.of(nullEventTimestampEntity));
+        when(objectMapper.readValue(nullEventTimestampEntity.getMessageContent(), EventInformation.class))
+            .thenThrow(jsonProcessingException);
+
+        resetNullEventTimestampProblemMessageJob.run();
+
+        assertLogMessageContains(
+            String.format("Cannot parse the message with null eventTimeStamp, message id:%s and case id:%s",
+                                               nullEventTimestampEntity.getMessageId(),
+                                               nullEventTimestampEntity.getCaseId()
+            ));
+    }
+
     private EventInformation getEventInformation() {
         return EventInformation
             .builder()
@@ -101,6 +140,14 @@ public class ResetNullEventTimestampMessageJobTest {
         entity.setState(state);
 
         return entity;
+    }
+
+    private void assertLogMessageContains(String expectedMessage) {
+        List<ILoggingEvent> logsList = listAppender.list;
+        assertTrue(logsList.stream()
+                       .map(ILoggingEvent::getFormattedMessage)
+                       .collect(Collectors.toList())
+                       .contains(expectedMessage));
     }
 
 }
