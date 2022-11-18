@@ -1,5 +1,12 @@
+terraform {
+  required_providers {
+    azurerm = {
+      version = "=3.0.0"
+    }
+  }
+}
+
 provider "azurerm" {
-  version = "~> 3.0"
   features {}
 }
 
@@ -55,7 +62,7 @@ module "wa_case_event_handler_database" {
   database_name      = "${var.postgresql_database_name}"
   postgresql_user    = "${var.postgresql_user}"
   postgresql_version = "11"
-  common_tags        = "${merge(var.common_tags, map("lastUpdated", "${timestamp()}"))}"
+  common_tags        = "${merge(var.common_tags, tomap("lastUpdated", "${timestamp()}"))}"
   subscription       = "${var.subscription}"
 }
 
