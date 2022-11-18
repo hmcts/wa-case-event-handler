@@ -103,7 +103,7 @@ public class ResetNullEventTimestampMessageJobTest {
     }
 
     @Test
-    void should_return_json_processing_exception_when_format_is_incorrect() throws JsonProcessingException {
+    void should_return_json_processing_exception_when_message_content_is_incorrect() throws JsonProcessingException {
 
         CaseEventMessageEntity nullEventTimestampEntity = buildMessageEntity("messageId_3", MessageState.UNPROCESSABLE);
         nullEventTimestampEntity.setCaseId("caseId_3");
