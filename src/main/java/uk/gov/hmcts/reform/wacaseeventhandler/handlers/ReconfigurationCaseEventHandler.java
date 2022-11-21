@@ -31,7 +31,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmn
 @Slf4j
 @Service
 @Order(3)
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "unchecked"})
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
 public class ReconfigurationCaseEventHandler implements CaseEventHandler {
 
     private final AuthTokenGenerator serviceAuthGenerator;
@@ -78,18 +78,18 @@ public class ReconfigurationCaseEventHandler implements CaseEventHandler {
                 CancellationActions.RECONFIGURE == CancellationActions.from(result.getAction().getValue())
             )
             .forEach(reconfigureResponse -> {
-                evaluateReconfigureActionResponse(eventInformation.getEventId(), reconfigureResponse);
+                evaluateReconfigureActionResponse(reconfigureResponse);
                 sendReconfigurationRequest(eventInformation.getCaseId());
             });
     }
 
-    private void evaluateReconfigureActionResponse(String eventId, CancellationEvaluateResponse response) {
-        if (eventId.equals("UPDATE")  && (response.getWarningCode() != null
+    private void evaluateReconfigureActionResponse(CancellationEvaluateResponse response) {
+        if (response.getWarningCode() != null
                 && isNotBlank(response.getWarningCode().getValue())
                 || response.getWarningText() != null
                    && isNotBlank(response.getWarningText().getValue())
                 || response.getProcessCategories() != null
-                   && isNotBlank(response.getProcessCategories().getValue()))) {
+                   && isNotBlank(response.getProcessCategories().getValue())) {
             log.warn(
                 "DMN configuration has provided fields not suitable for Reconfiguration and they will be ignored"
             );

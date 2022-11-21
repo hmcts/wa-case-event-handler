@@ -7,8 +7,6 @@ import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -18,7 +16,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.clients.TaskManagementApiClient;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClient;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.request.EvaluateDmnRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.request.SendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.CancellationEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateResponse;
@@ -41,12 +38,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnStringValue;
 
-@SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
 class ReconfigurationCaseEventHandlerTest {
 
     public static final String TENANT_ID = "ia";
-    public static final String CANCEL_TASKS_MESSAGE_NAME = "cancelTasks";
     private static final String TASK_CANCELLATION_DMN_TABLE = "wa-task-cancellation-ia-asylum";
     private static final String SERVICE_AUTH_TOKEN = "s2s token";
     ListAppender<ILoggingEvent> listAppender;
@@ -57,8 +52,6 @@ class ReconfigurationCaseEventHandlerTest {
     private TaskManagementApiClient taskManagementApiClient;
     @Mock
     private AuthTokenGenerator serviceAuthGenerator;
-    @Captor
-    private ArgumentCaptor<SendMessageRequest> sendMessageRequestCaptor;
     @InjectMocks
     private ReconfigurationCaseEventHandler handlerService;
 
@@ -66,7 +59,7 @@ class ReconfigurationCaseEventHandlerTest {
     void setUp() {
         lenient().when(serviceAuthGenerator.generate()).thenReturn(SERVICE_AUTH_TOKEN);
         eventInformation = EventInformation.builder()
-            .eventId("UPDATE")
+            .eventId("ANY_EVENT")
             .newStateId("some post state")
             .previousStateId("some previous state")
             .jurisdictionId("ia")
@@ -99,7 +92,7 @@ class ReconfigurationCaseEventHandlerTest {
             TASK_CANCELLATION_DMN_TABLE,
             TENANT_ID,
             evaluateDmnRequest
-        )).thenReturn(new EvaluateDmnResponse(results));
+        )).thenReturn(new EvaluateDmnResponse<>(results));
 
         List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInformation);
 
@@ -129,7 +122,7 @@ class ReconfigurationCaseEventHandlerTest {
     void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_null_fields() {
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
         EventInformation eventInfo = EventInformation.builder()
-            .eventId("UPDATE")
+            .eventId("ANY_EVENT")
             .newStateId("")
             .previousStateId("")
             .jurisdictionId("ia")
@@ -150,7 +143,7 @@ class ReconfigurationCaseEventHandlerTest {
             TASK_CANCELLATION_DMN_TABLE,
             TENANT_ID,
             evaluateDmnRequest
-        )).thenReturn(new EvaluateDmnResponse(results));
+        )).thenReturn(new EvaluateDmnResponse<>(results));
 
         List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInfo);
 
@@ -173,7 +166,7 @@ class ReconfigurationCaseEventHandlerTest {
 
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
         EventInformation eventInfo = EventInformation.builder()
-            .eventId("UPDATE")
+            .eventId("ANY_EVENT")
             .newStateId("")
             .previousStateId("")
             .jurisdictionId("ia")
@@ -194,7 +187,7 @@ class ReconfigurationCaseEventHandlerTest {
             TASK_CANCELLATION_DMN_TABLE,
             TENANT_ID,
             evaluateDmnRequest
-        )).thenReturn(new EvaluateDmnResponse(results));
+        )).thenReturn(new EvaluateDmnResponse<>(results));
 
         List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInfo);
 
@@ -220,7 +213,7 @@ class ReconfigurationCaseEventHandlerTest {
     void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_nonnull_warning_code() {
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
         EventInformation eventInfo = EventInformation.builder()
-            .eventId("UPDATE")
+            .eventId("ANY_EVENT")
             .newStateId("")
             .previousStateId("")
             .jurisdictionId("ia")
@@ -241,7 +234,7 @@ class ReconfigurationCaseEventHandlerTest {
             TASK_CANCELLATION_DMN_TABLE,
             TENANT_ID,
             evaluateDmnRequest
-        )).thenReturn(new EvaluateDmnResponse(results));
+        )).thenReturn(new EvaluateDmnResponse<>(results));
 
         List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInfo);
 
@@ -267,7 +260,7 @@ class ReconfigurationCaseEventHandlerTest {
     void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_nonnull_process_category() {
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
         EventInformation eventInfo = EventInformation.builder()
-            .eventId("UPDATE")
+            .eventId("ANY_EVENT")
             .newStateId("")
             .previousStateId("")
             .jurisdictionId("ia")
@@ -288,7 +281,7 @@ class ReconfigurationCaseEventHandlerTest {
             TASK_CANCELLATION_DMN_TABLE,
             TENANT_ID,
             evaluateDmnRequest
-        )).thenReturn(new EvaluateDmnResponse(results));
+        )).thenReturn(new EvaluateDmnResponse<>(results));
 
         List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInfo);
 
@@ -318,6 +311,137 @@ class ReconfigurationCaseEventHandlerTest {
     }
 
     @Test
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_blank_warning_text() {
+
+        EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
+        EventInformation eventInfo = EventInformation.builder()
+            .eventId("ANY_EVENT")
+            .newStateId("")
+            .previousStateId("")
+            .jurisdictionId("ia")
+            .caseTypeId("asylum")
+            .caseId("some case reference")
+            .eventTimeStamp(LocalDateTime.now())
+            .build();
+
+        List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
+            dmnStringValue("Reconfigure"),
+            null,
+            dmnStringValue(""),
+            null,
+            null
+        ));
+
+        when(workflowApiClient.evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        )).thenReturn(new EvaluateDmnResponse<>(results));
+
+        List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInfo);
+
+        assertThat(actualResponse).isSameAs(results);
+
+        handlerService.handle(results, eventInformation);
+
+        verify(taskManagementApiClient, times(1)).performOperation(
+            anyString(),
+            any(TaskOperationRequest.class)
+        );
+
+        List<ILoggingEvent> logsList = listAppender.list;
+        assertEquals(0, logsList.size());
+        logsList.clear();
+    }
+
+    @Test
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_blank_warning_code() {
+        EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
+        EventInformation eventInfo = EventInformation.builder()
+            .eventId("ANY_EVENT")
+            .newStateId("")
+            .previousStateId("")
+            .jurisdictionId("ia")
+            .caseTypeId("asylum")
+            .caseId("some case reference")
+            .eventTimeStamp(LocalDateTime.now())
+            .build();
+
+        List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
+            dmnStringValue("Reconfigure"),
+            dmnStringValue(""), null,
+            null,
+            null
+        ));
+
+        when(workflowApiClient.evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        )).thenReturn(new EvaluateDmnResponse<>(results));
+
+        List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInfo);
+
+        assertThat(actualResponse).isSameAs(results);
+
+        handlerService.handle(results, eventInformation);
+
+        verify(taskManagementApiClient, times(1)).performOperation(
+            anyString(),
+            any(TaskOperationRequest.class)
+        );
+
+        List<ILoggingEvent> logsList = listAppender.list;
+        assertEquals(0, logsList.size());
+        logsList.clear();
+    }
+
+    @Test
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_blank_process_category() {
+        EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
+        EventInformation eventInfo = EventInformation.builder()
+            .eventId("ANY_EVENT")
+            .newStateId("")
+            .previousStateId("")
+            .jurisdictionId("ia")
+            .caseTypeId("asylum")
+            .caseId("some case reference")
+            .eventTimeStamp(LocalDateTime.now())
+            .build();
+
+        List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
+            dmnStringValue("Reconfigure"),
+            null, null,
+            null,
+            dmnStringValue("")
+        ));
+
+        when(workflowApiClient.evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        )).thenReturn(new EvaluateDmnResponse<>(results));
+
+        List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInfo);
+
+        assertThat(actualResponse).isSameAs(results);
+
+        handlerService.handle(results, eventInformation);
+
+        verify(taskManagementApiClient, times(1)).performOperation(
+            anyString(),
+            any(TaskOperationRequest.class)
+        );
+
+        List<ILoggingEvent> logsList = listAppender.list;
+        assertEquals(0, logsList.size());
+        logsList.clear();
+    }
+
+    @Test
     void should_evaluate_the_dmn_table_and_return_empty_results() {
 
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateDmnRequest();
@@ -327,7 +451,7 @@ class ReconfigurationCaseEventHandlerTest {
             TASK_CANCELLATION_DMN_TABLE,
             TENANT_ID,
             evaluateDmnRequest
-        )).thenReturn(new EvaluateDmnResponse(Collections.emptyList()));
+        )).thenReturn(new EvaluateDmnResponse<>(Collections.emptyList()));
 
         List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInformation);
 
@@ -398,7 +522,7 @@ class ReconfigurationCaseEventHandlerTest {
 
     private EvaluateDmnRequest buildEvaluateDmnRequest() {
         Map<String, DmnValue<?>> variables = Map.of(
-            "event", dmnStringValue("UPDATE"),
+            "event", dmnStringValue("ANY_EVENT"),
             "state", dmnStringValue("some post state"),
             "fromState", dmnStringValue("some previous state")
         );
@@ -408,7 +532,7 @@ class ReconfigurationCaseEventHandlerTest {
 
     private EvaluateDmnRequest buildEvaluateUpdateDmnRequest() {
         Map<String, DmnValue<?>> variables = Map.of(
-            "event", dmnStringValue("UPDATE"),
+            "event", dmnStringValue("ANY_EVENT"),
             "state", dmnStringValue(""),
             "fromState", dmnStringValue("")
         );

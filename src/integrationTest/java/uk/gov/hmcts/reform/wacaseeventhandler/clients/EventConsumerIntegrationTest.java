@@ -53,7 +53,6 @@ import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
     "azure.servicebus.connection-string="
         + "Endpoint=sb:test;SharedAccessKeyName=test;SharedAccessKey=test;EntityPath=test",
     "azure.servicebus.topic-name=test",
-    "azure.servicebus.subscription-name=test",
     "azure.servicebus.ccd-case-events-subscription-name=test",
     "azure.servicebus.retry-duration=2"})
 @DirtiesContext(classMode = AFTER_CLASS, hierarchyMode = CURRENT_LEVEL)

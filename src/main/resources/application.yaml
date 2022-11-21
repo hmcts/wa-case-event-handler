@@ -5,7 +5,9 @@ management:
   endpoint:
     health:
       show-details: "always"
-
+      newMessageStateThreshold: ${NEW_MESSAGE_STATE_THRESHOLD:10}
+      newMessageStateCheckEnvEnabled: ${NEW_MESSAGE_STATE_HEALTH_CHECK:prod,aat}
+      receivedMessageCheckEnvEnabled: ${RECEIVED_MESSAGE_HEALTH_CHECK:prod,aat}
   endpoints:
     web:
       base-path: /
@@ -83,7 +85,6 @@ azure:
   servicebus:
     connection-string: ${AZURE_SERVICE_BUS_CONNECTION_STRING}
     topic-name: ${AZURE_SERVICE_BUS_TOPIC_NAME:ccd-case-events-aat}
-    subscription-Name: ${AZURE_SERVICE_BUS_SUBSCRIPTION_NAME:wa-case-events-sub-aat}
     ccd-case-events-subscription-name: ${AZURE_SERVICE_BUS_CCD_CASE_EVENTS_SUBSCRIPTION_NAME:wa-ccd-case-events-sub-aat}
     retry-duration: ${AZURE_SERVICE_BUS_RETRY_DURATION:60}
     threads: ${AZURE_SERVICE_BUS_CONCURRENT_SESSIONS:1}
@@ -136,3 +137,11 @@ job:
     #number of minutes
     message-time-limit: ${PROBLEM_MESSAGE_TIME_LIMIT:60}
     message-id-list: ${PROBLEM_MESSAGE_RESET_ID_LIST:}
+    null-event-timestamp-message-id-list: ${PROBLEM_MESSAGE_RESET_NULL_EVENT_TIMESTAMP_ID_LIST:}
+
+retry:
+  maxAttempts: ${RESILIENCE_RETRY_MAX_ATTEMPTS:3}
+  backOff:
+    delay: ${RESILIENCE_RETRY_BACK_OFF_DELAY:5000}
+    maxDelay: ${RESILIENCE_RETRY_BACK_OFF_MAX_DELAY:10000}
+    random: ${RESILIENCE_RETRY_BACK_OFF_RANDOM:true}

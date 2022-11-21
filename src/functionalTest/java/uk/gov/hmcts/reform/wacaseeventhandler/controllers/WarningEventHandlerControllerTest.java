@@ -5,10 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.Warning;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.WarningValues;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -17,6 +22,7 @@ import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 @Slf4j
@@ -25,7 +31,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
     @Before
     public void setup() {
         eventTimeStamp = LocalDateTime.now().minusDays(1);
-        caseworkerCredentials = authorizationProvider.getNewTribunalCaseworker("wa-ft-test-r2-");
+        caseworkerCredentials = authorizationProvider.getNewWaTribunalCaseworker("wa-ft-test-r2-");
 
         taskIdStatusMap = new HashMap<>();
         caseId1Task1Id = "";
@@ -47,7 +53,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
     @Test
     public void given_caseId_with_multiple_tasks_and_same_category_when_warning_raised_then_mark_tasks_with_warnings() {
 
-        String caseIdForTask1 = getCaseId();
+        String caseIdForTask1 = getWaCaseId();
         // Initiate task1
         sendMessage(
             caseIdForTask1,
@@ -123,7 +129,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
     @Test
     public void given_caseId_with_single_task_and_same_category_when_warning_raised_then_mark_tasks_with_warnings() {
 
-        String caseIdForTask1 = getCaseId();
+        String caseIdForTask1 = getWaCaseId();
 
         // Initiate task1
         sendMessage(
@@ -180,7 +186,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_caseId_and_multiple_tasks_and_different_ctg_when_warning_raised_then_mark_tasks_with_warnings() {
 
-        String caseIdForTask1 = getCaseId();
+        String caseIdForTask1 = getWaCaseId();
 
         // Initiate task1 , category (timeExtension)
         sendMessage(
@@ -285,7 +291,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
     public void given_multiple_caseIDs_when_actions_is_warn_then_mark_all_tasks_with_warnings() {
         //caseId1 with category Case progression
 
-        String caseId1 = getCaseId();
+        String caseId1 = getWaCaseId();
         String taskIdDmnColumn = "attendCma";
         caseId1Task1Id = createTaskWithId(
             caseId1,
@@ -300,7 +306,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         //caseId1 with category Case progression
 
-        String caseId2 = getCaseId();
+        String caseId2 = getWaCaseId();
         String taskId2DmnColumn = "reviewRespondentResponse";
         caseId1Task2Id = createTaskWithId(
             caseId2,
@@ -357,7 +363,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
     @Test
     public void given_caseID_when_action_is_warn_with_same_warnings_then_add_the_warning_only_once() {
 
-        String caseIdForTask1 = getCaseId();
+        String caseIdForTask1 = getWaCaseId();
 
         sendMessage(
             caseIdForTask1,
@@ -406,7 +412,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
     @Test
     public void given_caseId_with_different_category_when_same_warning_raised_then_mark_tasks_with_warnings() {
 
-        String caseIdForTask1 = getCaseId();
+        String caseIdForTask1 = getWaCaseId();
 
         // Initiate task1, category (timeExtension)
         sendMessage(
@@ -482,7 +488,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
     @Test
     public void given_caseId_when_warning_raised_without_warning_attributes_mark_tasks_with_warnings() {
 
-        String caseIdForTask1 = getCaseId();
+        String caseIdForTask1 = getWaCaseId();
 
         // Initiate task1, category (Case progression)
         sendMessage(
@@ -555,7 +561,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
     @Test
     public void given_caseId_with_category_when_warning_raised_without_warnings_then_mark_tasks_with_warning() {
 
-        String caseIdForTask1 = getCaseId();
+        String caseIdForTask1 = getWaCaseId();
 
         // Initiate task1, category (Case progression)
         sendMessage(
@@ -605,7 +611,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
     @Test
     public void given_caseId_with_category_and_same_warnings_when_warnings_raised_then_mark_with_warnings() {
 
-        String caseIdForTask1 = getCaseId();
+        String caseIdForTask1 = getWaCaseId();
 
         // Initiate task1, category (timeExtension)
         sendMessage(
@@ -665,7 +671,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
     @Test
     public void given_caseId_with_without_warnings_when_warning_raised_then_mark_tasks_with_warnings() {
 
-        String caseIdForTask1 = getCaseId();
+        String caseIdForTask1 = getWaCaseId();
 
         // Initiate task1, category (followUpOverdue)
         sendMessage(
@@ -728,10 +734,36 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
                     final String warningList = result.jsonPath().getString("warningList.value");
                     WarningValues actualWarningValues = new WarningValues(warningList);
 
-                    assertEquals(expectedWarningValues, actualWarningValues);
+                    assertEquals(expectedWarningValues.getValues().size(), actualWarningValues.getValues().size());
 
+                    List<String> expectedWarningCodes = expectedWarningValues.getValues()
+                        .stream()
+                        .map(Warning::getWarningCode)
+                        .collect(Collectors.toList());
+                    List<String> expectedWarningText = expectedWarningValues.getValues()
+                        .stream()
+                        .map(Warning::getWarningText)
+                        .collect(Collectors.toList());
+
+                    List<String> actualWarningCodes = actualWarningValues.getValues()
+                        .stream()
+                        .map(Warning::getWarningCode)
+                        .collect(Collectors.toList());
+                    List<String> actualWarningText = actualWarningValues.getValues()
+                        .stream()
+                        .map(Warning::getWarningText)
+                        .collect(Collectors.toList());
+
+                    assertTrue(isEqualCollection(expectedWarningCodes, actualWarningCodes));
+                    assertTrue(isEqualCollection(expectedWarningText, actualWarningText));
                     return true;
                 });
+    }
+
+    static boolean isEqualCollection(Collection<?> a, Collection<?> b) {
+        return a == b || (a != null && b != null && a.size() == b.size()
+                          && a.stream().collect(Collectors.toMap(Function.identity(), s -> 1L, Long::sum))
+                              .equals(b.stream().collect(Collectors.toMap(Function.identity(), s -> 1L, Long::sum))));
     }
 
     private void assertTaskWithoutWarnings(String caseId, String taskId, boolean hasWarnings) {

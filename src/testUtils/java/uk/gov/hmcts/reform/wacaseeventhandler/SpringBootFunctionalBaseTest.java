@@ -22,7 +22,6 @@ import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.InitiateTaskRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttribute;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.DocumentManagementFiles;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.GivensBuilder;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.RestApiActions;
@@ -37,7 +36,9 @@ import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -45,7 +46,6 @@ import static com.fasterxml.jackson.databind.PropertyNamingStrategies.LOWER_CAME
 import static com.fasterxml.jackson.databind.PropertyNamingStrategies.SNAKE_CASE;
 import static com.fasterxml.jackson.databind.PropertyNamingStrategies.UPPER_CAMEL_CASE;
 import static java.time.format.DateTimeFormatter.ofPattern;
-import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -54,13 +54,8 @@ import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.InitiateTaskOperation.INITIATION;
-import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_CASE_ID;
-import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_CREATED;
-import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_DUE_DATE;
-import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_NAME;
-import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_TITLE;
-import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.TaskAttributeDefinition.TASK_TYPE;
 
 @RunWith(SpringIntegrationSerenityRunner.class)
 @SpringBootTest
@@ -73,10 +68,14 @@ public abstract class SpringBootFunctionalBaseTest {
     public static final String CAMUNDA_DATE_REQUEST_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS+0000";
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     protected static final String TASK_ENDPOINT = "/task/{task-id}";
+    private static final String TASK_INITIATION_ENDPOINT = "task/{task-id}/initiation";
 
-    @Value("${targets.instance}") protected String testUrl;
-    @Value("${targets.taskapi}") protected String taskManagementUrl;
-    @Value("${targets.camunda}") public String camundaUrl;
+    @Value("${targets.instance}")
+    protected String testUrl;
+    @Value("${targets.taskapi}")
+    protected String taskManagementUrl;
+    @Value("${targets.camunda}")
+    public String camundaUrl;
 
     public ServiceBusSenderClient publisher;
     public String s2sToken;
@@ -85,14 +84,22 @@ public abstract class SpringBootFunctionalBaseTest {
     protected RestApiActions camundaApiActions;
     protected RestApiActions restApiActions;
 
-    @Autowired protected AuthorizationProvider authorizationProvider;
-    @Autowired protected CoreCaseDataApi coreCaseDataApi;
-    @Autowired protected DocumentManagementFiles documentManagementFiles;
-    @Autowired protected IdamService idamService;
-    @Autowired protected RoleAssignmentServiceApi roleAssignmentServiceApi;
-    @Autowired private AuthTokenGenerator authTokenGenerator;
-    @Autowired private ApplicationContext applicationContext;
-    @Autowired protected IdempotencyKeyGenerator idempotencyKeyGenerator;
+    @Autowired
+    protected AuthorizationProvider authorizationProvider;
+    @Autowired
+    protected CoreCaseDataApi coreCaseDataApi;
+    @Autowired
+    protected DocumentManagementFiles documentManagementFiles;
+    @Autowired
+    protected IdamService idamService;
+    @Autowired
+    protected RoleAssignmentServiceApi roleAssignmentServiceApi;
+    @Autowired
+    private AuthTokenGenerator authTokenGenerator;
+    @Autowired
+    private ApplicationContext applicationContext;
+    @Autowired
+    protected IdempotencyKeyGenerator idempotencyKeyGenerator;
 
     protected List<String> caseIds;
 
@@ -161,40 +168,24 @@ public abstract class SpringBootFunctionalBaseTest {
         ZonedDateTime dueDate = createdDate.plusDays(1);
         String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-        InitiateTaskRequest req = new InitiateTaskRequest(INITIATION, asList(
-            new TaskAttribute(TASK_TYPE, taskType),
-            new TaskAttribute(TASK_NAME, taskName),
-            new TaskAttribute(TASK_TITLE, taskTitle),
-            new TaskAttribute(TASK_CASE_ID, caseId),
-            new TaskAttribute(TASK_CREATED, formattedCreatedDate),
-            new TaskAttribute(TASK_DUE_DATE, formattedDueDate)
-        ));
+        Map<String, Object> taskAttributes = new HashMap<>();
+        taskAttributes.put("taskType", taskType);
+        taskAttributes.put("name", taskName);
+        taskAttributes.put("title", taskTitle);
+        taskAttributes.put("caseId", caseId);
+        taskAttributes.put("created", formattedCreatedDate);
+        taskAttributes.put("dueDate", formattedDueDate);
+
+        InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(INITIATION, taskAttributes);
 
         Response result = restApiActions.post(
-            TASK_ENDPOINT,
+            TASK_INITIATION_ENDPOINT,
             taskId,
-            req,
+            initiateTaskRequest,
             authenticationHeaders
         );
 
-        result.then().assertThat()
-            .statusCode(HttpStatus.CREATED.value())
-            .and()
-            .contentType(APPLICATION_JSON_VALUE)
-            .body("task_id", equalTo(taskId))
-            .body("case_id", equalTo(caseId));
-    }
-
-    public String getCaseId() {
-        return getCaseIdForJurisdictionAndCaseType("IA", "Asylum");
-    }
-
-    public String getCaseIdForJurisdictionAndCaseType(String jurisdictionId, String caseType) {
-        TestVariables taskVariables = common.createCase(jurisdictionId, caseType);
-        requireNonNull(taskVariables, "taskVariables is null");
-        requireNonNull(taskVariables.getCaseId(), "case id is null");
-        caseIds.add(taskVariables.getCaseId());
-        return taskVariables.getCaseId();
+        assertResponse(result, caseId, taskId);
     }
 
     public String getWaCaseId() {
@@ -247,5 +238,39 @@ public abstract class SpringBootFunctionalBaseTest {
             .basePath("/task/" + taskId + "/variables")
             .when()
             .get();
+    }
+
+    private void assertResponse(Response response, String caseId, String taskId) {
+        response.prettyPrint();
+
+        int statusCode = response.getStatusCode();
+        switch (statusCode) {
+            case 503:
+                log.info("Initiation failed due to Database Conflict Error, so handling gracefully, {}", statusCode);
+
+                response.then().assertThat()
+                    .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+                    .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+                    .body("type", equalTo(
+                        "https://github.com/hmcts/wa-task-management-api/problem/database-conflict"))
+                    .body("title", equalTo("Database Conflict Error"))
+                    .body("status", equalTo(503))
+                    .body("detail", equalTo(
+                        "Database Conflict Error: The action could not be completed because "
+                            + "there was a conflict in the database."));
+                break;
+            case 201:
+                log.info("task Initiation got successfully with status, {}", statusCode);
+                response.then().assertThat()
+                    .statusCode(HttpStatus.CREATED.value())
+                    .and()
+                    .contentType(APPLICATION_JSON_VALUE)
+                    .body("task_id", equalTo(taskId))
+                    .body("case_id", equalTo(caseId));
+                break;
+            default:
+                log.info("task Initiation failed with status, {}", statusCode);
+                throw new RuntimeException("Invalid status received for task initiation " + statusCode);
+        }
     }
 }
