@@ -208,6 +208,9 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .extract()
             .path("[0].id");
 
+        initiateTask(caseworkerCredentials.getHeaders(), caseIdForTask1, caseId1Task1Id,
+            "decideOnTimeExtension", "Decide On Time Extension", "Decide On Time Extension");
+
         // initiate task2, category (followUpOverdue)
         sendMessage(
             caseIdForTask1,
@@ -229,6 +232,9 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .extract()
             .path("[1].id");
 
+        initiateTask(caseworkerCredentials.getHeaders(), caseIdForTask1, caseId1Task2Id,
+            "followUpOverdueCaseBuilding", "Follow-up overdue case building", "Follow-up overdue case building");
+
         // initiate task3, category (caseProgression)
         sendMessage(
             caseIdForTask1,
@@ -249,6 +255,9 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .assertThat().body("[2].id", notNullValue())
             .extract()
             .path("[2].id");
+
+        initiateTask(caseworkerCredentials.getHeaders(), caseIdForTask1, caseId1Task3Id,
+            "attendCma", "Attend Cma", "Attend Cma");
 
         // send warning message
         sendMessage(
@@ -282,6 +291,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         taskIdStatusMap.put(caseId1Task1Id, "completed");
         taskIdStatusMap.put(caseId1Task2Id, "completed");
         taskIdStatusMap.put(caseId1Task3Id, "completed");
+        common.clearAllRoleAssignments(caseworkerCredentials.getHeaders(), "WA");
     }
 
     /**
@@ -733,7 +743,6 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
                     final String warningList = result.jsonPath().getString("warningList.value");
                     WarningValues actualWarningValues = new WarningValues(warningList);
-
                     assertEquals(expectedWarningValues.getValues().size(), actualWarningValues.getValues().size());
 
                     List<String> expectedWarningCodes = expectedWarningValues.getValues()
