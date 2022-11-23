@@ -99,7 +99,7 @@ public class AsbMessagesToDatabaseTest extends MessagingTests {
             .until(() -> {
                 final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, false);
                 if (dlqMessagesFromDb != null) {
-                    final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
+                    caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
                     Assertions.assertEquals(1, caseEventMessages.size());
                     Assertions.assertEquals(MessageState.UNPROCESSABLE, caseEventMessages.get(0).getState());
