@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wacaseeventhandler;
 
+import org.junit.Test;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
@@ -22,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class AsbMessagesToDatabaseTest extends MessagingTests {
 
-    public static List<CaseEventMessage> caseEventMessages = new ArrayList<>();
+    public static List<CaseEventMessage> caseEventMessages;
 
     @AfterEach
     public void tearDown() {
@@ -100,7 +102,7 @@ public class AsbMessagesToDatabaseTest extends MessagingTests {
             .until(() -> {
                 final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, false);
                 if (dlqMessagesFromDb != null) {
-                    final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
+                    caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
                     assertEquals(1, caseEventMessages.size());
                     assertEquals(MessageState.UNPROCESSABLE, caseEventMessages.get(0).getState());

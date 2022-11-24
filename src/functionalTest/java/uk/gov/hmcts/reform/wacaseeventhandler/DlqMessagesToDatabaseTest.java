@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wacaseeventhandler;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.test.context.ActiveProfiles;
@@ -10,6 +12,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResp
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,6 +25,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Slf4j
 @ActiveProfiles(profiles = {"local", "functional"})
 public class DlqMessagesToDatabaseTest extends MessagingTests {
+
+    public static List<CaseEventMessage> caseEventMessages;
+
+    @BeforeEach
+    public void setup() {
+        caseEventMessages = new ArrayList<>();
+    }
+
+    @AfterEach
+    public void tearDown() {
+        deleteMessagesFromDatabase(caseEventMessages);
+    }
 
     @Test
     public void should_store_dlq_messages_in_database() {
@@ -50,12 +65,11 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
                 () -> {
                     final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
                     if (dlqMessagesFromDb != null) {
-                        final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
+                        caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
                         assertEquals(messageIds.size(), caseEventMessages.size());
                         assertTrue(caseEventMessages.stream().allMatch(CaseEventMessage::getFromDlq));
 
-                        deleteMessagesFromDatabase(caseEventMessages);
                         return true;
                     } else {
                         return false;
@@ -85,12 +99,11 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
             .until(() -> {
                 final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
                 if (dlqMessagesFromDb != null) {
-                    final List<CaseEventMessage> caseEventMessages
-                        = dlqMessagesFromDb.getCaseEventMessages();
+                    caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
                     assertEquals(1, caseEventMessages.size());
                     assertEquals(MessageState.UNPROCESSABLE, caseEventMessages.get(0).getState());
-                    deleteMessagesFromDatabase(caseEventMessages);
+
                     return true;
                 } else {
                     return false;

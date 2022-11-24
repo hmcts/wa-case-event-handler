@@ -36,6 +36,23 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
     private Integer testExecution = 0;
     private Integer isReadyExecution = 0;
 
+
+    public static List<CaseEventMessage> caseEventMessages;
+
+    @BeforeEach
+    public void setup() {
+        caseEventMessages = new ArrayList<>();
+    }
+
+    @AfterEach
+    public void teardown() {
+        if (caseIdToDelete != null) {
+            caseIdToDelete.forEach(this::deleteMessagesFromDatabaseByMsgIds);
+            caseIdToDelete = new ArrayList<>();
+        }
+        deleteMessagesFromDatabase(caseEventMessages);
+    }
+
     @Test
     public void should_process_multiple_messages_for_that_case() {
         List<String> messageIds = List.of(randomMessageId(), randomMessageId(), randomMessageId());
@@ -68,7 +85,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 () -> {
                     final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, false);
                     if (dlqMessagesFromDb != null) {
-                        final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
+                        caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
                         assertEquals(messageIds.size(), caseEventMessages.size());
                         assertTrue(caseEventMessages.stream()
@@ -126,7 +143,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                         final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(dlqCaseId, true);
                         if (dlqMessagesFromDb != null) {
                             logMessageQueryResults(dlqMessagesFromDb);
-                            final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
+                            caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
                             assertTrue(caseEventMessages.stream().anyMatch(x -> x.getCaseId().equals(dlqCaseId)
                                             && x.getState() == MessageState.PROCESSED),
@@ -181,7 +198,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 () -> {
                     final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
                     if (dlqMessagesFromDb != null) {
-                        final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
+                        caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
                         assertTrue(caseEventMessages.stream()
                                        .anyMatch(x -> x.getCaseId().equals(caseId)
@@ -276,7 +293,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                     final EventMessageQueryResponse unprocessableMsg = getMessagesFromDb(caseId, false);
 
                     if (unprocessableMsg != null) {
-                        final List<CaseEventMessage> caseEventMessages = unprocessableMsg.getCaseEventMessages();
+                        caseEventMessages = unprocessableMsg.getCaseEventMessages();
 
                         assertTrue(caseEventMessages.stream()
                                        .anyMatch(x -> x.getCaseId().equals(caseId)
@@ -313,7 +330,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 () -> {
                     final EventMessageQueryResponse messagesFromDb = getMessagesFromDb(caseId2, false);
                     if (messagesFromDb != null) {
-                        final List<CaseEventMessage> caseEventMessages = messagesFromDb.getCaseEventMessages();
+                        caseEventMessages = messagesFromDb.getCaseEventMessages();
 
                         assertTrue(caseEventMessages.stream()
                                        .anyMatch(caseEventMessage -> caseEventMessage.getCaseId().equals(caseId2)
@@ -333,7 +350,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 () -> {
                     final EventMessageQueryResponse messagesFromDb = getMessagesFromDb(caseId, false);
                     if (messagesFromDb != null) {
-                        final List<CaseEventMessage> caseEventMessages = messagesFromDb.getCaseEventMessages();
+                        caseEventMessages = messagesFromDb.getCaseEventMessages();
 
                         assertTrue(caseEventMessages.stream()
                                        .anyMatch(caseEventMessage -> caseEventMessage.getCaseId().equals(caseId)
