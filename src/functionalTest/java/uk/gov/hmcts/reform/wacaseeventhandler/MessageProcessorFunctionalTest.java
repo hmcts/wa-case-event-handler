@@ -39,11 +39,6 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
     public static List<CaseEventMessage> caseEventMessages;
 
-    @BeforeEach
-    public void setup() {
-        caseEventMessages = new ArrayList<>();
-    }
-
     @AfterEach
     public void teardown() {
         if (caseIdToDelete != null) {
@@ -441,11 +436,5 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         log.info("messages from db:" + lineSeparator + data);
     }
 
-    @AfterEach
-    public void teardown() {
-        if (caseIdToDelete != null) {
-            caseIdToDelete.forEach(this::deleteMessagesFromDatabaseByMsgIds);
-            caseIdToDelete = new ArrayList<>();
-        }
-    }
+
 }
