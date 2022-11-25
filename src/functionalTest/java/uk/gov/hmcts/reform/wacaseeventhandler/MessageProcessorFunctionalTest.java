@@ -45,7 +45,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             caseIdToDelete.forEach(this::deleteMessagesFromDatabaseByMsgIds);
             caseIdToDelete = new ArrayList<>();
         }
-        deleteMessagesFromDatabase(caseEventMessages);
+        //deleteMessagesFromDatabase(caseEventMessages);
     }
 
     @Test
