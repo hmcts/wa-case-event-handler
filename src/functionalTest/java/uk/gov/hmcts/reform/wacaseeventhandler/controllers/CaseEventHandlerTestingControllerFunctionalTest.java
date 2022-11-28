@@ -89,8 +89,8 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("messageProperty2", equalTo("value2"));
 
         await().ignoreException(AssertionError.class)
-            .pollInterval(MAX_WAIT, SECONDS)
-            .atMost(POLL_INT, SECONDS)
+            .pollInterval(POLL_INT, SECONDS)
+            .atMost(MAX_WAIT, SECONDS)
             .until(
                 () -> {
                     Response taskFound = findTasksByCaseId(caseIdForTask, 1);
