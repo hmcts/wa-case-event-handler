@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +26,7 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
 
     public ResetNullEventTimestampMessageJob(CaseEventMessageRepository caseEventMessageRepository,
                                              @Value("${job.problem-message.null-event-timestamp-message-id-list}")
-                                                 List<String> messageIds,
+                                             List<String> messageIds,
                                              ObjectMapper objectMapper) {
         this.caseEventMessageRepository = caseEventMessageRepository;
         this.messageIds = messageIds;
@@ -77,18 +76,16 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
                     eventInformation.getEventTimeStamp()
                 );
 
-                if (eventInformation.getEventTimeStamp() != null) {
-                    messageEntity.setEventTimestamp(eventInformation.getEventTimeStamp());
-                    log.info(
-                        "{} Completed reset main eventTimestamp to {} for message id:{} and case id:{}",
-                        RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),
-                        messageEntity.getEventTimestamp(),
-                        messageEntity.getMessageId(),
-                        messageEntity.getCaseId()
-                    );
-                }
+                messageEntity.setEventTimestamp(eventInformation.getEventTimeStamp());
 
-            } catch (JsonProcessingException jsonProcessingException) {
+                log.info(
+                    "{} Completed reset main eventTimestamp to {} for message id:{} and case id:{}",
+                    RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),
+                    messageEntity.getEventTimestamp(),
+                    messageEntity.getMessageId(),
+                    messageEntity.getCaseId()
+                );
+            } catch (Exception jsonProcessingException) {
                 log.info(
                     "Cannot parse the message with null eventTimeStamp, message id:{} and case id:{}",
                     messageEntity.getMessageId(),

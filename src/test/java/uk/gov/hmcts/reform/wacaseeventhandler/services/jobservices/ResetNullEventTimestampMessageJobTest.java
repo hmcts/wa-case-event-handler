@@ -18,7 +18,9 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,9 +41,14 @@ public class ResetNullEventTimestampMessageJobTest {
     @Mock
     private JsonProcessingException jsonProcessingException;
 
+    @Mock
+    private Exception exception;
+
     private ResetNullEventTimestampMessageJob resetNullEventTimestampProblemMessageJob;
 
     private final List<String> messageIds = List.of("messageId_1", "messageId_2", "messageId_3");
+
+    private Map<String, Object> caseEventMessageEntityMap = new HashMap<String, Object>();
 
     @BeforeEach
     void setUp() {
@@ -52,6 +59,7 @@ public class ResetNullEventTimestampMessageJobTest {
 
         logger.addAppender(listAppender);
 
+        caseEventMessageEntityMap.clear();
 
         resetNullEventTimestampProblemMessageJob = new ResetNullEventTimestampMessageJob(
             caseEventMessageRepository,
@@ -68,11 +76,41 @@ public class ResetNullEventTimestampMessageJobTest {
     }
 
     @Test
+    void should_not_set_when_event_timestamp_is_null() throws JsonProcessingException {
+        EventInformation eventMessageFromEntity = getEventInformation_one();
+
+        caseEventMessageEntityMap.put("messageId", "messageId_4");
+        CaseEventMessageEntity nullEventTimestampEntity = buildMessageEntity(caseEventMessageEntityMap,
+                                                                             MessageState.UNPROCESSABLE
+        );
+
+        nullEventTimestampEntity.setMessageContent(eventMessageFromEntity.toString());
+
+        when(caseEventMessageRepository.findByMessageId(messageIds)).thenReturn(List.of(nullEventTimestampEntity));
+
+        when(objectMapper.readValue(nullEventTimestampEntity.getMessageContent(), EventInformation.class)).thenThrow(
+            jsonProcessingException);
+
+        resetNullEventTimestampProblemMessageJob.run();
+
+        assertLogMessageContains(String.format(
+            "Cannot parse the message with null eventTimeStamp, message id:%s and case id:%s",
+            nullEventTimestampEntity.getMessageId(),
+            nullEventTimestampEntity.getCaseId()
+        ));
+
+    }
+
+    @Test
     void should_return_empty_response_for_empty_message_ids() {
-        assertTrue(new ResetNullEventTimestampMessageJob(caseEventMessageRepository, null, objectMapper)
-                       .run().isEmpty());
-        assertTrue(new ResetNullEventTimestampMessageJob(caseEventMessageRepository, List.of(), objectMapper)
-                       .run().isEmpty());
+        assertTrue(new ResetNullEventTimestampMessageJob(caseEventMessageRepository,
+                                                         null,
+                                                         objectMapper
+        ).run().isEmpty());
+        assertTrue(new ResetNullEventTimestampMessageJob(caseEventMessageRepository,
+                                                         List.of(),
+                                                         objectMapper
+        ).run().isEmpty());
     }
 
     @Test
@@ -80,74 +118,93 @@ public class ResetNullEventTimestampMessageJobTest {
         when(caseEventMessageRepository.findByMessageId(messageIds)).thenReturn(List.of());
         assertTrue(resetNullEventTimestampProblemMessageJob.run().isEmpty());
 
-        when(caseEventMessageRepository.findByMessageId(messageIds))
-            .thenReturn(List.of(buildMessageEntity("messageId_1", MessageState.NEW),
-                                buildMessageEntity("messageId_2", MessageState.READY)));
+        caseEventMessageEntityMap.put("messageId", "messageId_1");
+        CaseEventMessageEntity entityOne = buildMessageEntity(caseEventMessageEntityMap, MessageState.NEW);
+
+        caseEventMessageEntityMap.put("messageId", "messageId_2");
+        CaseEventMessageEntity entityTwo = buildMessageEntity(caseEventMessageEntityMap, MessageState.READY);
+
+        when(caseEventMessageRepository.findByMessageId(messageIds)).thenReturn(List.of(entityOne, entityTwo));
+
         assertTrue(resetNullEventTimestampProblemMessageJob.run().isEmpty());
     }
 
     @Test
     void should_return_message_id_list_response_for_handling_null_event_timestampe_messages()
         throws JsonProcessingException {
-        EventInformation eventMessageFromEntity = getEventInformation();
+        EventInformation eventMessageFromEntity = getEventInformation_one();
 
-        CaseEventMessageEntity nullEventTimestampEntity = buildMessageEntity("messageId_3", MessageState.UNPROCESSABLE);
+        caseEventMessageEntityMap.put("messageId", "messageId_3");
+        CaseEventMessageEntity nullEventTimestampEntity = buildMessageEntity(caseEventMessageEntityMap,
+                                                                             MessageState.UNPROCESSABLE
+        );
+
         nullEventTimestampEntity.setMessageContent(eventMessageFromEntity.toString());
 
-        when(caseEventMessageRepository.findByMessageId(messageIds))
-            .thenReturn(List.of(nullEventTimestampEntity));
-        when(objectMapper.readValue(nullEventTimestampEntity.getMessageContent(), EventInformation.class))
-            .thenReturn(eventMessageFromEntity);
+        when(caseEventMessageRepository.findByMessageId(messageIds)).thenReturn(List.of(nullEventTimestampEntity));
 
-        assertEquals(messageIds,resetNullEventTimestampProblemMessageJob.run());
+        when(objectMapper.readValue(nullEventTimestampEntity.getMessageContent(), EventInformation.class)).thenReturn(
+            eventMessageFromEntity);
+
+        assertEquals(messageIds, resetNullEventTimestampProblemMessageJob.run());
     }
 
     @Test
-    void should_return_json_processing_exception_when_message_content_is_incorrect() throws JsonProcessingException {
+    void should_return_json_processing_exception_when_message_content_is_incorrect()
+        throws JsonProcessingException {
+        caseEventMessageEntityMap.put("messageId", "messageId_3");
+        CaseEventMessageEntity nullEventTimestampEntity = buildMessageEntity(caseEventMessageEntityMap,
+                                                                             MessageState.UNPROCESSABLE
+        );
 
-        CaseEventMessageEntity nullEventTimestampEntity = buildMessageEntity("messageId_3", MessageState.UNPROCESSABLE);
         nullEventTimestampEntity.setCaseId("caseId_3");
         nullEventTimestampEntity.setMessageContent("{\"CaseId\":\"caseId_3\",\"EventTimeStamp\":\"ABC\"}");
 
-        when(caseEventMessageRepository.findByMessageId(messageIds))
-            .thenReturn(List.of(nullEventTimestampEntity));
-        when(objectMapper.readValue(nullEventTimestampEntity.getMessageContent(), EventInformation.class))
-            .thenThrow(jsonProcessingException);
+        when(caseEventMessageRepository.findByMessageId(messageIds)).thenReturn(List.of(nullEventTimestampEntity));
+        when(objectMapper.readValue(nullEventTimestampEntity.getMessageContent(), EventInformation.class)).thenThrow(
+            jsonProcessingException);
 
         resetNullEventTimestampProblemMessageJob.run();
 
-        assertLogMessageContains(
-            String.format("Cannot parse the message with null eventTimeStamp, message id:%s and case id:%s",
-                                               nullEventTimestampEntity.getMessageId(),
-                                               nullEventTimestampEntity.getCaseId()
-            ));
+        assertLogMessageContains(String.format(
+            "Cannot parse the message with null eventTimeStamp, message id:%s and case id:%s",
+            nullEventTimestampEntity.getMessageId(),
+            nullEventTimestampEntity.getCaseId()
+        ));
     }
 
-    private EventInformation getEventInformation() {
-        return EventInformation
-            .builder()
-            .userId("userId_3")
-            .jurisdictionId("jurisdictionId_3")
-            .caseTypeId("caseTypeId_3")
-            .caseId("caseId_3")
-            .eventTimeStamp(LocalDateTime.now())
-            .build();
+    private static EventInformation getEventInformation_one() {
+        return EventInformation.builder().userId("userId_3").jurisdictionId("jurisdictionId_3").caseTypeId(
+            "caseTypeId_3").caseId("caseId_3").eventTimeStamp(LocalDateTime.now()).build();
     }
 
-    private CaseEventMessageEntity buildMessageEntity(String id, MessageState state) {
+    private CaseEventMessageEntity buildMessageEntity(Map<String, Object> map, MessageState state) {
         CaseEventMessageEntity entity = new CaseEventMessageEntity();
-        entity.setMessageId(id);
+
+        for (Map.Entry<String, Object> val : map.entrySet()) {
+            Object value = val.getValue();
+            switch (val.getKey()) {
+                case "messageId":
+                    entity.setMessageId((String) value);
+                    break;
+                case "eventTimeStamp":
+
+                    entity.setEventTimestamp(LocalDateTime.parse((String) value));
+                    break;
+                default:
+                    break;
+            }
+        }
+
         entity.setState(state);
 
         return entity;
     }
 
+
     private void assertLogMessageContains(String expectedMessage) {
         List<ILoggingEvent> logsList = listAppender.list;
-        assertTrue(logsList.stream()
-                       .map(ILoggingEvent::getFormattedMessage)
-                       .collect(Collectors.toList())
-                       .contains(expectedMessage));
+        assertTrue(logsList.stream().map(ILoggingEvent::getFormattedMessage).collect(Collectors.toList()).contains(
+            expectedMessage));
     }
-
 }

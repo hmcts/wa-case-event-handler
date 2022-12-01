@@ -20,16 +20,20 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
-import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.PollTimeAssertionsConfiguration.MAX_WAIT;
+import static uk.gov.hmcts.reform.wacaseeventhandler.config.PollTimeAssertionsConfiguration.POLL_INT;
 
 @Slf4j
 public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootFunctionalBaseTest {
@@ -84,34 +88,47 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("messageProperty1", equalTo("value1"))
             .body("messageProperty2", equalTo("value2"));
 
-        Response taskFound = findTasksByCaseId(caseIdForTask, 1);
+        await().ignoreException(AssertionError.class)
+            .pollInterval(POLL_INT, SECONDS)
+            .atMost(MAX_WAIT, SECONDS)
+            .until(
+                () -> {
+                    Response taskFound = findTasksByCaseId(caseIdForTask, 1);
 
-        String taskId = taskFound
-            .then().assertThat()
-            .body("[0].id", CoreMatchers.notNullValue())
-            .extract()
-            .path("[0].id");
+                    if (taskFound != null) {
+                        String taskId = taskFound
+                            .then().assertThat()
+                            .body("[0].id", CoreMatchers.notNullValue())
+                            .extract()
+                            .path("[0].id");
 
-        Response response = findTaskDetailsForGivenTaskId(taskId);
-        String idempotencyKey = idempotencyKeyGenerator.generateIdempotencyKey(eventInformation.getEventInstanceId(),
-                                                                               "followUpNonStandardDirection");
+                        Response response = findTaskDetailsForGivenTaskId(taskId);
+                        String idempotencyKey = idempotencyKeyGenerator.generateIdempotencyKey(
+                            eventInformation.getEventInstanceId(),
+                            "followUpNonStandardDirection");
 
-        response.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
-            .body("caseTypeId.value", equalToIgnoringCase("wacasetype"))
-            .body("jurisdiction.value", equalToIgnoringCase("wa"))
-            .body("idempotencyKey.value", is(idempotencyKey))
-            .body("dueDate.value", notNullValue())
-            .body("taskState.value", equalToIgnoringCase("unconfigured"))
-            .body("hasWarnings.value", is(false))
-            .body("caseId.value", is(caseIdForTask))
-            .body("name.value", equalToIgnoringCase("Follow-up non-standard direction"))
-            .body("workingDaysAllowed.value", is(2))
-            .body("isDuplicate.value", is(false))
-            .body("delayUntil.value", CoreMatchers.notNullValue())
-            .body("taskId.value", equalToIgnoringCase("followUpNonStandardDirection"))
-            .body("warningList.value", is("[]"));
+                        response.then().assertThat()
+                            .statusCode(HttpStatus.OK.value())
+                            .and().contentType(MediaType.APPLICATION_JSON_VALUE)
+                            .body("caseTypeId.value", equalToIgnoringCase("wacasetype"))
+                            .body("jurisdiction.value", equalToIgnoringCase("wa"))
+                            .body("idempotencyKey.value", is(idempotencyKey))
+                            .body("dueDate.value", notNullValue())
+                            .body("taskState.value", equalToIgnoringCase("unconfigured"))
+                            .body("hasWarnings.value", is(false))
+                            .body("caseId.value", is(caseIdForTask))
+                            .body("name.value", equalToIgnoringCase("Follow-up non-standard direction"))
+                            .body("workingDaysAllowed.value", is(2))
+                            .body("isDuplicate.value", is(false))
+                            .body("delayUntil.value", CoreMatchers.notNullValue())
+                            .body("taskId.value", equalToIgnoringCase("followUpNonStandardDirection"))
+                            .body("warningList.value", is("[]"));
+
+                        return true;
+                    } else {
+                        return false;
+                    }
+                });
     }
 
     @Test
