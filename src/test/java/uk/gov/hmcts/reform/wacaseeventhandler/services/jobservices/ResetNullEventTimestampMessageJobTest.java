@@ -178,6 +178,17 @@ public class ResetNullEventTimestampMessageJobTest {
             .build();
     }
 
+
+
+    /*
+    private CaseEventMessageEntity buildMessageEntity(String id, MessageState state) {
+        CaseEventMessageEntity entity = new CaseEventMessageEntity();
+        entity.setMessageId(id);
+        entity.setState(state);
+
+        return entity;
+    } */
+
     private CaseEventMessageEntity buildMessageEntity(Map<String, Object> map, MessageState state) {
         CaseEventMessageEntity entity = new CaseEventMessageEntity();
 
@@ -209,4 +220,5 @@ public class ResetNullEventTimestampMessageJobTest {
                        .collect(Collectors.toList())
                        .contains(expectedMessage));
     }
+
 }
