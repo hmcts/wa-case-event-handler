@@ -28,5 +28,3 @@ bin/main/application.yaml
 ### osx
 .DS_Store
 
-### lombok
-lombok.config
