@@ -40,7 +40,7 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
     }
 
     @Override
-    public List<String> run() {
+    public List<String> run()  {
         log.info("Start {}:'{}'", RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(), this.messageIds);
 
         if (this.messageIds == null || this.messageIds.isEmpty() || !canRun(RESET_NULL_EVENT_TIMESTAMP_MESSAGES)) {
@@ -49,10 +49,7 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
 
         log.info("Resetting message with null eventTimestamp messages");
         List<CaseEventMessageEntity> messages = caseEventMessageRepository.findByMessageId(this.messageIds);
-
-        List<CaseEventMessageEntity> nullEventTimestampMessageListToReset = messages.stream()
-            .filter(msg -> MessageState.UNPROCESSABLE.equals(msg.getState()) && msg.getEventTimestamp() == null)
-            .collect(Collectors.toList());
+        List<CaseEventMessageEntity> nullEventTimestampMessageListToReset = filterUnproccesableMessages(messages);
 
         if (nullEventTimestampMessageListToReset.isEmpty()) {
             log.info(
@@ -61,7 +58,19 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
             );
             return List.of();
         }
+        checkEventTimeStamp(nullEventTimestampMessageListToReset);
+        return this.messageIds;
+    }
 
+    public List<CaseEventMessageEntity> filterUnproccesableMessages(List<CaseEventMessageEntity> messages )
+    {
+        return messages.stream()
+            .filter(msg -> MessageState.UNPROCESSABLE.equals(msg.getState()) && msg.getEventTimestamp() == null)
+            .collect(Collectors.toList());
+    }
+
+    public void checkEventTimeStamp(List<CaseEventMessageEntity> nullEventTimestampMessageListToReset)
+    {
         nullEventTimestampMessageListToReset.stream().forEach(messageEntity -> {
             try {
                 EventInformation eventInformation = objectMapper.readValue(
@@ -77,18 +86,17 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
                     eventInformation.getEventTimeStamp()
                 );
 
-                if (eventInformation.getEventTimeStamp() != null) {
-                    messageEntity.setEventTimestamp(eventInformation.getEventTimeStamp());
-                    log.info(
-                        "{} Completed reset main eventTimestamp to {} for message id:{} and case id:{}",
-                        RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),
-                        messageEntity.getEventTimestamp(),
-                        messageEntity.getMessageId(),
-                        messageEntity.getCaseId()
-                    );
-                }
+                messageEntity.setEventTimestamp(eventInformation.getEventTimeStamp());
 
-            } catch (JsonProcessingException jsonProcessingException) {
+                log.info(
+                    "{} Completed reset main eventTimestamp to {} for message id:{} and case id:{}",
+                    RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),
+                    messageEntity.getEventTimestamp(),
+                    messageEntity.getMessageId(),
+                    messageEntity.getCaseId()
+                );
+
+            } catch (Exception jsonProcessingException) {
                 log.info(
                     "Cannot parse the message with null eventTimeStamp, message id:{} and case id:{}",
                     messageEntity.getMessageId(),
@@ -96,6 +104,7 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
                 );
             }
         });
-        return this.messageIds;
+
+
     }
 }
