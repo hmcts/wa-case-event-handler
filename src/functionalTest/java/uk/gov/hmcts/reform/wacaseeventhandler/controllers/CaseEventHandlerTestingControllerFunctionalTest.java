@@ -26,6 +26,7 @@ import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
@@ -69,6 +70,8 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
                                                                   "wa-dlq-user@fake.hmcts.net", timeStamp);
         EventInformationRequest createRequest = createRequestWithAdditionalMetadata(eventInformation, null);
 
+
+
         postEventToRestEndpoint(messageId, s2sToken, createRequest)
             .then()
             .statusCode(HttpStatus.CREATED.value())
@@ -78,9 +81,9 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("CaseId", equalTo(caseIdForTask))
             .body("EventTimestamp", equalTo(timeStampString))
             .body("FromDlq", equalTo(false))
-            .body("State", stateMatcher)
+            .body("State",  is(not("UNPROCESSABLE")))
             .body("MessageContent", equalTo(asJsonString(createRequest)))
-            .body("Received", notNullValue())
+            .body("Received", notNullValue())sp
             .body("DeliveryCount", equalTo(0))
             .body("RetryCount", equalTo(0))
 
@@ -432,6 +435,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     }
 
     private String randomMessageId() {
+        // return "" + this.random.nextInt(1000000);
         return "" + ThreadLocalRandom.current().nextLong(1000000);
     }
 
