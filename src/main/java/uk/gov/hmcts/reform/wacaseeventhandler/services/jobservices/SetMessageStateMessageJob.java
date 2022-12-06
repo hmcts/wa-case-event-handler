@@ -17,6 +17,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName.SET_MES
 @Service
 @Slf4j
 @Transactional
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class SetMessageStateMessageJob implements MessageJob {
     private final CaseEventMessageRepository caseEventMessageRepository;
     private final List<String> messageIds;
@@ -58,11 +59,12 @@ public class SetMessageStateMessageJob implements MessageJob {
 
         setMessageStateList.stream().forEach(messageEntity -> {
             log.info(
-                "{} message id:{}, case id:{}, message state:{} and set to PROCESSED",
+                "{} message id:{}, case id:{}, message state:{} and set to {}",
                 SET_MESSAGE_STATE_MESSAGES.name(),
                 messageEntity.getMessageId(),
                 messageEntity.getCaseId(),
-                messageEntity.getState()
+                messageEntity.getState(),
+                MessageState.PROCESSED
             );
             messageEntity.setState(MessageState.PROCESSED);
         });
