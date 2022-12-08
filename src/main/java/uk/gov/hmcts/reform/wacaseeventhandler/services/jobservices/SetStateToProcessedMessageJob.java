@@ -12,18 +12,18 @@ import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageReposit
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName.SET_MESSAGE_STATE_MESSAGES;
+import static uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName.SET_STATE_TO_PROCESSED_ON_MESSAGES;
 
 @Service
 @Slf4j
 @Transactional
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
-public class SetMessageStateMessageJob implements MessageJob {
+public class SetStateToProcessedMessageJob implements MessageJob {
     private final CaseEventMessageRepository caseEventMessageRepository;
     private final List<String> messageIds;
 
-    public SetMessageStateMessageJob(CaseEventMessageRepository caseEventMessageRepository,
-                                     @Value("${job.problem-message.set-message-state-message-id-list}")
+    public SetStateToProcessedMessageJob(CaseEventMessageRepository caseEventMessageRepository,
+                                         @Value("${job.problem-message.set-processed-state-message-id-list}")
                                      List<String> messageIds) {
         this.caseEventMessageRepository = caseEventMessageRepository;
         this.messageIds = messageIds;
@@ -31,14 +31,14 @@ public class SetMessageStateMessageJob implements MessageJob {
 
     @Override
     public boolean canRun(JobName jobName) {
-        return SET_MESSAGE_STATE_MESSAGES.equals(jobName);
+        return (this.messageIds != null && !this.messageIds.isEmpty() && SET_STATE_TO_PROCESSED_ON_MESSAGES.equals(jobName));
     }
 
     @Override
     public List<String> run() {
-        log.info("Start {}:'{}'", SET_MESSAGE_STATE_MESSAGES.name(), this.messageIds);
+        log.info("Start {}:'{}'", SET_STATE_TO_PROCESSED_ON_MESSAGES.name(), this.messageIds);
 
-        if (this.messageIds == null || this.messageIds.isEmpty() || !canRun(SET_MESSAGE_STATE_MESSAGES)) {
+        if (!canRun(SET_STATE_TO_PROCESSED_ON_MESSAGES)) {
             return List.of();
         }
 
@@ -52,7 +52,7 @@ public class SetMessageStateMessageJob implements MessageJob {
         if (setMessageStateList.isEmpty()) {
             log.info(
                 "{} There is no any UNPROCESSABLE message with setting message state",
-                SET_MESSAGE_STATE_MESSAGES.name()
+                SET_STATE_TO_PROCESSED_ON_MESSAGES.name()
             );
             return List.of();
         }
@@ -60,7 +60,7 @@ public class SetMessageStateMessageJob implements MessageJob {
         setMessageStateList.stream().forEach(messageEntity -> {
             log.info(
                 "{} message id:{}, case id:{}, message state:{} and set to {}",
-                SET_MESSAGE_STATE_MESSAGES.name(),
+                SET_STATE_TO_PROCESSED_ON_MESSAGES.name(),
                 messageEntity.getMessageId(),
                 messageEntity.getCaseId(),
                 messageEntity.getState(),

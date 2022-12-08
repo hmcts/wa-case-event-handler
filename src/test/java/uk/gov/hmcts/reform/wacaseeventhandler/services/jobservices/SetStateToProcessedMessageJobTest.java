@@ -20,17 +20,17 @@ import static org.mockito.Mockito.when;
 @ExtendWith({MockitoExtension.class})
 
 
-public class SetMessageStateMessageJobTest {
+public class SetStateToProcessedMessageJobTest {
     @Mock
     private CaseEventMessageRepository caseEventMessageRepository;
 
-    private SetMessageStateMessageJob setMessageStateMessageJob;
+    private SetStateToProcessedMessageJob setStateToProcessedMessageJob;
 
     private final List<String> messageIds = List.of("messageId_1", "messageId_2", "messageId_3");
 
     @BeforeEach
     void setUp() {
-        setMessageStateMessageJob = new SetMessageStateMessageJob(
+        setStateToProcessedMessageJob = new SetStateToProcessedMessageJob(
             caseEventMessageRepository,
             messageIds
         );
@@ -38,51 +38,44 @@ public class SetMessageStateMessageJobTest {
 
     @Test
     void should_be_able_to_run_message_state_message_job() {
-        assertFalse(setMessageStateMessageJob.canRun(JobName.FIND_PROBLEM_MESSAGES));
-        assertFalse(setMessageStateMessageJob.canRun(JobName.RESET_PROBLEM_MESSAGES));
-        assertFalse(setMessageStateMessageJob.canRun(JobName.RESET_NULL_EVENT_TIMESTAMP_MESSAGES));
-        assertTrue(setMessageStateMessageJob.canRun(JobName.SET_MESSAGE_STATE_MESSAGES));
+        assertFalse(setStateToProcessedMessageJob.canRun(JobName.FIND_PROBLEM_MESSAGES));
+        assertFalse(setStateToProcessedMessageJob.canRun(JobName.RESET_PROBLEM_MESSAGES));
+        assertFalse(setStateToProcessedMessageJob.canRun(JobName.RESET_NULL_EVENT_TIMESTAMP_MESSAGES));
+        assertTrue(setStateToProcessedMessageJob.canRun(JobName.SET_STATE_TO_PROCESSED_ON_MESSAGES));
     }
 
     @Test
     void should_return_empty_response_for_empty_message_ids() {
-        assertTrue(new SetMessageStateMessageJob(caseEventMessageRepository, null)
+        assertTrue(new SetStateToProcessedMessageJob(caseEventMessageRepository, null)
                        .run().isEmpty());
-        assertTrue(new SetMessageStateMessageJob(caseEventMessageRepository, List.of())
+        assertTrue(new SetStateToProcessedMessageJob(caseEventMessageRepository, List.of())
                        .run().isEmpty());
     }
 
     @Test
     void should_return_empty_response_for_empty_unprocessable_messages() {
         when(caseEventMessageRepository.findByMessageId(messageIds)).thenReturn(List.of());
-        assertTrue(setMessageStateMessageJob.run().isEmpty());
+        assertTrue(setStateToProcessedMessageJob.run().isEmpty());
 
         when(caseEventMessageRepository.findByMessageId(messageIds))
-            .thenReturn(List.of(buildMessageEntity("messageId_1", MessageState.NEW),
-                                buildMessageEntity("messageId_2", MessageState.READY),
-                                buildMessageEntity("messageId_3", MessageState.PROCESSED)));
-        assertTrue(setMessageStateMessageJob.run().isEmpty());
+            .thenReturn(List.of(new CaseEventMessageEntity().buildMessage("messageId_1", MessageState.NEW),
+                                new CaseEventMessageEntity().buildMessage("messageId_2", MessageState.READY),
+                                new CaseEventMessageEntity().buildMessage("messageId_3", MessageState.PROCESSED)));
+        assertTrue(setStateToProcessedMessageJob.run().isEmpty());
     }
 
     @Test
     void should_return_message_id_list_response_for_setting_message_state() {
 
-        CaseEventMessageEntity unprocessableMessage = buildMessageEntity("messageId_3", MessageState.UNPROCESSABLE);
+        CaseEventMessageEntity unprocessableMessage = new CaseEventMessageEntity().buildMessage("messageId_3", MessageState.UNPROCESSABLE);
 
         when(caseEventMessageRepository.findByMessageId(messageIds))
-            .thenReturn(List.of(buildMessageEntity("messageId_1", MessageState.NEW),
-                                buildMessageEntity("messageId_2", MessageState.READY),
+            .thenReturn(List.of(new CaseEventMessageEntity().buildMessage("messageId_1", MessageState.NEW),
+                                new CaseEventMessageEntity().buildMessage("messageId_2", MessageState.READY),
                                 unprocessableMessage));
 
-        assertEquals(messageIds,setMessageStateMessageJob.run());
+        assertEquals(messageIds, setStateToProcessedMessageJob.run());
         assertEquals(MessageState.PROCESSED,unprocessableMessage.getState());
     }
 
-    private CaseEventMessageEntity buildMessageEntity(String id, MessageState state) {
-        CaseEventMessageEntity entity = new CaseEventMessageEntity();
-        entity.setMessageId(id);
-        entity.setState(state);
-
-        return entity;
-    }
 }
