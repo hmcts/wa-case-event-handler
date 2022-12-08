@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -67,6 +68,7 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
                     messageEntity.getMessageContent(),
                     EventInformation.class
                 );
+
                 log.info(
                     "{} message id:{}, case id:{}, main eventTimeStamp:{}, messageContent eventTimeStamp:{}",
                     RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(),
@@ -85,7 +87,7 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
                     messageEntity.getMessageId(),
                     messageEntity.getCaseId()
                 );
-            } catch (Exception jsonProcessingException) {
+            } catch (JsonProcessingException jsonProcessingException) {
                 log.info(
                     "Cannot parse the message with null eventTimeStamp, message id:{} and case id:{}",
                     messageEntity.getMessageId(),
