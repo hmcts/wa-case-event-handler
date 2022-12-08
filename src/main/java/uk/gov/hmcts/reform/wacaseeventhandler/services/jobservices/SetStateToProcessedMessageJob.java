@@ -24,14 +24,16 @@ public class SetStateToProcessedMessageJob implements MessageJob {
 
     public SetStateToProcessedMessageJob(CaseEventMessageRepository caseEventMessageRepository,
                                          @Value("${job.problem-message.set-processed-state-message-id-list}")
-                                     List<String> messageIds) {
+                                         List<String> messageIds) {
         this.caseEventMessageRepository = caseEventMessageRepository;
         this.messageIds = messageIds;
     }
 
     @Override
     public boolean canRun(JobName jobName) {
-        return (this.messageIds != null && !this.messageIds.isEmpty() && SET_STATE_TO_PROCESSED_ON_MESSAGES.equals(jobName));
+        return this.messageIds != null
+                && !this.messageIds.isEmpty()
+                && SET_STATE_TO_PROCESSED_ON_MESSAGES.equals(jobName);
     }
 
     @Override

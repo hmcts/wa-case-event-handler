@@ -67,7 +67,8 @@ public class SetStateToProcessedMessageJobTest {
     @Test
     void should_return_message_id_list_response_for_setting_message_state() {
 
-        CaseEventMessageEntity unprocessableMessage = new CaseEventMessageEntity().buildMessage("messageId_3", MessageState.UNPROCESSABLE);
+        CaseEventMessageEntity unprocessableMessage = new CaseEventMessageEntity()
+                                                          .buildMessage("messageId_3", MessageState.UNPROCESSABLE);
 
         when(caseEventMessageRepository.findByMessageId(messageIds))
             .thenReturn(List.of(new CaseEventMessageEntity().buildMessage("messageId_1", MessageState.NEW),
