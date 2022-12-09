@@ -10,6 +10,7 @@ import org.hibernate.annotations.TypeDef;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Map;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -26,6 +27,7 @@ import javax.persistence.Table;
 @ToString
 @TypeDef(name = "json", typeClass = JsonType.class)
 @TypeDef(name = "pgsql_enum", typeClass = PostgreSQLEnumType.class)
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class CaseEventMessageEntity implements Serializable {
 
     private static final String MESSAGE_ID = "message_id";
@@ -110,6 +112,8 @@ public class CaseEventMessageEntity implements Serializable {
         return eventTimestamp;
     }
 
+
+
     public void setEventTimestamp(LocalDateTime eventTimestamp) {
         this.eventTimestamp = eventTimestamp;
     }
@@ -177,4 +181,28 @@ public class CaseEventMessageEntity implements Serializable {
     public void setRetryCount(Integer retryCount) {
         this.retryCount = retryCount;
     }
+
+
+    public static CaseEventMessageEntity buildMessageEntity(Map<String, Object> map, MessageState state) {
+        CaseEventMessageEntity entity = new CaseEventMessageEntity();
+
+        for (Map.Entry<String, Object> val : map.entrySet()) {
+            Object value = val.getValue();
+            switch (val.getKey()) {
+                case "messageId":
+                    entity.setMessageId((String) value);
+                    break;
+                case "eventTimeStamp":
+                    entity.setEventTimestamp(LocalDateTime.parse((String) value));
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        entity.setState(state);
+
+        return entity;
+    }
+
 }
