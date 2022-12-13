@@ -10,7 +10,6 @@ import org.hibernate.annotations.TypeDef;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Map;
 import javax.persistence.Column;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
@@ -180,28 +179,5 @@ public class CaseEventMessageEntity implements Serializable {
 
     public void setRetryCount(Integer retryCount) {
         this.retryCount = retryCount;
-    }
-
-
-    public static CaseEventMessageEntity buildMessageEntity(Map<String, Object> map, MessageState state) {
-        CaseEventMessageEntity entity = new CaseEventMessageEntity();
-
-        for (Map.Entry<String, Object> val : map.entrySet()) {
-            Object value = val.getValue();
-            switch (val.getKey()) {
-                case "messageId":
-                    entity.setMessageId((String) value);
-                    break;
-                case "eventTimeStamp":
-                    entity.setEventTimestamp(LocalDateTime.parse((String) value));
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        entity.setState(state);
-
-        return entity;
     }
 }
