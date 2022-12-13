@@ -17,7 +17,7 @@ import javax.validation.constraints.NotEmpty;
 @ToString
 @Builder
 @EqualsAndHashCode
-@SuppressWarnings({"PMD.ExcessiveParameterList", "PMD.UnnecessaryFullyQualifiedName"})
+@SuppressWarnings({"PMD.ExcessiveParameterList"})
 public final class EventInformation {
 
     @NotEmpty
@@ -100,16 +100,5 @@ public final class EventInformation {
 
     public AdditionalData getAdditionalData() {
         return additionalData;
-    }
-
-    public static EventInformation getEventInformation() {
-        return EventInformation
-            .builder()
-            .userId("userId_3")
-            .jurisdictionId("jurisdictionId_3")
-            .caseTypeId("caseTypeId_3")
-            .caseId("caseId_3")
-            .eventTimeStamp(LocalDateTime.now())
-            .build();
     }
 }
