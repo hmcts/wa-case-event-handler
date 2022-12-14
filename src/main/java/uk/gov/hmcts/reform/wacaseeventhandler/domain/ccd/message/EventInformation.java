@@ -17,7 +17,7 @@ import javax.validation.constraints.NotEmpty;
 @ToString
 @Builder
 @EqualsAndHashCode
-@SuppressWarnings({"PMD.ExcessiveParameterList"})
+@SuppressWarnings("PMD.ExcessiveParameterList")
 public final class EventInformation {
 
     @NotEmpty
