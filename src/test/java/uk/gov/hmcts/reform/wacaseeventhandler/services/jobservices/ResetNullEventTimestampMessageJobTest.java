@@ -49,16 +49,12 @@ public class ResetNullEventTimestampMessageJobTest {
 
     private final List<String> messageIds = List.of("messageId_1", "messageId_2", "messageId_3");
 
-    private Map<String, Object> caseEventMessageEntityMap = new HashMap<String, Object>();
-
     private final Logger logger = (Logger) LoggerFactory.getLogger(ResetNullEventTimestampMessageJob.class);
 
     @BeforeEach
     void setUp() {
         listAppender = new ListAppender<>();
         listAppender.start();
-
-        caseEventMessageEntityMap.clear();
 
         logger.addAppender(listAppender);
 
@@ -86,6 +82,7 @@ public class ResetNullEventTimestampMessageJobTest {
 
     @Test
     void should_return_empty_response_for_empty_unprocessable_messages() {
+        Map<String, Object> caseEventMessageEntityMap = new HashMap<>();
         when(caseEventMessageRepository.findByMessageId(messageIds)).thenReturn(List.of());
         assertTrue(resetNullEventTimestampProblemMessageJob.run().isEmpty());
 
@@ -108,6 +105,7 @@ public class ResetNullEventTimestampMessageJobTest {
     @Test
     void should_return_message_id_list_response_for_handling_null_event_timestamp_messages()
         throws JsonProcessingException {
+        Map<String, Object> caseEventMessageEntityMap = new HashMap<>();
         EventInformation eventMessageFromEntity = getEventInformation();
 
         caseEventMessageEntityMap.put("messageId", "messageId_3");
@@ -126,6 +124,7 @@ public class ResetNullEventTimestampMessageJobTest {
 
     @Test
     void should_return_json_processing_exception_when_message_content_is_incorrect() throws JsonProcessingException {
+        Map<String, Object> caseEventMessageEntityMap = new HashMap<>();
         caseEventMessageEntityMap.put("messageId", "messageId_3");
         CaseEventMessageEntity nullEventTimestampEntity = caseEventMessageEntityTest
             .buildMessageEntity(caseEventMessageEntityMap, MessageState.UNPROCESSABLE);
