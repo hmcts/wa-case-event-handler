@@ -3,9 +3,9 @@ package uk.gov.hmcts.reform.wacaseeventhandler.entity;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-public class CaseEventMessageEntityTest {
+public class CaseEventMessageEntityCreator {
 
-    private CaseEventMessageEntityTest() {
+    private CaseEventMessageEntityCreator() {
     }
 
     public static CaseEventMessageEntity buildMessageEntity(Map<String, Object> map, MessageState state) {
