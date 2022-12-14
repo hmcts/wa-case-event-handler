@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
-import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntityTest;
+import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntityCreator;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
@@ -34,7 +34,7 @@ public class ResetNullEventTimestampMessageJobTest {
     private ListAppender<ILoggingEvent> listAppender;
 
     @Mock
-    private static CaseEventMessageEntityTest caseEventMessageEntityTest;
+    private static CaseEventMessageEntityCreator caseEventMessageEntityCreator;
 
     @Mock
     private CaseEventMessageRepository caseEventMessageRepository;
@@ -87,13 +87,13 @@ public class ResetNullEventTimestampMessageJobTest {
         assertTrue(resetNullEventTimestampProblemMessageJob.run().isEmpty());
 
         caseEventMessageEntityMap.put("messageId", "messageId_1");
-        CaseEventMessageEntity messageOne = caseEventMessageEntityTest
+        CaseEventMessageEntity messageOne = caseEventMessageEntityCreator
             .buildMessageEntity(caseEventMessageEntityMap, MessageState.NEW);
 
         caseEventMessageEntityMap.clear();
 
         caseEventMessageEntityMap.put("messageId", "messageId_2");
-        CaseEventMessageEntity messageTwo = caseEventMessageEntityTest
+        CaseEventMessageEntity messageTwo = caseEventMessageEntityCreator
             .buildMessageEntity(caseEventMessageEntityMap, MessageState.READY);
 
         when(caseEventMessageRepository.findByMessageId(messageIds))
@@ -109,7 +109,7 @@ public class ResetNullEventTimestampMessageJobTest {
         EventInformation eventMessageFromEntity = getEventInformation();
 
         caseEventMessageEntityMap.put("messageId", "messageId_3");
-        CaseEventMessageEntity nullEventTimestampEntity = caseEventMessageEntityTest
+        CaseEventMessageEntity nullEventTimestampEntity = caseEventMessageEntityCreator
             .buildMessageEntity(caseEventMessageEntityMap, MessageState.UNPROCESSABLE);
 
         nullEventTimestampEntity.setMessageContent(eventMessageFromEntity.toString());
@@ -126,7 +126,7 @@ public class ResetNullEventTimestampMessageJobTest {
     void should_return_json_processing_exception_when_message_content_is_incorrect() throws JsonProcessingException {
         Map<String, Object> caseEventMessageEntityMap = new HashMap<>();
         caseEventMessageEntityMap.put("messageId", "messageId_3");
-        CaseEventMessageEntity nullEventTimestampEntity = caseEventMessageEntityTest
+        CaseEventMessageEntity nullEventTimestampEntity = caseEventMessageEntityCreator
             .buildMessageEntity(caseEventMessageEntityMap, MessageState.UNPROCESSABLE);
 
         nullEventTimestampEntity.setCaseId("caseId_3");
