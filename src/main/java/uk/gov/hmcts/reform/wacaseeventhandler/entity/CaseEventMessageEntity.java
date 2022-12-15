@@ -26,6 +26,7 @@ import javax.persistence.Table;
 @ToString
 @TypeDef(name = "json", typeClass = JsonType.class)
 @TypeDef(name = "pgsql_enum", typeClass = PostgreSQLEnumType.class)
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class CaseEventMessageEntity implements Serializable {
 
     private static final String MESSAGE_ID = "message_id";
@@ -109,6 +110,8 @@ public class CaseEventMessageEntity implements Serializable {
     public LocalDateTime getEventTimestamp() {
         return eventTimestamp;
     }
+
+
 
     public void setEventTimestamp(LocalDateTime eventTimestamp) {
         this.eventTimestamp = eventTimestamp;
