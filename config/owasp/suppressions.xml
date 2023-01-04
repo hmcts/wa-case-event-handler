@@ -33,6 +33,25 @@
     <cve>CVE-2022-38752</cve>
   </suppress>
   <suppress>
+    <notes>commons-fileupload:commons-fileupload:1.4, commons-codec-1.15 and commons-io-2.11.0
+      directly caused by net.serenity-bdd:serenity-core:3.1.20
+    </notes>
+    <cve>CVE-2021-37533</cve>
+  </suppress>
+  <suppress>
+    <notes>
+      org.yaml:snakeyaml:1.30 and com.launchdarkly:launchdarkly-java-server-sdk:5.10.2 directly
+      caused by org.springframework.boot:spring-boot-starter-web 2.7.5
+    </notes>
+    <cve>CVE-2022-1471</cve>
+  </suppress>
+  <suppress>
+    <notes>
+      com.fasterxml.woodstox:woodstox-core:6.3.1 directly caused by org.springframework.boot:spring-boot-starter-web 2.7.5
+    </notes>
+    <cve>CVE-2022-40152</cve>
+  </suppress>
+  <suppress>
     <notes><![CDATA[
    file name: jackson-databind-2.13.4.jar
    ]]></notes>
