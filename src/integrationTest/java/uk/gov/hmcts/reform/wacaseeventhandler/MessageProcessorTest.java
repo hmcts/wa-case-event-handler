@@ -5,7 +5,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.microsoft.applicationinsights.extensibility.context.OperationContext;
@@ -65,7 +65,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class MessageProcessorTest {
 
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-            .setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE)
+            .setPropertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE)
             .registerModule(new JavaTimeModule())
             .registerModule(new Jdk8Module());
 
@@ -194,7 +194,7 @@ class MessageProcessorTest {
                     "classpath:sql/insert_case_event_messages_for_processing_ready_msgs.sql"})
     @Test
     void should_set_message_state_to_unprocessable_when_non_retryable_error_occurs() throws JsonProcessingException {
-        doThrow(FeignException.NotFound.class).when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
+        doThrow(FeignException.BadRequest.class).when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
         await().atMost(20, SECONDS)
             .untilAsserted(() -> {
                     assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
@@ -209,7 +209,7 @@ class MessageProcessorTest {
                     "classpath:sql/insert_case_event_messages_for_processing_ready_msgs.sql"})
     @Test
     void should_set_message_state_to_unprocessable_when_exception_occurs() throws JsonProcessingException {
-        doThrow(IllegalArgumentException.class).when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
+        doThrow(JsonProcessingException.class).when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
         await().atMost(20, SECONDS)
             .untilAsserted(() -> {
                     assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
