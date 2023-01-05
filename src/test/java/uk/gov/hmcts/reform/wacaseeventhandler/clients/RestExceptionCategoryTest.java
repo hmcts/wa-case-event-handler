@@ -10,8 +10,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class RestExceptionCategoryTest {
 
     @Test
-    void should_return_false_for_a_non_retryable_error() {
-        assertFalse(RestExceptionCategory.isRetryableError(HttpStatus.I_AM_A_TEAPOT));
+    void should_return_false_for_a_non_retryable_error_400_status() {
+        assertFalse(RestExceptionCategory.isRetryableError(HttpStatus.BAD_REQUEST));
+    }
+
+    @Test
+    void should_return_false_for_a_non_retryable_error_500_status() {
+        assertFalse(RestExceptionCategory.isRetryableError(HttpStatus.INTERNAL_SERVER_ERROR));
+    }
+
+    @Test
+    void should_return_true_for_a_retryable_error() {
+        assertTrue(RestExceptionCategory.isRetryableError(HttpStatus.I_AM_A_TEAPOT));
     }
 
     @Test
