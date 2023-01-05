@@ -68,6 +68,21 @@ To build the project execute the following command:
   ```
   ./gradlew tests
   ```
+
+### Configuration for functional test
+- To run functional tests, application should connect to the ASB. Make sure you have ASB subscription and provide correct values for these environment variables before you start the application.
+  ```
+  export AZURE_SERVICE_BUS_CONNECTION_STRING="Endpoint=sb://ccd-servicebus-demo.servicebus.windows.net/;SharedAccessKeyName=SendAndRecieveCCDMessage;SharedAccessKey=<Access_Key>;EntityPath=wa-case-event-handler-topic-sessions-ft"
+  export AZURE_SERVICE_BUS_TOPIC_NAME=wa-case-event-handler-topic-sessions-ft
+  export AZURE_SERVICE_BUS_CCD_CASE_EVENTS_SUBSCRIPTION_NAME=<subscription_name>
+  export AZURE_SERVICE_BUS_MESSAGE_AUTHOR=<author_name>
+  export AZURE_SERVICE_BUS_DLQ_FEATURE_TOGGLE=true
+  ```
+- Functional tests send messages to CaseEventHandlerTestingController, we are not using ASB for messaging.
+  However, MessageReadinessConsumer peek into the ASB DLQ to make sure DLQ is empty before setting any message READY to be processed. So we still need to connect the application to the ASB.
+  Functional test context doesn't need any of the ASB configuration as tests do not connect to the ASB
+
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
