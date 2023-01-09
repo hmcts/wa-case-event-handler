@@ -88,7 +88,6 @@ azure:
     ccd-case-events-subscription-name: ${AZURE_SERVICE_BUS_CCD_CASE_EVENTS_SUBSCRIPTION_NAME:wa-ccd-case-events-sub-aat}
     retry-duration: ${AZURE_SERVICE_BUS_RETRY_DURATION:60}
     threads: ${AZURE_SERVICE_BUS_CONCURRENT_SESSIONS:1}
-    enableASB: ${AZURE_SERVICE_BUS_FEATURE_TOGGLE:false}
     enableASB-DLQ: ${AZURE_SERVICE_BUS_DLQ_FEATURE_TOGGLE:false}
     retry-attempts: ${AZURE_SERVICE_BUS_RETRY_ATTEMPTS:3}
 
@@ -138,6 +137,7 @@ job:
     message-time-limit: ${PROBLEM_MESSAGE_TIME_LIMIT:60}
     message-id-list: ${PROBLEM_MESSAGE_RESET_ID_LIST:}
     null-event-timestamp-message-id-list: ${PROBLEM_MESSAGE_RESET_NULL_EVENT_TIMESTAMP_ID_LIST:}
+    set-processed-state-message-id-list: ${PROBLEM_MESSAGE_SET_STATE_TO_PROCESSED_ID_LIST:}
 
 retry:
   maxAttempts: ${RESILIENCE_RETRY_MAX_ATTEMPTS:3}

@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
 import com.vladmihalcea.hibernate.type.json.JsonType;
@@ -179,5 +180,12 @@ public class CaseEventMessageEntity implements Serializable {
 
     public void setRetryCount(Integer retryCount) {
         this.retryCount = retryCount;
+    }
+
+    @JsonIgnore
+    public CaseEventMessageEntity buildMessage(String id, MessageState state) {
+        this.messageId = id;
+        this.state = state;
+        return this;
     }
 }
