@@ -159,24 +159,24 @@ public class DatabaseMessageConsumer implements Runnable {
     }
 
     private Optional<MessageUpdateRetry> processException(FeignException fce, CaseEventMessage caseEventMessage) {
-        boolean retryableError = false;
+        boolean isNonRetryableError = true;
         try {
             final HttpStatus httpStatus = HttpStatus.valueOf(fce.status());
-            retryableError = RestExceptionCategory.isRetryableError(httpStatus);
+            isNonRetryableError = UnprocessableHttpErrors.isNonRetryableError(httpStatus);
         } catch (IllegalArgumentException iae) {
             if (fce instanceof RetryableException) {
-                retryableError = true;
+                isNonRetryableError = false;
             }
         }
 
-        if (retryableError) {
+        if (isNonRetryableError) {
+            return processError(caseEventMessage);
+        } else {
             log.info("Retryable error occurred when processing message with messageId: {} and caseId: {}",
                 caseEventMessage.getMessageId(),
                 caseEventMessage.getCaseId()
             );
             return processRetryableError(caseEventMessage);
-        } else {
-            return processError(caseEventMessage);
         }
     }
 
