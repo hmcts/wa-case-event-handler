@@ -72,4 +72,22 @@
     <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson\-databind@.*$</packageUrl>
     <vulnerabilityName>CVE-2022-42003</vulnerabilityName>
   </suppress>
+  <suppress>
+    <notes>
+      org.latencyutils:LatencyUtils:2.0.3 directly used by org.springframework.boot:spring-boot-starter-web 2.7.5 and there are no higher version than LatencyUtils 2.0.3
+    </notes>
+    <cve>CVE-2021-4277</cve>
+  </suppress>
+  <suppress>
+    <notes>
+      org.yaml:snakeyaml:1.33 directly used by org.springframework.boot:spring-boot-starter-web 2.7.5 and there are no higher version then snakeyaml 1.33
+    </notes>
+    <cve>CVE-2022-3064</cve>
+  </suppress>
+  <suppress>
+    <notes>
+      org.yaml:snakeyaml:1.33 directly used by org.springframework.boot:spring-boot-starter-web 2.7.5 and there are no higher version then snakeyaml 1.33
+    </notes>
+    <cve>CVE-2021-4235</cve>
+  </suppress>
 </suppressions>
