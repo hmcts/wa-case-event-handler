@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,7 @@ import java.util.List;
 @Component
 @SuppressWarnings("PMD.DoNotUseThreads")
 @ConditionalOnProperty("azure.servicebus.enableASB-DLQ")
+@Profile("!functional & !local")
 public class MessageReadinessConsumer implements Runnable {
     private final DeadLetterQueuePeekService deadLetterQueuePeekService;
     private final CaseEventMessageRepository caseEventMessageRepository;
