@@ -17,7 +17,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
@@ -44,6 +43,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -133,7 +133,7 @@ class DatabaseMessageConsumerTest {
         when(caseEventMessageMapper.mapToCaseEventMessage(any(CaseEventMessageEntity.class)))
             .thenReturn(caseEventMessage);
 
-        final Request request = Mockito.mock(Request.class);
+        final Request request = mock(Request.class);
         FeignException.InternalServerError internalServerError = new FeignException.InternalServerError(
             "Error Message",
             request,
@@ -162,7 +162,7 @@ class DatabaseMessageConsumerTest {
         when(caseEventMessageMapper.mapToCaseEventMessage(any(CaseEventMessageEntity.class)))
             .thenReturn(caseEventMessage);
 
-        doThrow(new NullPointerException())
+        doThrow(mock(JsonProcessingException.class))
             .when(ccdEventProcessor).processMessage(caseEventMessage);
         databaseMessageConsumer.run();
 
@@ -192,7 +192,7 @@ class DatabaseMessageConsumerTest {
         when(caseEventMessageMapper.mapToCaseEventMessage(any(CaseEventMessageEntity.class)))
             .thenReturn(caseEventMessage);
 
-        final Request request = Mockito.mock(Request.class);
+        final Request request = mock(Request.class);
         FeignException.NotFound errorMessage = new FeignException.NotFound(
             "Error Message",
             request, new byte[]{},
@@ -229,7 +229,7 @@ class DatabaseMessageConsumerTest {
         when(caseEventMessageMapper.mapToCaseEventMessage(any(CaseEventMessageEntity.class)))
             .thenReturn(caseEventMessage);
 
-        final Request request = Mockito.mock(Request.class);
+        final Request request = mock(Request.class);
         FeignException.NotFound errorMessage = new FeignException.NotFound(
             "Error Message",
             request, new byte[]{},
@@ -304,7 +304,7 @@ class DatabaseMessageConsumerTest {
         when(platformTransactionManager.getTransaction(any())).thenReturn(transactionStatus);
         doNothing().when(transactionStatus).setRollbackOnly();
 
-        final Request request = Mockito.mock(Request.class);
+        final Request request = mock(Request.class);
         FeignException.NotFound errorMessage = new FeignException.NotFound(
             "Error Message",
             request, new byte[]{},
