@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import feign.FeignException;
 import feign.RetryableException;
 import lombok.extern.slf4j.Slf4j;
@@ -35,11 +36,6 @@ import static org.springframework.transaction.annotation.Propagation.NOT_SUPPORT
 @Transactional(propagation = NOT_SUPPORTED)
 @Profile("!functional & !local")
 public class DatabaseMessageConsumer implements Runnable {
-    private final CaseEventMessageRepository caseEventMessageRepository;
-    private final CaseEventMessageMapper caseEventMessageMapper;
-    private final CcdEventProcessor ccdEventProcessor;
-    private final UpdateRecordErrorHandlingService updateRecordErrorHandlingService;
-    private final TransactionTemplate transactionTemplate;
     protected static final Map<Integer, Integer> RETRY_COUNT_TO_DELAY_MAP = new ConcurrentHashMap<>();
 
     static {
@@ -52,6 +48,12 @@ public class DatabaseMessageConsumer implements Runnable {
         RETRY_COUNT_TO_DELAY_MAP.put(7, 1800);
         RETRY_COUNT_TO_DELAY_MAP.put(8, 3600);
     }
+
+    private final CaseEventMessageRepository caseEventMessageRepository;
+    private final CaseEventMessageMapper caseEventMessageMapper;
+    private final CcdEventProcessor ccdEventProcessor;
+    private final UpdateRecordErrorHandlingService updateRecordErrorHandlingService;
+    private final TransactionTemplate transactionTemplate;
 
     public DatabaseMessageConsumer(CaseEventMessageRepository caseEventMessageRepository,
                                    CaseEventMessageMapper caseEventMessageMapper,
@@ -145,33 +147,36 @@ public class DatabaseMessageConsumer implements Runnable {
             } catch (FeignException fe) {
                 log.error("FeignException while processing message.", fe);
                 return processException(fe, caseEventMessage);
+            } catch (JsonProcessingException jpe) {
+                log.error("JsonProcessingException while processing message.", jpe);
+                return processError(caseEventMessage);
             } catch (Exception ex) {
                 log.error("Exception while processing message.", ex);
-                return processError(caseEventMessage);
+                return processRetryableError(caseEventMessage);
             }
         }
         return Optional.empty();
     }
 
     private Optional<MessageUpdateRetry> processException(FeignException fce, CaseEventMessage caseEventMessage) {
-        boolean retryableError = false;
+        boolean isNonRetryableError = true;
         try {
             final HttpStatus httpStatus = HttpStatus.valueOf(fce.status());
-            retryableError = RestExceptionCategory.isRetryableError(httpStatus);
+            isNonRetryableError = UnprocessableHttpErrors.isNonRetryableError(httpStatus);
         } catch (IllegalArgumentException iae) {
             if (fce instanceof RetryableException) {
-                retryableError = true;
+                isNonRetryableError = false;
             }
         }
 
-        if (retryableError) {
+        if (isNonRetryableError) {
+            return processError(caseEventMessage);
+        } else {
             log.info("Retryable error occurred when processing message with messageId: {} and caseId: {}",
                 caseEventMessage.getMessageId(),
                 caseEventMessage.getCaseId()
             );
             return processRetryableError(caseEventMessage);
-        } else {
-            return processError(caseEventMessage);
         }
     }
 
