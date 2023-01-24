@@ -26,7 +26,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
@@ -42,7 +41,8 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDe
 @Service
 @Order(4)
 @Slf4j
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports", "unchecked"})
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "PMD.ExcessiveImports",
+    "PMD.ReturnEmptyCollectionRatherThanNull", "unchecked"})
 public class InitiationCaseEventHandler implements CaseEventHandler {
 
     private final AuthTokenGenerator serviceAuthGenerator;
@@ -218,8 +218,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
             String categories = initiateEvaluateResponse.getProcessCategories().getValue();
 
             List<String> categoriesToAdd = Stream.of(categories.split(","))
-                .map(String::trim)
-                .collect(Collectors.toList());
+                .map(String::trim).toList();
 
             categoriesToAdd.forEach(cat ->
                 processVariables.put("__processCategory__" + cat, dmnBooleanValue(true))
