@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
 import org.apache.commons.collections4.IterableUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,6 +53,11 @@ public class CleanUpMessageJobTest {
             caseEventMessageRepository,
             cleanUpJobConfiguration
         );
+    }
+
+    @AfterEach
+    void tearDown() {
+        caseEventMessageRepository.deleteAll();
     }
 
     @Test
