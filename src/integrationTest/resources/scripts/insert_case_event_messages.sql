@@ -1,3 +1,5 @@
+TRUNCATE TABLE public.wa_case_event_messages;
+
 INSERT INTO public.wa_case_event_messages (message_id,
                                            sequence,
                                            case_id,

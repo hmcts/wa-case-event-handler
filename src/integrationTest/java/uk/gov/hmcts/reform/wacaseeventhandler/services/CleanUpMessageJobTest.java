@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.IterableUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+@Slf4j
 @ActiveProfiles("integration")
 @ExtendWith(SpringExtension.class)
 @Import(CleanUpJobConfiguration.class)
@@ -120,7 +122,7 @@ public class CleanUpMessageJobTest {
 
     @Test
     void should_delete_all_records_when_env_is_non_prod_and_state_is_fully_matched() {
-
+        log.info("\n\n\n\nshould_delete_all_records_when_env_is_non_prod_and_state_is_fully_matched\n\n\n");
         ReflectionTestUtils.setField(cleanUpJobConfiguration, "environment", "local");
         ReflectionTestUtils.setField(cleanUpJobConfiguration, "deleteLimit", 14);
         ReflectionTestUtils.setField(cleanUpJobConfiguration, "startedDaysBefore", 20);
@@ -134,7 +136,8 @@ public class CleanUpMessageJobTest {
             .map(CaseEventMessageEntity::getMessageId)
             .collect(Collectors.joining(" - "));
 
-        System.out.println("allRecords:\n" + output);
+        log.info("\n\n\nallRecords-->\nsize:{} \n{}\n\n\n", allRecords.size(), output);
+
         cleanUpMessageJob.run();
 
         List<CaseEventMessageEntity> allRecordsAfterCleanUpJob = IterableUtils.toList(
@@ -144,12 +147,10 @@ public class CleanUpMessageJobTest {
             .map(CaseEventMessageEntity::getMessageId)
             .collect(Collectors.joining(" - "));
 
-        System.out.println("allRecordsAfterCleanUpJob:\n" + output);
-
+        log.info("\n\n\nallRecordsAfterCleanUpJob-->\nsize:{} \n{}\n\n\n", allRecordsAfterCleanUpJob.size(), output);
         assertThat(allRecords.size()).isEqualTo(14);
         assertThat(allRecordsAfterCleanUpJob.size()).isEqualTo(0);
 
     }
-
-
+    
 }
