@@ -134,7 +134,8 @@ public class CleanUpMessageJobTest {
             .map(CaseEventMessageEntity::getMessageId)
             .collect(Collectors.joining(" - "));
 
-        System.out.println("should_delete_all_records_when_env_is_non_prod_and_state_is_fully_matched allRecords:\n" + output);
+        System.out.println("should_delete_all_records_when_env_is_non_prod_and_state_is_fully_matched allRecords:\n" +
+                           output);
         cleanUpMessageJob.run();
 
         List<CaseEventMessageEntity> allRecordsAfterCleanUpJob = IterableUtils.toList(
