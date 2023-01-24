@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageReposit
 import uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices.CleanUpMessageJob;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -121,19 +122,31 @@ public class CleanUpMessageJobTest {
     void should_delete_all_records_when_env_is_non_prod_and_state_is_fully_matched() {
 
         ReflectionTestUtils.setField(cleanUpJobConfiguration, "environment", "local");
-        ReflectionTestUtils.setField(cleanUpJobConfiguration, "deleteLimit", 19);
+        ReflectionTestUtils.setField(cleanUpJobConfiguration, "deleteLimit", 14);
         ReflectionTestUtils.setField(cleanUpJobConfiguration, "startedDaysBefore", 20);
         ReflectionTestUtils.setField(cleanUpJobConfiguration, "stateForNonProd",
             List.of("PROCESSED", "READY", "UNPROCESSABLE"));
 
+
         List<CaseEventMessageEntity> allRecords = IterableUtils.toList(caseEventMessageRepository.findAll());
 
+        String output = allRecords.stream()
+            .map(CaseEventMessageEntity::getMessageId)
+            .collect(Collectors.joining(" - "));
+
+        System.out.println("should_delete_all_records_when_env_is_non_prod_and_state_is_fully_matched allRecords:\n" + output);
         cleanUpMessageJob.run();
 
         List<CaseEventMessageEntity> allRecordsAfterCleanUpJob = IterableUtils.toList(
             caseEventMessageRepository.findAll());
 
-        assertThat(allRecords.size()).isEqualTo(19);
+        output = allRecordsAfterCleanUpJob.stream()
+            .map(CaseEventMessageEntity::getMessageId)
+            .collect(Collectors.joining(" - "));
+
+        System.out.println("should_delete_all_records_when_env_is_non_prod_and_state_is_fully_matched allRecordsAfterCleanUpJob:\n" + output);
+
+        assertThat(allRecords.size()).isEqualTo(14);
         assertThat(allRecordsAfterCleanUpJob.size()).isEqualTo(0);
 
     }
