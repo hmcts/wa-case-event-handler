@@ -22,7 +22,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageReposit
 import uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices.CleanUpMessageJob;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -132,25 +131,14 @@ public class CleanUpMessageJobTest {
 
         List<CaseEventMessageEntity> allRecords = IterableUtils.toList(caseEventMessageRepository.findAll());
 
-        String output = allRecords.stream()
-            .map(CaseEventMessageEntity::getMessageId)
-            .collect(Collectors.joining(" - "));
-
-        log.info("\n\n\nallRecords-->\nsize:{} \n{}\n\n\n", allRecords.size(), output);
-
         cleanUpMessageJob.run();
 
         List<CaseEventMessageEntity> allRecordsAfterCleanUpJob = IterableUtils.toList(
             caseEventMessageRepository.findAll());
-
-        output = allRecordsAfterCleanUpJob.stream()
-            .map(CaseEventMessageEntity::getMessageId)
-            .collect(Collectors.joining(" - "));
-
-        log.info("\n\n\nallRecordsAfterCleanUpJob-->\nsize:{} \n{}\n\n\n", allRecordsAfterCleanUpJob.size(), output);
+        
         assertThat(allRecords.size()).isEqualTo(14);
         assertThat(allRecordsAfterCleanUpJob.size()).isEqualTo(0);
 
     }
-    
+
 }
