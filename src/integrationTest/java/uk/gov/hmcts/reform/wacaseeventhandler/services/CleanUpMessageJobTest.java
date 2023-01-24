@@ -121,7 +121,7 @@ public class CleanUpMessageJobTest {
     void should_delete_all_records_when_env_is_non_prod_and_state_is_fully_matched() {
 
         ReflectionTestUtils.setField(cleanUpJobConfiguration, "environment", "local");
-        ReflectionTestUtils.setField(cleanUpJobConfiguration, "deleteLimit", 14);
+        ReflectionTestUtils.setField(cleanUpJobConfiguration, "deleteLimit", 19);
         ReflectionTestUtils.setField(cleanUpJobConfiguration, "startedDaysBefore", 20);
         ReflectionTestUtils.setField(cleanUpJobConfiguration, "stateForNonProd",
             List.of("PROCESSED", "READY", "UNPROCESSABLE"));
@@ -133,7 +133,7 @@ public class CleanUpMessageJobTest {
         List<CaseEventMessageEntity> allRecordsAfterCleanUpJob = IterableUtils.toList(
             caseEventMessageRepository.findAll());
 
-        assertThat(allRecords.size()).isEqualTo(14);
+        assertThat(allRecords.size()).isEqualTo(19);
         assertThat(allRecordsAfterCleanUpJob.size()).isEqualTo(0);
 
     }
