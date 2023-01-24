@@ -46,7 +46,7 @@ public class AsbMessagesToDatabaseTest extends MessagingTests {
             .eventId("makeAnApplication")
             .caseId(caseId)
             .userId("insert_true")
-            .caseTypeId("WaCaseType")
+            .caseTypeId("wacasetype")
             .build();
 
         messageIds.forEach(msgId -> sendMessageToTopic(msgId, eventInformation));
@@ -88,7 +88,7 @@ public class AsbMessagesToDatabaseTest extends MessagingTests {
             .eventId("makeAnApplication")
             .caseId(caseId)
             .userId("insert_true")
-            .caseTypeId("WaCaseType")
+            .caseTypeId("wacasetype")
             .build();
 
         sendMessageToTopic(randomMessageId(), eventInformation);
