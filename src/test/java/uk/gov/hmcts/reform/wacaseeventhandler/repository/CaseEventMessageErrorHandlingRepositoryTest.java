@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -136,7 +137,7 @@ class CaseEventMessageErrorHandlingRepositoryTest {
     @Transactional
     void should_update_case_event_message_retry_details() {
 
-        final LocalDateTime nowPlusTwoHours = LocalDateTime.now();
+        final LocalDateTime nowPlusTwoHours = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         final int retryCount = 5;
         final int rowsAffected =
             errorHandlingRepository.updateMessageWithRetryDetails(retryCount, nowPlusTwoHours, MESSAGE_ID);
@@ -147,7 +148,7 @@ class CaseEventMessageErrorHandlingRepositoryTest {
 
         assertEquals(1, caseEventMessageEntities.size());
         assertEquals(retryCount, caseEventMessageEntities.get(0).getRetryCount());
-        assertEquals(nowPlusTwoHours, caseEventMessageEntities.get(0).getHoldUntil());
+        assertEquals(nowPlusTwoHours, caseEventMessageEntities.get(0).getHoldUntil().truncatedTo(ChronoUnit.SECONDS));
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,

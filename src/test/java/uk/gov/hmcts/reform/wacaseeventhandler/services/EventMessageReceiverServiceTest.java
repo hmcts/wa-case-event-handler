@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -418,7 +420,7 @@ class EventMessageReceiverServiceTest {
         final NullPointerException nullPointerException = assertThrows(NullPointerException.class, () ->
                 eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, SESSION_ID, MESSAGE_WITHOUT_USER));
 
-        assertEquals(null, nullPointerException.getMessage());
+        assertThat(nullPointerException.getMessage(), containsString("because \"eventInformation\" is null"));
         verifyNoInteractions(caseEventMessageRepository);
     }
 
@@ -428,7 +430,7 @@ class EventMessageReceiverServiceTest {
         final NullPointerException nullPointerException = assertThrows(NullPointerException.class, () ->
                 eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, SESSION_ID, MESSAGE_WITHOUT_USER));
 
-        assertEquals(null, nullPointerException.getMessage());
+        assertThat(nullPointerException.getMessage(), containsString("because \"eventInformation\" is null"));
         verifyNoInteractions(caseEventMessageRepository);
     }
 
@@ -539,7 +541,7 @@ class EventMessageReceiverServiceTest {
         final NullPointerException nullPointerException = assertThrows(NullPointerException.class, () ->
                 eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE_WITHOUT_USER));
 
-        assertEquals(null, nullPointerException.getMessage());
+        assertThat(nullPointerException.getMessage(), containsString("because \"eventInformation\" is null"));
         verifyNoInteractions(caseEventMessageRepository);
     }
 
@@ -549,7 +551,7 @@ class EventMessageReceiverServiceTest {
         final NullPointerException nullPointerException = assertThrows(NullPointerException.class, () ->
                 eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE_WITHOUT_USER));
 
-        assertEquals(null, nullPointerException.getMessage());
+        assertThat(nullPointerException.getMessage(), containsString("because \"eventInformation\" is null"));
         verifyNoInteractions(caseEventMessageRepository);
     }
 
