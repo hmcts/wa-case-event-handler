@@ -5,9 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
@@ -40,12 +39,13 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
     public static List<CaseEventMessage> caseEventMessages;
 
-    @BeforeEach
+    @Before
     public void setup() {
+        log.info("RWA-2158 setup");
         caseEventMessages = new ArrayList<>();
     }
 
-    @AfterEach
+    @After
     public void teardown() {
         log.info("RWA-2158 teardown");
         if (caseIdToDelete != null) {
@@ -57,21 +57,6 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             .collect(Collectors.joining(","));
 
         log.info("RWA-2158 teardown toBeDeletedMessageIds:{}", toBeDeletedMessageIds);
-        deleteMessagesFromDatabase(caseEventMessages);
-    }
-
-    @After
-    public void teardown2() {
-        log.info("RWA-2158 teardown2");
-        if (caseIdToDelete != null) {
-            caseIdToDelete.forEach(this::deleteMessagesFromDatabaseByMsgIds);
-            caseIdToDelete = new ArrayList<>();
-        }
-        String toBeDeletedMessageIds = caseEventMessages.stream()
-            .map(CaseEventMessage::getMessageId)
-            .collect(Collectors.joining(","));
-
-        log.info("RWA-2158 teardown2 toBeDeletedMessageIds:{}", toBeDeletedMessageIds);
         deleteMessagesFromDatabase(caseEventMessages);
     }
 
@@ -264,30 +249,44 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             .atMost(120, SECONDS)
             .until(
                 () -> {
+                    caseEventMessages = new ArrayList<>();
+
                     final EventMessageQueryResponse messagesInUnprocessableState
                         = getMessagesFromDb(MessageState.UNPROCESSABLE);
 
-                    caseEventMessages.clear();
-                    caseEventMessages.addAll(messagesInUnprocessableState.getCaseEventMessages());
+                    List<CaseEventMessage> unprocessableCaseEventMessage =
+                        messagesInUnprocessableState.getCaseEventMessages()
+                            .stream()
+                            .filter(caseEventMessage -> hasAdditionalData(caseEventMessage.getMessageContent()))
+                            .collect(Collectors.toList());
 
-                    String toBeDeletedMessageIds = caseEventMessages.stream()
+                    String unprocessableCaseEventMessageIds = messagesInUnprocessableState.getCaseEventMessages()
+                        .stream()
+                        .filter(caseEventMessage -> hasAdditionalData(caseEventMessage.getMessageContent()))
                         .map(CaseEventMessage::getMessageId)
                         .collect(Collectors.joining(","));
 
-                    log.info("RWA-2158 toBeDeletedMessageIds:{}", toBeDeletedMessageIds);
+                    log.info("RWA-2158 unprocessableCaseEventMessageIds:{}", unprocessableCaseEventMessageIds);
 
-                    collect.set(messagesInUnprocessableState.getCaseEventMessages()
+                    caseEventMessages.addAll(unprocessableCaseEventMessage);
+
+                    String caseEventMessageIds = caseEventMessages
                         .stream()
-                        .filter(caseEventMessage -> hasAdditionalData(caseEventMessage.getMessageContent()))
-                        .collect(Collectors.toList()));
+                        .map(CaseEventMessage::getMessageId)
+                        .collect(Collectors.joining(","));
+
+                    log.info("RWA-2158 caseEventMessageIds:{}", caseEventMessageIds);
+                    log.info("RWA-2158 before set collect.get().size():{}", collect.get().size());
+                    log.info("RWA-2158 messageIds:{}", String.join(",", messageIds));
+
+                    collect.set(unprocessableCaseEventMessage);
 
                     log.info("RWA-2158 messageIds.size():{} - collect.get().size():{}",
                         messageIds.size(), collect.get().size());
 
                     assertEquals(messageIds.size(), collect.get().size());
-
-                    log.info("RWA-2158 test passed:{}", toBeDeletedMessageIds);
                     return true;
+
                 });
 
     }
