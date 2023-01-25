@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformatio
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationRequest;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -27,6 +28,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
@@ -62,11 +64,11 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
         String messageId = randomMessageId();
         String eventInstanceId = UUID.randomUUID().toString();
 
-        LocalDateTime timeStamp = LocalDateTime.now();
+        LocalDateTime timeStamp = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
 
-        String timeStampString = timeStamp.toString().replaceAll("/(0+$)/g","");
+        String timeStampString = timeStamp.toString().replaceAll("/(0+$)/g", "");
         EventInformation eventInformation = buildEventInformation(eventInstanceId, caseIdForTask,
-                                                                  "wa-dlq-user@fake.hmcts.net", timeStamp);
+            "wa-dlq-user@fake.hmcts.net", timeStamp);
         EventInformationRequest createRequest = createRequestWithAdditionalMetadata(eventInformation, null);
 
         postEventToRestEndpoint(messageId, s2sToken, createRequest)
@@ -76,6 +78,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("MessageId", equalTo(messageId))
             .body("Sequence", notNullValue())
             .body("CaseId", equalTo(caseIdForTask))
+            .body("EventTimestamp", startsWith(timeStampString))
             .body("EventTimestamp", equalTo(timeStampString))
             .body("FromDlq", equalTo(false))
             .body("State", stateMatcher)
