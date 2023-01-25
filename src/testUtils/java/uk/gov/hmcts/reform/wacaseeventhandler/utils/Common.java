@@ -216,7 +216,6 @@ public class Common {
     }
 
 
-
     private void clearAllRoleAssignmentsForUser(String userId, Headers headers, String jurisdiction) {
         String userToken = headers.getValue(AUTHORIZATION);
         String serviceToken = headers.getValue(SERVICE_AUTHORIZATION);
@@ -477,6 +476,29 @@ public class Common {
     }
 
     private void deleteProcessInstance(Headers authenticationHeaders, String processId) {
+
+        Map<String, Object> body = Map.of(
+            "deleteReason", "clean up running process instances",
+            "processInstanceIds", new String[]{processId}
+        );
+
+        log.info("deleteProcessInstance before");
+
+        try {
+            camundaApiActions.post(
+                "/process-instance/delete",
+                body,
+                authenticationHeaders
+            );
+            log.info("deleteProcessInstance after");
+        } catch (Exception e) {
+            log.info("deleteProcessInstance exception");
+            e.printStackTrace();
+        }
+
+    }
+
+    private void deleteProcessInstance2(Headers authenticationHeaders, String processId) {
         String deleteRequest = DELETE_REQUEST.replace("{PROCESS_ID}", processId);
 
         try {
