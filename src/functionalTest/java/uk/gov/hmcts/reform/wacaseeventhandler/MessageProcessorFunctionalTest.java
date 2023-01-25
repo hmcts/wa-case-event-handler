@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +47,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
     @AfterEach
     public void teardown() {
+        log.info("RWA-2158 teardown");
         if (caseIdToDelete != null) {
             caseIdToDelete.forEach(this::deleteMessagesFromDatabaseByMsgIds);
             caseIdToDelete = new ArrayList<>();
@@ -55,6 +57,21 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             .collect(Collectors.joining(","));
 
         log.info("RWA-2158 teardown toBeDeletedMessageIds:{}", toBeDeletedMessageIds);
+        deleteMessagesFromDatabase(caseEventMessages);
+    }
+
+    @After
+    public void teardown2() {
+        log.info("RWA-2158 teardown2");
+        if (caseIdToDelete != null) {
+            caseIdToDelete.forEach(this::deleteMessagesFromDatabaseByMsgIds);
+            caseIdToDelete = new ArrayList<>();
+        }
+        String toBeDeletedMessageIds = caseEventMessages.stream()
+            .map(CaseEventMessage::getMessageId)
+            .collect(Collectors.joining(","));
+
+        log.info("RWA-2158 teardown2 toBeDeletedMessageIds:{}", toBeDeletedMessageIds);
         deleteMessagesFromDatabase(caseEventMessages);
     }
 
