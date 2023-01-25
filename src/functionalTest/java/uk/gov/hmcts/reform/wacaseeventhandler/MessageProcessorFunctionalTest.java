@@ -38,26 +38,32 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
 
     public static List<CaseEventMessage> caseEventMessages;
+    public static List<CaseEventMessage> caseEventMessagesToBeDeleted;
 
     @Before
     public void setup() {
-        log.info("RWA-2158 setup");
         caseEventMessages = new ArrayList<>();
+        caseEventMessagesToBeDeleted = new ArrayList<>();
+        caseIdToDelete = new ArrayList<>();
     }
 
     @After
     public void teardown() {
-        log.info("RWA-2158 teardown");
+        log.info("RWA-2158 teardown caseIdToDelete:{} caseEventMessagesToBeDeleted.size():{}",
+            String.join(",", caseIdToDelete), caseEventMessagesToBeDeleted.size());
+
         if (caseIdToDelete != null) {
+            log.info("RWA-2158 teardown caseIdToDelete");
             caseIdToDelete.forEach(this::deleteMessagesFromDatabaseByMsgIds);
             caseIdToDelete = new ArrayList<>();
         }
-        String toBeDeletedMessageIds = caseEventMessages.stream()
+
+        String toBeDeletedMessageIds = caseEventMessagesToBeDeleted.stream()
             .map(CaseEventMessage::getMessageId)
             .collect(Collectors.joining(","));
-
         log.info("RWA-2158 teardown toBeDeletedMessageIds:{}", toBeDeletedMessageIds);
-        deleteMessagesFromDatabase(caseEventMessages);
+        deleteMessagesFromDatabase(caseEventMessagesToBeDeleted);
+
     }
 
     @Test
@@ -249,7 +255,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             .atMost(120, SECONDS)
             .until(
                 () -> {
-                    caseEventMessages = new ArrayList<>();
+                    caseEventMessagesToBeDeleted = new ArrayList<>();
 
                     final EventMessageQueryResponse messagesInUnprocessableState
                         = getMessagesFromDb(MessageState.UNPROCESSABLE);
@@ -268,9 +274,9 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
                     log.info("RWA-2158 unprocessableCaseEventMessageIds:{}", unprocessableCaseEventMessageIds);
 
-                    caseEventMessages.addAll(unprocessableCaseEventMessage);
+                    caseEventMessagesToBeDeleted.addAll(unprocessableCaseEventMessage);
 
-                    String caseEventMessageIds = caseEventMessages
+                    String caseEventMessageIds = caseEventMessagesToBeDeleted
                         .stream()
                         .map(CaseEventMessage::getMessageId)
                         .collect(Collectors.joining(","));
