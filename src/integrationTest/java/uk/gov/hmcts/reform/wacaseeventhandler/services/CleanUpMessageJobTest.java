@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.IterableUtils;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,11 +54,6 @@ public class CleanUpMessageJobTest {
             caseEventMessageRepository,
             cleanUpJobConfiguration
         );
-    }
-
-    @AfterEach
-    void tearDown() {
-        caseEventMessageRepository.deleteAll();
     }
 
     @Test
@@ -135,7 +129,7 @@ public class CleanUpMessageJobTest {
 
         List<CaseEventMessageEntity> allRecordsAfterCleanUpJob = IterableUtils.toList(
             caseEventMessageRepository.findAll());
-        
+
         assertThat(allRecords.size()).isEqualTo(14);
         assertThat(allRecordsAfterCleanUpJob.size()).isEqualTo(0);
 
