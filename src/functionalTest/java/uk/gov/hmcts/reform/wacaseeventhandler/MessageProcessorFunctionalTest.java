@@ -50,6 +50,11 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             caseIdToDelete.forEach(this::deleteMessagesFromDatabaseByMsgIds);
             caseIdToDelete = new ArrayList<>();
         }
+        String toBeDeletedMessageIds = caseEventMessages.stream()
+            .map(CaseEventMessage::getMessageId)
+            .collect(Collectors.joining(","));
+
+        log.info("RWA-2158 teardown toBeDeletedMessageIds:{}", toBeDeletedMessageIds);
         deleteMessagesFromDatabase(caseEventMessages);
     }
 
@@ -217,17 +222,17 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         // Sending message without case id will cause validation to fail and message will be stored with
         // UNPROCESSABLE state
         final EventInformation eventInformation = EventInformation.builder()
-                .eventInstanceId(UUID.randomUUID().toString())
-                .jurisdictionId("WA")
-                .eventId("makeAnApplication")
-                .userId("wa-dlq-user@fake.hmcts.net")
-                .newStateId(null)
-                .caseTypeId("WaCaseType")
-                .eventTimeStamp(LocalDateTime.now())
-                .additionalData(AdditionalData.builder()
-                        .data(Map.of("testName", "should_not_process_message_unless_in_ready_state"))
-                        .build())
-                .build();
+            .eventInstanceId(UUID.randomUUID().toString())
+            .jurisdictionId("WA")
+            .eventId("makeAnApplication")
+            .userId("wa-dlq-user@fake.hmcts.net")
+            .newStateId(null)
+            .caseTypeId("WaCaseType")
+            .eventTimeStamp(LocalDateTime.now())
+            .additionalData(AdditionalData.builder()
+                .data(Map.of("testName", "should_not_process_message_unless_in_ready_state"))
+                .build())
+            .build();
 
         messageIds.forEach(msgId -> {
             log.info("should_not_process_message_unless_in_ready_state using message ID " + msgId);
@@ -238,25 +243,36 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         AtomicReference<List<CaseEventMessage>> collect = new AtomicReference<>(new ArrayList<>());
 
         await().ignoreException(AssertionError.class)
-                .pollInterval(3, SECONDS)
-                .atMost(120, SECONDS)
-                .until(
-                    () -> {
-                        final EventMessageQueryResponse messagesInUnprocessableState
-                                = getMessagesFromDb(MessageState.UNPROCESSABLE);
-                        if (messagesInUnprocessableState != null) {
-                            collect.set(messagesInUnprocessableState.getCaseEventMessages()
-                                    .stream()
-                                    .filter(caseEventMessage -> hasAdditionalData(caseEventMessage.getMessageContent()))
-                                    .collect(Collectors.toList()));
-                            assertEquals(messageIds.size(), collect.get().size());
-                            return true;
-                        } else {
-                            return false;
-                        }
-                    });
+            .pollInterval(3, SECONDS)
+            .atMost(120, SECONDS)
+            .until(
+                () -> {
+                    final EventMessageQueryResponse messagesInUnprocessableState
+                        = getMessagesFromDb(MessageState.UNPROCESSABLE);
 
-        deleteMessagesFromDatabase(collect.get());
+                    caseEventMessages.clear();
+                    caseEventMessages.addAll(messagesInUnprocessableState.getCaseEventMessages());
+
+                    String toBeDeletedMessageIds = caseEventMessages.stream()
+                        .map(CaseEventMessage::getMessageId)
+                        .collect(Collectors.joining(","));
+
+                    log.info("RWA-2158 toBeDeletedMessageIds:{}", toBeDeletedMessageIds);
+
+                    collect.set(messagesInUnprocessableState.getCaseEventMessages()
+                        .stream()
+                        .filter(caseEventMessage -> hasAdditionalData(caseEventMessage.getMessageContent()))
+                        .collect(Collectors.toList()));
+
+                    log.info("RWA-2158 messageIds.size():{} - collect.get().size():{}",
+                        messageIds.size(), collect.get().size());
+
+                    assertEquals(messageIds.size(), collect.get().size());
+
+                    log.info("RWA-2158 test passed:{}", toBeDeletedMessageIds);
+                    return true;
+                });
+
     }
 
     @Test
