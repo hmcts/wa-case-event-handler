@@ -207,9 +207,11 @@ public class Common {
 
         Set<String> processIds = new HashSet<>();
 
+        log.info("RWA-2158-cleanUpTask caseIds:{}", String.join(",", caseIds));
         caseIds
             .forEach(caseId -> processIds.addAll(getProcesses(authenticationHeaders, caseId)));
 
+        log.info("RWA-2158-cleanUpTask processIds:{}", String.join(",", processIds));
         processIds
             .forEach(processId -> deleteProcessInstance(authenticationHeaders, processId));
 
@@ -478,14 +480,16 @@ public class Common {
 
     private void deleteProcessInstance(Headers authenticationHeaders, String processId) {
         String deleteRequest = DELETE_REQUEST.replace("{PROCESS_ID}", processId);
-
+        log.info("RWA-2158-deleteProcessInstance deleteRequest:{} attempt", deleteRequest);
         try {
             camundaApiActions.post(
                 "message",
                 deleteRequest,
                 authenticationHeaders
             );
+            log.info("RWA-2158-deleteProcessInstance deleteRequest:{} deleted", deleteRequest);
         } catch (Exception e) {
+            log.info("RWA-2158-deleteProcessInstance Exception:{}", e.getMessage());
             e.printStackTrace();
         }
 

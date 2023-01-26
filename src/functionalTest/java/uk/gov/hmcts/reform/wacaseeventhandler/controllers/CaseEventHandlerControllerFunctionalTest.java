@@ -128,6 +128,23 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
                                       String jurisdictionId,
                                       String caseTypeId) {
 
+        log.info("RWA-2158-createTaskWithId caseId:{},\n"
+                 + "         eventId:{},\n"
+                 + "         previousStateId:{},\n"
+                 + "         newStateId:{},\n"
+                 + "         delayUntil:{},\n"
+                 + "         outcomeTaskId:{},\n"
+                 + "         jurisdictionId:{},\n"
+                 + "        caseTypeId:{}",
+            caseId,
+            eventId,
+            previousStateId,
+            newStateId,
+            delayUntil,
+            outcomeTaskId,
+            jurisdictionId,
+            caseTypeId
+        );
         sendMessage(caseId, eventId, previousStateId, newStateId, delayUntil, jurisdictionId, caseTypeId);
 
         // if the delayUntil is true, then the taskCreation process waits for delayUntil timer
@@ -193,7 +210,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
     @After
     public void cleanUp() {
-        taskIdStatusMap.forEach((key, value) -> completeTask(key, value));
+        taskIdStatusMap.forEach(this::completeTask);
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
         common.cleanUpTask(caseworkerCredentials.getHeaders(), caseIds);
     }
@@ -1310,7 +1327,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         AtomicReference<String> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
+            .pollInterval(1, SECONDS)
             .atMost(60, SECONDS)
             .until(
                 () -> {
