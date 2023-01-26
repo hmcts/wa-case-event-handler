@@ -46,15 +46,6 @@ public class Common {
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     public static final String R2_ROLE_ASSIGNMENT_REQUEST =
         "requests/roleAssignment/r2/set-organisational-role-assignment-request.json";
-    private static String DELETE_REQUEST = "{\n"
-                                           + "    \"deleteReason\": \"clean up running process instances\",\n"
-                                           + "    \"processInstanceIds\": [\n"
-                                           + "    \"{PROCESS_ID}\"\n"
-                                           + "    ],\n"
-                                           + "    \"skipCustomListeners\": true,\n"
-                                           + "    \"skipSubprocesses\": true,\n"
-                                           + "    \"failIfNotExists\": false\n"
-                                           + "    }";
 
     private final GivensBuilder given;
     private final RestApiActions camundaApiActions;
@@ -482,29 +473,10 @@ public class Common {
             "processInstanceIds", new String[]{processId}
         );
 
-        log.info("deleteProcessInstance before");
-
         try {
             camundaApiActions.post(
                 "/process-instance/delete",
                 body,
-                authenticationHeaders
-            );
-            log.info("deleteProcessInstance after");
-        } catch (Exception e) {
-            log.info("deleteProcessInstance exception");
-            e.printStackTrace();
-        }
-
-    }
-
-    private void deleteProcessInstance2(Headers authenticationHeaders, String processId) {
-        String deleteRequest = DELETE_REQUEST.replace("{PROCESS_ID}", processId);
-
-        try {
-            camundaApiActions.post(
-                "message",
-                deleteRequest,
                 authenticationHeaders
             );
         } catch (Exception e) {
