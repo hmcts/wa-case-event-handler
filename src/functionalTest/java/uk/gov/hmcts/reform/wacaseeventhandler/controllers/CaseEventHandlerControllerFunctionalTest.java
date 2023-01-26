@@ -128,23 +128,6 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
                                       String jurisdictionId,
                                       String caseTypeId) {
 
-        log.info("RWA-2158-createTaskWithId caseId:{},\n"
-                 + "         eventId:{},\n"
-                 + "         previousStateId:{},\n"
-                 + "         newStateId:{},\n"
-                 + "         delayUntil:{},\n"
-                 + "         outcomeTaskId:{},\n"
-                 + "         jurisdictionId:{},\n"
-                 + "        caseTypeId:{}",
-            caseId,
-            eventId,
-            previousStateId,
-            newStateId,
-            delayUntil,
-            outcomeTaskId,
-            jurisdictionId,
-            caseTypeId
-        );
         sendMessage(caseId, eventId, previousStateId, newStateId, delayUntil, jurisdictionId, caseTypeId);
 
         // if the delayUntil is true, then the taskCreation process waits for delayUntil timer
