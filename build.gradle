@@ -409,7 +409,7 @@ dependencies {
   implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.20.0'
 
   implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.10.3'
-  runtimeOnly group: 'org.postgresql', name: 'postgresql', version: '42.4.3'
+  runtimeOnly group: 'org.postgresql', name: 'postgresql', version: '42.5.1'
 }
 
 mainClassName = 'uk.gov.hmcts.reform.wacaseeventhandler.Application'
