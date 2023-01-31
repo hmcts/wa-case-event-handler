@@ -245,7 +245,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
         await().ignoreException(AssertionError.class)
             .pollInterval(3, SECONDS)
-            .atMost(120, SECONDS)
+            .atMost(30, SECONDS)
             .until(
                 () -> {
                     caseEventMessagesToBeDeleted = new ArrayList<>();
