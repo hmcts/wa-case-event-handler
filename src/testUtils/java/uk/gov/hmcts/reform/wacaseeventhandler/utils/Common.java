@@ -478,7 +478,6 @@ public class Common {
 
     private void deleteProcessInstance(Headers authenticationHeaders, String processId) {
         String deleteRequest = DELETE_REQUEST.replace("{PROCESS_ID}", processId);
-
         try {
             camundaApiActions.post(
                 "message",
