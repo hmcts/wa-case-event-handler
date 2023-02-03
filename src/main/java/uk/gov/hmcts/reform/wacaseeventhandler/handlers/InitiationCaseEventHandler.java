@@ -165,6 +165,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         return SendMessageRequest.builder()
             .messageName(TASK_INITIATION.getMessageName())
             .processVariables(initialProcessVariables)
+            .tenantId("wa")
             .build();
     }
 

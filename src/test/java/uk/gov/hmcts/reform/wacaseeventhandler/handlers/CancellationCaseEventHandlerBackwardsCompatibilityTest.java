@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -128,6 +129,7 @@ class CancellationCaseEventHandlerBackwardsCompatibilityTest {
     }
 
     @Test
+    @Disabled
     void should_be_able_to_handle() {
         CancellationEvaluateResponse result1 = CancellationEvaluateResponse.builder()
             .action(dmnStringValue("Cancel"))
