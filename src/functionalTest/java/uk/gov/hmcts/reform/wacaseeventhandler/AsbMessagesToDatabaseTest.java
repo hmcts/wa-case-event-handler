@@ -46,7 +46,7 @@ public class AsbMessagesToDatabaseTest extends MessagingTests {
             .eventId("makeAnApplication")
             .caseId(caseId)
             .userId("insert_true")
-            .caseTypeId("caseTypeId")
+            .caseTypeId("WaCaseType")
             .build();
 
         messageIds.forEach(msgId -> sendMessageToTopic(msgId, eventInformation));
@@ -61,14 +61,14 @@ public class AsbMessagesToDatabaseTest extends MessagingTests {
                         caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
                         Assertions.assertEquals(messageIds.size(), caseEventMessages.size(),
-                                                "Number of messages stored in database does not match");
+                            "Number of messages stored in database does not match");
 
                         caseEventMessages.forEach(msg ->
-                                                    Assertions.assertTrue(messageIds.contains(msg.getMessageId()),
-                                                                          "messageId mismatch"));
+                            Assertions.assertTrue(messageIds.contains(msg.getMessageId()),
+                                "messageId mismatch"));
 
                         Assertions.assertTrue(caseEventMessages.stream().noneMatch(CaseEventMessage::getFromDlq),
-                                              "None of the messages stored in DB should be in DLQ state");
+                            "None of the messages stored in DB should be in DLQ state");
 
                         return true;
                     } else {
@@ -88,7 +88,7 @@ public class AsbMessagesToDatabaseTest extends MessagingTests {
             .eventId("makeAnApplication")
             .caseId(caseId)
             .userId("insert_true")
-            .caseTypeId("caseTypeId")
+            .caseTypeId("WaCaseType")
             .build();
 
         sendMessageToTopic(randomMessageId(), eventInformation);
