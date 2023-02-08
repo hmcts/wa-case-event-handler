@@ -46,15 +46,6 @@ public class Common {
     public static final DateTimeFormatter CAMUNDA_DATA_TIME_FORMATTER = ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
     public static final String R2_ROLE_ASSIGNMENT_REQUEST =
         "requests/roleAssignment/r2/set-organisational-role-assignment-request.json";
-    private static String DELETE_REQUEST = "{\n"
-                                           + "    \"deleteReason\": \"clean up running process instances\",\n"
-                                           + "    \"processInstanceIds\": [\n"
-                                           + "    \"{PROCESS_ID}\"\n"
-                                           + "    ],\n"
-                                           + "    \"skipCustomListeners\": true,\n"
-                                           + "    \"skipSubprocesses\": true,\n"
-                                           + "    \"failIfNotExists\": false\n"
-                                           + "    }";
 
     private final GivensBuilder given;
     private final RestApiActions camundaApiActions;
@@ -214,7 +205,6 @@ public class Common {
             .forEach(processId -> deleteProcessInstance(authenticationHeaders, processId));
 
     }
-
 
 
     private void clearAllRoleAssignmentsForUser(String userId, Headers headers, String jurisdiction) {
@@ -477,11 +467,16 @@ public class Common {
     }
 
     private void deleteProcessInstance(Headers authenticationHeaders, String processId) {
-        String deleteRequest = DELETE_REQUEST.replace("{PROCESS_ID}", processId);
+
+        Map<String, Object> body = Map.of(
+            "deleteReason", "clean up running process instances",
+            "processInstanceIds", new String[]{processId}
+        );
+
         try {
             camundaApiActions.post(
-                "message",
-                deleteRequest,
+                "/process-instance/delete",
+                body,
                 authenticationHeaders
             );
         } catch (Exception e) {
