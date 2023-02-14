@@ -193,7 +193,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
     @After
     public void cleanUp() {
-        taskIdStatusMap.forEach((key, value) -> completeTask(key, value));
+        taskIdStatusMap.forEach(this::completeTask);
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
         common.cleanUpTask(caseworkerCredentials.getHeaders(), caseIds);
     }
