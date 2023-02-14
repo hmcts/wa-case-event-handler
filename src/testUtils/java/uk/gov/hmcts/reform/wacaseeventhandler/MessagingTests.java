@@ -15,8 +15,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
+import static org.awaitility.Awaitility.await;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
@@ -42,9 +45,33 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
     }
 
     protected void deleteMessagesFromDatabase(List<CaseEventMessage> caseEventMessages) {
-        caseEventMessages.stream()
-            .map(CaseEventMessage::getMessageId)
-            .forEach(this::deleteMessage);
+
+        AtomicInteger count = new AtomicInteger();
+        caseEventMessages.forEach(caseEventMessage -> {
+            log.info("Attempt to delete message from DB. CaseId:{} MessageId:{}",
+                caseEventMessage.getCaseId(), caseEventMessage.getMessageId());
+            count.set(0);
+            await().ignoreException(AssertionError.class)
+                .pollInterval(3, SECONDS)
+                .atMost(120, SECONDS)
+                .until(
+                    () -> {
+                        count.incrementAndGet();
+                        if (!isMessageExist(caseEventMessage.getMessageId())) {
+                            log.info("Message deleted from DB. CaseId:{} MessageId:{}",
+                                caseEventMessage.getCaseId(), caseEventMessage.getMessageId());
+                            return true;
+                        } else {
+                            log.info("Message found in DB trying  to delete. CaseId:{} MessageId:{} Attempt Count:{}",
+                                caseEventMessage.getCaseId(), caseEventMessage.getMessageId(), count.get());
+
+                            deleteMessage(caseEventMessage.getMessageId());
+                            return false;
+                        }
+                    });
+        });
+
+        log.info("All test messages deleted from db");
     }
 
     protected void deleteMessagesFromDatabaseByMsgIds(List<String> messageIds) {
@@ -59,12 +86,12 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
     private void deleteMessage(String msgId) {
         log.info("Deleting case event messages from DB with message Id " + msgId);
         given()
-                .contentType(APPLICATION_JSON_VALUE)
-                .header(SERVICE_AUTHORIZATION, s2sToken)
-                .when()
-                .delete("/messages/" + msgId)
-                .then()
-                .statusCode(HttpStatus.OK.value());
+            .contentType(APPLICATION_JSON_VALUE)
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .when()
+            .delete("/messages/" + msgId)
+            .then()
+            .statusCode(HttpStatus.OK.value());
     }
 
     protected void sendMessageToDlq(String messageId, EventInformation eventInformation) {
@@ -145,5 +172,16 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
             .get("/messages/query");
 
         return response.body().as(EventMessageQueryResponse.class);
+    }
+
+    private boolean isMessageExist(String messageId) {
+        log.info("retrieving case event messages from DB with message Id " + messageId);
+        final Response response = given()
+            .contentType(APPLICATION_JSON_VALUE)
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .when()
+            .get("/messages/" + messageId);
+
+        return response.then().extract().statusCode() == HttpStatus.OK.value();
     }
 }
