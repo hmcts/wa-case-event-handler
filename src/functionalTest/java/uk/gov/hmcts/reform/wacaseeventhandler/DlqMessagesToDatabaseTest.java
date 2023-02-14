@@ -50,7 +50,7 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
             .eventId("makeAnApplication")
             .caseId(caseId)
             .userId("insert_true")
-            .caseTypeId("caseTypeId")
+            .caseTypeId("WaCaseType")
             .build();
 
         messageIds.forEach(msgId ->
@@ -87,7 +87,7 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
             .eventId("makeAnApplication")
             .caseId(caseId)
             .userId("insert_true")
-            .caseTypeId("caseTypeId")
+            .caseTypeId("WaCaseType")
             .build();
 
         sendMessageToDlq(randomMessageId(), eventInformation);
