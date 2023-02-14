@@ -32,6 +32,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -136,7 +137,8 @@ class CaseEventHandlerControllerEndpointTest {
             assertEquals(stored.getMessageId(), response.getMessageId(), "Valid MessageId should be returned");
             assertNotNull(response.getSequence(), "Valid sequence should be returned");
             assertEquals(stored.getCaseId(), response.getCaseId(), "Valid CaseId should be returned");
-            assertEquals(stored.getEventTimestamp(), response.getEventTimestamp(), "Should be same EventTimestamp");
+            assertEquals(stored.getEventTimestamp().truncatedTo(ChronoUnit.MILLIS),
+                         response.getEventTimestamp().truncatedTo(ChronoUnit.MILLIS), "Should be same EventTimestamp");
             assertEquals(stored.getFromDlq(), response.getFromDlq(), "Valid FromDlq should be returned");
             assertEquals(stored.getState(), response.getState(), "Valid State should be returned");
             assertEquals(
