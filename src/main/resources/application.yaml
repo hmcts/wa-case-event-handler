@@ -138,6 +138,12 @@ job:
     message-id-list: ${PROBLEM_MESSAGE_RESET_ID_LIST:}
     null-event-timestamp-message-id-list: ${PROBLEM_MESSAGE_RESET_NULL_EVENT_TIMESTAMP_ID_LIST:}
     set-processed-state-message-id-list: ${PROBLEM_MESSAGE_SET_STATE_TO_PROCESSED_ID_LIST:}
+  clean-up:
+    delete-limit: ${CLEAN_UP_MESSAGE_LIMIT:100}
+    started-days-before: ${CLEAN_UP_STARTED_DAYS_BEFORE:90}
+    state-for-prod: ${CLEAN_UP_STATE_FOR_PROD:PROCESSED}
+    state-for-non-prod: ${CLEAN_UP_STATE_FOR_NON_PROD:PROCESSED}
+
 
 retry:
   maxAttempts: ${RESILIENCE_RETRY_MAX_ATTEMPTS:3}
