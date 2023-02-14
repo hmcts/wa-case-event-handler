@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
@@ -38,19 +38,25 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
 
     public static List<CaseEventMessage> caseEventMessages;
+    public static List<CaseEventMessage> caseEventMessagesToBeDeleted;
 
-    @BeforeEach
+    @Before
     public void setup() {
         caseEventMessages = new ArrayList<>();
+        caseEventMessagesToBeDeleted = new ArrayList<>();
+        caseIdToDelete = new ArrayList<>();
     }
 
-    @AfterEach
+    @After
     public void teardown() {
+
         if (caseIdToDelete != null) {
             caseIdToDelete.forEach(this::deleteMessagesFromDatabaseByMsgIds);
             caseIdToDelete = new ArrayList<>();
         }
-        deleteMessagesFromDatabase(caseEventMessages);
+
+        deleteMessagesFromDatabase(caseEventMessagesToBeDeleted);
+
     }
 
     @Test
@@ -217,17 +223,17 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         // Sending message without case id will cause validation to fail and message will be stored with
         // UNPROCESSABLE state
         final EventInformation eventInformation = EventInformation.builder()
-                .eventInstanceId(UUID.randomUUID().toString())
-                .jurisdictionId("WA")
-                .eventId("makeAnApplication")
-                .userId("wa-dlq-user@fake.hmcts.net")
-                .newStateId(null)
-                .caseTypeId("WaCaseType")
-                .eventTimeStamp(LocalDateTime.now())
-                .additionalData(AdditionalData.builder()
-                        .data(Map.of("testName", "should_not_process_message_unless_in_ready_state"))
-                        .build())
-                .build();
+            .eventInstanceId(UUID.randomUUID().toString())
+            .jurisdictionId("WA")
+            .eventId("makeAnApplication")
+            .userId("wa-dlq-user@fake.hmcts.net")
+            .newStateId(null)
+            .caseTypeId("WaCaseType")
+            .eventTimeStamp(LocalDateTime.now())
+            .additionalData(AdditionalData.builder()
+                .data(Map.of("testName", "should_not_process_message_unless_in_ready_state"))
+                .build())
+            .build();
 
         messageIds.forEach(msgId -> {
             log.info("should_not_process_message_unless_in_ready_state using message ID " + msgId);
@@ -238,25 +244,30 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         AtomicReference<List<CaseEventMessage>> collect = new AtomicReference<>(new ArrayList<>());
 
         await().ignoreException(AssertionError.class)
-                .pollInterval(3, SECONDS)
-                .atMost(120, SECONDS)
-                .until(
-                    () -> {
-                        final EventMessageQueryResponse messagesInUnprocessableState
-                                = getMessagesFromDb(MessageState.UNPROCESSABLE);
-                        if (messagesInUnprocessableState != null) {
-                            collect.set(messagesInUnprocessableState.getCaseEventMessages()
-                                    .stream()
-                                    .filter(caseEventMessage -> hasAdditionalData(caseEventMessage.getMessageContent()))
-                                    .collect(Collectors.toList()));
-                            assertEquals(messageIds.size(), collect.get().size());
-                            return true;
-                        } else {
-                            return false;
-                        }
-                    });
+            .pollInterval(3, SECONDS)
+            .atMost(30, SECONDS)
+            .until(
+                () -> {
+                    caseEventMessagesToBeDeleted = new ArrayList<>();
 
-        deleteMessagesFromDatabase(collect.get());
+                    final EventMessageQueryResponse messagesInUnprocessableState
+                        = getMessagesFromDb(MessageState.UNPROCESSABLE);
+
+                    List<CaseEventMessage> unprocessableCaseEventMessage =
+                        messagesInUnprocessableState.getCaseEventMessages()
+                            .stream()
+                            .filter(caseEventMessage -> hasAdditionalData(caseEventMessage.getMessageContent()))
+                            .collect(Collectors.toList());
+
+                    caseEventMessagesToBeDeleted.addAll(unprocessableCaseEventMessage);
+
+                    collect.set(unprocessableCaseEventMessage);
+
+                    assertEquals(messageIds.size(), collect.get().size());
+                    return true;
+
+                });
+
     }
 
     @Test
