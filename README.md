@@ -70,18 +70,43 @@ To build the project execute the following command:
   ```
 
 ### Configuration for functional test
-- To run functional tests, application should connect to the ASB. Make sure you have ASB subscription and provide correct values for these environment variables before you start the application.
+- To run functional tests, application should connect to the ASB. Make sure you have ASB subscription and provide
+  correct values for these environment variables before you start the application.
   ```
   export AZURE_SERVICE_BUS_CONNECTION_STRING="Endpoint=sb://ccd-servicebus-demo.servicebus.windows.net/;SharedAccessKeyName=SendAndRecieveCCDMessage;SharedAccessKey=<Access_Key>;EntityPath=wa-case-event-handler-topic-sessions-ft"
   export AZURE_SERVICE_BUS_TOPIC_NAME=wa-case-event-handler-topic-sessions-ft
   export AZURE_SERVICE_BUS_CCD_CASE_EVENTS_SUBSCRIPTION_NAME=<subscription_name>
   export AZURE_SERVICE_BUS_MESSAGE_AUTHOR=<author_name>
+  ```
+
+- To run application please provide these values
+  ```
   export AZURE_SERVICE_BUS_DLQ_FEATURE_TOGGLE=true
   ```
+- To run functional tests, make sure Application is up and running.
+- please provide these values
+- ```
+  export AZURE_SERVICE_BUS_DLQ_FEATURE_TOGGLE=false
+  ```
 - Functional tests send messages to CaseEventHandlerTestingController, we are not using ASB for messaging.
-  However, MessageReadinessConsumer peek into the ASB DLQ to make sure DLQ is empty before setting any message READY to be processed. So we still need to connect the application to the ASB.
+  However, MessageReadinessConsumer peek into the ASB DLQ to make sure DLQ is empty before setting any message READY to
+  be processed. So we still need to connect the application to the ASB.
   Functional test context doesn't need any of the ASB configuration as tests do not connect to the ASB
 
+- Example command to run Application
+  ```
+  AZURE_SERVICE_BUS_CONNECTION_STRING="Endpoint=sb://ccd-servicebus-demo.servicebus.windows.net/;SharedAccessKeyName=SendAndRecieveCCDMessage;SharedAccessKey=<Access_Key> \
+  AZURE_SERVICE_BUS_DLQ_FEATURE_TOGGLE=true \
+  POSTGRES_HOST=ccd-shared-database \
+  ./gradlew clean bootrun
+  ```
+- Example command to run Functional Tests
+  ```
+  AZURE_SERVICE_BUS_CONNECTION_STRING="Endpoint=sb://ccd-servicebus-demo.servicebus.windows.net/;SharedAccessKeyName=SendAndRecieveCCDMessage;SharedAccessKey=<Access_Key> \
+  AZURE_SERVICE_BUS_DLQ_FEATURE_TOGGLE=false \
+  POSTGRES_HOST=ccd-shared-database \
+  ./gradlew clean functional
+  ```
 
 ## License
 
