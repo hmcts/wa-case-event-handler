@@ -341,7 +341,7 @@ dependencies {
   implementation group: 'org.springframework.security', name: 'spring-security-rsa', version: '1.0.11.RELEASE'
   implementation 'org.springframework.boot:spring-boot-starter-security:2.7.5'
   implementation group: 'org.springframework.retry', name: 'spring-retry', version: versions.retry
-  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.1.1'
+  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '4.0.1'
 
   implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: versions.springDoc
 
