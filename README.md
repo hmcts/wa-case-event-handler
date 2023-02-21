@@ -97,14 +97,12 @@ To build the project execute the following command:
   ```
   AZURE_SERVICE_BUS_CONNECTION_STRING="Endpoint=sb://ccd-servicebus-demo.servicebus.windows.net/;SharedAccessKeyName=SendAndRecieveCCDMessage;SharedAccessKey=<Access_Key> \
   AZURE_SERVICE_BUS_DLQ_FEATURE_TOGGLE=true \
-  POSTGRES_HOST=ccd-shared-database \
   ./gradlew clean bootrun
   ```
 - Example command to run Functional Tests
   ```
   AZURE_SERVICE_BUS_CONNECTION_STRING="Endpoint=sb://ccd-servicebus-demo.servicebus.windows.net/;SharedAccessKeyName=SendAndRecieveCCDMessage;SharedAccessKey=<Access_Key> \
   AZURE_SERVICE_BUS_DLQ_FEATURE_TOGGLE=false \
-  POSTGRES_HOST=ccd-shared-database \
   ./gradlew clean functional
   ```
 
