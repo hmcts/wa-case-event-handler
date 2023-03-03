@@ -225,6 +225,10 @@ dependencyManagement {
     dependencySet(group: 'com.google.guava', version: '31.1-jre') {
       entry 'guava'
     }
+    // CVE-2023-24998 - DoS with a malicious upload or series of uploads possible
+    dependencySet(group: 'commons-fileupload', version: '1.5') {
+      entry 'commons-fileupload'
+    }
     dependency group: 'commons-io', name: 'commons-io', version: '2.11.0'
 
     //CVE-2021-27568

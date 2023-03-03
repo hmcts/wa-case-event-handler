@@ -80,12 +80,6 @@
   </suppress>
   <suppress>
     <notes>
-      commons-fileupload-1.4 is directly used by spring-boot-starter-json 2.7.7, spring boot 3 needed
-    </notes>
-    <cve>CVE-2023-24998</cve>
-  </suppress>
-  <suppress>
-    <notes>
       org.latencyutils:LatencyUtils:2.0.3 directly used by org.springframework.boot:spring-boot-starter-web 2.7.5 and there are no higher version than LatencyUtils 2.0.3
     </notes>
     <cve>CVE-2021-4277</cve>
