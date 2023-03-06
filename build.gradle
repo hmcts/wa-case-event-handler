@@ -220,7 +220,6 @@ dependencyManagement {
   dependencies {
     dependency group: 'com.github.docker-java', name: 'docker-java', version: '3.2.13'
     dependency group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.68'
-    dependency group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
     // CVE-2018-10237 - Unbounded memory allocation
     dependencySet(group: 'com.google.guava', version: '31.1-jre') {
       entry 'guava'
@@ -242,7 +241,7 @@ dependencyManagement {
       entry 'logback-classic'
       entry 'logback-core'
     }
-    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.86.Final') {
+    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.89.Final') {
       entry 'netty-buffer'
       entry 'netty-codec'
       entry 'netty-codec-dns'
@@ -345,7 +344,7 @@ dependencies {
   implementation group: 'org.springframework.security', name: 'spring-security-rsa', version: '1.0.11.RELEASE'
   implementation 'org.springframework.boot:spring-boot-starter-security:2.7.5'
   implementation group: 'org.springframework.retry', name: 'spring-retry', version: versions.retry
-  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.1.1'
+  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.1.5'
 
   implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: versions.springDoc
 
@@ -360,14 +359,9 @@ dependencies {
   implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.12.1'
   implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.0.24'
   implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.0.24'
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: versions.log4j
-  implementation group: 'org.apache.logging.log4j', name: 'log4j-to-slf4j', version: versions.log4j
 
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: versions.tomcat
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: versions.tomcat
-
-  implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
-
   implementation group: 'org.camunda.bpm', name: 'camunda-external-task-client', version: '7.17.0'
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '6.0.4'
   implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
@@ -388,6 +382,7 @@ dependencies {
   testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
   testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.16.2'
   testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.17.6'
+
 
   testImplementation group: 'org.pitest', name: 'pitest', version: versions.pitest
   testImplementation group: 'info.solidsoft.gradle.pitest', name: 'gradle-pitest-plugin', version: '1.7.4'
