@@ -13,12 +13,9 @@ import java.util.List;
 public interface DelayUntilCalculator {
 
     String DEFAULT_NON_WORKING_CALENDAR = "https://www.gov.uk/bank-holidays/england-and-wales.json";
-    String DEFAULT_DATE_TIME = "16:00";
     DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
     DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    LocalDateTime DEFAULT_ZONED_DATE_TIME = LocalDateTime.now().plusDays(2)
-        .withHour(16).withMinute(0).withSecond(0);
-    LocalDateTime DEFAULT_DATE = LocalDateTime.now().plusDays(2);
+    LocalDateTime DEFAULT_DATE_TIME = LocalDateTime.now();
 
     boolean supports(DelayUntilObject delayUntilObject);
 

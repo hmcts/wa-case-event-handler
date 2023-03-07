@@ -19,7 +19,7 @@ public class DelayUntilDateTimeCalculator implements DelayUntilCalculator {
 
     @Override
     public LocalDateTime calculateDate(DelayUntilObject delayUntilObject) {
-        return addTimeToDate(delayUntilObject.getDelayUntilTime(), DEFAULT_DATE);
+        return addTimeToDate(delayUntilObject.getDelayUntilTime(), DEFAULT_DATE_TIME);
     }
 
 }

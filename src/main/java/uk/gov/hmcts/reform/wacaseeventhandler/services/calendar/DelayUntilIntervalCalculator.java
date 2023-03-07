@@ -80,8 +80,6 @@ public class DelayUntilIntervalCalculator implements DelayUntilCalculator {
 
         if (Optional.ofNullable(dateTypeTime).isPresent()) {
             dateTime = calculateDate.atTime(LocalTime.parse(dateTypeTime));
-        } else if (dateTime.getHour() == 0) {
-            dateTime = calculateDate.atTime(LocalTime.parse(DEFAULT_DATE_TIME));
         }
         return dateTime;
     }
@@ -90,7 +88,7 @@ public class DelayUntilIntervalCalculator implements DelayUntilCalculator {
         return DelayUntilIntervalData.builder()
             .referenceDate(Optional.ofNullable(delayUntilObject.getDelayUntilOrigin())
                                .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER))
-                               .orElse(DEFAULT_ZONED_DATE_TIME))
+                               .orElse(DEFAULT_DATE_TIME))
             .intervalDays(Optional.ofNullable(delayUntilObject.getDelayUntilIntervalDays())
                               .map(Long::valueOf)
                               .orElse(0L))
