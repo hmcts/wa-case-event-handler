@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DATE_FORMATTER;
 
 @ExtendWith(MockitoExtension.class)
-class DelayUntilObjectDateCalculatorTest {
+class DelayUntilDateCalculatorTest {
 
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
 

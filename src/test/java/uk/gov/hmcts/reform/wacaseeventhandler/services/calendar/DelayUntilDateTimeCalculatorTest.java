@@ -12,7 +12,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUnti
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DEFAULT_DATE_TIME;
 
 @ExtendWith(MockitoExtension.class)
-class DelayUntilObjectDateTimeCalculatorTest {
+class DelayUntilDateTimeCalculatorTest {
 
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
     private DelayUntilDateTimeCalculator delayUntilDateTimeCalculator;

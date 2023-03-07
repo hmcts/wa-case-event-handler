@@ -20,7 +20,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.calendar.DelayUntilI
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DATE_FORMATTER;
 
 @ExtendWith(MockitoExtension.class)
-class DelayUntilObjectIntervalCalculatorTest {
+class DelayUntilIntervalCalculatorTest {
 
     public static final String CALENDAR_URI = "https://www.gov.uk/bank-holidays/england-and-wales.json";
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
