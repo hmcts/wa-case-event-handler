@@ -20,22 +20,10 @@ public class DelayUntilDateCalculator implements DelayUntilCalculator {
         var delayUntilResponse = delayUntilObject.getDelayUntil();
         var delayUntilTimeResponse = delayUntilObject.getDelayUntilTime();
         if (Optional.ofNullable(delayUntilTimeResponse).isPresent()) {
-            return calculateDelayUntilDateFrom(delayUntilResponse, delayUntilTimeResponse);
+            return addTimeToDate(delayUntilTimeResponse, parseDateTime(delayUntilResponse));
         } else {
-            return calculateDelayUntilDateFrom(delayUntilResponse);
+            return parseDateTime(delayUntilResponse);
         }
     }
 
-    private LocalDateTime calculateDelayUntilDateFrom(String delayUntil) {
-        LocalDateTime parsedDelayUntilDate = parseDateTime(delayUntil);
-        if (parsedDelayUntilDate.getHour() == 0 && parsedDelayUntilDate.getMinute() == 0) {
-            return parsedDelayUntilDate.withHour(16).withMinute(0);
-        } else {
-            return parsedDelayUntilDate;
-        }
-    }
-
-    private LocalDateTime calculateDelayUntilDateFrom(String delayUntil, String delayUntilTimeResponse) {
-        return addTimeToDate(delayUntilTimeResponse, parseDateTime(delayUntil));
-    }
 }
