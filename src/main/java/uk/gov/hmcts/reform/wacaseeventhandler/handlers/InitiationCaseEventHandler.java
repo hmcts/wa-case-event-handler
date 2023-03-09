@@ -98,6 +98,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
 
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
+        log.info("InitiationCaseEventHandler eventInformation:{}", eventInformation);
         results.stream()
             .filter(InitiateEvaluateResponse.class::isInstance)
             .map(InitiateEvaluateResponse.class::cast)
@@ -105,6 +106,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
                 SendMessageRequest request =
                     buildInitiateTaskMessageRequest(initiateEvaluateResponse, eventInformation);
 
+                log.info("sendInitiationMessage message:{}", request);
                 workflowApiClient.sendMessage(
                     serviceAuthGenerator.generate(),
                     request

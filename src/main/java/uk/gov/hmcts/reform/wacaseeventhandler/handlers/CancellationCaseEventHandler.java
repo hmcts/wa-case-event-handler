@@ -67,6 +67,7 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
 
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
+        log.info("CancellationCaseEventHandler eventInformation:{}", eventInformation);
         results.stream()
             .filter(CancellationEvaluateResponse.class::isInstance)
             .map(CancellationEvaluateResponse.class::cast)
@@ -104,6 +105,7 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
 
         cancellationMessageRequests.forEach(message -> {
                 if (message != null) {
+                    log.info("sendCancellationMessage message:{}", message);
                     workflowApiClient.sendMessage(serviceAuthGenerator.generate(), message);
                 }
             }

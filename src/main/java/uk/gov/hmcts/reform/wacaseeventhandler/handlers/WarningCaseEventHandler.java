@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -32,7 +33,8 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmn
 
 @Service
 @Order(2)
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "unchecked"})
+@Slf4j
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
 public class WarningCaseEventHandler implements CaseEventHandler {
 
     private final AuthTokenGenerator serviceAuthGenerator;
@@ -70,6 +72,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
     @SuppressWarnings("PMD.ConfusingTernary")
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
+        log.info("WarningCaseEventHandler eventInformation:{}", eventInformation);
         Set<CancellationEvaluateResponse> emptyWarnings = new LinkedHashSet<>();
         Set<CancellationEvaluateResponse> ctgWarnings = new LinkedHashSet<>();
         Set<Warning> warnings = new LinkedHashSet<>();
@@ -162,10 +165,10 @@ public class WarningCaseEventHandler implements CaseEventHandler {
 
         warningMessageRequest.forEach(message -> {
                 if (message != null) {
+                    log.info("sendWarningMessage message:{}", message);
                     workflowApiClient.sendMessage(serviceAuthGenerator.generate(), message);
                 }
             }
-
         );
     }
 

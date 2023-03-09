@@ -30,6 +30,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
@@ -113,7 +114,7 @@ class ReconfigurationCaseEventHandlerTest {
         );
 
         List<ILoggingEvent> logsList = listAppender.list;
-        assertEquals(0, logsList.size());
+        assertEquals(3, logsList.size());
         logsList.clear();
 
     }
@@ -157,7 +158,7 @@ class ReconfigurationCaseEventHandlerTest {
         );
 
         List<ILoggingEvent> logsList = listAppender.list;
-        assertEquals(0, logsList.size());
+        assertEquals(3, logsList.size());
         logsList.clear();
     }
 
@@ -201,11 +202,11 @@ class ReconfigurationCaseEventHandlerTest {
         );
 
         List<ILoggingEvent> logsList = listAppender.list;
-        assertEquals(
-            "DMN configuration has provided fields not suitable for Reconfiguration and they will be ignored",
-            logsList.get(0).getMessage()
-        );
-        assertEquals(Level.WARN, logsList.get(0).getLevel());
+        assertTrue(logsList.stream().anyMatch(log -> log.getMessage().equals(
+            "DMN configuration has provided fields not suitable for Reconfiguration and they will be ignored"
+        )));
+
+        assertTrue(logsList.stream().anyMatch(log -> Level.WARN.equals(log.getLevel())));
         logsList.clear();
     }
 
@@ -248,11 +249,11 @@ class ReconfigurationCaseEventHandlerTest {
         );
 
         List<ILoggingEvent> logsList = listAppender.list;
-        assertEquals(
-            "DMN configuration has provided fields not suitable for Reconfiguration and they will be ignored",
-            logsList.get(0).getMessage()
-        );
-        assertEquals(Level.WARN, logsList.get(0).getLevel());
+        assertTrue(logsList.stream().anyMatch(log -> log.getMessage().equals(
+            "DMN configuration has provided fields not suitable for Reconfiguration and they will be ignored"
+        )));
+
+        assertTrue(logsList.stream().anyMatch(log -> Level.WARN.equals(log.getLevel())));
         logsList.clear();
     }
 
@@ -302,12 +303,13 @@ class ReconfigurationCaseEventHandlerTest {
         );
 
         List<ILoggingEvent> logsList = listAppender.list;
-        assertEquals(
-            "DMN configuration has provided fields not suitable for Reconfiguration and they will be ignored",
-            logsList.get(0).getMessage()
-        );
-        assertEquals(Level.WARN, logsList.get(0).getLevel());
+        assertTrue(logsList.stream().anyMatch(log -> log.getMessage().equals(
+            "DMN configuration has provided fields not suitable for Reconfiguration and they will be ignored"
+        )));
+
+        assertTrue(logsList.stream().anyMatch(log -> Level.WARN.equals(log.getLevel())));
         logsList.clear();
+
     }
 
     @Test
@@ -351,7 +353,7 @@ class ReconfigurationCaseEventHandlerTest {
         );
 
         List<ILoggingEvent> logsList = listAppender.list;
-        assertEquals(0, logsList.size());
+        assertEquals(3, logsList.size());
         logsList.clear();
     }
 
@@ -394,7 +396,7 @@ class ReconfigurationCaseEventHandlerTest {
         );
 
         List<ILoggingEvent> logsList = listAppender.list;
-        assertEquals(0, logsList.size());
+        assertEquals(3, logsList.size());
         logsList.clear();
     }
 
@@ -437,7 +439,7 @@ class ReconfigurationCaseEventHandlerTest {
         );
 
         List<ILoggingEvent> logsList = listAppender.list;
-        assertEquals(0, logsList.size());
+        assertEquals(3, logsList.size());
         logsList.clear();
     }
 

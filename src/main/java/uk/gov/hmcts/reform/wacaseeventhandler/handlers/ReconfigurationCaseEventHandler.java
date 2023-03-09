@@ -71,6 +71,7 @@ public class ReconfigurationCaseEventHandler implements CaseEventHandler {
 
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
+        log.info("ReconfigurationCaseEventHandler eventInformation:{}", eventInformation);
         results.stream()
             .filter(CancellationEvaluateResponse.class::isInstance)
             .map(CancellationEvaluateResponse.class::cast)
@@ -78,6 +79,7 @@ public class ReconfigurationCaseEventHandler implements CaseEventHandler {
                 CancellationActions.RECONFIGURE == CancellationActions.from(result.getAction().getValue())
             )
             .forEach(reconfigureResponse -> {
+                log.info("sendReconfigurationRequest request:{}", reconfigureResponse);
                 evaluateReconfigureActionResponse(reconfigureResponse);
                 sendReconfigurationRequest(eventInformation.getCaseId());
             });
@@ -113,6 +115,7 @@ public class ReconfigurationCaseEventHandler implements CaseEventHandler {
     private void sendReconfigurationRequest(String caseReference) {
         TaskOperationRequest taskOperationRequest = buildTaskOperationRequest(caseReference);
         taskManagementApiClient.performOperation(serviceAuthGenerator.generate(), taskOperationRequest);
+        log.info("Reconfiguration completed caseReference:{}", caseReference);
     }
 
     private TaskOperationRequest buildTaskOperationRequest(String caseReference) {
