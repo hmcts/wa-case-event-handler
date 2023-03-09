@@ -103,7 +103,7 @@ public class DelayUntilIntervalCalculator implements DelayUntilCalculator {
                                       .map(Arrays::asList)
                                       .orElse(List.of()))
             .skipNonWorkingDays(Optional.ofNullable(delayUntilObject.getDelayUntilSkipNonWorkingDays())
-                                    .orElse(false))
+                                    .orElse(true))
             .mustBeWorkingDay(Optional.ofNullable(delayUntilObject.getDelayUntilMustBeWorkingDay())
                                   .orElse(MUST_BE_WORKING_DAY_NEXT))
             .delayUntilTime(delayUntilObject.getDelayUntilTime())

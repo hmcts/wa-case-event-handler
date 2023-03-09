@@ -60,7 +60,7 @@ class DelayUntilIntervalCalculatorTest {
             .delayUntilNonWorkingCalendar(CALENDAR_URI)
             .delayUntilNonWorkingDaysOfWeek("")
             .delayUntilSkipNonWorkingDays(true)
-            .delayUntilMustBeWorkingDay("true")
+            .delayUntilMustBeWorkingDay("No")
             .delayUntilTime("18:00")
             .build();
 

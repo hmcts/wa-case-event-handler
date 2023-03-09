@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Optional;
 
 @Slf4j
@@ -22,7 +23,13 @@ public class DelayUntilDateCalculator implements DelayUntilCalculator {
         if (Optional.ofNullable(delayUntilTimeResponse).isPresent()) {
             return addTimeToDate(delayUntilTimeResponse, parseDateTime(delayUntilResponse));
         } else {
-            return parseDateTime(delayUntilResponse);
+            LocalDateTime parseDateTime = parseDateTime(delayUntilResponse);
+            if (parseDateTime.getHour() == 0 && parseDateTime.getMinute() == 0) {
+                LocalTime localTime = LocalTime.now();
+                return parseDateTime.withHour(localTime.getHour()).withMinute(localTime.getMinute());
+            } else {
+                return parseDateTime;
+            }
         }
     }
 
