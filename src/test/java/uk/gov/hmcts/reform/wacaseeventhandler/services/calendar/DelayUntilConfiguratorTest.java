@@ -41,7 +41,7 @@ class DelayUntilConfiguratorTest {
         }
 
         @Test
-        public void should_set_date_as_current_day_when_delay_until_is_given() {
+        void should_set_date_as_current_day_when_delay_until_is_given() {
             LocalDateTime calculateDelayUntil = delayUntilConfigurator.calculateDelayUntil(
                 DelayUntilObject.builder().delayUntil("2023-01-10T16:00").build()
             );
