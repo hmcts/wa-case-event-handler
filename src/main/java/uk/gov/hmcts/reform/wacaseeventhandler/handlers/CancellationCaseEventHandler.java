@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
@@ -142,24 +141,20 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
         Map<String, DmnValue<?>> correlationKeys = new ConcurrentHashMap<>();
         correlationKeys.put("caseId", dmnStringValue(caseReference));
 
-        if (categories != null && categories.getValue() != null) {
+        if (checkCategories(categories)) {
             List<String> categoriesToCancel = Stream.of(categories.getValue().split(","))
                 .map(String::trim)
-                .collect(Collectors.toList());
+                .toList();
 
-            categoriesToCancel.forEach(cat ->
-                correlationKeys.put("__processCategory__" + cat, dmnBooleanValue(true))
-            );
+            addCorrelationKeys(correlationKeys, categoriesToCancel);
         }
 
         if (processCategories != null && processCategories.getValue() != null) {
             List<String> categoriesToCancel = Stream.of(processCategories.getValue().split(","))
                 .map(String::trim)
-                .collect(Collectors.toList());
+                .toList();
 
-            categoriesToCancel.forEach(cat ->
-                correlationKeys.put("__processCategory__" + cat, dmnBooleanValue(true))
-            );
+            addCorrelationKeys(correlationKeys, categoriesToCancel);
         }
 
         return SendMessageRequest.builder()
@@ -168,6 +163,16 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
             .all(true)
             .build();
 
+    }
+
+    private boolean checkCategories(DmnValue<String> categories) {
+        return categories != null && categories.getValue() != null;
+    }
+    
+    private void addCorrelationKeys(Map<String, DmnValue<?>> correlationKeys, List<String> categoriesToCancel) {
+        categoriesToCancel.forEach(cat ->
+            correlationKeys.put("__processCategory__" + cat, dmnBooleanValue(true))
+        );
     }
 
     /**
@@ -188,7 +193,7 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
             Map<String, DmnValue<?>> correlationKeys = new ConcurrentHashMap<>();
             correlationKeys.put("caseId", dmnStringValue(caseReference));
 
-            if (categories != null && categories.getValue() != null) {
+            if (checkCategories(categories)) {
                 correlationKeys.put("taskCategory", categories);
             }
 

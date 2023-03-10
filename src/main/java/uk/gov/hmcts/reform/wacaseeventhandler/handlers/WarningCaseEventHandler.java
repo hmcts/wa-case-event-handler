@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
@@ -206,7 +205,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
         if (categories != null && categories.getValue() != null) {
             List<String> categoriesToCancel = Stream.of(categories.getValue().split(","))
                 .map(String::trim)
-                .collect(Collectors.toList());
+                .toList();
 
             categoriesToCancel.forEach(cat ->
                 correlationKeys.put("__processCategory__" + cat, dmnBooleanValue(true))
@@ -216,7 +215,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
         if (processCategories != null && processCategories.getValue() != null) {
             List<String> categoriesToCancel = Stream.of(processCategories.getValue().split(","))
                 .map(String::trim)
-                .collect(Collectors.toList());
+                .toList();
 
             categoriesToCancel.forEach(cat ->
                 correlationKeys.put("__processCategory__" + cat, dmnBooleanValue(true))
