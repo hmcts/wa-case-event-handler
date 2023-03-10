@@ -38,6 +38,8 @@ spring:
   application:
     name: WA Case Event Handler
   jackson.serialization.indent_output: true
+  main:
+    allow-bean-definition-overriding: true
   flyway:
     out-of-order: true
     ignore-missing-migrations: true

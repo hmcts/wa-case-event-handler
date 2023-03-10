@@ -9,7 +9,11 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DEFAULT_NON_WORKING_CALENDAR;
 
 class BankHolidaysTest {
@@ -26,7 +30,7 @@ class BankHolidaysTest {
         assertFalse(bankHolidays.getEvents().get(0).equals(null));
         assertFalse(bankHolidays.getEvents().get(0).equals(new Object()));
 
-        for (BankHolidays.EventDate eventDate : bankHolidays.getEvents()) {
+        for (BankHolidays.EventDate eventDate: bankHolidays.getEvents()) {
             assertTrue(isValid(eventDate.getDate()));
         }
 
