@@ -188,7 +188,8 @@ sonarqube {
       "src/testUtils/java/uk/gov/hmcts/reform/wacaseeventhandler/**," +
       "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/Application.java," +
       "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/clients/*Consumer.java," +
-      "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/entity/CaseEventMessageEntity.java"
+      "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/entity/CaseEventMessageEntity.java," +
+      "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/services/calendar/PublicHolidaysCollection.java"
     property "sonar.cpd.exclusions", "src/main/java/uk/gov/hmcts/reform/wataskmanagementapi/services/calendar/**"
   }
 }
