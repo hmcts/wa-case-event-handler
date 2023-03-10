@@ -14,8 +14,8 @@ public class DelayUntilDateTimeCalculator implements DelayUntilCalculator {
     public boolean supports(DelayUntilObject delayUntilObject) {
 
         return Optional.ofNullable(delayUntilObject.getDelayUntilTime()).isPresent()
-            && Optional.ofNullable(delayUntilObject.getDelayUntil()).isEmpty()
-            && Optional.ofNullable(delayUntilObject.getDelayUntilOrigin()).isEmpty();
+            && Optional.ofNullable(delayUntilObject.getDelayUntilOrigin()).isEmpty()
+            && Optional.ofNullable(delayUntilObject.getDelayUntil()).isEmpty();
     }
 
     @Override

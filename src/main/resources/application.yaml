@@ -38,6 +38,8 @@ spring:
   application:
     name: WA Case Event Handler
   jackson.serialization.indent_output: true
+  main:
+    allow-bean-definition-overriding: true
   flyway:
     out-of-order: true
     ignore-missing-migrations: true
@@ -151,3 +153,9 @@ retry:
     delay: ${RESILIENCE_RETRY_BACK_OFF_DELAY:5000}
     maxDelay: ${RESILIENCE_RETRY_BACK_OFF_MAX_DELAY:10000}
     random: ${RESILIENCE_RETRY_BACK_OFF_RANDOM:true}
+
+caffeine:
+  calendar:
+    timeout:
+      duration: ${CALENDAR_CACHE_TIMEOUT_DURATION:24}
+      unit: ${CALENDAR_CACHE_TIMEOUT_TIMEUNIT:HOURS}
