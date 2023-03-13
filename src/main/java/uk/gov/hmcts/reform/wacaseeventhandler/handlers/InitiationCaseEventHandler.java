@@ -18,16 +18,22 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.IdempotencyKeyGenerator;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilConfigurator;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilObject;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnAndMessageNames.TASK_INITIATION;
@@ -51,6 +57,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
     private final IsoDateFormatter isoDateFormatter;
     private final DueDateService dueDateService;
     private final ObjectMapper objectMapper;
+    private final DelayUntilConfigurator delayUntilConfigurator;
 
     @Autowired
     public InitiationCaseEventHandler(AuthTokenGenerator serviceAuthGenerator,
@@ -58,14 +65,15 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
                                       IdempotencyKeyGenerator idempotencyKeyGenerator,
                                       IsoDateFormatter isoDateFormatter,
                                       DueDateService dueDateService,
-                                      ObjectMapper objectMapper
-    ) {
+                                      ObjectMapper objectMapper,
+                                      DelayUntilConfigurator delayUntilConfigurator) {
         this.serviceAuthGenerator = serviceAuthGenerator;
         this.workflowApiClient = workflowApiClient;
         this.idempotencyKeyGenerator = idempotencyKeyGenerator;
         this.isoDateFormatter = isoDateFormatter;
         this.dueDateService = dueDateService;
         this.objectMapper = objectMapper;
+        this.delayUntilConfigurator = delayUntilConfigurator;
     }
 
     @Override
@@ -91,7 +99,8 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
             serviceAuthGenerator.generate(),
             tableKey,
             tenantId,
-            evaluateDmnRequest);
+            evaluateDmnRequest
+        );
         log.debug("Workflow api response : {}", response);
         return response.getResults();
     }
@@ -174,13 +183,19 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
     ) {
         final ZonedDateTime zonedDateTime = isoDateFormatter.formatToZone(eventInformation.getEventTimeStamp());
 
-        ZonedDateTime delayUntil = dueDateService.calculateDelayUntil(
+        ZonedDateTime delayUntilBasedOnDelayDuration = dueDateService.calculateDelayUntil(
             zonedDateTime,
             cannotBeNull(initiateEvaluateResponse.getDelayDuration()).getValue()
         );
 
+        ZoneId systemDefault = ZoneId.systemDefault();
+        log.info("system default {}", systemDefault);
+        ZonedDateTime delayUntil = Optional.ofNullable(initiateEvaluateResponse.getDelayUntil())
+            .map(input ->delayUntilConfigurator.calculateDelayUntil(input.getValue()).atZone(systemDefault))
+            .orElse(delayUntilBasedOnDelayDuration);
+
         ZonedDateTime dueDate = dueDateService.calculateDueDate(
-            delayUntil,
+            delayUntilBasedOnDelayDuration,
             cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()).getValue()
         );
 
@@ -196,13 +211,13 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         processVariables.put("idempotencyKey", dmnStringValue(idempotencyKey));
         processVariables.put("taskState", dmnStringValue("unconfigured"));
         processVariables.put("caseTypeId", dmnStringValue(eventInformation.getCaseTypeId()));
-        processVariables.put("dueDate", dmnStringValue(dueDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)));
+        processVariables.put("dueDate", dmnStringValue(dueDate.format(ISO_LOCAL_DATE_TIME)));
         processVariables.put("workingDaysAllowed", cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()));
         processVariables.put("jurisdiction", dmnStringValue(eventInformation.getJurisdictionId()));
         processVariables.put("name", initiateEvaluateResponse.getName());
         processVariables.put("taskId", initiateEvaluateResponse.getTaskId());
         processVariables.put("caseId", dmnStringValue(eventInformation.getCaseId()));
-        processVariables.put("delayUntil", dmnStringValue(delayUntil.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)));
+        processVariables.put("delayUntil", dmnStringValue(delayUntil.format(ISO_LOCAL_DATE_TIME)));
         processVariables.put("hasWarnings", dmnBooleanValue(false));
         processVariables.put("warningList", dmnStringValue(new WarningValues().getValuesAsJson()));
 
@@ -221,7 +236,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
                 .map(String::trim).toList();
 
             categoriesToAdd.forEach(cat ->
-                processVariables.put("__processCategory__" + cat, dmnBooleanValue(true))
+                                        processVariables.put("__processCategory__" + cat, dmnBooleanValue(true))
             );
         }
 
@@ -233,4 +248,9 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         return workingDaysAllowed == null ? dmnIntegerValue(0) : workingDaysAllowed;
     }
 
+    private DmnValue<DelayUntilObject> defaultIfNull(DmnValue<DelayUntilObject> workingDaysAllowed) {
+        return workingDaysAllowed == null
+            ? new DmnValue<>(DelayUntilObject.builder().build(), DelayUntilObject.class.getName())
+            : workingDaysAllowed;
+    }
 }

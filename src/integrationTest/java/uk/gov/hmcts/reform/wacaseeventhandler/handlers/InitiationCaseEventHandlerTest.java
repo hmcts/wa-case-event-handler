@@ -18,6 +18,9 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.InitiateEv
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.IdempotencyKeyGenerator;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilConfigurator;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilIntervalCalculator;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.WorkingDayIndicator;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates.HolidayService;
 
@@ -52,6 +55,9 @@ class InitiationCaseEventHandlerTest {
     @Mock private IsoDateFormatter isoDateFormatter;
     @Mock private ObjectMapper objectMapper;
 
+    @Mock
+    private DelayUntilConfigurator delayUntilConfigurator;
+
     @Mock HolidayService holidayService;
 
     @Captor private ArgumentCaptor<SendMessageRequest> sendMessageRequestCaptor;
@@ -70,7 +76,8 @@ class InitiationCaseEventHandlerTest {
             idempotencyKeyGenerator,
             isoDateFormatter,
             dueDateService,
-            objectMapper
+            objectMapper,
+            delayUntilConfigurator
         );
 
         eventInstanceId = UUID.randomUUID().toString();
