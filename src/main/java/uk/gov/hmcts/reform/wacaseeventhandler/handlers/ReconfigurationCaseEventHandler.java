@@ -46,18 +46,18 @@ public class ReconfigurationCaseEventHandler implements CaseEventHandler {
     }
 
     @Override
-    public List<? extends EvaluateResponse> evaluateDmn(EventInformation eventInformation) {
+    public List<? extends EvaluateResponse> evaluateDmn(EventInformation reconfigurationEventInformation) {
         String tableKey = TASK_CANCELLATION.getTableKey(
-            eventInformation.getJurisdictionId(),
-            eventInformation.getCaseTypeId()
+            reconfigurationEventInformation.getJurisdictionId(),
+            reconfigurationEventInformation.getCaseTypeId()
         );
-
-        String tenantId = eventInformation.getJurisdictionId();
+        log.debug("tableKey : {}", tableKey);
+        String tenantId = reconfigurationEventInformation.getJurisdictionId();
 
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateDmnRequest(
-            eventInformation.getPreviousStateId(),
-            eventInformation.getEventId(),
-            eventInformation.getNewStateId()
+            reconfigurationEventInformation.getPreviousStateId(),
+            reconfigurationEventInformation.getEventId(),
+            reconfigurationEventInformation.getNewStateId()
         );
 
         EvaluateDmnResponse<CancellationEvaluateResponse> response = workflowApiClient.evaluateCancellationDmn(
@@ -70,8 +70,8 @@ public class ReconfigurationCaseEventHandler implements CaseEventHandler {
     }
 
     @Override
-    public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
-        log.info("ReconfigurationCaseEventHandler eventInformation:{}", eventInformation);
+    public void handle(List<? extends EvaluateResponse> results, EventInformation reconfigurationEventInformation) {
+        log.info("ReconfigurationCaseEventHandler eventInformation:{}", reconfigurationEventInformation);
         results.stream()
             .filter(CancellationEvaluateResponse.class::isInstance)
             .map(CancellationEvaluateResponse.class::cast)
@@ -81,7 +81,7 @@ public class ReconfigurationCaseEventHandler implements CaseEventHandler {
             .forEach(reconfigureResponse -> {
                 log.info("sendReconfigurationRequest request:{}", reconfigureResponse);
                 evaluateReconfigureActionResponse(reconfigureResponse);
-                sendReconfigurationRequest(eventInformation.getCaseId());
+                sendReconfigurationRequest(reconfigurationEventInformation.getCaseId());
             });
     }
 
