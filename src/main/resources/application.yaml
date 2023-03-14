@@ -155,6 +155,9 @@ retry:
     random: ${RESILIENCE_RETRY_BACK_OFF_RANDOM:true}
 
 caffeine:
+  timeout:
+    duration: 30
+    unit: MINUTES
   calendar:
     timeout:
       duration: ${CALENDAR_CACHE_TIMEOUT_DURATION:24}
