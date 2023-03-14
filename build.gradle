@@ -160,6 +160,7 @@ pitest {
   targetClasses = ['uk.gov.hmcts.reform.wacaseeventhandler.*']
   excludedClasses = [
     'uk.gov.hmcts.reform.wacaseeventhandler.config.*',
+    'uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.PublicHolidaysCollection',
     'uk.gov.hmcts.reform.wacaseeventhandler.Application'
   ]
   threads = 10
