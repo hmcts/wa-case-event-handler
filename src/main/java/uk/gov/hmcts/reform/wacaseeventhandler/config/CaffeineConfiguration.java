@@ -8,6 +8,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -16,6 +17,11 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 public class CaffeineConfiguration {
 
+    @Value("${caffeine.timeout.duration}")
+    private Integer cacheDuration;
+
+    @Value("#{T(java.util.concurrent.TimeUnit).of('${caffeine.timeout.unit}')}")
+    private TimeUnit cacheDurationUnit;
     @Value("${caffeine.calendar.timeout.duration}")
     private Integer calendarCacheDuration;
 
@@ -25,6 +31,21 @@ public class CaffeineConfiguration {
     @Bean
     public Ticker ticker() {
         return Ticker.systemTicker();
+    }
+
+    @Bean
+    public Caffeine<Object, Object> caffeineConfig(Ticker ticker) {
+        return Caffeine.newBuilder()
+            .expireAfterWrite(cacheDuration, cacheDurationUnit)
+            .ticker(ticker);
+    }
+
+    @Bean
+    @Primary
+    public CacheManager cacheManager(Caffeine<Object, Object> caffeineConfig) {
+        CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
+        caffeineCacheManager.setCaffeine(caffeineConfig);
+        return caffeineCacheManager;
     }
 
     @Bean
