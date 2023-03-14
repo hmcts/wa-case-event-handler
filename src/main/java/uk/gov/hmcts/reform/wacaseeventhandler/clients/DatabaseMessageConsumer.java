@@ -165,6 +165,7 @@ public class DatabaseMessageConsumer implements Runnable {
         try {
             final HttpStatus httpStatus = HttpStatus.valueOf(fce.status());
             isNonRetryableError = UnprocessableHttpErrors.isNonRetryableError(httpStatus);
+            log.info("caseId: {} httpStatus:{}", caseEventMessage.getCaseId(), httpStatus);
         } catch (IllegalArgumentException iae) {
             if (fce instanceof RetryableException) {
                 isNonRetryableError = false;
