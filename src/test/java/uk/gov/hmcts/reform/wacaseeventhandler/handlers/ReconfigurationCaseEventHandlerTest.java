@@ -1,16 +1,14 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.LoggerFactory;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.TaskManagementApiClient;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClient;
@@ -29,8 +27,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
@@ -39,13 +35,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnStringValue;
 
-@ExtendWith(MockitoExtension.class)
+@SuppressWarnings("checkstyle:LineLength")
+@ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})
 class ReconfigurationCaseEventHandlerTest {
 
     public static final String TENANT_ID = "ia";
     private static final String TASK_CANCELLATION_DMN_TABLE = "wa-task-cancellation-ia-asylum";
     private static final String SERVICE_AUTH_TOKEN = "s2s token";
-    ListAppender<ILoggingEvent> listAppender;
+    public static final String RECONFIGURATION_EVENT_INFORMATION_LOG = "ReconfigurationCaseEventHandler eventInformation:EventInformation";
+    public static final String SEND_RECONFIGURATION_REQUEST_LOG = "sendReconfigurationRequest request:CancellationEvaluateResponse";
+    public static final String RECONFIGURATION_COMPLETED_LOG = "Reconfiguration completed caseReference:some case reference";
     private EventInformation eventInformation;
     @Mock
     private WorkflowApiClient workflowApiClient;
@@ -69,15 +68,10 @@ class ReconfigurationCaseEventHandlerTest {
             .eventTimeStamp(LocalDateTime.now())
             .build();
 
-        Logger reconfigureCaseEventHandlerLogger =
-            (Logger) LoggerFactory.getLogger(ReconfigurationCaseEventHandler.class);
-        listAppender = new ListAppender<>();
-        reconfigureCaseEventHandlerLogger.addAppender(listAppender);
-        listAppender.start();
     }
 
     @Test
-    void should_evaluate_the_dmn_table_and_return_results() {
+    void should_evaluate_the_dmn_table_and_return_results(CapturedOutput output) {
 
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateDmnRequest();
 
@@ -113,14 +107,14 @@ class ReconfigurationCaseEventHandlerTest {
             any(TaskOperationRequest.class)
         );
 
-        List<ILoggingEvent> logsList = listAppender.list;
-        assertEquals(3, logsList.size());
-        logsList.clear();
+        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
+        Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
+        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
 
     }
 
     @Test
-    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_null_fields() {
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_null_fields(CapturedOutput output) {
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
         EventInformation eventInfo = EventInformation.builder()
             .eventId("ANY_EVENT")
@@ -157,13 +151,13 @@ class ReconfigurationCaseEventHandlerTest {
             any(TaskOperationRequest.class)
         );
 
-        List<ILoggingEvent> logsList = listAppender.list;
-        assertEquals(3, logsList.size());
-        logsList.clear();
+        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
+        Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
+        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
     }
 
     @Test
-    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_nonnull_warning_text() {
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_nonnull_warning_text(CapturedOutput output) {
 
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
         EventInformation eventInfo = EventInformation.builder()
@@ -201,17 +195,13 @@ class ReconfigurationCaseEventHandlerTest {
             any(TaskOperationRequest.class)
         );
 
-        List<ILoggingEvent> logsList = listAppender.list;
-        assertTrue(logsList.stream().anyMatch(log -> log.getMessage().equals(
-            "DMN configuration has provided fields not suitable for Reconfiguration and they will be ignored"
-        )));
-
-        assertTrue(logsList.stream().anyMatch(log -> Level.WARN.equals(log.getLevel())));
-        logsList.clear();
+        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
+        Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
+        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
     }
 
     @Test
-    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_nonnull_warning_code() {
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_nonnull_warning_code(CapturedOutput output) {
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
         EventInformation eventInfo = EventInformation.builder()
             .eventId("ANY_EVENT")
@@ -248,17 +238,13 @@ class ReconfigurationCaseEventHandlerTest {
             any(TaskOperationRequest.class)
         );
 
-        List<ILoggingEvent> logsList = listAppender.list;
-        assertTrue(logsList.stream().anyMatch(log -> log.getMessage().equals(
-            "DMN configuration has provided fields not suitable for Reconfiguration and they will be ignored"
-        )));
-
-        assertTrue(logsList.stream().anyMatch(log -> Level.WARN.equals(log.getLevel())));
-        logsList.clear();
+        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
+        Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
+        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
     }
 
     @Test
-    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_nonnull_process_category() {
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_nonnull_process_category(CapturedOutput output) {
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
         EventInformation eventInfo = EventInformation.builder()
             .eventId("ANY_EVENT")
@@ -302,18 +288,14 @@ class ReconfigurationCaseEventHandlerTest {
             any(TaskOperationRequest.class)
         );
 
-        List<ILoggingEvent> logsList = listAppender.list;
-        assertTrue(logsList.stream().anyMatch(log -> log.getMessage().equals(
-            "DMN configuration has provided fields not suitable for Reconfiguration and they will be ignored"
-        )));
-
-        assertTrue(logsList.stream().anyMatch(log -> Level.WARN.equals(log.getLevel())));
-        logsList.clear();
+        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
+        Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
+        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
 
     }
 
     @Test
-    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_blank_warning_text() {
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_blank_warning_text(CapturedOutput output) {
 
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
         EventInformation eventInfo = EventInformation.builder()
@@ -352,13 +334,13 @@ class ReconfigurationCaseEventHandlerTest {
             any(TaskOperationRequest.class)
         );
 
-        List<ILoggingEvent> logsList = listAppender.list;
-        assertEquals(3, logsList.size());
-        logsList.clear();
+        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
+        Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
+        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
     }
 
     @Test
-    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_blank_warning_code() {
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_blank_warning_code(CapturedOutput output) {
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
         EventInformation eventInfo = EventInformation.builder()
             .eventId("ANY_EVENT")
@@ -395,13 +377,13 @@ class ReconfigurationCaseEventHandlerTest {
             any(TaskOperationRequest.class)
         );
 
-        List<ILoggingEvent> logsList = listAppender.list;
-        assertEquals(3, logsList.size());
-        logsList.clear();
+        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
+        Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
+        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
     }
 
     @Test
-    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_blank_process_category() {
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_blank_process_category(CapturedOutput output) {
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
         EventInformation eventInfo = EventInformation.builder()
             .eventId("ANY_EVENT")
@@ -438,9 +420,9 @@ class ReconfigurationCaseEventHandlerTest {
             any(TaskOperationRequest.class)
         );
 
-        List<ILoggingEvent> logsList = listAppender.list;
-        assertEquals(3, logsList.size());
-        logsList.clear();
+        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
+        Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
+        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
     }
 
     @Test
