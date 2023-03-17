@@ -174,10 +174,10 @@ public class DelayUntilConfiguratorTest {
 
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T20:00")
-            .delayUntilIntervalDays(intervalDays)
+            .delayUntilIntervalDays(String.valueOf(intervalDays))
             .delayUntilNonWorkingCalendar("https://www.gov.uk/bank-holidays/england-and-wales.json")
             .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
-            .delayUntilSkipNonWorkingDays(delayUntilSkipNonWorkingDaysFlag)
+            .delayUntilSkipNonWorkingDays(String.valueOf(delayUntilSkipNonWorkingDaysFlag))
             .delayUntilMustBeWorkingDay(delayUntilMustBeWorkingDayFlag)
             .delayUntilTime("18:00")
             .build();
@@ -196,7 +196,7 @@ public class DelayUntilConfiguratorTest {
 
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(localDateTime + "T20:00")
-            .delayUntilIntervalDays(3)
+            .delayUntilIntervalDays("3")
             .delayUntilNonWorkingCalendar(null)
             .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
             .delayUntilSkipNonWorkingDays(null)
@@ -215,10 +215,10 @@ public class DelayUntilConfiguratorTest {
 
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T20:00")
-            .delayUntilIntervalDays(6)
+            .delayUntilIntervalDays("6")
             .delayUntilNonWorkingCalendar("https://www.gov.uk/bank-holidays/england-and-wales.json")
             .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
-            .delayUntilSkipNonWorkingDays(false)
+            .delayUntilSkipNonWorkingDays("false")
             .delayUntilMustBeWorkingDay("Next")
             .build();
 
@@ -238,10 +238,10 @@ public class DelayUntilConfiguratorTest {
         //Clocks go back an hour at 2:00am
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T01:30")
-            .delayUntilIntervalDays(4)
+            .delayUntilIntervalDays("4")
             .delayUntilNonWorkingCalendar("https://www.gov.uk/bank-holidays/england-and-wales.json")
             .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
-            .delayUntilSkipNonWorkingDays(false)
+            .delayUntilSkipNonWorkingDays("false")
             .delayUntilMustBeWorkingDay("No")
             .delayUntilTime("02:30")
             .build();
@@ -259,10 +259,10 @@ public class DelayUntilConfiguratorTest {
         //Clocks go back an hour at 2:00am
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T01:30")
-            .delayUntilIntervalDays(4)
+            .delayUntilIntervalDays("4")
             .delayUntilNonWorkingCalendar("https://www.gov.uk/bank-holidays/england-and-wales.json")
             .delayUntilNonWorkingDaysOfWeek("")
-            .delayUntilSkipNonWorkingDays(false)
+            .delayUntilSkipNonWorkingDays("false")
             .delayUntilMustBeWorkingDay("false")
             .delayUntilTime("02:30")
             .build();
@@ -281,10 +281,10 @@ public class DelayUntilConfiguratorTest {
         //Clocks go forward an hour at 1:00am
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T00:30")
-            .delayUntilIntervalDays(4)
+            .delayUntilIntervalDays("4")
             .delayUntilNonWorkingCalendar("https://www.gov.uk/bank-holidays/england-and-wales.json")
             .delayUntilNonWorkingDaysOfWeek("")
-            .delayUntilSkipNonWorkingDays(false)
+            .delayUntilSkipNonWorkingDays("false")
             .delayUntilMustBeWorkingDay("false")
             .delayUntilTime("01:30")
             .build();
@@ -302,10 +302,10 @@ public class DelayUntilConfiguratorTest {
         //Clocks go forward an hour at 1:00am
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T00:30")
-            .delayUntilIntervalDays(4)
+            .delayUntilIntervalDays("4")
             .delayUntilNonWorkingCalendar(DEFAULT_NON_WORKING_CALENDAR + "," + NON_WORKING_JSON_OVERRidE)
             .delayUntilNonWorkingDaysOfWeek(null)
-            .delayUntilSkipNonWorkingDays(true)
+            .delayUntilSkipNonWorkingDays("true")
             .delayUntilMustBeWorkingDay("Next")
             .delayUntilTime(null)
             .build();

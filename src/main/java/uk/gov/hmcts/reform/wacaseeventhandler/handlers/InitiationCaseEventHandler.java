@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,24 +24,22 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilObject
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnAndMessageNames.TASK_INITIATION;
-import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnBooleanValue;
-import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnIntegerValue;
-import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnMapValue;
-import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnStringValue;
+import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.*;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.DATE_DUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.ia.CaseEventFieldsDefinition.LAST_MODIFIED_DIRECTION;
 
@@ -111,6 +110,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
             .filter(InitiateEvaluateResponse.class::isInstance)
             .map(InitiateEvaluateResponse.class::cast)
             .forEach(initiateEvaluateResponse -> {
+                log.info("initiateEvaluateResponse is {}", initiateEvaluateResponse);
                 SendMessageRequest request =
                     buildInitiateTaskMessageRequest(initiateEvaluateResponse, eventInformation);
 
@@ -188,10 +188,15 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
             cannotBeNull(initiateEvaluateResponse.getDelayDuration()).getValue()
         );
 
-        ZoneId systemDefault = ZoneId.systemDefault();
-        log.info("system default {}", systemDefault);
         ZonedDateTime delayUntil = Optional.ofNullable(initiateEvaluateResponse.getDelayUntil())
-            .map(input ->delayUntilConfigurator.calculateDelayUntil(input.getValue()).atZone(systemDefault))
+            .map(input -> {
+                ZoneId systemDefault = ZoneId.systemDefault();
+                log.info("System default zone : {}", systemDefault);
+                DelayUntilObject delayUntilObject = readDelayUntilValueFromDmn(input);
+                LocalDateTime calculateDelayUntil = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+                log.info("Calculate DelayUntil date is: {}", calculateDelayUntil);
+                return calculateDelayUntil.atZone(systemDefault);
+            })
             .orElse(delayUntilBasedOnDelayDuration);
 
         ZonedDateTime dueDate = dueDateService.calculateDueDate(
@@ -248,9 +253,17 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         return workingDaysAllowed == null ? dmnIntegerValue(0) : workingDaysAllowed;
     }
 
-    private DmnValue<DelayUntilObject> defaultIfNull(DmnValue<DelayUntilObject> workingDaysAllowed) {
-        return workingDaysAllowed == null
-            ? new DmnValue<>(DelayUntilObject.builder().build(), DelayUntilObject.class.getName())
-            : workingDaysAllowed;
+    private DelayUntilObject readDelayUntilValueFromDmn(DmnValue<String> input) {
+        String inputValue = input.getValue();
+        log.info("Delay Until value from dmn is : {}", inputValue);
+
+        Map<String, String> delayUntilMap = Arrays.stream(inputValue.replaceAll("[{}]", "").split(","))
+            .filter(b -> b.contains("="))
+            .collect(Collectors.toMap(
+                a -> a.substring(0, a.indexOf("=")).trim(),
+                a -> a.substring(a.indexOf("=") + 1).trim()
+            ));
+        return objectMapper.convertValue(delayUntilMap, new TypeReference<>() {
+        });
     }
 }

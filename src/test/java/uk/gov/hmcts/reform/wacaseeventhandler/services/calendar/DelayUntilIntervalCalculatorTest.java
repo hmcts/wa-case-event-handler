@@ -56,10 +56,10 @@ class DelayUntilIntervalCalculatorTest {
 
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(localDateTime + "T20:00")
-            .delayUntilIntervalDays(0)
+            .delayUntilIntervalDays("0")
             .delayUntilNonWorkingCalendar(CALENDAR_URI)
             .delayUntilNonWorkingDaysOfWeek("")
-            .delayUntilSkipNonWorkingDays(true)
+            .delayUntilSkipNonWorkingDays("true")
             .delayUntilMustBeWorkingDay("No")
             .delayUntilTime("18:00")
             .build();
@@ -74,10 +74,10 @@ class DelayUntilIntervalCalculatorTest {
 
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(localDateTime + "T20:00")
-            .delayUntilIntervalDays(3)
+            .delayUntilIntervalDays("3")
             .delayUntilNonWorkingCalendar(CALENDAR_URI)
             .delayUntilNonWorkingDaysOfWeek("")
-            .delayUntilSkipNonWorkingDays(true)
+            .delayUntilSkipNonWorkingDays("true")
             .delayUntilMustBeWorkingDay(MUST_BE_WORKING_DAY_NEXT)
             .delayUntilTime("18:00")
             .build();
@@ -93,10 +93,10 @@ class DelayUntilIntervalCalculatorTest {
 
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(localDateTime + "T20:00")
-            .delayUntilIntervalDays(5)
+            .delayUntilIntervalDays("5")
             .delayUntilNonWorkingCalendar(CALENDAR_URI)
             .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
-            .delayUntilSkipNonWorkingDays(true)
+            .delayUntilSkipNonWorkingDays("true")
             .delayUntilMustBeWorkingDay(MUST_BE_WORKING_DAY_NEXT)
             .delayUntilTime("18:00")
             .build();
@@ -115,10 +115,10 @@ class DelayUntilIntervalCalculatorTest {
 
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(localDateTime + "T20:00")
-            .delayUntilIntervalDays(5)
+            .delayUntilIntervalDays("5")
             .delayUntilNonWorkingCalendar(CALENDAR_URI)
             .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
-            .delayUntilSkipNonWorkingDays(false)
+            .delayUntilSkipNonWorkingDays("false")
             .delayUntilMustBeWorkingDay(MUST_BE_WORKING_DAY_NEXT)
             .delayUntilTime("18:00")
             .build();
@@ -134,10 +134,10 @@ class DelayUntilIntervalCalculatorTest {
 
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(localDateTime + "T20:00")
-            .delayUntilIntervalDays(2)
+            .delayUntilIntervalDays("2")
             .delayUntilNonWorkingCalendar(CALENDAR_URI)
             .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
-            .delayUntilSkipNonWorkingDays(false)
+            .delayUntilSkipNonWorkingDays("false")
             .delayUntilMustBeWorkingDay(MUST_BE_WORKING_DAY_NEXT)
             .delayUntilTime("18:00")
             .build();
@@ -153,10 +153,10 @@ class DelayUntilIntervalCalculatorTest {
 
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(localDateTime + "T20:00")
-            .delayUntilIntervalDays(2)
+            .delayUntilIntervalDays("2")
             .delayUntilNonWorkingCalendar(CALENDAR_URI)
             .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
-            .delayUntilSkipNonWorkingDays(false)
+            .delayUntilSkipNonWorkingDays("false")
             .delayUntilMustBeWorkingDay(MUST_BE_WORKING_DAY_PREVIOUS)
             .delayUntilTime("18:00")
             .build();
@@ -172,10 +172,10 @@ class DelayUntilIntervalCalculatorTest {
 
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(localDateTime + "T20:00")
-            .delayUntilIntervalDays(5)
+            .delayUntilIntervalDays("5")
             .delayUntilNonWorkingCalendar(CALENDAR_URI)
             .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
-            .delayUntilSkipNonWorkingDays(false)
+            .delayUntilSkipNonWorkingDays("false")
             .delayUntilMustBeWorkingDay(MUST_BE_WORKING_DAY_NO)
             .delayUntilTime("18:00")
             .build();

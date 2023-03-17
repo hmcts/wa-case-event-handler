@@ -117,10 +117,10 @@ class DelayUntilConfiguratorTest {
 
             DelayUntilObject delayUntilObject = DelayUntilObject.builder()
                 .delayUntilOrigin(localDateTime + "T20:00")
-                .delayUntilIntervalDays(5)
+                .delayUntilIntervalDays("5")
                 .delayUntilNonWorkingCalendar(CALENDAR_URI)
                 .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
-                .delayUntilSkipNonWorkingDays(true)
+                .delayUntilSkipNonWorkingDays("true")
                 .delayUntilMustBeWorkingDay(MUST_BE_WORKING_DAY_NEXT)
                 .delayUntilTime("18:00")
                 .build();
