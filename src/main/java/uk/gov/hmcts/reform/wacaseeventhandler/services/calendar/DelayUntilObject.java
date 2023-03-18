@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services.calendar;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,10 +16,10 @@ public class DelayUntilObject {
     private String delayUntil;
     private String delayUntilTime;
     private String delayUntilOrigin;
-    private String delayUntilIntervalDays;
+    private Integer delayUntilIntervalDays;
     private String delayUntilNonWorkingCalendar;
     private String delayUntilNonWorkingDaysOfWeek;
-    private String delayUntilSkipNonWorkingDays;
+    private Boolean delayUntilSkipNonWorkingDays;
     private String delayUntilMustBeWorkingDay;
 
     @JsonCreator
@@ -32,13 +31,13 @@ public class DelayUntilObject {
         @JsonProperty("delayUntilOrigin")
         String delayUntilOrigin,
         @JsonProperty("delayUntilIntervalDays")
-        String delayUntilIntervalDays,
+        Integer delayUntilIntervalDays,
         @JsonProperty("delayUntilNonWorkingCalendar")
         String delayUntilNonWorkingCalendar,
         @JsonProperty("delayUntilNonWorkingDaysOfWeek")
         String delayUntilNonWorkingDaysOfWeek,
         @JsonProperty("delayUntilSkipNonWorkingDays")
-        String delayUntilSkipNonWorkingDays,
+        Boolean delayUntilSkipNonWorkingDays,
         @JsonProperty("delayUntilMustBeWorkingDay")
         String delayUntilMustBeWorkingDay) {
         this.delayUntil = delayUntil;

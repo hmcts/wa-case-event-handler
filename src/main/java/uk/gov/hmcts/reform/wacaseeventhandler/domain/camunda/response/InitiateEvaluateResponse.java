@@ -8,8 +8,6 @@ import lombok.ToString;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilObject;
 
-import java.util.Map;
-
 @ToString
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -20,7 +18,7 @@ public final class InitiateEvaluateResponse implements EvaluateResponse {
     private final DmnValue<String> name;
     private final DmnValue<String> taskCategory;
     private final DmnValue<String> processCategories;
-    private final DmnValue<String> delayUntil;
+    private final DmnValue<DelayUntilObject> delayUntil;
 
     @JsonCreator
     public InitiateEvaluateResponse(@JsonProperty("taskId") DmnValue<String> taskId,
@@ -29,7 +27,7 @@ public final class InitiateEvaluateResponse implements EvaluateResponse {
                                     @JsonProperty("name") DmnValue<String> name,
                                     @JsonProperty("taskCategory") DmnValue<String> taskCategory,
                                     @JsonProperty("processCategories") DmnValue<String> processCategories,
-                                    @JsonProperty("delayUntil") DmnValue<String> delayUntil) {
+                                    @JsonProperty("delayUntil") DmnValue<DelayUntilObject> delayUntil) {
         this.taskId = taskId;
         this.delayDuration = delayDuration;
         this.workingDaysAllowed = workingDaysAllowed;
@@ -59,7 +57,7 @@ public final class InitiateEvaluateResponse implements EvaluateResponse {
         return processCategories;
     }
 
-    public DmnValue<String> getDelayUntil() {
+    public DmnValue<DelayUntilObject> getDelayUntil() {
         return delayUntil;
     }
 

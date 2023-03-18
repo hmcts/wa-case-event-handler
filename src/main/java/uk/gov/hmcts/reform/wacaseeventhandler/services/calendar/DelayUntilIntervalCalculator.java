@@ -87,7 +87,7 @@ public class DelayUntilIntervalCalculator implements DelayUntilCalculator {
     private DelayUntilIntervalData readDateTypeOriginFields(DelayUntilObject delayUntilObject) {
         return DelayUntilIntervalData.builder()
             .referenceDate(Optional.ofNullable(delayUntilObject.getDelayUntilOrigin())
-                               .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER))
+                               .map(v -> LocalDateTime.parse(v, DELAY_UNTIL_DATE_TIME_FORMATTER))
                                .orElse(DEFAULT_DATE_TIME))
             .intervalDays(Optional.ofNullable(delayUntilObject.getDelayUntilIntervalDays())
                               .map(Long::valueOf)
@@ -103,7 +103,6 @@ public class DelayUntilIntervalCalculator implements DelayUntilCalculator {
                                       .map(Arrays::asList)
                                       .orElse(List.of()))
             .skipNonWorkingDays(Optional.ofNullable(delayUntilObject.getDelayUntilSkipNonWorkingDays())
-                                    .map(Boolean::valueOf)
                                     .orElse(true))
             .mustBeWorkingDay(Optional.ofNullable(delayUntilObject.getDelayUntilMustBeWorkingDay())
                                   .orElse(MUST_BE_WORKING_DAY_NEXT))
