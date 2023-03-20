@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;

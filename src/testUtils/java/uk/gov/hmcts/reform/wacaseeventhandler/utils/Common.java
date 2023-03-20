@@ -9,6 +9,7 @@ import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.reform.ccd.client.model.Classification;
+import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.CamundaProcessVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.GivensBuilder;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.RestApiActions;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.RoleAssignment;
@@ -464,6 +465,13 @@ public class Common {
         ).then().extract().body().path("id");
 
         return Set.copyOf(processIds);
+    }
+
+    public CamundaProcessVariables getProcessesInstanceVariables(Headers authenticationHeaders, String processInstanceKey) {
+        return camundaApiActions.get(
+            "process-instance/" + processInstanceKey + "/variables",
+            authenticationHeaders
+        ).then().extract().body().as(CamundaProcessVariables.class);
     }
 
     private void deleteProcessInstance(Headers authenticationHeaders, String processId) {

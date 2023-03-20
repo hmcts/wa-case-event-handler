@@ -1,69 +1,43 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import com.azure.messaging.servicebus.ServiceBusMessage;
-import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.CamundaClient;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.TaskManagementTestClient;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.CamundaProcess;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.CamundaProcessVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestAuthenticationCredentials;
-import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestVariables;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.equalToIgnoringCase;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
+import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DATE_TIME_FORMATTER;
 
 @Slf4j
-public class CaseEventHandlerControllerForDelayUntilFunctionalTest extends SpringBootFunctionalBaseTest {
+public class DelayTasksBasedOnDelayUntilTest extends SpringBootFunctionalBaseTest {
 
-    protected String caseId1Task1Id;
-    protected String caseId1Task2Id;
-    protected String caseId2Task1Id;
-    protected String caseId2Task2Id;
-    protected TestAuthenticationCredentials caseworkerCredentials;
+
+    private TestAuthenticationCredentials caseworkerCredentials;
     private LocalDateTime eventTimeStamp;
 
-    @Autowired
-    private CamundaClient camundaClient;
-
-    protected void sendMessage(String caseId,
-                               String event,
-                               String previousStateId,
-                               String newStateId,
-                               boolean taskDelay,
-                               String jurisdictionId,
-                               String caseTypeId) {
+    private void sendMessage(String caseId,
+                             String event,
+                             String previousStateId,
+                             String newStateId,
+                             boolean taskDelay,
+                             String jurisdictionId,
+                             String caseTypeId) {
 
         if (taskDelay) {
             eventTimeStamp = LocalDateTime.now().plusSeconds(2);
@@ -124,11 +98,6 @@ public class CaseEventHandlerControllerForDelayUntilFunctionalTest extends Sprin
     public void setup() {
         eventTimeStamp = LocalDateTime.now().minusDays(1);
         caseworkerCredentials = authorizationProvider.getNewWaTribunalCaseworker("wa-ft-test-r2-");
-
-        caseId1Task1Id = "";
-        caseId1Task2Id = "";
-        caseId2Task1Id = "";
-        caseId2Task2Id = "";
     }
 
     @After
@@ -154,45 +123,88 @@ public class CaseEventHandlerControllerForDelayUntilFunctionalTest extends Sprin
 
         CamundaProcessVariables camundaProcessVariables = findProcessVariablesByCaseId(caseId);
         camundaProcessVariables.getProcessVariablesMap()
-            .forEach((key, value) -> log.info("Process variable is: {}, {}",key, value.getValue()));
+            .forEach((key, value) -> log.info("Process variable is: {}, {}", key, value.getValue()));
 
         Map<String, DmnValue<?>> processVariables = camundaProcessVariables.getProcessVariablesMap();
-        assertThat(processVariables.get("delayUntil").getValue()).isEqualTo("2022-12-28T18:00:00");
+        assertThat(processVariables.get("delayUntil").getValue()).isEqualTo("2023-01-03T18:00:00");
 
     }
 
-    public void completeTask(String taskId, String status) {
-        log.info(String.format("Completing task : %s", taskId));
-        given()
-            .header(SERVICE_AUTHORIZATION, s2sToken)
-            .accept(APPLICATION_JSON_VALUE)
-            .contentType(APPLICATION_JSON_VALUE)
-            .when()
-            .post(camundaUrl + "/task/{task-id}/complete", taskId);
+    @Test
+    public void should_create_delay_task_for_event_delayUntilDate() {
 
-        assertTaskDeleteReason(taskId, status);
+        String caseId = getWaCaseId();
+
+        sendMessage(
+            caseId,
+            "delayUntilDate",
+            "",
+            "",
+            false,
+            "WA",
+            "WaCaseType"
+        );
+
+        CamundaProcessVariables camundaProcessVariables = findProcessVariablesByCaseId(caseId);
+        Map<String, DmnValue<?>> processVariables = camundaProcessVariables.getProcessVariablesMap();
+        LocalDateTime expected = LocalDateTime.now().withHour(16).withMinute(0).withSecond(0).withNano(0);
+        assertThat(processVariables.get("delayUntil").getValue()).isEqualTo(expected.format(DATE_TIME_FORMATTER));
+
     }
 
-    protected CamundaProcessVariables findProcessVariablesByCaseId(String caseId) {
+    @Test
+    public void should_create_delay_task_for_event_delayUntilTime() {
+
+        String caseId = getWaCaseId();
+
+        sendMessage(
+            caseId,
+            "delayUntilTime",
+            "",
+            "",
+            false,
+            "WA",
+            "WaCaseType"
+        );
+
+        CamundaProcessVariables camundaProcessVariables = findProcessVariablesByCaseId(caseId);
+        Map<String, DmnValue<?>> processVariables = camundaProcessVariables.getProcessVariablesMap();
+        LocalDateTime expected = LocalDateTime.now().withHour(16).withMinute(0).withSecond(0).withNano(0);
+        assertThat(processVariables.get("delayUntil").getValue()).isEqualTo(expected.format(DATE_TIME_FORMATTER));
+
+    }
+
+    @Test
+    public void should_create_delay_task_for_event_delayUntilDateTime() {
+
+        String caseId = getWaCaseId();
+
+        sendMessage(
+            caseId,
+            "delayUntilDateTime",
+            "",
+            "",
+            false,
+            "WA",
+            "WaCaseType"
+        );
+
+        CamundaProcessVariables camundaProcessVariables = findProcessVariablesByCaseId(caseId);
+        Map<String, DmnValue<?>> processVariables = camundaProcessVariables.getProcessVariablesMap();
+        LocalDateTime expected = LocalDateTime.now().plusDays(2).withHour(18).withMinute(0).withSecond(0).withNano(0);
+        assertThat(processVariables.get("delayUntil").getValue()).isEqualTo(expected.format(DATE_TIME_FORMATTER));
+
+    }
+
+    private CamundaProcessVariables findProcessVariablesByCaseId(String caseId) {
 
         log.info("Finding process for caseId = {}", caseId);
 
         Set<String> processes = common.getProcesses(caseworkerCredentials.getHeaders(), caseId);
-
-        processes.forEach(e -> log.info("Process Instance Id {}", e));
-        return camundaClient.getProcessInstanceVariables(s2sToken, processes.stream().findFirst().get());
-    }
-
-    private void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
-        given()
-            .contentType(APPLICATION_JSON_VALUE)
-            .accept(APPLICATION_JSON_VALUE)
-            .header(SERVICE_AUTHORIZATION, s2sToken)
-            .baseUri(camundaUrl)
-            .when()
-            .get("/history/task?taskId=" + task1Id)
-            .then()
-            .body("[0].deleteReason", is(expectedDeletedReason));
+        return processes.stream()
+            .findFirst()
+            .map(key -> common.getProcessesInstanceVariables(caseworkerCredentials.getHeaders(), key))
+            .orElseThrow(() -> new RuntimeException("Process instance is not yet created, Try again."));
     }
 
     private void publishMessageToTopic(EventInformation eventInformation) {
@@ -201,41 +213,6 @@ public class CaseEventHandlerControllerForDelayUntilFunctionalTest extends Sprin
         message.setSessionId(eventInformation.getCaseId());
 
         publisher.sendMessage(message);
-    }
-
-    private String findTaskForGivenCaseId(String caseId, String taskIdDmnColumn) {
-
-        log.info("Attempting to retrieve task with caseId = {} and taskId = {}", caseId, taskIdDmnColumn);
-        String filter = "?processVariables=caseId_eq_" + caseId + ",taskId_eq_" + taskIdDmnColumn;
-
-        AtomicReference<String> response = new AtomicReference<>();
-        await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
-            .until(
-                () -> {
-
-                    Response result = given()
-                        .header(SERVICE_AUTHORIZATION, s2sToken)
-                        .contentType(APPLICATION_JSON_VALUE)
-                        .baseUri(camundaUrl)
-                        .when()
-                        .get("/task" + filter);
-
-                    result.then()
-                        .body("size()", is(1))
-                        .assertThat().body("[0].id", notNullValue());
-
-                    response.set(
-                        result.then()
-                            .extract()
-                            .path("[0].id")
-                    );
-
-                    return true;
-                });
-
-        return response.get();
     }
 
     private AdditionalData setAdditionalData(String appealType, String lastModifiedApplicationType) {
