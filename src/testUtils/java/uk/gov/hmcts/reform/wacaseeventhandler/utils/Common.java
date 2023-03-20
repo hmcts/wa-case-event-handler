@@ -456,7 +456,7 @@ public class Common {
         return json;
     }
 
-    private Set<String> getProcesses(Headers authenticationHeaders, String caseId) {
+    public Set<String> getProcesses(Headers authenticationHeaders, String caseId) {
         String filter = "/?variables=" + "caseId" + "_eq_" + caseId;
         List<String> processIds = camundaApiActions.get(
             "process-instance" + filter,
