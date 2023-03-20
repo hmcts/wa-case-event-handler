@@ -100,7 +100,7 @@ class DelayUntilConfiguratorTest {
         }
 
         @Test
-        void should_calculate_due_date_when_time_is_given() {
+        void should_calculate_delay_until_when_time_is_given() {
             String localDateTime = DEFAULT_DATE_TIME.format(DATE_FORMATTER);
 
             DelayUntilObject delayUntilObject = DelayUntilObject.builder()
