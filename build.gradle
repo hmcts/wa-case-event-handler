@@ -266,7 +266,7 @@ dependencyManagement {
       entry 'netty-resolver-dns-classes-macos'
     }
 
-    dependencySet(group: 'org.seleniumhq.selenium', version: '4.1.4') {
+    dependencySet(group: 'org.seleniumhq.selenium', version: '4.8.1') {
       entry 'selenium-java'
       entry 'selenium-remote-driver'
       entry 'selenium-firefox-driver'
