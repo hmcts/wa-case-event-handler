@@ -304,7 +304,7 @@ public class DelayUntilConfiguratorTest {
             .delayUntilOrigin(givenDelayUntilOrigin + "T00:30")
             .delayUntilIntervalDays(4)
             .delayUntilNonWorkingCalendar(DEFAULT_NON_WORKING_CALENDAR + "," + NON_WORKING_JSON_OVERRidE)
-            .delayUntilNonWorkingDaysOfWeek(null)
+            .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
             .delayUntilSkipNonWorkingDays(true)
             .delayUntilMustBeWorkingDay("Next")
             .delayUntilTime(null)
@@ -314,6 +314,6 @@ public class DelayUntilConfiguratorTest {
 
 
         //27-12-2022 is holiday in england and wales and 30-12-2022 is holiday in second json
-        assertThat(localDateTime).isEqualTo("2023-01-01T00:30");
+        assertThat(localDateTime).isEqualTo("2023-01-04T00:30");
     }
 }

@@ -246,11 +246,19 @@ public class Common {
             }
 
             caseRoleAssignments.forEach(assignment ->
-                roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
+                                            roleAssignmentServiceApi.deleteRoleAssignmentById(
+                                                assignment.getId(),
+                                                userToken,
+                                                serviceToken
+                                            )
             );
 
             organisationalRoleAssignments.forEach(assignment ->
-                roleAssignmentServiceApi.deleteRoleAssignmentById(assignment.getId(), userToken, serviceToken)
+                                                      roleAssignmentServiceApi.deleteRoleAssignmentById(
+                                                          assignment.getId(),
+                                                          userToken,
+                                                          serviceToken
+                                                      )
             );
         }
     }
@@ -295,8 +303,9 @@ public class Common {
                                     String assignerId) {
 
         String body = getBody(caseId, actorId, roleName, resourceFilename, attributes, grantType, roleCategory,
-            authorisations, roleType, classification, process, reference, replaceExisting,
-            readOnly, notes, beginTime, endTime, assignerId);
+                              authorisations, roleType, classification, process, reference, replaceExisting,
+                              readOnly, notes, beginTime, endTime, assignerId
+        );
 
         roleAssignmentServiceApi.createRoleAssignment(
             body,
@@ -467,7 +476,8 @@ public class Common {
         return Set.copyOf(processIds);
     }
 
-    public CamundaProcessVariables getProcessesInstanceVariables(Headers authenticationHeaders, String processInstanceKey) {
+    public CamundaProcessVariables getProcessesInstanceVariables(Headers authenticationHeaders,
+                                                                 String processInstanceKey) {
         return camundaApiActions.get(
             "process-instance/" + processInstanceKey + "/variables",
             authenticationHeaders
