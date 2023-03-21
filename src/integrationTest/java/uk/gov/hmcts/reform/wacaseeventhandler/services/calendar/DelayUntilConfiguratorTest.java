@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -15,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DATE_FORMATTER;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DEFAULT_DATE_TIME;
+import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DEFAULT_NON_WORKING_CALENDAR;
 
 @SpringBootTest
 @ActiveProfiles({"integration"})
@@ -23,9 +25,20 @@ public class DelayUntilConfiguratorTest {
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
     public static final LocalDateTime BST_DATE_BACKWARD = LocalDateTime.of(2022, 10, 26, 18, 0, 0);
     public static final LocalDateTime BST_DATE_FORWARD = LocalDateTime.of(2023, 3, 26, 18, 0, 0);
+    public static final String NON_WORKING_JSON_OVERRidE = "https://raw.githubusercontent.com/hmcts/wa-task-management-api/master/src/test/resources/override-working-day-calendar.json";
 
     @Autowired
     private DelayUntilConfigurator delayUntilConfigurator;
+
+
+    @DisplayName("(No 'delayUntilOrigin')")
+    @Test
+    public void shouldReturnDefaultDelayUntilWhenNoneOfDelayUntilParamsAreAvailable() {
+
+        DelayUntilObject delayUntilObject = DelayUntilObject.builder().build();
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+        assertThat(localDateTime).isEqualTo(DEFAULT_DATE_TIME);
+    }
 
     @Test
     public void shouldCalculateDelayUntilWhenDefaultDelayUntilWithoutTimeAndTimeAreAvailable() {
@@ -54,7 +67,8 @@ public class DelayUntilConfiguratorTest {
         assertThat(localDateTime).isEqualTo(givenDelayUntil + "T18:00");
     }
 
-    @DisplayName("(No delayUntil but  delayUntilTime exists) - default behavior")
+    @DisplayName("(No delayUntil but  delayUntilTime exists) - default behavior,"
+        + " (No 'delayUntilOrigin' but time override)")
     @Test
     public void shouldCalculateDelayUntilWhenOnlyDelayUntilTimeIsAvailable() {
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
@@ -104,6 +118,7 @@ public class DelayUntilConfiguratorTest {
         assertThat(localDateTime).isEqualTo(DEFAULT_DATE_TIME);
     }
 
+    @DisplayName("('delayUntil' and 'delayUntilOrigin')")
     @Test
     public void shouldConsiderDelayUntilWhenBothDelayUntilAndDelayUntilOriginBothProvided() {
         String givenDelayUntil = GIVEN_DATE.plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -236,6 +251,7 @@ public class DelayUntilConfiguratorTest {
         assertThat(localDateTime).isEqualTo("2022-10-30T02:30");
     }
 
+    @DisplayName("Task delay calculated falls on BST")
     @Test
     public void shouldCalculateDateWhenOriginDateIsBSTDelayUntilNonBSTBackword() {
         String givenDelayUntilOrigin = BST_DATE_BACKWARD.format(DATE_FORMATTER);
@@ -256,6 +272,8 @@ public class DelayUntilConfiguratorTest {
         assertThat(localDateTime).isEqualTo("2022-10-30T02:30");
     }
 
+
+    @DisplayName("Task delay calculated falls on non BST")
     @Test
     public void shouldCalculateDateWhenOriginDateIsBSTDelayUntilNonBSTForward() {
         String givenDelayUntilOrigin = BST_DATE_FORWARD.format(DATE_FORMATTER);
@@ -274,5 +292,28 @@ public class DelayUntilConfiguratorTest {
         LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
 
         assertThat(localDateTime).isEqualTo("2023-03-30T01:30");
+    }
+
+    @DisplayName("multiple non working calendars URLs")
+    @Test
+    public void shouldCalculateDateWhenMultipleCalendarsAreProvided() {
+        String givenDelayUntilOrigin = LocalDate.of(2022, 12, 26).format(DATE_FORMATTER);
+
+        //Clocks go forward an hour at 1:00am
+        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+            .delayUntilOrigin(givenDelayUntilOrigin + "T00:30")
+            .delayUntilIntervalDays(4)
+            .delayUntilNonWorkingCalendar(DEFAULT_NON_WORKING_CALENDAR + "," + NON_WORKING_JSON_OVERRidE)
+            .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
+            .delayUntilSkipNonWorkingDays(true)
+            .delayUntilMustBeWorkingDay("Next")
+            .delayUntilTime(null)
+            .build();
+
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+
+
+        //27-12-2022 is holiday in england and wales and 30-12-2022 is holiday in second json
+        assertThat(localDateTime).isEqualTo("2023-01-04T00:30");
     }
 }
