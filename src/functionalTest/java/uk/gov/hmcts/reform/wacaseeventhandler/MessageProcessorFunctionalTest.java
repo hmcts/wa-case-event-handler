@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -75,14 +76,16 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             .newStateId(null)
             .caseTypeId("WaCaseType");
 
+        Map<String, EventInformation> messages = new HashMap<>();
         messageIds.forEach(msgId -> {
             final EventInformation eventInformation =
                     eventInformationBuilder
                             .eventTimeStamp(LocalDateTime.now())
                             .build();
             log.info("should_process_message_with_the_lowest_event_timestamp_for_that_case, using message ID " + msgId);
-            sendMessageToTopic(msgId, eventInformation);
+            messages.put(msgId, eventInformation);
         });
+        sendMessagesToTopic(messages);
 
         await().ignoreException(AssertionError.class)
             .pollInterval(3, SECONDS)
@@ -235,11 +238,12 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 .build())
             .build();
 
+        Map<String, EventInformation> messages = new HashMap<>();
         messageIds.forEach(msgId -> {
             log.info("should_not_process_message_unless_in_ready_state using message ID " + msgId);
-            sendMessageToTopic(msgId, eventInformation);
-            waitSeconds(3);
+            messages.put(msgId, eventInformation);
         });
+        sendMessagesToTopic(messages);
 
         AtomicReference<List<CaseEventMessage>> collect = new AtomicReference<>(new ArrayList<>());
 
@@ -294,7 +298,6 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         log.info("should_not_process_any_message_after_unprocessable_message_for_same_case_id "
                      + "unprocessable message ID " + unprocessableMsgId);
         sendMessageToTopic(unprocessableMsgId, eventInformation);
-        waitSeconds(3);
 
         await().ignoreException(AssertionError.class)
             .pollInterval(3, SECONDS)
@@ -411,7 +414,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         log.info("should_not_process_dlq_message_if_no_processed_or_ready_messages_with_same_case_id_exist using dlq "
                      + "message id " + msgId);
         sendMessageToDlq(msgId, eventInformation);
-        waitSeconds(3);
+
         testExecution = 0;
         isReadyExecution = 0;
         await().ignoreException(AssertionError.class)
