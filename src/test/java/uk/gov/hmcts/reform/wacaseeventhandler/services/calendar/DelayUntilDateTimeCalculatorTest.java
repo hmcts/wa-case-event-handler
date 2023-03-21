@@ -23,7 +23,7 @@ class DelayUntilDateTimeCalculatorTest {
     }
 
     @Test
-    void should_not_supports_when_responses_contains_due_date() {
+    void should_not_supports_when_responses_contains_delay_until() {
         String localDateTime = GIVEN_DATE.format(DATE_FORMATTER);
 
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
@@ -35,7 +35,7 @@ class DelayUntilDateTimeCalculatorTest {
     }
 
     @Test
-    void should_not_supports_when_responses_contains_due_date_origin() {
+    void should_not_supports_when_responses_contains_delay_until_origin() {
         String localDateTime = GIVEN_DATE.format(DATE_FORMATTER);
 
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
@@ -47,7 +47,7 @@ class DelayUntilDateTimeCalculatorTest {
     }
 
     @Test
-    void should_supports_when_responses_only_contains_due_date_time() {
+    void should_supports_when_responses_only_contains_delay_until_time() {
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilTime("16:00")
             .build();
@@ -56,7 +56,7 @@ class DelayUntilDateTimeCalculatorTest {
     }
 
     @Test
-    void should_calculate_due_date_when_time_is_given() {
+    void should_calculate_delay_until_when_time_is_given() {
         String localDateTime = DEFAULT_DATE_TIME.format(DATE_FORMATTER);
 
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
