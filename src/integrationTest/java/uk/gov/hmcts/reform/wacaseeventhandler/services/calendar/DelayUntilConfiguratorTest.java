@@ -1,9 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.calendar;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,7 +25,6 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUnti
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DEFAULT_DATE_TIME;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DEFAULT_NON_WORKING_CALENDAR;
 
-@Slf4j
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {Application.class, CaffeineConfiguration.class})
 @ActiveProfiles({"integration"})
@@ -69,7 +64,7 @@ public class DelayUntilConfiguratorTest {
 
     @DisplayName("(DelayUntil with delayUntilTime override)")
     @Test
-    public void shouldCalculateDelayUntilWhenDefaultDelayUntilWithTimeAndTimeAreAvailable() throws JsonProcessingException {
+    public void shouldCalculateDelayUntilWhenDefaultDelayUntilWithTimeAndTimeAreAvailable() {
 
         String givenDelayUntil = GIVEN_DATE.format(DATE_FORMATTER);
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
@@ -77,9 +72,6 @@ public class DelayUntilConfiguratorTest {
             .delayUntilTime("18:00")
             .build();
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        log.info(objectMapper.writeValueAsString(delayUntilObject));
         LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
 
         assertThat(localDateTime).isEqualTo(givenDelayUntil + "T18:00");
