@@ -2,11 +2,17 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services.calendar;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import uk.gov.hmcts.reform.wacaseeventhandler.Application;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.CaffeineConfiguration;
+import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CalendarResourceInvalidException;
+import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CalendarResourceNotFoundException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,22 +20,25 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DATE_FORMATTER;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DEFAULT_DATE_TIME;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DEFAULT_NON_WORKING_CALENDAR;
 
-@SpringBootTest
+@ExtendWith(SpringExtension.class)
+@SpringBootTest(classes = {Application.class, CaffeineConfiguration.class})
 @ActiveProfiles({"integration"})
 public class DelayUntilConfiguratorTest {
 
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
     public static final LocalDateTime BST_DATE_BACKWARD = LocalDateTime.of(2022, 10, 26, 18, 0, 0);
     public static final LocalDateTime BST_DATE_FORWARD = LocalDateTime.of(2023, 3, 26, 18, 0, 0);
-    public static final String NON_WORKING_JSON_OVERRidE = "https://raw.githubusercontent.com/hmcts/wa-task-management-api/master/src/test/resources/override-working-day-calendar.json";
+    public static final String NON_WORKING_JSON_OVERRIDE = "https://raw.githubusercontent.com/hmcts/wa-task-management-api/master/src/test/resources/override-working-day-calendar.json";
+    public static final String INVALID_CALENDAR_URI = "https://raw.githubusercontent.com/hmcts/wa-task-management-api/895bb18417be056175ec64727e6d5fd39289d489/src/integrationTest/resources/calendars/invalid-calendar.json";
+    public static final String DEFAULT_CALENDAR_URI = "https://www.gov.uk/bank-holidays/england-and-wales.json";
 
     @Autowired
     private DelayUntilConfigurator delayUntilConfigurator;
-
 
     @DisplayName("(No 'delayUntilOrigin')")
     @Test
@@ -175,7 +184,7 @@ public class DelayUntilConfiguratorTest {
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T20:00")
             .delayUntilIntervalDays(intervalDays)
-            .delayUntilNonWorkingCalendar("https://www.gov.uk/bank-holidays/england-and-wales.json")
+            .delayUntilNonWorkingCalendar(DEFAULT_CALENDAR_URI)
             .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
             .delayUntilSkipNonWorkingDays(delayUntilSkipNonWorkingDaysFlag)
             .delayUntilMustBeWorkingDay(delayUntilMustBeWorkingDayFlag)
@@ -216,7 +225,7 @@ public class DelayUntilConfiguratorTest {
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T20:00")
             .delayUntilIntervalDays(6)
-            .delayUntilNonWorkingCalendar("https://www.gov.uk/bank-holidays/england-and-wales.json")
+            .delayUntilNonWorkingCalendar(DEFAULT_CALENDAR_URI)
             .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
             .delayUntilSkipNonWorkingDays(false)
             .delayUntilMustBeWorkingDay("Next")
@@ -239,7 +248,7 @@ public class DelayUntilConfiguratorTest {
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T01:30")
             .delayUntilIntervalDays(4)
-            .delayUntilNonWorkingCalendar("https://www.gov.uk/bank-holidays/england-and-wales.json")
+            .delayUntilNonWorkingCalendar(DEFAULT_CALENDAR_URI)
             .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
             .delayUntilSkipNonWorkingDays(false)
             .delayUntilMustBeWorkingDay("No")
@@ -260,7 +269,7 @@ public class DelayUntilConfiguratorTest {
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T01:30")
             .delayUntilIntervalDays(4)
-            .delayUntilNonWorkingCalendar("https://www.gov.uk/bank-holidays/england-and-wales.json")
+            .delayUntilNonWorkingCalendar(DEFAULT_CALENDAR_URI)
             .delayUntilNonWorkingDaysOfWeek("")
             .delayUntilSkipNonWorkingDays(false)
             .delayUntilMustBeWorkingDay("false")
@@ -282,7 +291,7 @@ public class DelayUntilConfiguratorTest {
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T00:30")
             .delayUntilIntervalDays(4)
-            .delayUntilNonWorkingCalendar("https://www.gov.uk/bank-holidays/england-and-wales.json")
+            .delayUntilNonWorkingCalendar(DEFAULT_CALENDAR_URI)
             .delayUntilNonWorkingDaysOfWeek("")
             .delayUntilSkipNonWorkingDays(false)
             .delayUntilMustBeWorkingDay("false")
@@ -303,7 +312,7 @@ public class DelayUntilConfiguratorTest {
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T00:30")
             .delayUntilIntervalDays(4)
-            .delayUntilNonWorkingCalendar(DEFAULT_NON_WORKING_CALENDAR + "," + NON_WORKING_JSON_OVERRidE)
+            .delayUntilNonWorkingCalendar(DEFAULT_NON_WORKING_CALENDAR + "," + NON_WORKING_JSON_OVERRIDE)
             .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
             .delayUntilSkipNonWorkingDays(true)
             .delayUntilMustBeWorkingDay("Next")
@@ -315,5 +324,60 @@ public class DelayUntilConfiguratorTest {
 
         //27-12-2022 is holiday in england and wales and 30-12-2022 is holiday in second json
         assertThat(localDateTime).isEqualTo("2023-01-04T00:30");
+    }
+
+    @Test
+    void shouldErrorWhenCalculateDelayUntilContainsInValidCalendar() {
+        String givenDelayUntilOrigin = LocalDate.of(2022, 12, 26).format(DATE_FORMATTER);
+        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+            .delayUntilOrigin(givenDelayUntilOrigin + "T00:30")
+            .delayUntilIntervalDays(4)
+            .delayUntilNonWorkingCalendar(DEFAULT_NON_WORKING_CALENDAR + "," + INVALID_CALENDAR_URI)
+            .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
+            .delayUntilSkipNonWorkingDays(true)
+            .delayUntilMustBeWorkingDay("Next")
+            .delayUntilTime(null)
+            .build();
+
+        assertThatThrownBy(() -> delayUntilConfigurator.calculateDelayUntil(delayUntilObject))
+            .isInstanceOf(CalendarResourceInvalidException.class)
+            .hasMessage("Could not read calendar resource " + INVALID_CALENDAR_URI);
+    }
+
+    @Test
+    void shouldErrorWhenCalculateDelayUntilContainsWrongUriForCalendar() {
+        String givenDelayUntilOrigin = LocalDate.of(2022, 12, 26).format(DATE_FORMATTER);
+        String wrongUri = "https://www.gov.uk/bank-holidays/not-a-calendar.json";
+        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+            .delayUntilOrigin(givenDelayUntilOrigin + "T00:30")
+            .delayUntilIntervalDays(4)
+            .delayUntilNonWorkingCalendar(DEFAULT_NON_WORKING_CALENDAR + "," + wrongUri)
+            .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
+            .delayUntilSkipNonWorkingDays(true)
+            .delayUntilMustBeWorkingDay("Next")
+            .delayUntilTime(null)
+            .build();
+
+        assertThatThrownBy(() -> delayUntilConfigurator.calculateDelayUntil(delayUntilObject))
+            .isInstanceOf(CalendarResourceNotFoundException.class)
+            .hasMessage("Could not find calendar resource " + INVALID_CALENDAR_URI);
+    }
+
+    @Test
+    public void shouldCalculateDateWhenIntervalDaysIsLessThan0() {
+        String givenDelayUntilOrigin = LocalDate.of(2022, 12, 26).format(DATE_FORMATTER);
+
+        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+            .delayUntilOrigin(givenDelayUntilOrigin + "T00:30")
+            .delayUntilIntervalDays(-4)
+            .delayUntilNonWorkingCalendar(DEFAULT_NON_WORKING_CALENDAR)
+            .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
+            .delayUntilSkipNonWorkingDays(true)
+            .delayUntilMustBeWorkingDay("Next")
+            .delayUntilTime(null)
+            .build();
+
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+        assertThat(localDateTime).isEqualTo("2022-12-20T00:30");
     }
 }

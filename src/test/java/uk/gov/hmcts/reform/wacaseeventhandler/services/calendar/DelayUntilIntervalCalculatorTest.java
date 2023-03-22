@@ -88,12 +88,31 @@ class DelayUntilIntervalCalculatorTest {
     }
 
     @Test
-    void shouldCalculateWhenIntervalIsGreaterThan0AndGivenHolidays() {
+    void shouldCalculateWhenIntervalIsLessThan0() {
         String localDateTime = GIVEN_DATE.format(DATE_FORMATTER);
 
         DelayUntilObject delayUntilObject = DelayUntilObject.builder()
             .delayUntilOrigin(localDateTime + "T20:00")
-            .delayUntilIntervalDays(5)
+            .delayUntilIntervalDays(-3)
+            .delayUntilNonWorkingCalendar(CALENDAR_URI)
+            .delayUntilNonWorkingDaysOfWeek("")
+            .delayUntilSkipNonWorkingDays(true)
+            .delayUntilMustBeWorkingDay(MUST_BE_WORKING_DAY_NEXT)
+            .delayUntilTime("18:00")
+            .build();
+
+        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilObject);
+
+        assertThat(delayUntilDate).isEqualTo(GIVEN_DATE.plusDays(-3).withHour(18));
+    }
+
+    @Test
+    void shouldCalculateWhenIntervalIsLessThan0AndGivenHolidays() {
+        String localDateTime = GIVEN_DATE.format(DATE_FORMATTER);
+
+        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+            .delayUntilOrigin(localDateTime + "T20:00")
+            .delayUntilIntervalDays(-5)
             .delayUntilNonWorkingCalendar(CALENDAR_URI)
             .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
             .delayUntilSkipNonWorkingDays(true)
@@ -103,7 +122,7 @@ class DelayUntilIntervalCalculatorTest {
 
         LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilObject);
 
-        assertThat(delayUntilDate).isEqualTo(GIVEN_DATE.plusDays(7).withHour(18));
+        assertThat(delayUntilDate).isEqualTo(GIVEN_DATE.plusDays(-7).withHour(18));
     }
 
     @Test
