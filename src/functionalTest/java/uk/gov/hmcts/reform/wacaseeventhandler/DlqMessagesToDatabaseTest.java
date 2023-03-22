@@ -12,7 +12,9 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -53,9 +55,9 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
             .caseTypeId("WaCaseType")
             .build();
 
-        messageIds.forEach(msgId ->
-            sendMessageToDlq(msgId, eventInformation)
-        );
+        Map<String, EventInformation> messages = new HashMap<>();
+        messageIds.forEach(msgId -> messages.put(msgId, eventInformation));
+        sendMessagesToDlq(messages);
 
         await().ignoreException(AssertionError.class)
             .pollInterval(500, MILLISECONDS)
