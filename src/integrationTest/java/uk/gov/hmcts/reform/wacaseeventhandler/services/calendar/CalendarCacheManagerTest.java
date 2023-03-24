@@ -41,7 +41,7 @@ public class CalendarCacheManagerTest {
     public void shouldCacheThePublicHolidayCalendarResponse() {
         String givenDelayUntilOrigin = LocalDate.of(2022, 12, 26).format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T00:30")
             .delayUntilIntervalDays(4)
             .delayUntilNonWorkingCalendar(DEFAULT_NON_WORKING_CALENDAR)
@@ -51,7 +51,7 @@ public class CalendarCacheManagerTest {
             .delayUntilTime(null)
             .build();
 
-        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
         assertThat(localDateTime).isEqualTo("2023-01-03T00:30");
         verify(publicHolidayService, times(1)).getPublicHolidays(DEFAULT_NON_WORKING_CALENDAR);
     }
@@ -63,7 +63,7 @@ public class CalendarCacheManagerTest {
 
         TestConfiguration.fakeTicker.advance(25, TimeUnit.HOURS);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T00:30")
             .delayUntilIntervalDays(4)
             .delayUntilNonWorkingCalendar(DEFAULT_NON_WORKING_CALENDAR)
@@ -73,7 +73,7 @@ public class CalendarCacheManagerTest {
             .delayUntilTime(null)
             .build();
 
-        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
         assertThat(localDateTime).isEqualTo("2023-01-03T00:30");
         verify(publicHolidayService, times(1)).getPublicHolidays(DEFAULT_NON_WORKING_CALENDAR);
     }
