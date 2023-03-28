@@ -65,6 +65,7 @@ spring:
 
 springdoc:
   packagesToScan: uk.gov.hmcts.reform.wacaseeventhandler.controllers
+  writer-with-order-by-keys: true
 
 security:
   anonymousPaths:
