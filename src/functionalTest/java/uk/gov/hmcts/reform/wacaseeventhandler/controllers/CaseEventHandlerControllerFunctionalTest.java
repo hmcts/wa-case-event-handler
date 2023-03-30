@@ -5,13 +5,11 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.TaskManagementTestClient;
+import uk.gov.hmcts.reform.wacaseeventhandler.MessagingTests;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestAuthenticationCredentials;
@@ -42,7 +40,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
 @Slf4j
-public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunctionalBaseTest {
+public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
 
     protected Map<String, String> taskIdStatusMap;
     protected String caseId1Task1Id;
@@ -53,9 +51,6 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
     private LocalDateTime eventTimeStamp;
     @Autowired
     private DueDateService dueDateService;
-
-    @Autowired
-    private TaskManagementTestClient taskManagementTestClient;
 
     protected void sendMessage(String caseId,
                                String event,
@@ -78,12 +73,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             caseTypeId
         );
 
-        if (publisher != null) {
-            publishMessageToTopic(eventInformation);
-            waitSeconds(2);
-        } else {
-            callRestEndpoint(s2sToken, eventInformation);
-        }
+        sendMessageToTopic(randomMessageId(), eventInformation);
     }
 
     protected void sendMessageWithAdditionalData(String caseId, String event, String previousStateId,
@@ -96,11 +86,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             caseId, event, previousStateId, newStateId, eventTimeStamp
         );
 
-        if (publisher != null) {
-            publishMessageToTopic(eventInformation);
-        } else {
-            callRestEndpoint(s2sToken, eventInformation);
-        }
+        sendMessageToTopic(randomMessageId(), eventInformation);
     }
 
     protected void sendMessageWithAdditionalDataForWA(String caseId, String event, String previousStateId,
@@ -113,11 +99,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
                 caseId, event, previousStateId, newStateId, eventTimeStamp
         );
 
-        if (publisher != null) {
-            publishMessageToTopic(eventInformation);
-        } else {
-            callRestEndpoint(s2sToken, eventInformation);
-        }
+        sendMessageToTopic(randomMessageId(), eventInformation);
     }
 
     protected String createTaskWithId(String caseId,
@@ -538,8 +520,9 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             previousStateToCancelTask, "", false, "WA", "WaCaseType");
 
         await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(10, SECONDS)
+            .atMost(13, SECONDS)
             .until(
                 () -> {
 
@@ -576,8 +559,9 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "", "", false, "WA", "WaCaseType");
 
         await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(10, SECONDS)
+            .atMost(13, SECONDS)
             .until(
                 () -> {
                     assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
@@ -621,8 +605,9 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "", "", false, "WA", "WaCaseType");
 
         await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(10, SECONDS)
+            .atMost(13, SECONDS)
             .until(
                 () -> {
                     assertTaskDoesNotExist(caseIdForTask1, task1IdDmnColumn);
@@ -695,8 +680,9 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         );
 
         await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(10, SECONDS)
+            .atMost(13, SECONDS)
             .until(
                 () -> {
                     Response taskFound = findTasksByCaseId(caseIdForTask1, 2);
@@ -714,7 +700,6 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
     }
 
-    @Ignore("This test is failing continuously")
     @Test
     public void given_caseId_with_multiple_tasks_and_same_category_when_warning_raised_then_mark_tasks_with_warnings() {
 
@@ -765,8 +750,9 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             false
         );
         await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(10, SECONDS)
+            .atMost(13, SECONDS)
             .until(
                 () -> {
 
@@ -790,7 +776,6 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
     }
 
-    @Ignore("This test is failing continuously")
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_caseId_and_multiple_tasks_and_different_ctg_when_warning_raised_then_mark_tasks_with_warnings() {
@@ -839,8 +824,9 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             false
         );
         await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(10, SECONDS)
+            .atMost(13, SECONDS)
             .until(
                 () -> {
 
@@ -955,8 +941,9 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         sendMessage(caseId2, eventToCancelTask,
             "", "", false, "WA", "WaCaseType");
         await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(10, SECONDS)
+            .atMost(13, SECONDS)
             .until(
                 () -> {
 
@@ -999,8 +986,9 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "", "", false, "WA", "WaCaseType"
         );
         await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(10, SECONDS)
+            .atMost(13, SECONDS)
             .until(
                 () -> {
                     Response taskFound = findTasksByCaseId(caseId1, 2);
@@ -1019,8 +1007,9 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "", "", false, "WA", "WaCaseType"
         );
         await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(10, SECONDS)
+            .atMost(13, SECONDS)
             .until(
                 () -> {
 
@@ -1181,8 +1170,9 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         );
 
         await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(10, SECONDS)
+            .atMost(13, SECONDS)
             .until(
                 () -> {
 
@@ -1197,8 +1187,9 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
                     return true;
                 });
         await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(10, SECONDS)
+            .atMost(13, SECONDS)
             .until(
                 () -> {
                     //get task from CFT
@@ -1248,6 +1239,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
     private void assertTaskDoesNotExist(String caseId, String taskId) {
         await().ignoreException(AssertionError.class)
+            .pollDelay(500, MILLISECONDS)
             .pollInterval(500, MILLISECONDS)
             .atMost(30, SECONDS)
             .until(
@@ -1272,6 +1264,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
     private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
         log.info("Finding warnings task for caseId = {} and taskId = {}", caseId, taskId);
         await().ignoreException(AssertionError.class)
+            .pollDelay(500, SECONDS)
             .pollInterval(500, MILLISECONDS)
             .atMost(60, SECONDS)
             .until(
@@ -1362,14 +1355,6 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .statusCode(HttpStatus.NO_CONTENT.value());
     }
 
-    private void publishMessageToTopic(EventInformation eventInformation) {
-        String jsonMessage = asJsonString(eventInformation);
-        ServiceBusMessage message = new ServiceBusMessage(jsonMessage.getBytes());
-        message.setSessionId(eventInformation.getCaseId());
-
-        publisher.sendMessage(message);
-    }
-
     private String findTaskForGivenCaseId(String caseId, String taskIdDmnColumn) {
 
         log.info("Attempting to retrieve task with caseId = {} and taskId = {}", caseId, taskIdDmnColumn);
@@ -1377,6 +1362,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         AtomicReference<String> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
+            .pollDelay(500, SECONDS)
             .pollInterval(500, MILLISECONDS)
             .atMost(60, SECONDS)
             .until(
