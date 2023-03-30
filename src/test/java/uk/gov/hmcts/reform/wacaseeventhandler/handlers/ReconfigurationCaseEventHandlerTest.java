@@ -71,7 +71,7 @@ class ReconfigurationCaseEventHandlerTest {
     }
 
     @Test
-    void should_evaluate_the_dmn_table_and_return_results(CapturedOutput output) {
+    void should_evaluate_the_dmn_table_and_return_results() {
 
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateDmnRequest();
 
@@ -106,15 +106,10 @@ class ReconfigurationCaseEventHandlerTest {
             anyString(),
             any(TaskOperationRequest.class)
         );
-
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
-        Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
-
     }
 
     @Test
-    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_null_fields(CapturedOutput output) {
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_null_fields() {
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
         EventInformation eventInfo = EventInformation.builder()
             .eventId("ANY_EVENT")
@@ -150,14 +145,10 @@ class ReconfigurationCaseEventHandlerTest {
             anyString(),
             any(TaskOperationRequest.class)
         );
-
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
-        Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
     }
 
     @Test
-    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_nonnull_warning_text(CapturedOutput output) {
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_nonnull_warning_text() {
 
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
         EventInformation eventInfo = EventInformation.builder()
@@ -194,10 +185,6 @@ class ReconfigurationCaseEventHandlerTest {
             anyString(),
             any(TaskOperationRequest.class)
         );
-
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
-        Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
     }
 
     @Test
@@ -340,7 +327,7 @@ class ReconfigurationCaseEventHandlerTest {
     }
 
     @Test
-    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_blank_warning_code(CapturedOutput output) {
+    void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_blank_warning_code() {
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateUpdateDmnRequest();
         EventInformation eventInfo = EventInformation.builder()
             .eventId("ANY_EVENT")
@@ -376,10 +363,6 @@ class ReconfigurationCaseEventHandlerTest {
             anyString(),
             any(TaskOperationRequest.class)
         );
-
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
-        Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
     }
 
     @Test

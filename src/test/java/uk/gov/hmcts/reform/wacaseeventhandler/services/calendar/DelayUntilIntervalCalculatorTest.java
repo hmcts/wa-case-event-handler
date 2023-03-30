@@ -54,7 +54,7 @@ class DelayUntilIntervalCalculatorTest {
     void shouldCalculateWhenDefaultValueProvided() {
         String localDateTime = GIVEN_DATE.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(localDateTime + "T20:00")
             .delayUntilIntervalDays(0)
             .delayUntilNonWorkingCalendar(CALENDAR_URI)
@@ -64,7 +64,7 @@ class DelayUntilIntervalCalculatorTest {
             .delayUntilTime("18:00")
             .build();
 
-        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilObject);
+        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilRequest);
         assertThat(delayUntilDate).isEqualTo(GIVEN_DATE.plusDays(0).withHour(18));
     }
 
@@ -72,7 +72,7 @@ class DelayUntilIntervalCalculatorTest {
     void shouldCalculateWhenIntervalIsGreaterThan0() {
         String localDateTime = GIVEN_DATE.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(localDateTime + "T20:00")
             .delayUntilIntervalDays(3)
             .delayUntilNonWorkingCalendar(CALENDAR_URI)
@@ -82,7 +82,7 @@ class DelayUntilIntervalCalculatorTest {
             .delayUntilTime("18:00")
             .build();
 
-        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilObject);
+        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilRequest);
 
         assertThat(delayUntilDate).isEqualTo(GIVEN_DATE.plusDays(3).withHour(18));
     }
@@ -91,7 +91,7 @@ class DelayUntilIntervalCalculatorTest {
     void shouldCalculateWhenIntervalIsLessThan0() {
         String localDateTime = GIVEN_DATE.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(localDateTime + "T20:00")
             .delayUntilIntervalDays(-3)
             .delayUntilNonWorkingCalendar(CALENDAR_URI)
@@ -101,7 +101,7 @@ class DelayUntilIntervalCalculatorTest {
             .delayUntilTime("18:00")
             .build();
 
-        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilObject);
+        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilRequest);
 
         assertThat(delayUntilDate).isEqualTo(GIVEN_DATE.plusDays(-3).withHour(18));
     }
@@ -110,7 +110,7 @@ class DelayUntilIntervalCalculatorTest {
     void shouldCalculateWhenIntervalIsLessThan0AndGivenHolidays() {
         String localDateTime = GIVEN_DATE.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(localDateTime + "T20:00")
             .delayUntilIntervalDays(-5)
             .delayUntilNonWorkingCalendar(CALENDAR_URI)
@@ -120,7 +120,7 @@ class DelayUntilIntervalCalculatorTest {
             .delayUntilTime("18:00")
             .build();
 
-        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilObject);
+        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilRequest);
 
         assertThat(delayUntilDate).isEqualTo(GIVEN_DATE.plusDays(-7).withHour(18));
     }
@@ -132,7 +132,7 @@ class DelayUntilIntervalCalculatorTest {
 
         String localDateTime = GIVEN_DATE.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(localDateTime + "T20:00")
             .delayUntilIntervalDays(5)
             .delayUntilNonWorkingCalendar(CALENDAR_URI)
@@ -142,7 +142,7 @@ class DelayUntilIntervalCalculatorTest {
             .delayUntilTime("18:00")
             .build();
 
-        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilObject);
+        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilRequest);
 
         assertThat(delayUntilDate).isEqualTo(GIVEN_DATE.plusDays(6).withHour(18));
     }
@@ -151,7 +151,7 @@ class DelayUntilIntervalCalculatorTest {
     void shouldCalculateWhenSkipNonWorkingDaysAndMustBeBusinessNext() {
         String localDateTime = GIVEN_DATE.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(localDateTime + "T20:00")
             .delayUntilIntervalDays(2)
             .delayUntilNonWorkingCalendar(CALENDAR_URI)
@@ -161,7 +161,7 @@ class DelayUntilIntervalCalculatorTest {
             .delayUntilTime("18:00")
             .build();
 
-        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilObject);
+        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilRequest);
 
         assertThat(delayUntilDate).isEqualTo(GIVEN_DATE.plusDays(4).withHour(18));
     }
@@ -170,7 +170,7 @@ class DelayUntilIntervalCalculatorTest {
     void shouldCalculateWhenSkipNonWorkingDaysAndMustBeBusinessFalse() {
         String localDateTime = GIVEN_DATE.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(localDateTime + "T20:00")
             .delayUntilIntervalDays(2)
             .delayUntilNonWorkingCalendar(CALENDAR_URI)
@@ -180,7 +180,7 @@ class DelayUntilIntervalCalculatorTest {
             .delayUntilTime("18:00")
             .build();
 
-        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilObject);
+        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilRequest);
 
         assertThat(delayUntilDate).isEqualTo(GIVEN_DATE.plusDays(1).withHour(18));
     }
@@ -189,7 +189,7 @@ class DelayUntilIntervalCalculatorTest {
     void shouldCalculateWhenWithoutDelayUntilTime() {
         String localDateTime = GIVEN_DATE.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(localDateTime + "T20:00")
             .delayUntilIntervalDays(5)
             .delayUntilNonWorkingCalendar(CALENDAR_URI)
@@ -199,7 +199,7 @@ class DelayUntilIntervalCalculatorTest {
             .delayUntilTime("18:00")
             .build();
 
-        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilObject);
+        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilRequest);
 
         assertThat(delayUntilDate).isEqualTo(GIVEN_DATE.plusDays(5).withHour(18));
     }
@@ -208,11 +208,11 @@ class DelayUntilIntervalCalculatorTest {
     void shouldCalculateWhenOnlyDelayUntilOriginProvided() {
         String localDateTime = GIVEN_DATE.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(localDateTime + "T20:00")
             .build();
 
-        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilObject);
+        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilRequest);
 
         assertThat(delayUntilDate).isEqualTo(GIVEN_DATE.withHour(20));
     }
@@ -221,12 +221,12 @@ class DelayUntilIntervalCalculatorTest {
     void shouldCalculateWhenOnlyDelayUntilOriginAndTimeProvided() {
         String localDateTime = GIVEN_DATE.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(localDateTime + "T20:00")
             .delayUntilTime("18:00")
             .build();
 
-        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilObject);
+        LocalDateTime delayUntilDate = delayUntilIntervalCalculator.calculateDate(delayUntilRequest);
 
         assertThat(delayUntilDate).isEqualTo(GIVEN_DATE.withHour(18));
     }
@@ -235,32 +235,32 @@ class DelayUntilIntervalCalculatorTest {
     void should_not_supports_when_responses_contains_delay_until_origin_and_delay_until() {
         String localDateTime = GIVEN_DATE.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntil(localDateTime + "T16:00")
             .delayUntilOrigin(localDateTime + "T16:00")
             .build();
 
-        assertThat(delayUntilIntervalCalculator.supports(delayUntilObject)).isFalse();
+        assertThat(delayUntilIntervalCalculator.supports(delayUntilRequest)).isFalse();
     }
 
     @Test
     void should_not_supports_when_responses_contains_only_delay_until_time() {
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilTime("T16:00")
             .build();
 
-        assertThat(delayUntilIntervalCalculator.supports(delayUntilObject)).isFalse();
+        assertThat(delayUntilIntervalCalculator.supports(delayUntilRequest)).isFalse();
     }
 
     @Test
     void should_supports_when_responses_only_contains_delay_until_origin_but_not_delay_until() {
         String expectedDelayUntil = GIVEN_DATE.format(DATE_FORMATTER);
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(expectedDelayUntil + "T16:00")
             .delayUntilTime("16:00")
             .build();
 
-        assertThat(delayUntilIntervalCalculator.supports(delayUntilObject)).isTrue();
+        assertThat(delayUntilIntervalCalculator.supports(delayUntilRequest)).isTrue();
     }
 }

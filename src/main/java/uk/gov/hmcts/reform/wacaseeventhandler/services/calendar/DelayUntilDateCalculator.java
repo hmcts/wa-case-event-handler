@@ -12,14 +12,14 @@ import java.util.Optional;
 public class DelayUntilDateCalculator implements DelayUntilCalculator {
 
     @Override
-    public boolean supports(DelayUntilObject delayUntilObject) {
-        return Optional.ofNullable(delayUntilObject.getDelayUntil()).isPresent();
+    public boolean supports(DelayUntilRequest delayUntilRequest) {
+        return Optional.ofNullable(delayUntilRequest.getDelayUntil()).isPresent();
     }
 
     @Override
-    public LocalDateTime calculateDate(DelayUntilObject delayUntilObject) {
-        var delayUntilResponse = delayUntilObject.getDelayUntil();
-        var delayUntilTimeResponse = delayUntilObject.getDelayUntilTime();
+    public LocalDateTime calculateDate(DelayUntilRequest delayUntilRequest) {
+        var delayUntilResponse = delayUntilRequest.getDelayUntil();
+        var delayUntilTimeResponse = delayUntilRequest.getDelayUntilTime();
         if (Optional.ofNullable(delayUntilTimeResponse).isPresent()) {
             return addTimeToDate(delayUntilTimeResponse, parseDateTime(delayUntilResponse));
         } else {

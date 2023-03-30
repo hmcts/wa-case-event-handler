@@ -36,14 +36,14 @@ class DelayUntilConfiguratorTest {
         @Test
         void should_return_default_calculated_dates_when_there_are_no_dmn_responses() {
             LocalDateTime calculateDelayUntil = delayUntilConfigurator.calculateDelayUntil(
-                DelayUntilObject.builder().build());
+                DelayUntilRequest.builder().build());
             assertThat(calculateDelayUntil).isEqualTo(DEFAULT_DATE_TIME);
         }
 
         @Test
         void should_set_date_as_current_day_when_delay_until_is_given() {
             LocalDateTime calculateDelayUntil = delayUntilConfigurator.calculateDelayUntil(
-                DelayUntilObject.builder().delayUntil("2023-01-10T16:00").build()
+                DelayUntilRequest.builder().delayUntil("2023-01-10T16:00").build()
             );
 
             assertThat(calculateDelayUntil).isEqualTo(DEFAULT_DATE_TIME);
@@ -83,7 +83,7 @@ class DelayUntilConfiguratorTest {
         @Test
         void should_return_default_calculated_dates_when_there_are_no_dmn_responses() {
             LocalDateTime calculateDelayUntil = delayUntilConfigurator.calculateDelayUntil(
-                DelayUntilObject.builder().build());
+                DelayUntilRequest.builder().build());
             assertThat(calculateDelayUntil).isEqualTo(DEFAULT_DATE_TIME);
         }
 
@@ -91,11 +91,11 @@ class DelayUntilConfiguratorTest {
         void should_calculate_delay_until_when_delay_until_is_given() {
             String expectedDelayUntil = GIVEN_DATE.format(DATE_FORMATTER);
 
-            DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+            DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
                 .delayUntil(expectedDelayUntil + "T16:00")
                 .build();
 
-            LocalDateTime dateValue = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+            LocalDateTime dateValue = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
             assertThat(dateValue).isEqualTo(GIVEN_DATE.withHour(16));
         }
 
@@ -103,11 +103,11 @@ class DelayUntilConfiguratorTest {
         void should_calculate_delay_until_when_time_is_given() {
             String localDateTime = DEFAULT_DATE_TIME.format(DATE_FORMATTER);
 
-            DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+            DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
                 .delayUntilTime("16:00")
                 .build();
 
-            LocalDateTime responseValue = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+            LocalDateTime responseValue = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
             assertThat(responseValue).isEqualTo(localDateTime + "T16:00");
         }
 
@@ -115,7 +115,7 @@ class DelayUntilConfiguratorTest {
         void should_calculate_when_interval_is_greater_than_0_and_given_holidays() {
             String localDateTime = GIVEN_DATE.format(DATE_FORMATTER);
 
-            DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+            DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
                 .delayUntilOrigin(localDateTime + "T20:00")
                 .delayUntilIntervalDays(5)
                 .delayUntilNonWorkingCalendar(CALENDAR_URI)
@@ -125,7 +125,7 @@ class DelayUntilConfiguratorTest {
                 .delayUntilTime("18:00")
                 .build();
 
-            LocalDateTime delayUntilDate = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+            LocalDateTime delayUntilDate = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
 
             assertThat(delayUntilDate).isEqualTo(GIVEN_DATE.plusDays(7).withHour(18));
         }
