@@ -5,8 +5,8 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.jupiter.api.Disabled;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -714,7 +714,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
     }
 
-    @Disabled("This test is failing continuously")
+    @Ignore("This test is failing continuously")
     @Test
     public void given_caseId_with_multiple_tasks_and_same_category_when_warning_raised_then_mark_tasks_with_warnings() {
 
@@ -790,7 +790,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
     }
 
-    @Disabled("This test is failing continuously")
+    @Ignore("This test is failing continuously")
     @Test
     @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
     public void given_caseId_and_multiple_tasks_and_different_ctg_when_warning_raised_then_mark_tasks_with_warnings() {
