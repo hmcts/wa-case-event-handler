@@ -62,7 +62,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         if (taskDelay) {
             eventTimeStamp = LocalDateTime.now().plusSeconds(2);
         } else {
-            eventTimeStamp = LocalDateTime.now();
+            eventTimeStamp = LocalDateTime.now().minusDays(1);
         }
         EventInformation eventInformation = getEventInformation(
             caseId,
@@ -82,6 +82,8 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
 
         if (taskDelay) {
             eventTimeStamp = LocalDateTime.now().plusSeconds(2);
+        } else {
+            eventTimeStamp = LocalDateTime.now().minusDays(1);
         }
         EventInformation eventInformation = getEventInformationWithAdditionalData(
             caseId, event, previousStateId, newStateId, eventTimeStamp
@@ -95,6 +97,8 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
 
         if (taskDelay) {
             eventTimeStamp = LocalDateTime.now().plusSeconds(2);
+        } else {
+            eventTimeStamp = LocalDateTime.now().minusDays(1);
         }
         EventInformation eventInformation = getEventInformationWithAdditionalDataForWA(
                 caseId, event, previousStateId, newStateId, eventTimeStamp
