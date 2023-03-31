@@ -147,6 +147,7 @@ public class DelayTasksBasedOnDelayUntilTest extends SpringBootFunctionalBaseTes
 
         CamundaProcessVariables camundaProcessVariables = findProcessVariablesByCaseId(caseId);
         Map<String, DmnValue<?>> processVariables = camundaProcessVariables.getProcessVariablesMap();
+        log.info("Process variables are {}", processVariables);
         LocalDateTime expected = LocalDateTime.now().withHour(16).withMinute(0).withSecond(0).withNano(0);
         assertThat(processVariables.get("delayUntil").getValue()).isEqualTo(expected.format(DATE_TIME_FORMATTER));
 
@@ -169,6 +170,7 @@ public class DelayTasksBasedOnDelayUntilTest extends SpringBootFunctionalBaseTes
 
         CamundaProcessVariables camundaProcessVariables = findProcessVariablesByCaseId(caseId);
         Map<String, DmnValue<?>> processVariables = camundaProcessVariables.getProcessVariablesMap();
+        log.info("Process variables are {}", processVariables);
         LocalDateTime expected = LocalDateTime.now().withHour(16).withMinute(0).withSecond(0).withNano(0);
         assertThat(processVariables.get("delayUntil").getValue()).isEqualTo(expected.format(DATE_TIME_FORMATTER));
 
@@ -201,6 +203,8 @@ public class DelayTasksBasedOnDelayUntilTest extends SpringBootFunctionalBaseTes
         log.info("Finding process for caseId = {}", caseId);
 
         Set<String> processes = common.getProcesses(caseworkerCredentials.getHeaders(), caseId);
+        log.info("No of process for case id is {}", processes.size());
+        log.info("Process is {}", processes.iterator().next());
         return processes.stream()
             .findFirst()
             .map(key -> common.getProcessesInstanceVariables(caseworkerCredentials.getHeaders(), key))
