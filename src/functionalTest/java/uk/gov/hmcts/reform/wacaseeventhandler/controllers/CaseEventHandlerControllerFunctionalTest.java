@@ -1263,7 +1263,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
     private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
         log.info("Finding warnings task for caseId = {} and taskId = {}", caseId, taskId);
         await().ignoreException(AssertionError.class)
-            .pollDelay(500, SECONDS)
+            .pollDelay(500, MILLISECONDS)
             .pollInterval(500, MILLISECONDS)
             .atMost(60, SECONDS)
             .until(
@@ -1361,7 +1361,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
 
         AtomicReference<String> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
-            .pollDelay(500, SECONDS)
+            .pollDelay(500, MILLISECONDS)
             .pollInterval(500, MILLISECONDS)
             .atMost(60, SECONDS)
             .until(
