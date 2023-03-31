@@ -61,6 +61,8 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
 
         if (taskDelay) {
             eventTimeStamp = LocalDateTime.now().plusSeconds(2);
+        } else {
+            eventTimeStamp = LocalDateTime.now();
         }
         EventInformation eventInformation = getEventInformation(
             caseId,
