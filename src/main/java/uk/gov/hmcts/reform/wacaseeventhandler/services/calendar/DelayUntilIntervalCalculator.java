@@ -24,54 +24,73 @@ public class DelayUntilIntervalCalculator implements DelayUntilCalculator {
     }
 
     @Override
-    public boolean supports(DelayUntilObject delayUntilObject) {
+    public boolean supports(DelayUntilRequest delayUntilRequest) {
 
-        return Optional.ofNullable(delayUntilObject.getDelayUntilOrigin()).isPresent()
-            && Optional.ofNullable(delayUntilObject.getDelayUntil()).isEmpty();
+        return Optional.ofNullable(delayUntilRequest.getDelayUntilOrigin()).isPresent()
+            && Optional.ofNullable(delayUntilRequest.getDelayUntil()).isEmpty();
     }
 
     @Override
-    public LocalDateTime calculateDate(DelayUntilObject delayUntilObject) {
-        DelayUntilIntervalData delayUntilIntervalData = readDateTypeOriginFields(delayUntilObject);
+    public LocalDateTime calculateDate(DelayUntilRequest delayUntilRequest) {
+        DelayUntilIntervalData delayUntilIntervalData = readDateTypeOriginFields(delayUntilRequest);
 
         LocalDateTime referenceDate = delayUntilIntervalData.getReferenceDate();
         LocalDate localDate = referenceDate.toLocalDate();
         if (delayUntilIntervalData.isSkipNonWorkingDays()) {
+            localDate = skipNonWorkingDays(delayUntilIntervalData, localDate);
+        } else {
+            localDate = considerAllDaysAsWorking(delayUntilIntervalData, localDate);
+        }
 
-            for (int counter = 0; counter < delayUntilIntervalData.getIntervalDays(); counter++) {
-                localDate = workingDayIndicator.getNextWorkingDay(
-                    localDate,
+        return calculateTime(delayUntilIntervalData.getDelayUntilTime(), referenceDate, localDate);
+    }
+
+    private LocalDate considerAllDaysAsWorking(DelayUntilIntervalData delayUntilIntervalData, LocalDate localDate) {
+        LocalDate calculatedDate = localDate.plusDays(delayUntilIntervalData.getIntervalDays());
+        boolean workingDay = workingDayIndicator.isWorkingDay(
+            calculatedDate,
+            delayUntilIntervalData.getNonWorkingCalendars(),
+            delayUntilIntervalData.getNonWorkingDaysOfWeek()
+        );
+        if (delayUntilIntervalData.getMustBeWorkingDay()
+            .equalsIgnoreCase(MUST_BE_WORKING_DAY_NEXT) && !workingDay) {
+            calculatedDate = workingDayIndicator.getNextWorkingDay(
+                calculatedDate,
+                delayUntilIntervalData.getNonWorkingCalendars(),
+                delayUntilIntervalData.getNonWorkingDaysOfWeek()
+            );
+        }
+        if (delayUntilIntervalData.getMustBeWorkingDay()
+            .equalsIgnoreCase(MUST_BE_WORKING_DAY_PREVIOUS) && !workingDay) {
+            calculatedDate = workingDayIndicator.getPreviousWorkingDay(
+                calculatedDate,
+                delayUntilIntervalData.getNonWorkingCalendars(),
+                delayUntilIntervalData.getNonWorkingDaysOfWeek()
+            );
+        }
+        return calculatedDate;
+    }
+
+    private LocalDate skipNonWorkingDays(DelayUntilIntervalData delayUntilIntervalData, LocalDate localDate) {
+        LocalDate calculatedDate = localDate;
+        if (delayUntilIntervalData.getIntervalDays() < 0) {
+            for (long counter = delayUntilIntervalData.getIntervalDays(); counter < 0; counter++) {
+                calculatedDate = workingDayIndicator.getPreviousWorkingDay(
+                    calculatedDate,
                     delayUntilIntervalData.getNonWorkingCalendars(),
                     delayUntilIntervalData.getNonWorkingDaysOfWeek()
                 );
             }
         } else {
-
-            localDate = localDate.plusDays(delayUntilIntervalData.getIntervalDays());
-            boolean workingDay = workingDayIndicator.isWorkingDay(
-                localDate,
-                delayUntilIntervalData.getNonWorkingCalendars(),
-                delayUntilIntervalData.getNonWorkingDaysOfWeek()
-            );
-            if (delayUntilIntervalData.getMustBeWorkingDay()
-                .equalsIgnoreCase(MUST_BE_WORKING_DAY_NEXT) && !workingDay) {
-                localDate = workingDayIndicator.getNextWorkingDay(
-                    localDate,
-                    delayUntilIntervalData.getNonWorkingCalendars(),
-                    delayUntilIntervalData.getNonWorkingDaysOfWeek()
-                );
-            }
-            if (delayUntilIntervalData.getMustBeWorkingDay()
-                .equalsIgnoreCase(MUST_BE_WORKING_DAY_PREVIOUS) && !workingDay) {
-                localDate = workingDayIndicator.getPreviousWorkingDay(
-                    localDate,
+            for (int counter = 0; counter < delayUntilIntervalData.getIntervalDays(); counter++) {
+                calculatedDate = workingDayIndicator.getNextWorkingDay(
+                    calculatedDate,
                     delayUntilIntervalData.getNonWorkingCalendars(),
                     delayUntilIntervalData.getNonWorkingDaysOfWeek()
                 );
             }
         }
-
-        return calculateTime(delayUntilIntervalData.getDelayUntilTime(), referenceDate, localDate);
+        return calculatedDate;
     }
 
     private LocalDateTime calculateTime(String dateTypeTime, LocalDateTime referenceDate, LocalDate calculateDate) {
@@ -84,29 +103,29 @@ public class DelayUntilIntervalCalculator implements DelayUntilCalculator {
         return dateTime;
     }
 
-    private DelayUntilIntervalData readDateTypeOriginFields(DelayUntilObject delayUntilObject) {
+    private DelayUntilIntervalData readDateTypeOriginFields(DelayUntilRequest delayUntilRequest) {
         return DelayUntilIntervalData.builder()
-            .referenceDate(Optional.ofNullable(delayUntilObject.getDelayUntilOrigin())
-                               .map(v -> LocalDateTime.parse(v, DATE_TIME_FORMATTER))
+            .referenceDate(Optional.ofNullable(delayUntilRequest.getDelayUntilOrigin())
+                               .map(this::parseDateTime)
                                .orElse(DEFAULT_DATE_TIME))
-            .intervalDays(Optional.ofNullable(delayUntilObject.getDelayUntilIntervalDays())
+            .intervalDays(Optional.ofNullable(delayUntilRequest.getDelayUntilIntervalDays())
                               .map(Long::valueOf)
                               .orElse(0L))
-            .nonWorkingCalendars(Optional.ofNullable(delayUntilObject.getDelayUntilNonWorkingCalendar())
+            .nonWorkingCalendars(Optional.ofNullable(delayUntilRequest.getDelayUntilNonWorkingCalendar())
                                      .map(s -> s.split(","))
                                      .map(a -> Arrays.stream(a).map(String::trim).toArray(String[]::new))
                                      .map(Arrays::asList)
                                      .orElse(List.of(DEFAULT_NON_WORKING_CALENDAR)))
-            .nonWorkingDaysOfWeek(Optional.ofNullable(delayUntilObject.getDelayUntilNonWorkingDaysOfWeek())
+            .nonWorkingDaysOfWeek(Optional.ofNullable(delayUntilRequest.getDelayUntilNonWorkingDaysOfWeek())
                                       .map(s -> s.split(","))
                                       .map(a -> Arrays.stream(a).map(String::trim).toArray(String[]::new))
                                       .map(Arrays::asList)
                                       .orElse(List.of()))
-            .skipNonWorkingDays(Optional.ofNullable(delayUntilObject.getDelayUntilSkipNonWorkingDays())
+            .skipNonWorkingDays(Optional.ofNullable(delayUntilRequest.getDelayUntilSkipNonWorkingDays())
                                     .orElse(true))
-            .mustBeWorkingDay(Optional.ofNullable(delayUntilObject.getDelayUntilMustBeWorkingDay())
+            .mustBeWorkingDay(Optional.ofNullable(delayUntilRequest.getDelayUntilMustBeWorkingDay())
                                   .orElse(MUST_BE_WORKING_DAY_NEXT))
-            .delayUntilTime(delayUntilObject.getDelayUntilTime())
+            .delayUntilTime(delayUntilRequest.getDelayUntilTime())
             .build();
     }
 }

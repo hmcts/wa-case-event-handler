@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DATE_FORMATTER;
+import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DATE_TIME_FORMATTER;
 
 @ExtendWith(MockitoExtension.class)
 class DelayUntilDateCalculatorTest {
@@ -26,33 +27,33 @@ class DelayUntilDateCalculatorTest {
     void should_not_supports_when_responses_contains_delay_until_origin_and_time() {
         String expectedDelayUntil = GIVEN_DATE.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(expectedDelayUntil + "T16:00")
             .delayUntilTime("16:00")
             .build();
 
-        assertThat(delayUntilDateCalculator.supports(delayUntilObject)).isFalse();
+        assertThat(delayUntilDateCalculator.supports(delayUntilRequest)).isFalse();
     }
 
     @Test
     void should_not_supports_when_responses_contains_only_delay_until_time() {
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilTime("16:00")
             .build();
 
-        assertThat(delayUntilDateCalculator.supports(delayUntilObject)).isFalse();
+        assertThat(delayUntilDateCalculator.supports(delayUntilRequest)).isFalse();
     }
 
     @Test
     void should_supports_when_responses_only_contains_delay_until_but_not_origin() {
         String expectedDelayUntil = GIVEN_DATE.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntil(expectedDelayUntil + "T16:00")
             .delayUntilTime("16:00")
             .build();
 
-        assertThat(delayUntilDateCalculator.supports(delayUntilObject)).isTrue();
+        assertThat(delayUntilDateCalculator.supports(delayUntilRequest)).isTrue();
     }
 
 
@@ -60,11 +61,11 @@ class DelayUntilDateCalculatorTest {
     void should_calculate_delay_until_when_delay_until_is_given() {
         String expectedDelayUntil = GIVEN_DATE.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntil(expectedDelayUntil + "T16:00")
             .build();
 
-        LocalDateTime dateValue = delayUntilDateCalculator.calculateDate(delayUntilObject);
+        LocalDateTime dateValue = delayUntilDateCalculator.calculateDate(delayUntilRequest);
         assertThat(dateValue).isEqualTo(GIVEN_DATE.withHour(16));
     }
 
@@ -72,12 +73,24 @@ class DelayUntilDateCalculatorTest {
     void should_calculate_delay_until_when_delay_until_and_time_are_given() {
         String expectedDelayUntil = GIVEN_DATE.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntil(expectedDelayUntil + "T16:00")
             .delayUntilTime("20:00")
             .build();
 
-        LocalDateTime dateValue = delayUntilDateCalculator.calculateDate(delayUntilObject);
+        LocalDateTime dateValue = delayUntilDateCalculator.calculateDate(delayUntilRequest);
         assertThat(dateValue).isEqualTo(GIVEN_DATE.withHour(20));
+    }
+
+    @Test
+    void should_calculate_delay_until_when_delay_until_has_full_time() {
+        String expectedDelayUntil = GIVEN_DATE.format(DATE_TIME_FORMATTER);
+
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
+            .delayUntil(expectedDelayUntil)
+            .build();
+
+        LocalDateTime dateValue = delayUntilDateCalculator.calculateDate(delayUntilRequest);
+        assertThat(dateValue).isEqualTo(GIVEN_DATE);
     }
 }

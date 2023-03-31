@@ -18,9 +18,12 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.IdempotencyKeyGenerator;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilConfigurator;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -28,6 +31,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnAndMessageNames.TASK_INITIATION;
@@ -51,6 +55,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
     private final IsoDateFormatter isoDateFormatter;
     private final DueDateService dueDateService;
     private final ObjectMapper objectMapper;
+    private final DelayUntilConfigurator delayUntilConfigurator;
 
     @Autowired
     public InitiationCaseEventHandler(AuthTokenGenerator serviceAuthGenerator,
@@ -58,14 +63,15 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
                                       IdempotencyKeyGenerator idempotencyKeyGenerator,
                                       IsoDateFormatter isoDateFormatter,
                                       DueDateService dueDateService,
-                                      ObjectMapper objectMapper
-    ) {
+                                      ObjectMapper objectMapper,
+                                      DelayUntilConfigurator delayUntilConfigurator) {
         this.serviceAuthGenerator = serviceAuthGenerator;
         this.workflowApiClient = workflowApiClient;
         this.idempotencyKeyGenerator = idempotencyKeyGenerator;
         this.isoDateFormatter = isoDateFormatter;
         this.dueDateService = dueDateService;
         this.objectMapper = objectMapper;
+        this.delayUntilConfigurator = delayUntilConfigurator;
     }
 
     @Override
@@ -86,12 +92,13 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
             directionDueDate
         );
-        log.debug("EvaluateDmnRequest : {}", evaluateDmnRequest);
+        log.info("EvaluateDmnRequest : {}", evaluateDmnRequest);
         EvaluateDmnResponse<InitiateEvaluateResponse> response = workflowApiClient.evaluateInitiationDmn(
             serviceAuthGenerator.generate(),
             tableKey,
             tenantId,
-            evaluateDmnRequest);
+            evaluateDmnRequest
+        );
         log.debug("Workflow api response : {}", response);
         return response.getResults();
     }
@@ -103,6 +110,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
             .filter(InitiateEvaluateResponse.class::isInstance)
             .map(InitiateEvaluateResponse.class::cast)
             .forEach(initiateEvaluateResponse -> {
+                log.info("initiateEvaluateResponse is {}", initiateEvaluateResponse);
                 SendMessageRequest request =
                     buildInitiateTaskMessageRequest(initiateEvaluateResponse, eventInformation);
 
@@ -176,10 +184,21 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
     ) {
         final ZonedDateTime zonedDateTime = isoDateFormatter.formatToZone(eventInformation.getEventTimeStamp());
 
-        ZonedDateTime delayUntil = dueDateService.calculateDelayUntil(
+        ZonedDateTime delayUntilBasedOnDelayDuration = dueDateService.calculateDelayUntil(
             zonedDateTime,
             cannotBeNull(initiateEvaluateResponse.getDelayDuration()).getValue()
         );
+
+        ZonedDateTime delayUntil = ofNullable(initiateEvaluateResponse.getDelayUntil())
+            .map(input -> {
+                ZoneId systemDefault = ZoneId.systemDefault();
+                log.info("System default zone : {}", systemDefault);
+                DelayUntilRequest delayUntilRequest = input.getValue();
+                LocalDateTime calculateDelayUntil = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
+                log.info("Calculate DelayUntil date is: {}", calculateDelayUntil);
+                return calculateDelayUntil.atZone(systemDefault);
+            })
+            .orElse(delayUntilBasedOnDelayDuration);
 
         ZonedDateTime dueDate = dueDateService.calculateDueDate(
             delayUntil,
@@ -198,13 +217,13 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         processVariables.put("idempotencyKey", dmnStringValue(idempotencyKey));
         processVariables.put("taskState", dmnStringValue("unconfigured"));
         processVariables.put("caseTypeId", dmnStringValue(eventInformation.getCaseTypeId()));
-        processVariables.put("dueDate", dmnStringValue(dueDate.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)));
+        processVariables.put("dueDate", dmnStringValue(dueDate.format(ISO_LOCAL_DATE_TIME)));
         processVariables.put("workingDaysAllowed", cannotBeNull(initiateEvaluateResponse.getWorkingDaysAllowed()));
         processVariables.put("jurisdiction", dmnStringValue(eventInformation.getJurisdictionId()));
         processVariables.put("name", initiateEvaluateResponse.getName());
         processVariables.put("taskId", initiateEvaluateResponse.getTaskId());
         processVariables.put("caseId", dmnStringValue(eventInformation.getCaseId()));
-        processVariables.put("delayUntil", dmnStringValue(delayUntil.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)));
+        processVariables.put("delayUntil", dmnStringValue(delayUntil.format(ISO_LOCAL_DATE_TIME)));
         processVariables.put("hasWarnings", dmnBooleanValue(false));
         processVariables.put("warningList", dmnStringValue(new WarningValues().getValuesAsJson()));
 
@@ -223,7 +242,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
                 .map(String::trim).toList();
 
             categoriesToAdd.forEach(cat ->
-                processVariables.put("__processCategory__" + cat, dmnBooleanValue(true))
+                                        processVariables.put("__processCategory__" + cat, dmnBooleanValue(true))
             );
         }
 
@@ -234,5 +253,4 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
     private DmnValue<Integer> cannotBeNull(DmnValue<Integer> workingDaysAllowed) {
         return workingDaysAllowed == null ? dmnIntegerValue(0) : workingDaysAllowed;
     }
-
 }

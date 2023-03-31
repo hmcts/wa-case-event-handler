@@ -9,17 +9,19 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public interface DelayUntilCalculator {
 
     String DEFAULT_NON_WORKING_CALENDAR = "https://www.gov.uk/bank-holidays/england-and-wales.json";
-    DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+    DateTimeFormatter DELAY_UNTIL_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+    DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
     DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     LocalDateTime DEFAULT_DATE_TIME = LocalDateTime.now();
 
-    boolean supports(DelayUntilObject delayUntilObject);
+    boolean supports(DelayUntilRequest delayUntilRequest);
 
-    LocalDateTime calculateDate(DelayUntilObject delayUntilObject);
+    LocalDateTime calculateDate(DelayUntilRequest delayUntilRequest);
 
     default LocalDateTime addTimeToDate(String dueDateTime, LocalDateTime date) {
         return useDateTime(date, dueDateTime);
@@ -32,10 +34,21 @@ public interface DelayUntilCalculator {
             return zonedDateTime.toLocalDateTime();
         } catch (DateTimeParseException p) {
             if (dateContainsTime(inputDate)) {
-                return LocalDateTime.parse(inputDate, DATE_TIME_FORMATTER);
+                Optional<LocalDateTime> calculated = parseDateTime(inputDate, DELAY_UNTIL_DATE_TIME_FORMATTER);
+                return calculated
+                    .orElseGet(() -> parseDateTime(inputDate, DATE_TIME_FORMATTER)
+                        .orElseThrow(() -> new RuntimeException("Provided date has invalid format: " + inputDate)));
             } else {
                 return LocalDate.parse(inputDate, DATE_FORMATTER).atStartOfDay();
             }
+        }
+    }
+
+    default Optional<LocalDateTime> parseDateTime(String inputDate, DateTimeFormatter formatter) {
+        try {
+            return Optional.of(LocalDateTime.parse(inputDate, formatter));
+        } catch (DateTimeParseException e) {
+            return Optional.empty();
         }
     }
 
