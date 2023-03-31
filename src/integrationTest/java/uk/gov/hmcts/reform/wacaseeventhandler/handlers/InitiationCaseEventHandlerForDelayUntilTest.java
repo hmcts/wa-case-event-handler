@@ -22,7 +22,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformatio
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.IdempotencyKeyGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilConfigurator;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilObject;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates.HolidayService;
 
@@ -234,7 +234,7 @@ class InitiationCaseEventHandlerForDelayUntilTest {
             .workingDaysAllowed(null)
             .processCategories(dmnStringValue("caseProgression"))
             .delayUntil(new DmnValue<>(
-                DelayUntilObject.builder()
+                DelayUntilRequest.builder()
                     .delayUntilOrigin("2022-10-23T16:00")
                     .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
                     .delayUntilIntervalDays(5)
@@ -304,7 +304,7 @@ class InitiationCaseEventHandlerForDelayUntilTest {
             .workingDaysAllowed(dmnIntegerValue(2))
             .processCategories(dmnStringValue("caseProgression"))
             .delayUntil(new DmnValue<>(
-                DelayUntilObject.builder().delayUntil("2022-10-23").delayUntilTime("16:00").build(),
+                DelayUntilRequest.builder().delayUntil("2022-10-23").delayUntilTime("16:00").build(),
                 null
             ))
             .build();

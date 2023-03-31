@@ -44,8 +44,8 @@ public class DelayUntilConfiguratorTest {
     @Test
     public void shouldReturnDefaultDelayUntilWhenNoneOfDelayUntilParamsAreAvailable() {
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder().build();
-        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder().build();
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
         assertThat(localDateTime).isEqualTo(DEFAULT_DATE_TIME);
     }
 
@@ -53,11 +53,11 @@ public class DelayUntilConfiguratorTest {
     public void shouldCalculateDelayUntilWhenDefaultDelayUntilWithoutTimeAndTimeAreAvailable() {
 
         String givenDelayUntil = GIVEN_DATE.format(DATE_FORMATTER);
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntil(givenDelayUntil)
             .delayUntilTime("18:00")
             .build();
-        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
 
         assertThat(localDateTime).isEqualTo(givenDelayUntil + "T18:00");
     }
@@ -67,12 +67,12 @@ public class DelayUntilConfiguratorTest {
     public void shouldCalculateDelayUntilWhenDefaultDelayUntilWithTimeAndTimeAreAvailable() {
 
         String givenDelayUntil = GIVEN_DATE.format(DATE_FORMATTER);
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntil(givenDelayUntil + "T21:00")
             .delayUntilTime("18:00")
             .build();
 
-        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
 
         assertThat(localDateTime).isEqualTo(givenDelayUntil + "T18:00");
     }
@@ -81,11 +81,11 @@ public class DelayUntilConfiguratorTest {
         + " (No 'delayUntilOrigin' but time override)")
     @Test
     public void shouldCalculateDelayUntilWhenOnlyDelayUntilTimeIsAvailable() {
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilTime("16:00")
             .build();
 
-        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
         String defaultDelayUntil = DEFAULT_DATE_TIME.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         assertThat(localDateTime)
@@ -97,10 +97,10 @@ public class DelayUntilConfiguratorTest {
     public void shouldCalculateDelayUntilWhenOnlyDefaultDelayUntilWithTimeIsAvailable() {
         String givenDelayUntil = GIVEN_DATE.plusDays(7).format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntil(givenDelayUntil + "T19:00")
             .build();
-        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
 
         assertThat(localDateTime).isEqualTo(givenDelayUntil + "T19:00");
     }
@@ -110,10 +110,10 @@ public class DelayUntilConfiguratorTest {
     public void shouldCalculateDelayUntilWhenDelayUntilWithoutTimeIsAvailable() {
         String givenDelayUntil = GIVEN_DATE.plusDays(7).format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntil(givenDelayUntil)
             .build();
-        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
 
         LocalTime now = LocalTime.now();
         // setting minute to 0 so that test don't fail when minute is about to change
@@ -124,7 +124,7 @@ public class DelayUntilConfiguratorTest {
     @DisplayName(" (No delayUntil  and No delayUntilTime) - default behavior ")
     @Test
     public void shouldReturnDefaultDelayUntilWhenNoDelayUntilPropertiesAreAvailable() {
-        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(DelayUntilObject.builder().build());
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(DelayUntilRequest.builder().build());
         assertThat(localDateTime).isEqualTo(DEFAULT_DATE_TIME);
     }
 
@@ -134,12 +134,12 @@ public class DelayUntilConfiguratorTest {
         String givenDelayUntil = GIVEN_DATE.plusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         String givenDelayUntilOrigin = GIVEN_DATE.plusDays(4).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntil(givenDelayUntil + "T16:00")
             .delayUntilOrigin(givenDelayUntilOrigin + "T20:00")
             .build();
 
-        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
         assertThat(localDateTime).isEqualTo(givenDelayUntil + "T16:00");
     }
 
@@ -148,7 +148,7 @@ public class DelayUntilConfiguratorTest {
     public void shouldCalculateDelayUntilWhenOnlyDelayUntilOriginIsProvided() {
         String givenDelayUntilOrigin = GIVEN_DATE.plusDays(2).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T20:00")
             .delayUntilTime(null)
             .delayUntilMustBeWorkingDay(null)
@@ -158,7 +158,7 @@ public class DelayUntilConfiguratorTest {
             .delayUntilNonWorkingCalendar(null)
             .build();
 
-        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
         assertThat(localDateTime).isEqualTo(givenDelayUntilOrigin + "T20:00");
     }
 
@@ -182,7 +182,7 @@ public class DelayUntilConfiguratorTest {
         String expectedTime) {
         String givenDelayUntilOrigin = GIVEN_DATE.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T20:00")
             .delayUntilIntervalDays(intervalDays)
             .delayUntilNonWorkingCalendar(DEFAULT_CALENDAR_URI)
@@ -192,7 +192,7 @@ public class DelayUntilConfiguratorTest {
             .delayUntilTime("18:00")
             .build();
 
-        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
 
         String expectedDelayUntil = GIVEN_DATE.plusDays(Integer.parseInt(expectedDays))
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -204,7 +204,7 @@ public class DelayUntilConfiguratorTest {
     void shouldCalculateWithDefaultValuesWhenValueAreNotProvidedExceptIntervalDays() {
         String localDateTime = GIVEN_DATE.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(localDateTime + "T20:00")
             .delayUntilIntervalDays(3)
             .delayUntilNonWorkingCalendar(null)
@@ -214,7 +214,7 @@ public class DelayUntilConfiguratorTest {
             .delayUntilTime(null)
             .build();
 
-        LocalDateTime delayUntilDate = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+        LocalDateTime delayUntilDate = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
         assertThat(delayUntilDate).isEqualTo(GIVEN_DATE.plusDays(5).withHour(20));
     }
 
@@ -223,7 +223,7 @@ public class DelayUntilConfiguratorTest {
     public void shouldCalculateDateWhenNonWorkingDaysConsidered() {
         String givenDelayUntilOrigin = GIVEN_DATE.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T20:00")
             .delayUntilIntervalDays(6)
             .delayUntilNonWorkingCalendar(DEFAULT_CALENDAR_URI)
@@ -232,7 +232,7 @@ public class DelayUntilConfiguratorTest {
             .delayUntilMustBeWorkingDay("Next")
             .build();
 
-        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
 
         String expectedDelayUntil = GIVEN_DATE.plusDays(6)
             .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
@@ -246,7 +246,7 @@ public class DelayUntilConfiguratorTest {
         String givenDelayUntilOrigin = BST_DATE_BACKWARD.format(DATE_FORMATTER);
 
         //Clocks go back an hour at 2:00am
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T01:30")
             .delayUntilIntervalDays(4)
             .delayUntilNonWorkingCalendar(DEFAULT_CALENDAR_URI)
@@ -256,7 +256,7 @@ public class DelayUntilConfiguratorTest {
             .delayUntilTime("02:30")
             .build();
 
-        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
 
         assertThat(localDateTime).isEqualTo("2022-10-30T02:30");
     }
@@ -267,7 +267,7 @@ public class DelayUntilConfiguratorTest {
         String givenDelayUntilOrigin = BST_DATE_BACKWARD.format(DATE_FORMATTER);
 
         //Clocks go back an hour at 2:00am
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T01:30")
             .delayUntilIntervalDays(4)
             .delayUntilNonWorkingCalendar(DEFAULT_CALENDAR_URI)
@@ -277,7 +277,7 @@ public class DelayUntilConfiguratorTest {
             .delayUntilTime("02:30")
             .build();
 
-        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
 
         assertThat(localDateTime).isEqualTo("2022-10-30T02:30");
     }
@@ -289,7 +289,7 @@ public class DelayUntilConfiguratorTest {
         String givenDelayUntilOrigin = BST_DATE_FORWARD.format(DATE_FORMATTER);
 
         //Clocks go forward an hour at 1:00am
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T00:30")
             .delayUntilIntervalDays(4)
             .delayUntilNonWorkingCalendar(DEFAULT_CALENDAR_URI)
@@ -299,7 +299,7 @@ public class DelayUntilConfiguratorTest {
             .delayUntilTime("01:30")
             .build();
 
-        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
 
         assertThat(localDateTime).isEqualTo("2023-03-30T01:30");
     }
@@ -310,7 +310,7 @@ public class DelayUntilConfiguratorTest {
         String givenDelayUntilOrigin = LocalDate.of(2022, 12, 26).format(DATE_FORMATTER);
 
         //Clocks go forward an hour at 1:00am
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T00:30")
             .delayUntilIntervalDays(4)
             .delayUntilNonWorkingCalendar(DEFAULT_NON_WORKING_CALENDAR + "," + NON_WORKING_JSON_OVERRIDE)
@@ -320,7 +320,7 @@ public class DelayUntilConfiguratorTest {
             .delayUntilTime(null)
             .build();
 
-        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
 
 
         //27-12-2022 is holiday in england and wales and 30-12-2022 is holiday in second json
@@ -330,7 +330,7 @@ public class DelayUntilConfiguratorTest {
     @Test
     void shouldErrorWhenCalculateDelayUntilContainsInValidCalendar() {
         String givenDelayUntilOrigin = LocalDate.of(2022, 12, 26).format(DATE_FORMATTER);
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T00:30")
             .delayUntilIntervalDays(4)
             .delayUntilNonWorkingCalendar(DEFAULT_NON_WORKING_CALENDAR + "," + INVALID_CALENDAR_URI)
@@ -340,7 +340,7 @@ public class DelayUntilConfiguratorTest {
             .delayUntilTime(null)
             .build();
 
-        assertThatThrownBy(() -> delayUntilConfigurator.calculateDelayUntil(delayUntilObject))
+        assertThatThrownBy(() -> delayUntilConfigurator.calculateDelayUntil(delayUntilRequest))
             .isInstanceOf(CalendarResourceInvalidException.class)
             .hasMessage("Could not read calendar resource " + INVALID_CALENDAR_URI);
     }
@@ -349,7 +349,7 @@ public class DelayUntilConfiguratorTest {
     void shouldErrorWhenCalculateDelayUntilContainsWrongUriForCalendar() {
         String givenDelayUntilOrigin = LocalDate.of(2022, 12, 26).format(DATE_FORMATTER);
         String wrongUri = "https://www.gov.uk/bank-holidays/not-a-calendar.json";
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T00:30")
             .delayUntilIntervalDays(4)
             .delayUntilNonWorkingCalendar(DEFAULT_NON_WORKING_CALENDAR + "," + wrongUri)
@@ -359,7 +359,7 @@ public class DelayUntilConfiguratorTest {
             .delayUntilTime(null)
             .build();
 
-        assertThatThrownBy(() -> delayUntilConfigurator.calculateDelayUntil(delayUntilObject))
+        assertThatThrownBy(() -> delayUntilConfigurator.calculateDelayUntil(delayUntilRequest))
             .isInstanceOf(CalendarResourceNotFoundException.class)
             .hasMessage("Could not find calendar resource " + wrongUri);
     }
@@ -368,7 +368,7 @@ public class DelayUntilConfiguratorTest {
     public void shouldCalculateDateWhenIntervalDaysIsLessThan0() {
         String givenDelayUntilOrigin = LocalDate.of(2022, 12, 26).format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T00:30")
             .delayUntilIntervalDays(-4)
             .delayUntilNonWorkingCalendar(DEFAULT_NON_WORKING_CALENDAR)
@@ -378,7 +378,7 @@ public class DelayUntilConfiguratorTest {
             .delayUntilTime(null)
             .build();
 
-        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
+        LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
         assertThat(localDateTime).isEqualTo("2022-12-20T00:30");
     }
 }

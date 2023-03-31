@@ -11,16 +11,16 @@ import java.util.Optional;
 public class DelayUntilDateTimeCalculator implements DelayUntilCalculator {
 
     @Override
-    public boolean supports(DelayUntilObject delayUntilObject) {
+    public boolean supports(DelayUntilRequest delayUntilRequest) {
 
-        return Optional.ofNullable(delayUntilObject.getDelayUntilTime()).isPresent()
-            && Optional.ofNullable(delayUntilObject.getDelayUntilOrigin()).isEmpty()
-            && Optional.ofNullable(delayUntilObject.getDelayUntil()).isEmpty();
+        return Optional.ofNullable(delayUntilRequest.getDelayUntilTime()).isPresent()
+            && Optional.ofNullable(delayUntilRequest.getDelayUntilOrigin()).isEmpty()
+            && Optional.ofNullable(delayUntilRequest.getDelayUntil()).isEmpty();
     }
 
     @Override
-    public LocalDateTime calculateDate(DelayUntilObject delayUntilObject) {
-        return addTimeToDate(delayUntilObject.getDelayUntilTime(), DEFAULT_DATE_TIME);
+    public LocalDateTime calculateDate(DelayUntilRequest delayUntilRequest) {
+        return addTimeToDate(delayUntilRequest.getDelayUntilTime(), DEFAULT_DATE_TIME);
     }
 
 }

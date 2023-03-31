@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Builder
 @NoArgsConstructor
-public class DelayUntilObject {
+public class DelayUntilRequest {
 
     private String delayUntil;
     private String delayUntilTime;
@@ -23,7 +23,7 @@ public class DelayUntilObject {
     private String delayUntilMustBeWorkingDay;
 
     @JsonCreator
-    public DelayUntilObject(
+    public DelayUntilRequest(
         @JsonProperty("delayUntil")
         String delayUntil,
         @JsonProperty("delayUntilTime")

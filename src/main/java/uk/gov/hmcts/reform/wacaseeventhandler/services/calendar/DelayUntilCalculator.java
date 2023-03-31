@@ -19,9 +19,9 @@ public interface DelayUntilCalculator {
     DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     LocalDateTime DEFAULT_DATE_TIME = LocalDateTime.now();
 
-    boolean supports(DelayUntilObject delayUntilObject);
+    boolean supports(DelayUntilRequest delayUntilRequest);
 
-    LocalDateTime calculateDate(DelayUntilObject delayUntilObject);
+    LocalDateTime calculateDate(DelayUntilRequest delayUntilRequest);
 
     default LocalDateTime addTimeToDate(String dueDateTime, LocalDateTime date) {
         return useDateTime(date, dueDateTime);

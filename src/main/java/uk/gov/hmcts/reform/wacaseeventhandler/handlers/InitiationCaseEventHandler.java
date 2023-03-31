@@ -19,7 +19,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformatio
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.IdempotencyKeyGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilConfigurator;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilObject;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 
 import java.time.LocalDateTime;
@@ -193,10 +193,12 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
             .map(input -> {
                 ZoneId systemDefault = ZoneId.systemDefault();
                 log.info("System default zone : {}", systemDefault);
-                DelayUntilObject delayUntilObject = input.getValue();
-                LocalDateTime calculateDelayUntil = delayUntilConfigurator.calculateDelayUntil(delayUntilObject);
-                log.info("Calculate DelayUntil date is: {}", calculateDelayUntil);
-                return calculateDelayUntil.atZone(systemDefault);
+                DelayUntilRequest delayUntilRequest = input.getValue();
+                LocalDateTime calculateDelayUntil = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
+                log.info("Calculated DelayUntil date is: {}", calculateDelayUntil);
+                ZonedDateTime dateTimeOnDefaultZone = calculateDelayUntil.atZone(systemDefault);
+                log.info("Calculated DelayUntil on DefaultZone is: {}", dateTimeOnDefaultZone);
+                return dateTimeOnDefaultZone;
             })
             .orElse(delayUntilBasedOnDelayDuration);
 
