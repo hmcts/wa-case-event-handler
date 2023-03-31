@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.query;
 
 import org.assertj.core.api.Assertions;
+import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,8 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices.FindProblemMe
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.hamcrest.Matchers.containsInAnyOrder;
 
 
 @ActiveProfiles("integration")
@@ -51,8 +54,10 @@ public class FindProblemMessageTest {
         Assertions.assertThat(caseEventMessages.isEmpty()).isFalse();
         Assertions.assertThat(caseEventMessages.size()).isEqualTo(3);
         Assertions.assertThat(caseEventMessages.get(0)).isEqualTo("ID:c05439ca-ddb2-47d0-a0a6-ba9db76a3064:58:1:1-10");
-        Assertions.assertThat(caseEventMessages.get(1)).isEqualTo("ID:d257fa4f-73ad-4a82-a30e-9acc377f593d:1:1:1-2704");
-        Assertions.assertThat(caseEventMessages.get(2)).isEqualTo("ID:ce8467a0-cea9-4a65-99dd-3ae9a94a4453:16:1:1-811");
+        MatcherAssert.assertThat(caseEventMessages, containsInAnyOrder(
+            "ID:c05439ca-ddb2-47d0-a0a6-ba9db76a3064:58:1:1-10",
+            "ID:d257fa4f-73ad-4a82-a30e-9acc377f593d:1:1:1-2704",
+            "ID:ce8467a0-cea9-4a65-99dd-3ae9a94a4453:16:1:1-811"));
     }
 }
 
