@@ -5,6 +5,8 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
@@ -20,6 +22,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.documents.Document;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.idam.UserInfo;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.AuthorizationProvider;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.CcdFeignClientApiRetryCheckerService;
 
 import java.io.IOException;
 import java.util.List;
@@ -72,14 +75,7 @@ public class GivensBuilder {
 
         Document document = documentManagementFiles.getDocumentAs(NOTICE_OF_APPEAL_PDF, lawFirmCredentials);
 
-        StartEventResponse startCase = coreCaseDataApi.startForCaseworker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            "WA",
-            "WaCaseType",
-            "CREATE"
-        );
+        StartEventResponse startCaseEvent = getStartCase(userToken, serviceToken, userInfo);
 
         String resourceFilename = "requests/ccd/wa_case_data.json";
 
@@ -106,37 +102,20 @@ public class GivensBuilder {
         }
 
         CaseDataContent caseDataContent = CaseDataContent.builder()
-            .eventToken(startCase.getToken())
+            .eventToken(startCaseEvent.getToken())
             .event(Event.builder()
-                       .id(startCase.getEventId())
+                       .id(startCaseEvent.getEventId())
                        .summary("summary")
                        .description("description")
                        .build())
             .data(data)
             .build();
 
-        //Fire submit event
-        CaseDetails caseDetails = coreCaseDataApi.submitForCaseworker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            "WA",
-            "WaCaseType",
-            true,
-            caseDataContent
-        );
+        CaseDetails caseDetails = sendSubmitEvent(userToken, serviceToken, userInfo, caseDataContent);
 
         log.info("Created case [" + caseDetails.getId() + "]");
 
-        StartEventResponse submitCase = coreCaseDataApi.startEventForCaseWorker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            "WA",
-            "WaCaseType",
-            caseDetails.getId().toString(),
-            "START_PROGRESS"
-        );
+        StartEventResponse submitCase = startEventForCaseworker(userToken, serviceToken, userInfo, caseDetails);
 
         CaseDataContent submitCaseDataContent = CaseDataContent.builder()
             .eventToken(submitCase.getToken())
@@ -148,6 +127,65 @@ public class GivensBuilder {
             .data(data)
             .build();
 
+        submitEventForCaseworker(userToken, serviceToken, userInfo, caseDetails, submitCaseDataContent);
+
+        log.info("Submitted case [" + caseDetails.getId() + "]");
+
+        return caseDetails.getId().toString();
+    }
+
+    @Retryable(value = Exception.class,
+        exceptionExpression = CcdFeignClientApiRetryCheckerService.EXPRESSION,
+        maxAttempts = 5,
+        backoff = @Backoff(delay = 1000))
+    private StartEventResponse getStartCase(String userToken, String serviceToken, UserInfo userInfo) {
+        return coreCaseDataApi.startForCaseworker(
+            userToken,
+            serviceToken,
+            userInfo.getUid(),
+            "WA",
+            "WaCaseType",
+            "CREATE"
+        );
+    }
+
+    @Retryable(value = Exception.class,
+        exceptionExpression = CcdFeignClientApiRetryCheckerService.EXPRESSION,
+        maxAttempts = 5,
+        backoff = @Backoff(delay = 1000))
+    private CaseDetails sendSubmitEvent(String userToken, String serviceToken, UserInfo userInfo, CaseDataContent caseDataContent) {
+        return coreCaseDataApi.submitForCaseworker(
+            userToken,
+            serviceToken,
+            userInfo.getUid(),
+            "WA",
+            "WaCaseType",
+            true,
+            caseDataContent
+        );
+    }
+
+    @Retryable(value = Exception.class,
+        exceptionExpression = CcdFeignClientApiRetryCheckerService.EXPRESSION,
+        maxAttempts = 5,
+        backoff = @Backoff(delay = 1000))
+    private StartEventResponse startEventForCaseworker(String userToken, String serviceToken, UserInfo userInfo, CaseDetails caseDetails) {
+        return coreCaseDataApi.startEventForCaseWorker(
+            userToken,
+            serviceToken,
+            userInfo.getUid(),
+            "WA",
+            "WaCaseType",
+            caseDetails.getId().toString(),
+            "START_PROGRESS"
+        );
+    }
+
+    @Retryable(value = Exception.class,
+        exceptionExpression = CcdFeignClientApiRetryCheckerService.EXPRESSION,
+        maxAttempts = 5,
+        backoff = @Backoff(delay = 1000))
+    private void submitEventForCaseworker(String userToken, String serviceToken, UserInfo userInfo, CaseDetails caseDetails, CaseDataContent submitCaseDataContent) {
         coreCaseDataApi.submitEventForCaseWorker(
             userToken,
             serviceToken,
@@ -158,9 +196,6 @@ public class GivensBuilder {
             true,
             submitCaseDataContent
         );
-        log.info("Submitted case [" + caseDetails.getId() + "]");
-
-        return caseDetails.getId().toString();
     }
 
     public GivensBuilder createTaskWithCaseId(String caseId) {
@@ -202,114 +237,6 @@ public class GivensBuilder {
             .statusCode(HttpStatus.NO_CONTENT.value());
 
         return this;
-    }
-
-
-    private String createCcdCaseWithJurisdictionAndCaseTypeAndEvent(String jurisdiction,
-                                                                    String caseType,
-                                                                    String startEventId,
-                                                                    String submitEventId,
-                                                                    TestAuthenticationCredentials credentials,
-                                                                    String resourceFilename) {
-
-        String userToken = credentials.getHeaders().getValue(AUTHORIZATION);
-        String serviceToken = credentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
-        UserInfo userInfo = authorizationProvider.getUserInfo(userToken);
-
-        Document document = documentManagementFiles.getDocumentAs(NOTICE_OF_APPEAL_PDF, credentials);
-
-        StartEventResponse startCase = coreCaseDataApi.startForCaseworker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            jurisdiction,
-            caseType,
-            startEventId
-        );
-
-        Map data = null;
-        try {
-            String caseDataString = FileUtils.readFileToString(
-                ResourceUtils.getFile("classpath:" + resourceFilename),
-                "UTF-8"
-            );
-
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
-                document.getDocumentUrl()
-            );
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_NAME}",
-                document.getDocumentFilename()
-            );
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL_BINARY}",
-                document.getDocumentBinaryUrl()
-            );
-
-            data = new ObjectMapper().readValue(caseDataString, Map.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        CaseDataContent caseDataContent = CaseDataContent.builder()
-            .eventToken(startCase.getToken())
-            .event(Event.builder()
-                       .id(startCase.getEventId())
-                       .summary("summary")
-                       .description("description")
-                       .build())
-            .data(data)
-            .build();
-
-        //Fire submit event
-        CaseDetails caseDetails = coreCaseDataApi.submitForCaseworker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            jurisdiction,
-            caseType,
-            true,
-            caseDataContent
-        );
-
-        log.info("Created case [" + caseDetails.getId() + "]");
-
-        StartEventResponse submitCase = coreCaseDataApi.startEventForCaseWorker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            jurisdiction,
-            caseType,
-            caseDetails.getId().toString(),
-            submitEventId
-        );
-
-        CaseDataContent submitCaseDataContent = CaseDataContent.builder()
-            .eventToken(submitCase.getToken())
-            .event(Event.builder()
-                       .id(submitCase.getEventId())
-                       .summary("summary")
-                       .description("description")
-                       .build())
-            .data(data)
-            .build();
-
-        coreCaseDataApi.submitEventForCaseWorker(
-            userToken,
-            serviceToken,
-            userInfo.getUid(),
-            jurisdiction,
-            caseType,
-            caseDetails.getId().toString(),
-            true,
-            submitCaseDataContent
-        );
-        log.info("Submitted case [" + caseDetails.getId() + "]");
-
-        authorizationProvider.deleteAccount(credentials.getAccount().getUsername());
-
-        return caseDetails.getId().toString();
     }
 
     public GivensBuilder createDelayedTaskWithCaseId(String caseId) {
