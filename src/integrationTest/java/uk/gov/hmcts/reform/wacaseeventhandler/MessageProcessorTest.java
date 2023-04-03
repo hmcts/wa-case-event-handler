@@ -13,6 +13,9 @@ import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
@@ -39,6 +42,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.sql.DataSource;
 
 import static java.lang.String.format;
@@ -169,12 +173,13 @@ class MessageProcessorTest {
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
             scripts = {"classpath:sql/delete_from_case_event_messages.sql",
                     "classpath:sql/insert_case_event_messages_for_processing_ready_msgs.sql"})
-    @Test
-    void should_update_hold_until_and_retry_count_for_ready_messages_when_retryable_exception_occurs()
+    @ParameterizedTest
+    @CsvSource(value = {"500", "502", "503", "504"})
+    void should_update_hold_until_and_retry_count_for_ready_messages_when_retryable_exception_occurs(int status)
             throws JsonProcessingException {
         String caseId = "6761065058131570";
 
-        RetryableFeignException retryableFeignException = new RetryableFeignException(504, "Gateway Timeout");
+        RetryableFeignException retryableFeignException = new RetryableFeignException(status, "Gateway Timeout");
 
         doThrow(retryableFeignException)
                 .when(ccdEventProcessor)
@@ -192,9 +197,11 @@ class MessageProcessorTest {
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
             scripts = {"classpath:sql/delete_from_case_event_messages.sql",
                     "classpath:sql/insert_case_event_messages_for_processing_ready_msgs.sql"})
-    @Test
-    void should_set_message_state_to_unprocessable_when_non_retryable_error_occurs() throws JsonProcessingException {
-        doThrow(FeignException.BadRequest.class).when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
+    @ParameterizedTest
+    @MethodSource("exceptionProvider")
+    void should_set_message_state_to_unprocessable_when_non_retryable_error_occurs(Class<? extends Throwable> ex)
+        throws JsonProcessingException {
+        doThrow(ex).when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
         await().atMost(20, SECONDS)
             .untilAsserted(() -> {
                     assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
@@ -202,6 +209,13 @@ class MessageProcessorTest {
                     assertEquals(1, getMessagesInDbFromQuery(UNPROCESSABLE_STATE_QUERY).size());
                 }
         );
+    }
+
+    private static Stream<Class<? extends Throwable>> exceptionProvider() {
+        return Stream.of(FeignException.BadRequest.class,
+            FeignException.Unauthorized.class,
+            FeignException.Forbidden.class,
+            FeignException.NotFound.class);
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
