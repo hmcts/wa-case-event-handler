@@ -15,6 +15,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestAuthenticationCredent
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -40,6 +41,8 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonS
 
 @Slf4j
 public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
+    private static final Duration AT_MOST_SECONDS = Duration.ofSeconds(22);
+    private static final Duration AT_MOST_SECONDS_MULTIPLE_TASKS = Duration.ofSeconds(30);
 
     protected Map<String, String> taskIdStatusMap;
     protected String caseId1Task1Id;
@@ -122,7 +125,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         // to expire. The task is delayed for 2 seconds,
         // so manually waiting for 5 seconds for process to start
         if (delayUntil) {
-            waitSeconds(10);
+            waitSeconds(8);
         } else {
             waitSeconds(5);
         }
@@ -527,7 +530,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         await().ignoreException(AssertionError.class)
             .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(13, SECONDS)
+            .atMost(AT_MOST_SECONDS)
             .until(
                 () -> {
 
@@ -566,7 +569,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         await().ignoreException(AssertionError.class)
             .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(13, SECONDS)
+            .atMost(AT_MOST_SECONDS)
             .until(
                 () -> {
                     assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
@@ -612,7 +615,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         await().ignoreException(AssertionError.class)
             .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(13, SECONDS)
+            .atMost(AT_MOST_SECONDS)
             .until(
                 () -> {
                     assertTaskDoesNotExist(caseIdForTask1, task1IdDmnColumn);
@@ -687,7 +690,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         await().ignoreException(AssertionError.class)
             .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(13, SECONDS)
+            .atMost(AT_MOST_SECONDS)
             .until(
                 () -> {
                     Response taskFound = findTasksByCaseId(caseIdForTask1, 2);
@@ -757,7 +760,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         await().ignoreException(AssertionError.class)
             .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(13, SECONDS)
+            .atMost(AT_MOST_SECONDS)
             .until(
                 () -> {
 
@@ -831,7 +834,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         await().ignoreException(AssertionError.class)
             .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(30, SECONDS)
+            .atMost(AT_MOST_SECONDS_MULTIPLE_TASKS)
             .until(
                 () -> {
 
@@ -948,7 +951,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         await().ignoreException(AssertionError.class)
             .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(13, SECONDS)
+            .atMost(AT_MOST_SECONDS)
             .until(
                 () -> {
 
@@ -993,7 +996,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         await().ignoreException(AssertionError.class)
             .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(13, SECONDS)
+            .atMost(AT_MOST_SECONDS)
             .until(
                 () -> {
                     Response taskFound = findTasksByCaseId(caseId1, 2);
@@ -1014,7 +1017,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         await().ignoreException(AssertionError.class)
             .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(13, SECONDS)
+            .atMost(AT_MOST_SECONDS)
             .until(
                 () -> {
 
@@ -1177,7 +1180,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         await().ignoreException(AssertionError.class)
             .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(13, SECONDS)
+            .atMost(AT_MOST_SECONDS)
             .until(
                 () -> {
 
@@ -1194,7 +1197,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         await().ignoreException(AssertionError.class)
             .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(30, SECONDS)
+            .atMost(AT_MOST_SECONDS_MULTIPLE_TASKS)
             .until(
                 () -> {
                     //get task from CFT
@@ -1245,8 +1248,8 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
     private void assertTaskDoesNotExist(String caseId, String taskId) {
         await().ignoreException(AssertionError.class)
             .pollDelay(500, MILLISECONDS)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(30, SECONDS)
+            .pollInterval(2, SECONDS)
+            .atMost(AT_MOST_SECONDS_MULTIPLE_TASKS)
             .until(
                 () -> {
                     given()
@@ -1270,11 +1273,10 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         log.info("Finding warnings task for caseId = {} and taskId = {}", caseId, taskId);
         await().ignoreException(AssertionError.class)
             .pollDelay(500, MILLISECONDS)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
+            .pollInterval(2, SECONDS)
+            .atMost(AT_MOST_SECONDS_MULTIPLE_TASKS)
             .until(
                 () -> {
-
                     Response result = given()
                         .header(SERVICE_AUTHORIZATION, s2sToken)
                         .contentType(APPLICATION_JSON_VALUE)
@@ -1368,8 +1370,8 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         AtomicReference<String> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
             .pollDelay(500, MILLISECONDS)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
+            .pollInterval(2, SECONDS)
+            .atMost(AT_MOST_SECONDS_MULTIPLE_TASKS)
             .until(
                 () -> {
 
