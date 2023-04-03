@@ -41,6 +41,8 @@ public class DelayTasksBasedOnDelayUntilTest extends SpringBootFunctionalBaseTes
 
         if (taskDelay) {
             eventTimeStamp = LocalDateTime.now().plusSeconds(2);
+        } else {
+            eventTimeStamp = LocalDateTime.now().minusDays(1);
         }
         EventInformation eventInformation = getEventInformation(
             caseId,

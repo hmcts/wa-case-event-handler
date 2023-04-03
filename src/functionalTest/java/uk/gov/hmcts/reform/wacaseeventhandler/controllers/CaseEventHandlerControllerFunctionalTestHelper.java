@@ -117,6 +117,8 @@ public abstract class CaseEventHandlerControllerFunctionalTestHelper extends Spr
 
         if (taskDelay) {
             eventTimeStamp = LocalDateTime.now().plusSeconds(2);
+        } else {
+            eventTimeStamp = LocalDateTime.now().minusDays(1);
         }
         EventInformation eventInformation = getEventInformation(
             caseId,
@@ -141,6 +143,8 @@ public abstract class CaseEventHandlerControllerFunctionalTestHelper extends Spr
 
         if (taskDelay) {
             eventTimeStamp = LocalDateTime.now().plusSeconds(2);
+        } else {
+            eventTimeStamp = LocalDateTime.now().minusDays(1);
         }
         EventInformation eventInformation = getEventInformationWithAdditionalData(
             caseId, event, previousStateId, newStateId, eventTimeStamp, appealType
