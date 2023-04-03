@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import feign.FeignException;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -22,7 +23,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entities.camunda.CamundaValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.documents.Document;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.idam.UserInfo;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.AuthorizationProvider;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.CcdFeignClientApiRetryCheckerService;
 
 import java.io.IOException;
 import java.util.List;
@@ -134,8 +134,7 @@ public class GivensBuilder {
         return caseDetails.getId().toString();
     }
 
-    @Retryable(value = Exception.class,
-        exceptionExpression = CcdFeignClientApiRetryCheckerService.EXPRESSION,
+    @Retryable(value = FeignException.class,
         maxAttempts = 5,
         backoff = @Backoff(delay = 1000))
     private StartEventResponse getStartCase(String userToken, String serviceToken, UserInfo userInfo) {
@@ -149,11 +148,11 @@ public class GivensBuilder {
         );
     }
 
-    @Retryable(value = Exception.class,
-        exceptionExpression = CcdFeignClientApiRetryCheckerService.EXPRESSION,
+    @Retryable(value = FeignException.class,
         maxAttempts = 5,
         backoff = @Backoff(delay = 1000))
-    private CaseDetails sendSubmitEvent(String userToken, String serviceToken, UserInfo userInfo, CaseDataContent caseDataContent) {
+    private CaseDetails sendSubmitEvent(String userToken, String serviceToken, UserInfo userInfo,
+                                        CaseDataContent caseDataContent) {
         return coreCaseDataApi.submitForCaseworker(
             userToken,
             serviceToken,
@@ -165,11 +164,11 @@ public class GivensBuilder {
         );
     }
 
-    @Retryable(value = Exception.class,
-        exceptionExpression = CcdFeignClientApiRetryCheckerService.EXPRESSION,
+    @Retryable(value = FeignException.class,
         maxAttempts = 5,
         backoff = @Backoff(delay = 1000))
-    private StartEventResponse startEventForCaseworker(String userToken, String serviceToken, UserInfo userInfo, CaseDetails caseDetails) {
+    private StartEventResponse startEventForCaseworker(String userToken, String serviceToken, UserInfo userInfo,
+                                                       CaseDetails caseDetails) {
         return coreCaseDataApi.startEventForCaseWorker(
             userToken,
             serviceToken,
@@ -181,11 +180,11 @@ public class GivensBuilder {
         );
     }
 
-    @Retryable(value = Exception.class,
-        exceptionExpression = CcdFeignClientApiRetryCheckerService.EXPRESSION,
+    @Retryable(value = FeignException.class,
         maxAttempts = 5,
         backoff = @Backoff(delay = 1000))
-    private void submitEventForCaseworker(String userToken, String serviceToken, UserInfo userInfo, CaseDetails caseDetails, CaseDataContent submitCaseDataContent) {
+    private void submitEventForCaseworker(String userToken, String serviceToken, UserInfo userInfo,
+                                          CaseDetails caseDetails, CaseDataContent submitCaseDataContent) {
         coreCaseDataApi.submitEventForCaseWorker(
             userToken,
             serviceToken,
