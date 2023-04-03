@@ -357,7 +357,7 @@ dependencies {
   implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: versions.reformLogging
 
   implementation group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.0'
-  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '3.1.2'
+  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.0.0'
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.7.5'
   implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.12.1'
   implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.4'
