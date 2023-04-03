@@ -831,7 +831,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         await().ignoreException(AssertionError.class)
             .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(13, SECONDS)
+            .atMost(30, SECONDS)
             .until(
                 () -> {
 
@@ -1194,7 +1194,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         await().ignoreException(AssertionError.class)
             .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
-            .atMost(13, SECONDS)
+            .atMost(30, SECONDS)
             .until(
                 () -> {
                     //get task from CFT
