@@ -5,7 +5,6 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpStatus;
-import org.springframework.retry.support.RetrySynchronizationManager;
 import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
@@ -130,10 +129,6 @@ public class GivensBuilder {
     }
 
     private StartEventResponse getStartCase(String userToken, String serviceToken, UserInfo userInfo) {
-        if (RetrySynchronizationManager.getContext().getRetryCount() > 0) {
-            log.info("startForCaseworker retry no: " + RetrySynchronizationManager.getContext().getRetryCount()
-                         + ", event CREATE");
-        }
         return coreCaseDataApi.startForCaseworker(
             userToken,
             serviceToken,
