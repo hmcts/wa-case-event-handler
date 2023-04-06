@@ -1,13 +1,10 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import feign.FeignException;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpStatus;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.retry.support.RetrySynchronizationManager;
 import org.springframework.util.ResourceUtils;
 import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
@@ -132,9 +129,6 @@ public class GivensBuilder {
         return caseDetails.getId().toString();
     }
 
-    @Retryable(retryFor = FeignException.class,
-        maxAttempts = 5,
-        backoff = @Backoff(delay = 1000))
     private StartEventResponse getStartCase(String userToken, String serviceToken, UserInfo userInfo) {
         if (RetrySynchronizationManager.getContext().getRetryCount() > 0) {
             log.info("startForCaseworker retry no: " + RetrySynchronizationManager.getContext().getRetryCount()
@@ -150,15 +144,8 @@ public class GivensBuilder {
         );
     }
 
-    @Retryable(retryFor = FeignException.class,
-        maxAttempts = 5,
-        backoff = @Backoff(delay = 1000))
     private CaseDetails sendSubmitEvent(String userToken, String serviceToken, UserInfo userInfo,
                                         CaseDataContent caseDataContent) {
-        if (RetrySynchronizationManager.getContext().getRetryCount() > 0) {
-            log.info("submitForCaseworker retry no: " + RetrySynchronizationManager.getContext().getRetryCount()
-                         + ", eventToken: " + caseDataContent.getEventToken());
-        }
         return coreCaseDataApi.submitForCaseworker(
             userToken,
             serviceToken,
@@ -170,15 +157,8 @@ public class GivensBuilder {
         );
     }
 
-    @Retryable(retryFor = FeignException.class,
-        maxAttempts = 5,
-        backoff = @Backoff(delay = 1000))
     private StartEventResponse startEventForCaseworker(String userToken, String serviceToken, UserInfo userInfo,
                                                        CaseDetails caseDetails) {
-        if (RetrySynchronizationManager.getContext().getRetryCount() > 0) {
-            log.info("startEventForCaseWorker retry no: " + RetrySynchronizationManager.getContext().getRetryCount()
-                         + ", case: " + caseDetails.getId().toString());
-        }
         return coreCaseDataApi.startEventForCaseWorker(
             userToken,
             serviceToken,
@@ -190,15 +170,8 @@ public class GivensBuilder {
         );
     }
 
-    @Retryable(retryFor = FeignException.class,
-        maxAttempts = 5,
-        backoff = @Backoff(delay = 1000))
     private void submitEventForCaseworker(String userToken, String serviceToken, UserInfo userInfo,
                                           CaseDetails caseDetails, CaseDataContent submitCaseDataContent) {
-        if (RetrySynchronizationManager.getContext().getRetryCount() > 0) {
-            log.info("submitEventForCaseWorker retry no: " + RetrySynchronizationManager.getContext().getRetryCount()
-                         + ", case: " + caseDetails.getId().toString());
-        }
         coreCaseDataApi.submitEventForCaseWorker(
             userToken,
             serviceToken,
