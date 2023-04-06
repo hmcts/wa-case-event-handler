@@ -43,6 +43,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.fasterxml.jackson.databind.PropertyNamingStrategies.LOWER_CAMEL_CASE;
+import static com.fasterxml.jackson.databind.PropertyNamingStrategies.SNAKE_CASE;
 import static com.fasterxml.jackson.databind.PropertyNamingStrategies.UPPER_CAMEL_CASE;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Objects.requireNonNull;
@@ -127,6 +128,7 @@ public abstract class SpringBootFunctionalBaseTest {
         }
 
         camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
+        restApiActions = new RestApiActions(taskManagementUrl, SNAKE_CASE).setUp();
 
         documentManagementFiles.prepare();
 
