@@ -20,8 +20,8 @@ public class CcdRetryableClient {
     }
 
     @Retryable(retryFor = FeignException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
-    public StartEventResponse startForCaseworker(String authorisation, String serviceAuthorization,
-                                                 String userId, String jurisdictionId, String caseType, String eventId) {
+    public StartEventResponse startForCaseworker(String authorisation, String serviceAuthorization, String userId,
+                                                 String jurisdictionId, String caseType, String eventId) {
         log.info("Calling submitEventForCaseWorker");
         return coreCaseDataApi.startForCaseworker(authorisation, serviceAuthorization,
                                                   userId, jurisdictionId, caseType, eventId);
@@ -29,27 +29,29 @@ public class CcdRetryableClient {
 
     @Retryable(retryFor = FeignException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
     public CaseDetails submitForCaseworker(String authorisation, String serviceAuthorisation, String userId,
-                                           String jurisdictionId, String caseType, boolean ignoreWarning, CaseDataContent caseDataContent) {
+                                           String jurisdictionId, String caseType, boolean ignoreWarning,
+                                           CaseDataContent caseDataContent) {
         log.info("Calling submitForCaseworker");
         return coreCaseDataApi.submitForCaseworker(authorisation, serviceAuthorisation, userId, jurisdictionId,
                                                    caseType, ignoreWarning, caseDataContent);
     }
 
     @Retryable(retryFor = FeignException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
-    public StartEventResponse startEventForCaseWorker(String authorisation, String serviceAuthorization,
-                                                      String userId, String jurisdictionId, String caseType, String caseId, String eventId) {
+    public StartEventResponse startEventForCaseWorker(String authorisation, String serviceAuthorization, String userId,
+                                                      String jurisdictionId, String caseType, String caseId,
+                                                      String eventId) {
         log.info("Calling startEventForCaseWorker");
         return coreCaseDataApi.startEventForCaseWorker(authorisation, serviceAuthorization,
                                                        userId, jurisdictionId, caseType, caseId, eventId);
     }
 
     @Retryable(retryFor = FeignException.class, maxAttempts = 3, backoff = @Backoff(delay = 100))
-    public CaseDetails submitEventForCaseWorker(String authorisation, String serviceAuthorisation,
-                                                String userId, String jurisdictionId, String caseType, String caseId, boolean ignoreWarning,
-                                                CaseDataContent caseDataContent) {
+    public CaseDetails submitEventForCaseWorker(String authorisation, String serviceAuthorisation, String userId,
+                                                String jurisdictionId, String caseType, String caseId,
+                                                boolean ignoreWarning, CaseDataContent caseDataContent) {
         log.info("Calling submitEventForCaseWorker");
-        return coreCaseDataApi.submitEventForCaseWorker(authorisation, serviceAuthorisation, userId,
-                                                        jurisdictionId, caseType, caseId, ignoreWarning, caseDataContent);
+        return coreCaseDataApi.submitEventForCaseWorker(authorisation, serviceAuthorisation, userId, jurisdictionId,
+                                                        caseType, caseId, ignoreWarning, caseDataContent);
     }
 
 }
