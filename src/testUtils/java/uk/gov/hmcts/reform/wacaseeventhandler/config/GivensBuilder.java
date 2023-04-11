@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.ResourceUtils;
-import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDataContent;
 import uk.gov.hmcts.reform.ccd.client.model.CaseDetails;
 import uk.gov.hmcts.reform.ccd.client.model.Event;
@@ -45,17 +44,16 @@ public class GivensBuilder {
     private final RestApiActions camundaApiActions;
     private final AuthorizationProvider authorizationProvider;
     private final DocumentManagementFiles documentManagementFiles;
-
-    private final CoreCaseDataApi coreCaseDataApi;
+    private final CcdRetryableClient ccdRetryableClient;
 
     public GivensBuilder(RestApiActions camundaApiActions,
                          AuthorizationProvider authorizationProvider,
-                         CoreCaseDataApi coreCaseDataApi,
+                         CcdRetryableClient ccdRetryableClient,
                          DocumentManagementFiles documentManagementFiles
     ) {
         this.camundaApiActions = camundaApiActions;
         this.authorizationProvider = authorizationProvider;
-        this.coreCaseDataApi = coreCaseDataApi;
+        this.ccdRetryableClient = ccdRetryableClient;
         this.documentManagementFiles = documentManagementFiles;
 
     }
@@ -129,7 +127,7 @@ public class GivensBuilder {
     }
 
     private StartEventResponse getStartCase(String userToken, String serviceToken, UserInfo userInfo) {
-        return coreCaseDataApi.startForCaseworker(
+        return ccdRetryableClient.startForCaseworker(
             userToken,
             serviceToken,
             userInfo.getUid(),
@@ -141,7 +139,7 @@ public class GivensBuilder {
 
     private CaseDetails sendSubmitEvent(String userToken, String serviceToken, UserInfo userInfo,
                                         CaseDataContent caseDataContent) {
-        return coreCaseDataApi.submitForCaseworker(
+        return ccdRetryableClient.submitForCaseworker(
             userToken,
             serviceToken,
             userInfo.getUid(),
@@ -154,7 +152,7 @@ public class GivensBuilder {
 
     private StartEventResponse startEventForCaseworker(String userToken, String serviceToken, UserInfo userInfo,
                                                        CaseDetails caseDetails) {
-        return coreCaseDataApi.startEventForCaseWorker(
+        return ccdRetryableClient.startEventForCaseWorker(
             userToken,
             serviceToken,
             userInfo.getUid(),
@@ -167,7 +165,7 @@ public class GivensBuilder {
 
     private void submitEventForCaseworker(String userToken, String serviceToken, UserInfo userInfo,
                                           CaseDetails caseDetails, CaseDataContent submitCaseDataContent) {
-        coreCaseDataApi.submitEventForCaseWorker(
+        ccdRetryableClient.submitEventForCaseWorker(
             userToken,
             serviceToken,
             userInfo.getUid(),

@@ -110,7 +110,7 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
         sendMessage(messageId, eventInformation, false);
     }
 
-    protected void callRestEndpoint(String s2sToken,
+    private void callRestEndpoint(String s2sToken,
                                   EventInformation eventInformation,
                                   boolean sendDirectlyToDlq,
                                   String messageId) {
