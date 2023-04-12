@@ -356,17 +356,17 @@ dependencies {
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: versions.reformLogging
   implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: versions.reformLogging
 
-  implementation group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.0'
-  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '3.1.2'
+  implementation group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.1'
+  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '3.1.4'
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.7.5'
   implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.12.1'
-  implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.4'
+  implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.6'
   implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.0.24'
 
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: versions.tomcat
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: versions.tomcat
   implementation group: 'org.camunda.bpm', name: 'camunda-external-task-client', version: '7.17.0'
-  implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '6.0.4'
+  implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '6.0.6'
   implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.12.0'
   implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.0.4'
 
@@ -379,7 +379,7 @@ dependencies {
 
   testImplementation group: 'com.obsidiandynamics.pojotester', name: 'core', version: '0.9.0'
   testImplementation group: 'com.jparams', name: 'to-string-verifier', version: '1.4.8'
-  testImplementation group: 'com.google.guava', name: 'guava-testlib', version: '30.1-jre'
+  testImplementation group: 'com.google.guava', name: 'guava-testlib', version: '30.1.1-jre'
   testImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
   testImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
   testImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
