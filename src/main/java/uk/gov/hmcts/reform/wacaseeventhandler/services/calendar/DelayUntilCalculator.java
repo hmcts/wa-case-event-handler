@@ -5,7 +5,9 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
+import java.time.format.SignStyle;
 import java.time.temporal.ChronoField;
 import java.util.Arrays;
 import java.util.List;
@@ -14,8 +16,17 @@ import java.util.Optional;
 public interface DelayUntilCalculator {
 
     String DEFAULT_NON_WORKING_CALENDAR = "https://www.gov.uk/bank-holidays/england-and-wales.json";
-    DateTimeFormatter DELAY_UNTIL_DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-    DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+    DateTimeFormatter DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
+        .appendPattern("yyyy-MM-dd'T'HH:mm")
+        .optionalStart()
+        .appendLiteral(':')
+        .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
+        .optionalEnd()
+        .optionalStart()
+        .appendLiteral('.')
+        .appendValue(ChronoField.MILLI_OF_SECOND, 1, 3, SignStyle.NORMAL)
+        .optionalEnd()
+        .toFormatter();
     DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     LocalDateTime DEFAULT_DATE_TIME = LocalDateTime.now();
 
@@ -34,10 +45,9 @@ public interface DelayUntilCalculator {
             return zonedDateTime.toLocalDateTime();
         } catch (DateTimeParseException p) {
             if (dateContainsTime(inputDate)) {
-                Optional<LocalDateTime> calculated = parseDateTime(inputDate, DELAY_UNTIL_DATE_TIME_FORMATTER);
+                Optional<LocalDateTime> calculated = parseDateTime(inputDate, DATE_TIME_FORMATTER);
                 return calculated
-                    .orElseGet(() -> parseDateTime(inputDate, DATE_TIME_FORMATTER)
-                        .orElseThrow(() -> new RuntimeException("Provided date has invalid format: " + inputDate)));
+                        .orElseThrow(() -> new RuntimeException("Provided date has invalid format: " + inputDate));
             } else {
                 return LocalDate.parse(inputDate, DATE_FORMATTER).atStartOfDay();
             }

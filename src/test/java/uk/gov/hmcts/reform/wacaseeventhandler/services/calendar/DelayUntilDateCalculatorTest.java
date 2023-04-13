@@ -93,4 +93,17 @@ class DelayUntilDateCalculatorTest {
         LocalDateTime dateValue = delayUntilDateCalculator.calculateDate(delayUntilRequest);
         assertThat(dateValue).isEqualTo(GIVEN_DATE);
     }
+
+    @Test
+    void should_calculate_delay_until_when_delay_until_has_full_time_with_mills() {
+        String expectedDelayUntil = "2023-04-12T16:45:45.000";
+        final LocalDateTime givenDate = LocalDateTime
+                .of(2023, 04, 12, 16, 45, 45);
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
+            .delayUntil(expectedDelayUntil)
+            .build();
+
+        LocalDateTime dateValue = delayUntilDateCalculator.calculateDate(delayUntilRequest);
+        assertThat(dateValue).isEqualTo(givenDate);
+    }
 }
