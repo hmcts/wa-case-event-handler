@@ -6,15 +6,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DATE_FORMATTER;
-import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DATE_TIME_FORMATTER;
 
 @ExtendWith(MockitoExtension.class)
 class DelayUntilDateCalculatorTest {
 
-    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 00, 00);
+    public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
 
     private DelayUntilDateCalculator delayUntilDateCalculator;
 
@@ -84,7 +84,7 @@ class DelayUntilDateCalculatorTest {
 
     @Test
     void should_calculate_delay_until_when_delay_until_has_full_time() {
-        String expectedDelayUntil = GIVEN_DATE.format(DATE_TIME_FORMATTER);
+        String expectedDelayUntil = GIVEN_DATE.format(DateTimeFormatter.ISO_DATE_TIME);
 
         DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntil(expectedDelayUntil)
@@ -98,7 +98,46 @@ class DelayUntilDateCalculatorTest {
     void should_calculate_delay_until_when_delay_until_has_full_time_with_mills() {
         String expectedDelayUntil = "2023-04-12T16:45:45.000";
         final LocalDateTime givenDate = LocalDateTime
-                .of(2023, 04, 12, 16, 45, 45);
+            .of(2023, 4, 12, 16, 45, 45);
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
+            .delayUntil(expectedDelayUntil)
+            .build();
+
+        LocalDateTime dateValue = delayUntilDateCalculator.calculateDate(delayUntilRequest);
+        assertThat(dateValue).isEqualTo(givenDate);
+    }
+
+    @Test
+    void should_calculate_delay_until_when_delay_until_has_full_time_without_seconds() {
+        String expectedDelayUntil = "2023-04-12T16:45";
+        final LocalDateTime givenDate = LocalDateTime
+            .of(2023, 4, 12, 16, 45);
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
+            .delayUntil(expectedDelayUntil)
+            .build();
+
+        LocalDateTime dateValue = delayUntilDateCalculator.calculateDate(delayUntilRequest);
+        assertThat(dateValue).isEqualTo(givenDate);
+    }
+
+    @Test
+    void should_calculate_delay_until_when_delay_until_has_full_time_with_nano() {
+        String expectedDelayUntil = "2023-04-12T16:45:12.000000123";
+        final LocalDateTime givenDate = LocalDateTime
+            .of(2023, 4, 12, 16, 45, 12, 123);
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
+            .delayUntil(expectedDelayUntil)
+            .build();
+
+        LocalDateTime dateValue = delayUntilDateCalculator.calculateDate(delayUntilRequest);
+        assertThat(dateValue).isEqualTo(givenDate);
+    }
+
+    @Test
+    void should_calculate_delay_until_when_delay_until_has_full_time_with_nano_as_0() {
+        String expectedDelayUntil = "2023-04-12T16:45:12";
+        final LocalDateTime givenDate = LocalDateTime
+            .of(2023, 4, 12, 16, 45, 12, 0);
         DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntil(expectedDelayUntil)
             .build();
