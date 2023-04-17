@@ -14,7 +14,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformatio
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestAuthenticationCredentials;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -26,7 +26,6 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonS
 
 @Slf4j
 public class DelayTasksBasedOnDelayUntilTest extends SpringBootFunctionalBaseTest {
-
 
     private TestAuthenticationCredentials caseworkerCredentials;
     private LocalDateTime eventTimeStamp;
@@ -148,9 +147,8 @@ public class DelayTasksBasedOnDelayUntilTest extends SpringBootFunctionalBaseTes
         CamundaProcessVariables camundaProcessVariables = findProcessVariablesByCaseId(caseId);
         Map<String, DmnValue<?>> processVariables = camundaProcessVariables.getProcessVariablesMap();
         log.info("Process variables are {}", processVariables);
-        String expected = LocalDateTime.now().withHour(16).withMinute(0).withSecond(0)
-                .truncatedTo(ChronoUnit.MINUTES)
-                + ":00";
+        String expected = LocalDateTime.now().withHour(16).withMinute(0).withSecond(0).withNano(0)
+            .format(DateTimeFormatter.ISO_DATE_TIME);
         assertThat(processVariables.get("delayUntil").getValue()).isEqualTo(expected);
 
     }
@@ -173,9 +171,8 @@ public class DelayTasksBasedOnDelayUntilTest extends SpringBootFunctionalBaseTes
         CamundaProcessVariables camundaProcessVariables = findProcessVariablesByCaseId(caseId);
         Map<String, DmnValue<?>> processVariables = camundaProcessVariables.getProcessVariablesMap();
         log.info("Process variables are {}", processVariables);
-        String expected = LocalDateTime.now().withHour(16).withMinute(0).withSecond(0)
-                .truncatedTo(ChronoUnit.MINUTES)
-                + ":00";
+        String expected = LocalDateTime.now().withHour(16).withMinute(0).withSecond(0).withNano(0)
+            .format(DateTimeFormatter.ISO_DATE_TIME);
         assertThat(processVariables.get("delayUntil").getValue()).isEqualTo(expected);
 
     }
@@ -198,9 +195,8 @@ public class DelayTasksBasedOnDelayUntilTest extends SpringBootFunctionalBaseTes
         CamundaProcessVariables camundaProcessVariables = findProcessVariablesByCaseId(caseId);
         Map<String, DmnValue<?>> processVariables = camundaProcessVariables.getProcessVariablesMap();
         //truncatedTo does not keep the seconds if they are equal to zero
-        String expected = LocalDateTime.now().plusDays(2).withHour(18).withMinute(0).withSecond(0)
-                .truncatedTo(ChronoUnit.MINUTES)
-                + ":00";
+        String expected = LocalDateTime.now().plusDays(2).withHour(18).withMinute(0).withSecond(0).withNano(0)
+            .format(DateTimeFormatter.ISO_DATE_TIME);
         assertThat(processVariables.get("delayUntil").getValue()).isEqualTo(expected);
 
     }
