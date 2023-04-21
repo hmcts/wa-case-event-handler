@@ -13,7 +13,7 @@ plugins {
   id 'pmd'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-  id 'org.springframework.boot' version '2.7.10'
+  id 'org.springframework.boot' version '2.7.11'
   id 'org.owasp.dependencycheck' version '8.0.2'
   id 'com.github.ben-manes.versions' version '0.42.0'
   id 'uk.gov.hmcts.java' version '0.12.43'
@@ -314,7 +314,7 @@ def versions = [
   junitPlatform: '1.9.2',
   reformLogging: '5.1.9',
   springDoc    : '1.6.6',
-  springBoot   : '2.7.10',
+  springBoot   : '2.7.11',
   serenity     : '3.1.20',
   pitest       : '1.7.4',
   logbook      : '2.6.2',
@@ -345,7 +345,7 @@ dependencies {
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: versions.springBoot
   implementation group: 'org.springframework.security', name: 'spring-security-test', version: versions.springSecurity
   implementation group: 'org.springframework.security', name: 'spring-security-rsa', version: '1.0.11.RELEASE'
-  implementation 'org.springframework.boot:spring-boot-starter-security:2.7.10'
+  implementation 'org.springframework.boot:spring-boot-starter-security:2.7.11'
   implementation group: 'org.springframework.retry', name: 'spring-retry', version: versions.retry
   implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.1.6'
 
