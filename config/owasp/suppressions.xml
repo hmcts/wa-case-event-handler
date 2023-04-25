@@ -96,4 +96,10 @@
     </notes>
     <cve>CVE-2021-4235</cve>
   </suppress>
+  <suppress>
+    <notes>
+      This CVE is related to spring-boot-starter-json 2.7.7, spring boot 3 needed
+    </notes>
+    <cve>CVE-2023-20863</cve>
+  </suppress>
 </suppressions>
