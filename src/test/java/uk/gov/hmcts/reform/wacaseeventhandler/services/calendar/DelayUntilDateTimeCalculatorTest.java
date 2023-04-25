@@ -26,44 +26,44 @@ class DelayUntilDateTimeCalculatorTest {
     void should_not_supports_when_responses_contains_delay_until() {
         String localDateTime = GIVEN_DATE.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntil(localDateTime + "T16:00")
             .delayUntilTime("16:00")
             .build();
 
-        assertThat(delayUntilDateTimeCalculator.supports(delayUntilObject)).isFalse();
+        assertThat(delayUntilDateTimeCalculator.supports(delayUntilRequest)).isFalse();
     }
 
     @Test
     void should_not_supports_when_responses_contains_delay_until_origin() {
         String localDateTime = GIVEN_DATE.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntil(localDateTime + "T16:00")
             .delayUntilOrigin(localDateTime + "T20:00")
             .build();
 
-        assertThat(delayUntilDateTimeCalculator.supports(delayUntilObject)).isFalse();
+        assertThat(delayUntilDateTimeCalculator.supports(delayUntilRequest)).isFalse();
     }
 
     @Test
     void should_supports_when_responses_only_contains_delay_until_time() {
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilTime("16:00")
             .build();
 
-        assertThat(delayUntilDateTimeCalculator.supports(delayUntilObject)).isTrue();
+        assertThat(delayUntilDateTimeCalculator.supports(delayUntilRequest)).isTrue();
     }
 
     @Test
     void should_calculate_delay_until_when_time_is_given() {
         String localDateTime = DEFAULT_DATE_TIME.format(DATE_FORMATTER);
 
-        DelayUntilObject delayUntilObject = DelayUntilObject.builder()
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilTime("16:00")
             .build();
 
-        LocalDateTime responseValue = delayUntilDateTimeCalculator.calculateDate(delayUntilObject);
+        LocalDateTime responseValue = delayUntilDateTimeCalculator.calculateDate(delayUntilRequest);
         assertThat(responseValue).isEqualTo(localDateTime + "T16:00");
     }
 }
