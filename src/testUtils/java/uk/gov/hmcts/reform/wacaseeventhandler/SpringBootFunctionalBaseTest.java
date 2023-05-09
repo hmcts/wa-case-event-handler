@@ -20,8 +20,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.CcdRetryableClient;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.DocumentManagementFiles;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.GivensBuilder;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.RestApiActions;
@@ -87,7 +87,7 @@ public abstract class SpringBootFunctionalBaseTest {
     @Autowired
     protected AuthorizationProvider authorizationProvider;
     @Autowired
-    protected CoreCaseDataApi coreCaseDataApi;
+    protected CcdRetryableClient ccdRetryableClient;
     @Autowired
     protected DocumentManagementFiles documentManagementFiles;
     @Autowired
@@ -134,9 +134,8 @@ public abstract class SpringBootFunctionalBaseTest {
 
         given = new GivensBuilder(
             camundaApiActions,
-            restApiActions,
             authorizationProvider,
-            coreCaseDataApi,
+            ccdRetryableClient,
             documentManagementFiles
         );
 

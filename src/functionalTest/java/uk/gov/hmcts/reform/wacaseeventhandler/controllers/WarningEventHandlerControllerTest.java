@@ -35,10 +35,6 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         caseworkerCredentials = authorizationProvider.getNewWaTribunalCaseworker("wa-ft-test-r2-");
 
         taskIdStatusMap = new HashMap<>();
-        caseId1Task1Id = "";
-        caseId1Task2Id = "";
-        caseId2Task1Id = "";
-        caseId2Task2Id = "";
     }
 
     @After
@@ -69,7 +65,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
 
-        caseId1Task1Id = response
+        String caseId1Task1Id = response
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())
@@ -92,7 +88,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         response = findTasksByCaseId(caseIdForTask1, 2);
 
-        caseId1Task2Id = response
+        String caseId1Task2Id = response
             .then()
             .body("size()", is(2))
             .assertThat().body("[1].id", notNullValue())
@@ -145,7 +141,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         Response response = findTasksByCaseId(caseIdForTask1, 1);
 
-        caseId1Task1Id = response
+        String caseId1Task1Id = response
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())
@@ -203,7 +199,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
 
-        caseId1Task1Id = response
+        String caseId1Task1Id = response
             .then()
             .assertThat().body("[0].id", notNullValue())
             .extract()
@@ -226,7 +222,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         response = findTasksByCaseId(
             caseIdForTask1, 2);
 
-        caseId1Task2Id = response
+        String caseId1Task2Id = response
             .then()
             .body("size()", is(2))
             .assertThat().body("[1].id", notNullValue())
@@ -304,7 +300,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         String caseId1 = getWaCaseId();
         String taskIdDmnColumn = "attendCma";
-        caseId1Task1Id = createTaskWithId(
+        final String caseId1Task1Id = createTaskWithId(
             caseId1,
             "listCma",
             "",
@@ -319,7 +315,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         String caseId2 = getWaCaseId();
         String taskId2DmnColumn = "reviewRespondentResponse";
-        caseId1Task2Id = createTaskWithId(
+        final String caseId1Task2Id = createTaskWithId(
             caseId2,
             "uploadHomeOfficeAppealResponse",
             "",
@@ -388,7 +384,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         Response response = findTasksByCaseId(caseIdForTask1, 1);
 
-        caseId1Task1Id = response
+        String caseId1Task1Id = response
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())
@@ -439,7 +435,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         Response response = findTasksByCaseId(caseIdForTask1, 1);
 
-        caseId1Task1Id = response
+        String caseId1Task1Id = response
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())
@@ -464,7 +460,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         response = findTasksByCaseId(
             caseIdForTask1, 2);
 
-        caseId1Task2Id = response
+        String caseId1Task2Id = response
             .then()
             .body("size()", is(2))
             .assertThat().body("[1].id", notNullValue())
@@ -515,7 +511,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         Response response = findTasksByCaseId(caseIdForTask1, 1);
 
-        caseId1Task1Id = response
+        String caseId1Task1Id = response
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())
@@ -540,7 +536,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
         response = findTasksByCaseId(
             caseIdForTask1, 2);
 
-        caseId1Task2Id = response
+        String caseId1Task2Id = response
             .then()
             .body("size()", is(2))
             .assertThat().body("[1].id", notNullValue())
@@ -588,7 +584,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         Response response = findTasksByCaseId(caseIdForTask1, 1);
 
-        caseId1Task1Id = response
+        String caseId1Task1Id = response
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())
@@ -638,7 +634,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         Response response = findTasksByCaseId(caseIdForTask1, 1);
 
-        caseId1Task1Id = response
+        final String caseId1Task1Id = response
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())
@@ -698,7 +694,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         Response response = findTasksByCaseId(caseIdForTask1, 1);
 
-        caseId1Task1Id = response
+        String caseId1Task1Id = response
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())

@@ -98,7 +98,6 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
 
     protected void sendMessageToDlq(String messageId, EventInformation eventInformation) {
         sendMessage(messageId, eventInformation, true);
-        waitSeconds(SECONDS_TO_WAIT_FOR_THE_MESSAGE_TO_BE_PROCESSED);
     }
 
     protected void sendMessagesToTopic(Map<String, EventInformation> eventInformationMessages) {
@@ -109,7 +108,6 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
 
     protected void sendMessageToTopic(String messageId, EventInformation eventInformation) {
         sendMessage(messageId, eventInformation, false);
-        waitSeconds(SECONDS_TO_WAIT_FOR_THE_MESSAGE_TO_BE_PROCESSED);
     }
 
     private void callRestEndpoint(String s2sToken,
@@ -129,13 +127,15 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.CREATED.value());
     }
 
-    protected void sendMessage(String messageId,
-                               EventInformation eventInformation,
-                               boolean sendDirectlyToDlq) {
+    private void sendMessage(String messageId,
+                             EventInformation eventInformation,
+                             boolean sendDirectlyToDlq) {
         if (publisher != null) {
             log.info("sendMessage to the topic, using publisher with message ID " + messageId + ","
                          + " caseId: " + eventInformation.getCaseId() + ", toDLQ: " + sendDirectlyToDlq);
             publishMessageToTopic(eventInformation, sendDirectlyToDlq);
+
+            waitSeconds(SECONDS_TO_WAIT_FOR_THE_MESSAGE_TO_BE_PROCESSED);
         } else {
             log.info("sendMessage to the topic, using restEndpoint with message ID " + messageId + ","
                          + " caseId: " + eventInformation.getCaseId() + ", toDLQ: " + sendDirectlyToDlq);
@@ -151,8 +151,6 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
         }
 
         publisher.sendMessage(message);
-
-        waitSeconds(3);
     }
 
     protected EventMessageQueryResponse getMessagesFromDb(String caseId, boolean fromDlq) {
