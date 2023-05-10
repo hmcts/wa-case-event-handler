@@ -46,6 +46,10 @@ withPipeline(type, product, component) {
 
   loadVaultSecrets(secrets)
 
+  before('functionalTest:preview') {
+    env.MAX_FT_TESTS_PARALLEL_FORKS = 1
+  }
+
   afterSuccess('test') {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/**/*'
   }
@@ -53,6 +57,10 @@ withPipeline(type, product, component) {
   afterSuccess('functionalTest:preview') {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/site/serenity/**/*'
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/**/*'
+  }
+
+  before('functionalTest:aat') {
+    env.MAX_FT_TESTS_PARALLEL_FORKS = 5
   }
 
   afterSuccess('functionalTest:aat') {

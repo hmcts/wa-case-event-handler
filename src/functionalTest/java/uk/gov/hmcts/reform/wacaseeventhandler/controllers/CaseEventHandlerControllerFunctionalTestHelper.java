@@ -39,10 +39,6 @@ public abstract class CaseEventHandlerControllerFunctionalTestHelper extends Spr
 
     protected LocalDateTime eventTimeStamp;
     protected Map<String, String> taskIdStatusMap;
-    protected String caseId1Task1Id;
-    protected String caseId1Task2Id;
-    protected String caseId2Task1Id;
-    protected String caseId2Task2Id;
     protected TestAuthenticationCredentials caseworkerCredentials;
 
     protected void assertTaskDeleteReason(String task1Id, String expectedDeletedReason) {
@@ -117,6 +113,8 @@ public abstract class CaseEventHandlerControllerFunctionalTestHelper extends Spr
 
         if (taskDelay) {
             eventTimeStamp = LocalDateTime.now().plusSeconds(2);
+        } else {
+            eventTimeStamp = LocalDateTime.now().minusDays(1);
         }
         EventInformation eventInformation = getEventInformation(
             caseId,
@@ -141,6 +139,8 @@ public abstract class CaseEventHandlerControllerFunctionalTestHelper extends Spr
 
         if (taskDelay) {
             eventTimeStamp = LocalDateTime.now().plusSeconds(2);
+        } else {
+            eventTimeStamp = LocalDateTime.now().minusDays(1);
         }
         EventInformation eventInformation = getEventInformationWithAdditionalData(
             caseId, event, previousStateId, newStateId, eventTimeStamp, appealType
