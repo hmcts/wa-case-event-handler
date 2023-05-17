@@ -22,7 +22,6 @@ import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.InitiateTaskRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.CcdRetryableClient;
-import uk.gov.hmcts.reform.wacaseeventhandler.config.DocumentManagementFiles;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.GivensBuilder;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.RestApiActions;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestVariables;
@@ -89,8 +88,6 @@ public abstract class SpringBootFunctionalBaseTest {
     @Autowired
     protected CcdRetryableClient ccdRetryableClient;
     @Autowired
-    protected DocumentManagementFiles documentManagementFiles;
-    @Autowired
     protected IdamService idamService;
     @Autowired
     protected RoleAssignmentServiceApi roleAssignmentServiceApi;
@@ -129,8 +126,6 @@ public abstract class SpringBootFunctionalBaseTest {
 
         camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
         restApiActions = new RestApiActions(taskManagementUrl, SNAKE_CASE).setUp();
-
-        documentManagementFiles.prepare();
 
         given = new GivensBuilder(
             camundaApiActions,
