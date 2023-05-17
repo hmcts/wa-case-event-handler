@@ -135,8 +135,7 @@ public abstract class SpringBootFunctionalBaseTest {
         given = new GivensBuilder(
             camundaApiActions,
             authorizationProvider,
-            ccdRetryableClient,
-            documentManagementFiles
+            ccdRetryableClient
         );
 
         common = new Common(
