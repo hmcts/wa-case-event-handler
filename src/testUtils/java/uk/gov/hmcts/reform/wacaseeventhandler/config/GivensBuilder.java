@@ -16,7 +16,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entities.camunda.CamundaProcessVar
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.camunda.CamundaSendMessageRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.camunda.CamundaTask;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.camunda.CamundaValue;
-import uk.gov.hmcts.reform.wacaseeventhandler.entities.documents.Document;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.idam.UserInfo;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.AuthorizationProvider;
 
@@ -35,7 +34,6 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTes
 import static uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest.SERVICE_AUTHORIZATION;
 import static uk.gov.hmcts.reform.wacaseeventhandler.entities.camunda.CamundaMessage.CREATE_TASK_MESSAGE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.entities.camunda.CamundaProcessVariables.ProcessVariablesBuilder.processVariables;
-import static uk.gov.hmcts.reform.wacaseeventhandler.entities.documents.DocumentNames.NOTICE_OF_APPEAL_PDF;
 import static uk.gov.hmcts.reform.wacaseeventhandler.utils.Common.CAMUNDA_DATA_TIME_FORMATTER;
 
 @Slf4j
@@ -43,18 +41,15 @@ public class GivensBuilder {
 
     private final RestApiActions camundaApiActions;
     private final AuthorizationProvider authorizationProvider;
-    private final DocumentManagementFiles documentManagementFiles;
     private final CcdRetryableClient ccdRetryableClient;
 
     public GivensBuilder(RestApiActions camundaApiActions,
                          AuthorizationProvider authorizationProvider,
-                         CcdRetryableClient ccdRetryableClient,
-                         DocumentManagementFiles documentManagementFiles
+                         CcdRetryableClient ccdRetryableClient
     ) {
         this.camundaApiActions = camundaApiActions;
         this.authorizationProvider = authorizationProvider;
         this.ccdRetryableClient = ccdRetryableClient;
-        this.documentManagementFiles = documentManagementFiles;
 
     }
 
@@ -65,8 +60,6 @@ public class GivensBuilder {
         String serviceToken = lawFirmCredentials.getHeaders().getValue(SERVICE_AUTHORIZATION);
         UserInfo userInfo = authorizationProvider.getUserInfo(userToken);
 
-        Document document = documentManagementFiles.getDocumentAs(NOTICE_OF_APPEAL_PDF, lawFirmCredentials);
-
         StartEventResponse startCaseEvent = getStartCase(userToken, serviceToken, userInfo);
 
         String resourceFilename = "requests/ccd/wa_case_data.json";
@@ -75,18 +68,6 @@ public class GivensBuilder {
         try {
             String caseDataString =
                 FileUtils.readFileToString(ResourceUtils.getFile("classpath:" + resourceFilename), "UTF-8");
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL}",
-                document.getDocumentUrl()
-            );
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_NAME}",
-                document.getDocumentFilename()
-            );
-            caseDataString = caseDataString.replace(
-                "{NOTICE_OF_DECISION_DOCUMENT_STORE_URL_BINARY}",
-                document.getDocumentBinaryUrl()
-            );
 
             data = new ObjectMapper().readValue(caseDataString, Map.class);
         } catch (IOException e) {

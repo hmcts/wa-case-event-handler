@@ -126,6 +126,8 @@ class CcdEventProcessorTest {
         verify(mapper, Mockito.times(1))
             .readValue(incomingMessage, EventInformation.class);
 
+        output.length();
+
         assertThat(output).contains("Case details: \n");
         assertThat(output).contains("Additional data: \n");
     }
