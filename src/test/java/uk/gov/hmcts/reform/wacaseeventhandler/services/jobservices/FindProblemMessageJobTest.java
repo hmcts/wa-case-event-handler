@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,8 +30,11 @@ public class FindProblemMessageJobTest {
 
     private FindProblemMessageJob findProblemMessageJob;
 
+    @Mock
+    private ObjectMapper objectMapper;
+
     @Spy
-    private CaseEventMessageMapper caseEventMessageMapper = new CaseEventMessageMapper();
+    private CaseEventMessageMapper caseEventMessageMapper = new CaseEventMessageMapper(objectMapper);
 
     @BeforeEach
     void setUp() {
