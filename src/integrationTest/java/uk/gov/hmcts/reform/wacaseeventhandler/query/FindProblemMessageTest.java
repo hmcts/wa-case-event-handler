@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.query;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -27,8 +29,11 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 @Testcontainers
 @Sql("/scripts/problem_messages_data.sql")
 public class FindProblemMessageTest {
+    @Mock
+    private ObjectMapper objectMapper = new ObjectMapper();
 
-    private final CaseEventMessageMapper caseEventMessageMapper =  new CaseEventMessageMapper();
+    private final CaseEventMessageMapper caseEventMessageMapper = new CaseEventMessageMapper(objectMapper);
+
     @Autowired
     private CaseEventMessageRepository caseEventMessageRepository;
 

@@ -31,7 +31,7 @@ public class FindProblemMessageJobTest {
     private FindProblemMessageJob findProblemMessageJob;
 
     @Mock
-    private ObjectMapper objectMapper;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Spy
     private CaseEventMessageMapper caseEventMessageMapper = new CaseEventMessageMapper(objectMapper);
@@ -85,6 +85,14 @@ public class FindProblemMessageJobTest {
         CaseEventMessageEntity caseEventMessageEntity = new CaseEventMessageEntity();
         caseEventMessageEntity.setMessageId(MESSAGE_ID);
         caseEventMessageEntity.setState(messageState);
+        caseEventMessageEntity.setMessageContent("{\"EventInstanceId\":\"EventInstanceId_123\", "
+                                                 + "\"EventTimeStamp\":\"2023-05-10T08:25:51.713379525\","
+                                                 + "\"CaseId\":\"CaseId_123\","
+                                                 + "\"CaseTypeId\":\"CaseType_123\","
+                                                 + "\"EventId\":\"EventId_123\","
+                                                 + "\"PreviousStateId\":\"\","
+                                                 + "\"NewstateId\":\"NewstateId_123\","
+                                                 + "\"UserId\":\"UserId_123\"}");
         return caseEventMessageEntity;
     }
 
