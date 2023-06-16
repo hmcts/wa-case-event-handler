@@ -41,12 +41,14 @@ public class CaseEventMessageMapper {
 
     private String getCaseTypeId(CaseEventMessageEntity entity) {
         String caseTypeId = null;
-        try {
-            JsonNode jsonNodeMessageContent = objectMapper.readTree(entity.getMessageContent());
-            JsonNode jsonNodeCaseTypeId = jsonNodeMessageContent.get("CaseTypeId");
-            caseTypeId = jsonNodeCaseTypeId.asText();
-        } catch (JsonProcessingException jsonProcessingException) {
-            log.info(String.valueOf(jsonProcessingException));
+        if (entity.getMessageContent() != null) {
+            try {
+                JsonNode jsonNodeMessageContent = objectMapper.readTree(entity.getMessageContent());
+                JsonNode jsonNodeCaseTypeId = jsonNodeMessageContent.get("CaseTypeId");
+                caseTypeId = jsonNodeCaseTypeId.asText();
+            } catch (Exception jsonProcessingException) {
+                log.info("Error extracting case type ID from message", jsonProcessingException);
+            }
         }
         return caseTypeId;
     }
