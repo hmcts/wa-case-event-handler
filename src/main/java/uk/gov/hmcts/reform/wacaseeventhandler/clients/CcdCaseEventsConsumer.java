@@ -74,7 +74,7 @@ public class CcdCaseEventsConsumer implements Runnable {
         } catch (IllegalStateException ex) {
             log.info("Timeout: No CCD Case Event messages received waiting for next session.");
         } catch (ServiceBusException ex) {
-            log.error("Error occurred while receiving messages: {}", ex.getMessage());
+            log.error("Error occurred while receiving messages", ex);
         } catch (Exception ex) {
             log.error("Error occurred while closing the session", ex);
         }
