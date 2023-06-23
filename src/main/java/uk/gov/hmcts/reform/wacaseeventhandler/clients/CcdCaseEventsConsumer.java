@@ -1,9 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
-import com.azure.core.amqp.exception.AmqpErrorCondition;
-import com.azure.core.amqp.exception.AmqpErrorContext;
-import com.azure.core.amqp.exception.AmqpException;
-import com.azure.messaging.servicebus.ServiceBusErrorSource;
 import com.azure.messaging.servicebus.ServiceBusException;
 import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
@@ -13,8 +9,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.ServiceBusConfiguration;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
-import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.EventMessageReceiverService;
 
 @Slf4j
@@ -61,17 +55,9 @@ public class CcdCaseEventsConsumer implements Runnable {
                                 sessionId
                             );
 
-                            CaseEventMessage caseEventMessage = eventMessageReceiverService
+                            eventMessageReceiverService
                                 .handleCcdCaseEventAsbMessage(messageId, sessionId,
-                                                              new String(message.getBody().toBytes())
-                                );
-
-                            // TODO: this is a temporary code to test this class exception sampling in AppInsights
-                            if (caseEventMessage.getState() == MessageState.UNPROCESSABLE) {
-                                throw new ServiceBusException(new AmqpException(false, AmqpErrorCondition.NOT_FOUND, "",
-                                                                                new AmqpErrorContext("test")),
-                                                              ServiceBusErrorSource.COMPLETE);
-                            }
+                                                              new String(message.getBody().toBytes()));
                             receiver.complete(message);
 
                             log.info("CCD Case Event message with id '{}' handled successfully", messageId);
