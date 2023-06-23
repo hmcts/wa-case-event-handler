@@ -8,7 +8,6 @@ import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
 import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -64,7 +63,6 @@ class CcdCaseEventConsumerTest {
         verify(receiverClient, Mockito.times(0)).deadLetter(any(), any());
     }
 
-    @Disabled("Temporarily ignoring to test exception sampling in AppInsights")
     @Test
     void given_session_is_accepted_when_receiver_complete_throws_error() {
         when(receivedMessage.getBody()).thenReturn(BinaryData.fromString("TestMessage"));
@@ -81,7 +79,6 @@ class CcdCaseEventConsumerTest {
         verify(receiverClient, Mockito.times(0)).deadLetter(any(), any());
     }
 
-    @Disabled("Temporarily ignoring to test exception sampling in AppInsights")
     @Test
     void given_session_is_accepted_when_receiver_complete_throws_error_on_both_calls() {
         when(receivedMessage.getBody()).thenReturn(BinaryData.fromString("TestMessage"));
@@ -117,7 +114,6 @@ class CcdCaseEventConsumerTest {
         verify(receiverClient, Mockito.times(0)).deadLetter(any(), any());
     }
 
-    @Disabled("Temporarily ignoring to test exception sampling in AppInsights")
     @Test
     void given_session_is_accepted_when_message_is_consumed() {
         when(receivedMessage.getBody()).thenReturn(BinaryData.fromString("TestMessage"));
