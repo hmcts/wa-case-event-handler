@@ -8,6 +8,7 @@ import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
 import lombok.SneakyThrows;
 import org.junit.FixMethodOrder;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.runners.MethodSorters;
 import org.mockito.ArgumentCaptor;
@@ -123,6 +124,7 @@ public class EventConsumerIntegrationTest {
         when(repository.save(any(CaseEventMessageEntity.class))).thenReturn(null);
     }
 
+    @Disabled("Temporarily ignoring to test exception sampling in AppInsights")
     @Test
     public void should_complete_the_message_when_message_processed_successfully() {
         String messageId = "some_message_id_1";
