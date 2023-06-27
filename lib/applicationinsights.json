@@ -25,7 +25,7 @@
           "attributes": [
             {
               "key": "LoggerName",
-              "value": "CcdCaseEventsConsumer",
+              "value": ".*CcdCaseEventsConsumer.*",
               "matchType": "regexp"
             }
           ],
@@ -58,7 +58,7 @@
           "attributes": [
             {
               "key": "LoggerName",
-              "value": "CcdCaseEventsDeadLetterQueueConsumer",
+              "value": ".*CcdCaseEventsDeadLetterQueueConsumer.*",
               "matchType": "regexp"
             }
           ],
