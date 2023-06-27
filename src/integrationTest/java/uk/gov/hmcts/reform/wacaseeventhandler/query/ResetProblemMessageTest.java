@@ -1,12 +1,10 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.query;
 
-import com.microsoft.applicationinsights.TelemetryClient;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
@@ -28,10 +26,6 @@ public class ResetProblemMessageTest {
 
     @Autowired
     private CaseEventMessageRepository caseEventMessageRepository;
-
-    @MockBean
-    private TelemetryClient telemetryClient;
-
 
     @Test
     void should_retrieve_an_ready_message() {

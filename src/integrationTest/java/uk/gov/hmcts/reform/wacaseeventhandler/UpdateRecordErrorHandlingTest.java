@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.microsoft.applicationinsights.extensibility.context.OperationContext;
-import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,7 +39,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.lenient;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -55,9 +53,6 @@ public class UpdateRecordErrorHandlingTest {
         .registerModule(new Jdk8Module());
     private static final String MESSAGE_ID = "MessageId_30915063-ec4b-4272-933d-91087b486195";
     private static final String MESSAGE_ID_2 = "MessageId_bc8299fc-5d31-45c7-b847-c2622014a85a";
-
-    @Mock
-    private TelemetryContext telemetryContext;
 
     @Mock
     private OperationContext operationContext;
@@ -80,7 +75,6 @@ public class UpdateRecordErrorHandlingTest {
 
     @BeforeEach
     void setup() {
-        lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
         ccdMessageProcessorExecutor.start();
     }
 
