@@ -1,14 +1,11 @@
 package uk.gov.hmcts.reform.wacaseeventhandler;
 
-import com.microsoft.applicationinsights.extensibility.context.OperationContext;
-import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,7 +30,6 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -60,12 +56,6 @@ public class MessageReadinessResilienceTest {
     @MockBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
-    @Mock
-    private TelemetryContext telemetryContext;
-
-    @Mock
-    private OperationContext operationContext;
-
     @MockBean
     private DeadLetterQueuePeekService deadLetterQueuePeekService;
 
@@ -80,7 +70,6 @@ public class MessageReadinessResilienceTest {
     @BeforeEach
     void setup() {
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
-        lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
         count = new AtomicInteger(0);
     }
 

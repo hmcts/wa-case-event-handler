@@ -1,7 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler;
 
-import com.microsoft.applicationinsights.extensibility.context.OperationContext;
-import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.exception.JDBCConnectionException;
 import org.junit.jupiter.api.AfterEach;
@@ -52,10 +50,6 @@ public class DatabaseMessageConsumerResilienceTest {
                                                   + "Catching exception continuing execution";
     private static final int MAX_ATTEMPTS = 5;
 
-    @Mock
-    private TelemetryContext telemetryContext;
-    @Mock
-    private OperationContext operationContext;
     @MockBean
     private DeadLetterQueuePeekService deadLetterQueuePeekService;
     @MockBean
@@ -73,7 +67,6 @@ public class DatabaseMessageConsumerResilienceTest {
     @BeforeEach
     void setup() {
         transactionTemplate.setTransactionManager(platformTransactionManager);
-        lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
         count = new AtomicInteger(0);
     }
 
