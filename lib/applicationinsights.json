@@ -10,7 +10,7 @@
     "sampling": {
       "overrides": [
         {
-          "telemetryType": "request",
+          "telemetryKind": "request",
           "attributes": [
             {
               "key": "http.url",
@@ -21,7 +21,7 @@
           "percentage": 1
         },
         {
-          "telemetryType": "exception",
+          "telemetryKind": "exception",
           "attributes": [
             {
               "key": "LoggerName",
@@ -32,12 +32,45 @@
           "percentage": 0
         },
         {
-          "telemetryType": "exception",
+          "telemetryKind": "exception",
+          "attributes": [
+            {
+              "key": "Logger Message",
+              "value": "Error occurred while receiving messages",
+              "matchType": "strict"
+            }
+          ],
+          "percentage": 0
+        },
+        {
+          "telemetryKind": "exception",
+          "attributes": [
+            {
+              "key": "Logger Message",
+              "value": "Error occurred while closing the session",
+              "matchType": "strict"
+            }
+          ],
+          "percentage": 0
+        },
+        {
+          "telemetryKind": "exception",
           "attributes": [
             {
               "key": "LoggerName",
               "value": "CcdCaseEventsDeadLetterQueueConsumer",
               "matchType": "regexp"
+            }
+          ],
+          "percentage": 0
+        },
+        {
+          "telemetryKind": "exception",
+          "attributes": [
+            {
+              "key": "Logger Message",
+              "value": "Error occurred while completing the message processing",
+              "matchType": "strict"
             }
           ],
           "percentage": 0
