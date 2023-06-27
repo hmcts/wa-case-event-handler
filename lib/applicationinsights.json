@@ -29,7 +29,18 @@
               "matchType": "regexp"
             }
           ],
-          "percentage": 100
+          "percentage": 0
+        },
+        {
+          "telemetryType": "exception",
+          "attributes": [
+            {
+              "key": "LoggerName",
+              "value": "CcdCaseEventsDeadLetterQueueConsumer",
+              "matchType": "regexp"
+            }
+          ],
+          "percentage": 0
         }
       ]
     }
