@@ -27,7 +27,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.lenient;
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
