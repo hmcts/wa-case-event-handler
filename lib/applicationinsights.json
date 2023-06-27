@@ -1,5 +1,5 @@
 {
-  "connectionString": "${file:/mnt/secrets/wa/app-insights-connection-string}",
+  "connectionString": "InstrumentationKey=702e4928-d257-4e0a-8792-b5c5cd622c25;IngestionEndpoint=https://uksouth-0.in.applicationinsights.azure.com/;LiveEndpoint=https://uksouth.livediagnostics.monitor.azure.com/",
   "role": {
     "name": "WA Case Event Handler"
   },
@@ -29,7 +29,7 @@
               "matchType": "regexp"
             }
           ],
-          "percentage": 1
+          "percentage": 100
         }
       ]
     }
