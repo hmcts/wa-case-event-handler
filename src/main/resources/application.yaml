@@ -87,8 +87,8 @@ govUkHolidays:
 azure:
   servicebus:
     connection-string: ${AZURE_SERVICE_BUS_CONNECTION_STRING}
-    topic-name: ccd-case-events-aat
-    ccd-case-events-subscription-name: wa-ccd-case-events-sub-aat-test
+    topic-name: ${AZURE_SERVICE_BUS_TOPIC_NAME:ccd-case-events-aat}
+    ccd-case-events-subscription-name: ${AZURE_SERVICE_BUS_CCD_CASE_EVENTS_SUBSCRIPTION_NAME:wa-ccd-case-events-sub-aat-test}
     retry-duration: ${AZURE_SERVICE_BUS_RETRY_DURATION:60}
     threads: ${AZURE_SERVICE_BUS_CONCURRENT_SESSIONS:1}
     enableASB-DLQ: ${AZURE_SERVICE_BUS_DLQ_FEATURE_TOGGLE:false}
