@@ -26,9 +26,6 @@ class CaseEventMessageMapperTest {
     @BeforeEach
     void setUp() {
         mapper = new CaseEventMessageMapper(objectMapper);
-        objectMapper.registerModule(new Jdk8Module());
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     @Test

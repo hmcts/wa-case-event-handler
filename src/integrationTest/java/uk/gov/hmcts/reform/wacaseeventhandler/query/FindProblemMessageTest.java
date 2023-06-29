@@ -30,8 +30,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 @Sql("/scripts/problem_messages_data.sql")
 public class FindProblemMessageTest {
 
-    @Mock
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private ObjectMapper objectMapper;
 
     private final CaseEventMessageMapper caseEventMessageMapper = new CaseEventMessageMapper(objectMapper);
 

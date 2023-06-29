@@ -30,7 +30,6 @@ public class FindProblemMessageJobTest {
 
     private FindProblemMessageJob findProblemMessageJob;
 
-    @Mock
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Spy

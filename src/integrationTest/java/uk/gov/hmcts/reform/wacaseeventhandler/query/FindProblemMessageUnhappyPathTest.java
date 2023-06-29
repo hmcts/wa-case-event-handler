@@ -25,7 +25,7 @@ import java.util.List;
 @Sql("/scripts/problem_messages_unhappy_path_data.sql")
 public class FindProblemMessageUnhappyPathTest {
     @Mock
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private ObjectMapper objectMapper;
 
     private final CaseEventMessageMapper caseEventMessageMapper =  new CaseEventMessageMapper(objectMapper);
 
