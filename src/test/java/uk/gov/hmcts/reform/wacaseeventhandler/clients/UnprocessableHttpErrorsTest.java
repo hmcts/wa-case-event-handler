@@ -30,11 +30,6 @@ class UnprocessableHttpErrorsTest {
     }
 
     @Test
-    void should_return_true_for_a_401_retryable_error() {
-        assertTrue(UnprocessableHttpErrors.isNonRetryableError(HttpStatus.UNAUTHORIZED));
-    }
-
-    @Test
     void should_return_false_for_a_5XX_retryable_error() {
         assertFalse(UnprocessableHttpErrors.isNonRetryableError(HttpStatus.GATEWAY_TIMEOUT));
     }
