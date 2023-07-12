@@ -89,7 +89,7 @@ public class FindProblemMessageJobTest {
         when(caseEventMessageRepository.findProblemMessages(messageTimeLimit))
             .thenReturn(Collections.singletonList(mockCaseEventMessageEntity));
         List<String> caseEventMessages = findProblemMessageJob.run();
-        assertTrue(log.getOut().contains("\"CaseTypeId\" : \"CaseType_123\""));
+        assertTrue(log.getOut().contains("\"caseTypeId\" : \"CaseType_123\""));
     }
 
     private CaseEventMessageEntity createMockCaseEventMessageEntity(MessageState messageState) {
