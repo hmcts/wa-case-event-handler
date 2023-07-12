@@ -7,6 +7,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
@@ -78,6 +80,16 @@ public class FindProblemMessageJobTest {
         List<String> readyMessages = findProblemMessageJob.run();
         assertEquals(1, readyMessages.size());
         assertEquals(MESSAGE_ID, readyMessages.get(0));
+    }
+
+    @ExtendWith(OutputCaptureExtension.class)
+    @Test
+    void should_include_case_type_id_in_log(CapturedOutput log) {
+        final CaseEventMessageEntity mockCaseEventMessageEntity = createMockCaseEventMessageEntity(MessageState.READY);
+        when(caseEventMessageRepository.findProblemMessages(messageTimeLimit))
+            .thenReturn(Collections.singletonList(mockCaseEventMessageEntity));
+        List<String> caseEventMessages = findProblemMessageJob.run();
+        assertTrue(log.getOut().contains("\"CaseTypeId\" : \"CaseType_123\""));
     }
 
     private CaseEventMessageEntity createMockCaseEventMessageEntity(MessageState messageState) {
