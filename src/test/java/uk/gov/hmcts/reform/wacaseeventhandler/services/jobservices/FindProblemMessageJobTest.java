@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageMapper;
 import java.util.Collections;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -89,7 +90,7 @@ public class FindProblemMessageJobTest {
         when(caseEventMessageRepository.findProblemMessages(messageTimeLimit))
             .thenReturn(Collections.singletonList(mockCaseEventMessageEntity));
         List<String> caseEventMessages = findProblemMessageJob.run();
-        assertTrue(log.getOut().contains("\"caseTypeId\" : \"CaseType_123\""));
+        assertThat(log.getOut().contains("\"caseTypeId\" : \"CaseType_123\""));
     }
 
     private CaseEventMessageEntity createMockCaseEventMessageEntity(MessageState messageState) {
