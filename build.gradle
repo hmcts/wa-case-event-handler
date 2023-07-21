@@ -221,7 +221,7 @@ dependencyCheck {
 }
 dependencyManagement {
   dependencies {
-    dependency group: 'com.github.docker-java', name: 'docker-java', version: '3.3.0'
+    dependency group: 'com.github.docker-java', name: 'docker-java', version: '3.3.2'
     dependency group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.70'
     // CVE-2018-10237 - Unbounded memory allocation
     dependencySet(group: 'com.google.guava', version: '31.1-jre') {
@@ -359,7 +359,7 @@ dependencies {
   implementation group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.1'
   implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '3.1.4'
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.9.2'
-  implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.14.1'
+  implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.14.2'
   implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.7'
   implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.1.7'
 
@@ -411,7 +411,7 @@ dependencies {
   implementation group: 'com.zaxxer', name: 'HikariCP', version: '5.0.1'
   implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.21.1'
 
-  implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.15.1'
+  implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.15.2'
   runtimeOnly group: 'org.postgresql', name: 'postgresql', version: '42.6.0'
 }
 
