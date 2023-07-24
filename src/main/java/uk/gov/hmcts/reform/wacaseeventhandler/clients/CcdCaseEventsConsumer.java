@@ -43,28 +43,32 @@ public class CcdCaseEventsConsumer implements Runnable {
     @SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
     protected void consumeMessage(ServiceBusSessionReceiverClient sessionReceiver) {
         try (ServiceBusReceiverClient receiver = sessionReceiver.acceptNextSession()) {
-            if (receiver != null) {
-                receiver.receiveMessages(1).forEach(
-                    message -> {
-                        try {
-                            String messageId = message.getMessageId();
-                            String sessionId = message.getSessionId();
-                            log.info("Received CCD Case Event message with id '{}' and case id '{}'", messageId, sessionId);
 
-                            eventMessageReceiverService.handleCcdCaseEventAsbMessage(messageId, sessionId,
-                                new String(message.getBody().toBytes()));
-                            receiver.complete(message);
+            if (receiver == null) {
+                log.warn("ServiceBusReceiverClient receiver was null.");
+                return;
 
-                            log.info("CCD Case Event message with id '{}' handled successfully", messageId);
-                        } catch (Exception ex) {
-                            log.error("Error processing CCD Case Event message with id '{}' - "
-                                      + "abandon the processing and ASB will re-deliver it", message.getMessageId());
-                            receiver.abandon(message);
-                        }
-                    });
-            } else {
-                log.warn("ServiceBusReceiverClient receiver was null");
             }
+
+            receiver.receiveMessages(1).forEach(
+                message -> {
+                    try {
+                        String messageId = message.getMessageId();
+                        String sessionId = message.getSessionId();
+                        log.info("Received CCD Case Event message with id '{}' and case id '{}'",
+                            messageId, sessionId);
+
+                        eventMessageReceiverService.handleCcdCaseEventAsbMessage(messageId, sessionId,
+                            new String(message.getBody().toBytes()));
+                        receiver.complete(message);
+
+                        log.info("CCD Case Event message with id '{}' handled successfully", messageId);
+                    } catch (Exception ex) {
+                        log.error("Error processing CCD Case Event message with id '{}' - "
+                                  + "abandon the processing and ASB will re-deliver it", message.getMessageId());
+                        receiver.abandon(message);
+                    }
+                });
         } catch (IllegalStateException ex) {
             log.info("Timeout: No CCD Case Event messages received waiting for next session {}", ex.getMessage());
         } catch (ServiceBusException ex) {

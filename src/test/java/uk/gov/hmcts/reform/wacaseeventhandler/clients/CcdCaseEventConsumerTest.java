@@ -168,7 +168,7 @@ class CcdCaseEventConsumerTest {
     }
 
     @Test
-    void should_not_fail_if_receiver_is_null() {
+    void should_not_throw_npe_if_receiver_is_null() {
 
         when(sessionReceiverClient.acceptNextSession()).thenReturn(null);
 
