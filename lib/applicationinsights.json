@@ -2,5 +2,26 @@
   "connectionString": "${file:/mnt/secrets/wa/app-insights-connection-string}",
   "role": {
     "name": "WA Case Event Handler"
+  },
+  "sampling": {
+    "percentage": 100
+  },
+  "preview": {
+    "sampling": {
+      "overrides": [
+        {
+          "telemetryKind": "request",
+          "attributes": [
+            {
+              "key": "http.url",
+              "value": "https?://[^/]+/health.*",
+              "matchType": "regexp"
+            }
+          ],
+          "percentage": 1
+        }
+      ]
+    }
   }
 }
+
