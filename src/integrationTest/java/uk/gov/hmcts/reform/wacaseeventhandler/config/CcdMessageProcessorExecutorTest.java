@@ -3,11 +3,8 @@ package uk.gov.hmcts.reform.wacaseeventhandler.config;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import com.microsoft.applicationinsights.extensibility.context.OperationContext;
-import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -22,7 +19,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -46,12 +42,6 @@ class CcdMessageProcessorExecutorTest {
     @MockBean
     private LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
-    @Mock
-    private TelemetryContext telemetryContext;
-
-    @Mock
-    private OperationContext operationContext;
-
     @BeforeEach
     void setup() {
         Logger logger = (Logger) LoggerFactory.getLogger(DatabaseMessageConsumer.class);
@@ -66,7 +56,6 @@ class CcdMessageProcessorExecutorTest {
         caseEventMessageEntity.setCaseId(CASE_ID);
         when(caseEventMessageRepository.getNextAvailableMessageReadyToProcess()).thenReturn(caseEventMessageEntity);
         when(featureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
-        lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
     }
 
     @Test

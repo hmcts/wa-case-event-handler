@@ -354,7 +354,6 @@ dependencies {
   implementation group: 'org.zalando', name: 'logbook-spring-boot-starter', version: versions.logbook
 
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: versions.reformLogging
-  implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: versions.reformLogging
 
   implementation group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.1'
   implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '3.1.4'
