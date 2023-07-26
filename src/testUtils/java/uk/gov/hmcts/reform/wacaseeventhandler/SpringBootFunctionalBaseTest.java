@@ -100,6 +100,9 @@ public abstract class SpringBootFunctionalBaseTest {
 
     protected List<String> caseIds;
 
+    public static final String WA_TASK_INITIATION_WA_ASYLUM = "wa-task-initiation-wa-wacasetype";
+    public static final String TENANT_ID_WA = "wa";
+
     @Before
     public void setUp() throws IOException {
         RestAssured.config = RestAssuredConfig.config()
