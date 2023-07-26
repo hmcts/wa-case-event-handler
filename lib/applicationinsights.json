@@ -3,9 +3,6 @@
   "role": {
     "name": "WA Case Event Handler"
   },
-  "sampling": {
-    "percentage": 100
-  },
   "preview": {
     "sampling": {
       "overrides": [
