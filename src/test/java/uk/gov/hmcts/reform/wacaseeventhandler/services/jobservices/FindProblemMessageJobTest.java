@@ -1,11 +1,14 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
@@ -15,6 +18,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageMapper;
 import java.util.Collections;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -29,8 +33,10 @@ public class FindProblemMessageJobTest {
 
     private FindProblemMessageJob findProblemMessageJob;
 
+    private ObjectMapper objectMapper = new ObjectMapper();
+
     @Spy
-    private CaseEventMessageMapper caseEventMessageMapper = new CaseEventMessageMapper();
+    private CaseEventMessageMapper caseEventMessageMapper = new CaseEventMessageMapper(objectMapper);
 
     @BeforeEach
     void setUp() {
@@ -77,10 +83,28 @@ public class FindProblemMessageJobTest {
         assertEquals(MESSAGE_ID, readyMessages.get(0));
     }
 
+    @ExtendWith(OutputCaptureExtension.class)
+    @Test
+    void should_include_case_type_id_in_log(CapturedOutput log) {
+        final CaseEventMessageEntity mockCaseEventMessageEntity = createMockCaseEventMessageEntity(MessageState.READY);
+        when(caseEventMessageRepository.findProblemMessages(messageTimeLimit))
+            .thenReturn(Collections.singletonList(mockCaseEventMessageEntity));
+        List<String> caseEventMessages = findProblemMessageJob.run();
+        assertThat(log.getOut().contains("\"caseTypeId\" : \"CaseType_123\""));
+    }
+
     private CaseEventMessageEntity createMockCaseEventMessageEntity(MessageState messageState) {
         CaseEventMessageEntity caseEventMessageEntity = new CaseEventMessageEntity();
         caseEventMessageEntity.setMessageId(MESSAGE_ID);
         caseEventMessageEntity.setState(messageState);
+        caseEventMessageEntity.setMessageContent("{\"EventInstanceId\":\"EventInstanceId_123\", "
+                                                 + "\"EventTimeStamp\":\"2023-05-10T08:25:51.713379525\","
+                                                 + "\"CaseId\":\"CaseId_123\","
+                                                 + "\"CaseTypeId\":\"CaseType_123\","
+                                                 + "\"EventId\":\"EventId_123\","
+                                                 + "\"PreviousStateId\":\"\","
+                                                 + "\"NewstateId\":\"NewstateId_123\","
+                                                 + "\"UserId\":\"UserId_123\"}");
         return caseEventMessageEntity;
     }
 

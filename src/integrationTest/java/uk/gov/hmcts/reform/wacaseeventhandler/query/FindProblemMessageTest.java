@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.query;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.AfterEach;
@@ -28,7 +29,10 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 @Sql("/scripts/problem_messages_data.sql")
 public class FindProblemMessageTest {
 
-    private final CaseEventMessageMapper caseEventMessageMapper =  new CaseEventMessageMapper();
+    private ObjectMapper objectMapper;
+
+    private final CaseEventMessageMapper caseEventMessageMapper = new CaseEventMessageMapper(objectMapper);
+
     @Autowired
     private CaseEventMessageRepository caseEventMessageRepository;
 
