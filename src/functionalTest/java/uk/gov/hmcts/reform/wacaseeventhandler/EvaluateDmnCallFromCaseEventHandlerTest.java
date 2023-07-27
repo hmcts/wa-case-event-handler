@@ -35,7 +35,7 @@ public class EvaluateDmnCallFromCaseEventHandlerTest extends SpringBootFunctiona
 
         EvaluateDmnRequest evaluateDmnRequest = new EvaluateDmnRequest(
             Map.of(
-                "eventId", DmnValue.dmnStringValue("makeAnApplication")
+                "eventId", DmnValue.dmnStringValue("dummySubmitAppeal")
             ));
 
         EvaluateDmnResponse<InitiateEvaluateResponse> response = workflowApiClient.evaluateInitiationDmn(

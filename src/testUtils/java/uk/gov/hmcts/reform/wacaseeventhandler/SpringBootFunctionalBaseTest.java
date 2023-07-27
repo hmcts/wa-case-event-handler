@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.config.CcdRetryableClient;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.GivensBuilder;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.RestApiActions;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestVariables;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.AuthorizationHeadersProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.IdamService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.IdempotencyKeyGenerator;
@@ -97,6 +98,9 @@ public abstract class SpringBootFunctionalBaseTest {
     private ApplicationContext applicationContext;
     @Autowired
     protected IdempotencyKeyGenerator idempotencyKeyGenerator;
+
+    @Autowired
+    protected AuthorizationHeadersProvider authorizationHeadersProvider;
 
     protected List<String> caseIds;
 
