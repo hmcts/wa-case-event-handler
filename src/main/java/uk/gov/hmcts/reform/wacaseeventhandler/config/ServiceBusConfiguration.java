@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.config;
 
+import com.azure.core.amqp.AmqpRetryMode;
 import com.azure.core.amqp.AmqpRetryOptions;
 import com.azure.messaging.servicebus.ServiceBusClientBuilder;
 import com.azure.messaging.servicebus.ServiceBusReceiverClient;
@@ -28,6 +29,9 @@ public class ServiceBusConfiguration {
     @Value("${azure.servicebus.retry-duration}")
     private int retryTime;
 
+    @Value("${azure.servicebus.retry-attempts}")
+    private int retryattempts;
+
     public ServiceBusSessionReceiverClient createCcdCaseEventsSessionReceiver() {
         log.info("Creating CCD Case Events Session receiver");
         ServiceBusSessionReceiverClient client = new ServiceBusClientBuilder()
@@ -46,7 +50,7 @@ public class ServiceBusConfiguration {
         log.info("Creating CCD Case Events Dead Letter Queue Session receiver");
         ServiceBusReceiverClient client = new ServiceBusClientBuilder()
                 .connectionString(connectionString)
-                .retryOptions(retryOptions())
+                .retryOptions(dlqRetryOptions())
                 .receiver()
                 .topicName(topicName)
                 .subQueue(SubQueue.DEAD_LETTER_QUEUE)
@@ -57,9 +61,16 @@ public class ServiceBusConfiguration {
         return client;
     }
 
-    private AmqpRetryOptions retryOptions() {
+    public AmqpRetryOptions retryOptions() {
         AmqpRetryOptions retryOptions = new AmqpRetryOptions();
-        retryOptions.setTryTimeout(Duration.ofSeconds(Integer.valueOf(retryTime)));
+        retryOptions.setDelay(Duration.ofSeconds(1));
+        retryOptions.setTryTimeout(Duration.ofSeconds(retryTime));
+        return retryOptions;
+    }
+    public AmqpRetryOptions dlqRetryOptions() {
+        AmqpRetryOptions retryOptions = new AmqpRetryOptions();
+        retryOptions.setDelay(Duration.ofSeconds(2));
+        retryOptions.setTryTimeout(Duration.ofSeconds(retryTime));
         return retryOptions;
     }
 
