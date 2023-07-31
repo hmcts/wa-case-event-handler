@@ -379,7 +379,7 @@ dependencies {
 
   testImplementation group: 'com.obsidiandynamics.pojotester', name: 'core', version: '0.9.0'
   testImplementation group: 'com.jparams', name: 'to-string-verifier', version: '1.4.8'
-  testImplementation group: 'com.google.guava', name: 'guava-testlib', version: '30.1.1-jre'
+  testImplementation group: 'com.google.guava', name: 'guava-testlib', version: '32.1.2-jre'
   testImplementation group: 'net.serenity-bdd', name: 'serenity-core', version: versions.serenity
   testImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
   testImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
