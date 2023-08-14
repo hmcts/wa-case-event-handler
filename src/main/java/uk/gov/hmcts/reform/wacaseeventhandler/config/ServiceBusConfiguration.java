@@ -69,7 +69,7 @@ public class ServiceBusConfiguration {
     }
     public AmqpRetryOptions dlqRetryOptions() {
         AmqpRetryOptions retryOptions = new AmqpRetryOptions();
-        retryOptions.setDelay(Duration.ofSeconds(2));
+        retryOptions.setDelay(Duration.ofSeconds(3));
         retryOptions.setTryTimeout(Duration.ofSeconds(retryTime));
         return retryOptions;
     }
