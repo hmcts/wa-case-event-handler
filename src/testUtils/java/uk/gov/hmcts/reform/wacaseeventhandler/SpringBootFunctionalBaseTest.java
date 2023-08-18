@@ -105,7 +105,10 @@ public abstract class SpringBootFunctionalBaseTest {
     protected List<String> caseIds;
 
     public static final String WA_TASK_INITIATION_WA_ASYLUM = "wa-task-initiation-wa-wacasetype";
+    public static final String PRIVATE_LAW_TASK_INITIATION_WA_ASYLUM = "wa-task-initiation-privatelaw-prlapps";
+
     public static final String TENANT_ID_WA = "wa";
+    public static final String PRIVATE_LAW_TENANT_ID = "wa";
 
     @Before
     public void setUp() throws IOException {
