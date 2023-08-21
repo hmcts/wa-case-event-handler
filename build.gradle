@@ -384,7 +384,7 @@ dependencies {
   testImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
   testImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
   testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
-  testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.16.2'
+  testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.19.0'
   testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.17.6'
 
 
