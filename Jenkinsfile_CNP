@@ -70,10 +70,6 @@ withPipeline(type, product, component) {
     steps.archiveArtifacts allowEmptyArchive: true, artifacts: '**/reports/tests/**/*'
   }
 
-  onPR() {
-    enableCleanupOfHelmReleaseOnSuccess()
-  }
-
   // Sync environment specific branches with master branch
   syncBranchesWithMaster(branchesToSync)
 }
