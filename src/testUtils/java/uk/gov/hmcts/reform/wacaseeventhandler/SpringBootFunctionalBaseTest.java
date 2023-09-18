@@ -25,7 +25,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.config.CcdRetryableClient;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.GivensBuilder;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.RestApiActions;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestVariables;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.AuthorizationHeadersProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.AuthorizationProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.IdamService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.IdempotencyKeyGenerator;
@@ -99,180 +98,172 @@ public abstract class SpringBootFunctionalBaseTest {
     @Autowired
     protected IdempotencyKeyGenerator idempotencyKeyGenerator;
 
-    @Autowired
-    protected AuthorizationHeadersProvider authorizationHeadersProvider;
     protected List<String> caseIds;
 
-    public static final String WA_TASK_INITIATION_WA_ASYLUM = "wa-task-initiation-wa-wacasetype";
-    public static final String PRIVATE_LAW_TASK_INITIATION_WA_ASYLUM = "wa-task-initiation-privatelaw-prlapps";
+    @Before
+    public void setUp() throws IOException {
+        RestAssured.config = RestAssuredConfig.config()
+            .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
+                (type, s) -> {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.setPropertyNamingStrategy(UPPER_CAMEL_CASE);
+                    objectMapper.registerModule(new Jdk8Module());
+                    objectMapper.registerModule(new JavaTimeModule());
+                    return objectMapper;
+                }
+            ));
+        RestAssured.baseURI = testUrl;
+        RestAssured.useRelaxedHTTPSValidation();
+        s2sToken = authTokenGenerator.generate();
 
-    public static final String TENANT_ID_WA = "wa";
-    public static final String PRIVATE_LAW_TENANT_ID = "wa";
-
-  @Before
-  public void setUp() throws IOException {
-    RestAssured.config = RestAssuredConfig.config()
-      .objectMapperConfig(new ObjectMapperConfig().jackson2ObjectMapperFactory(
-        (type, s) -> {
-          ObjectMapper objectMapper = new ObjectMapper();
-          objectMapper.setPropertyNamingStrategy(UPPER_CAMEL_CASE);
-          objectMapper.registerModule(new Jdk8Module());
-          objectMapper.registerModule(new JavaTimeModule());
-          return objectMapper;
+        if (s2sToken == null) {
+            log.error("s2sToken has not been set correctly. API tests will fail");
         }
-      ));
-    RestAssured.baseURI = testUrl;
-    RestAssured.useRelaxedHTTPSValidation();
-    s2sToken = authTokenGenerator.generate();
 
-    if (s2sToken == null) {
-      log.error("s2sToken has not been set correctly. API tests will fail");
+        if (applicationContext.containsBean("serviceBusSenderClient")) {
+            publisher = (ServiceBusSenderClient) applicationContext.getBean("serviceBusSenderClient");
+        }
+
+        camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
+        restApiActions = new RestApiActions(taskManagementUrl, SNAKE_CASE).setUp();
+
+        given = new GivensBuilder(
+            camundaApiActions,
+            authorizationProvider,
+            ccdRetryableClient
+        );
+
+        common = new Common(
+            given,
+            camundaApiActions,
+            restApiActions,
+            authorizationProvider,
+            idamService,
+            roleAssignmentServiceApi
+        );
+
+        caseIds = new ArrayList<>();
     }
 
-    if (applicationContext.containsBean("serviceBusSenderClient")) {
-      publisher = (ServiceBusSenderClient) applicationContext.getBean("serviceBusSenderClient");
+    public void waitSeconds(int seconds) {
+        try {
+            TimeUnit.SECONDS.sleep(seconds);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
-    camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
-    restApiActions = new RestApiActions(taskManagementUrl, SNAKE_CASE).setUp();
+    protected void initiateTask(Headers authenticationHeaders, String caseId, String taskId,
+                                String taskType, String taskName, String taskTitle) {
 
-    given = new GivensBuilder(
-      camundaApiActions,
-      authorizationProvider,
-      ccdRetryableClient
-    );
+        ZonedDateTime createdDate = ZonedDateTime.now();
+        String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
+        ZonedDateTime dueDate = createdDate.plusDays(1);
+        String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
 
-    common = new Common(
-      given,
-      camundaApiActions,
-      restApiActions,
-      authorizationProvider,
-      idamService,
-      roleAssignmentServiceApi
-    );
+        Map<String, Object> taskAttributes = new HashMap<>();
+        taskAttributes.put("taskType", taskType);
+        taskAttributes.put("name", taskName);
+        taskAttributes.put("title", taskTitle);
+        taskAttributes.put("caseId", caseId);
+        taskAttributes.put("created", formattedCreatedDate);
+        taskAttributes.put("dueDate", formattedDueDate);
 
-    caseIds = new ArrayList<>();
-  }
+        InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(INITIATION, taskAttributes);
 
-  public void waitSeconds(int seconds) {
-    try {
-      TimeUnit.SECONDS.sleep(seconds);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+        Response result = restApiActions.post(
+            TASK_INITIATION_ENDPOINT,
+            taskId,
+            initiateTaskRequest,
+            authenticationHeaders
+        );
+
+        assertResponse(result, caseId, taskId);
     }
-  }
 
-  protected void initiateTask(Headers authenticationHeaders, String caseId, String taskId,
-                              String taskType, String taskName, String taskTitle) {
+    public String getWaCaseId() {
+        TestVariables taskVariables = common.createWaCase();
+        requireNonNull(taskVariables, "taskVariables is null");
+        requireNonNull(taskVariables.getCaseId(), "case id is null");
+        caseIds.add(taskVariables.getCaseId());
+        return taskVariables.getCaseId();
 
-    ZonedDateTime createdDate = ZonedDateTime.now();
-    String formattedCreatedDate = CAMUNDA_DATA_TIME_FORMATTER.format(createdDate);
-    ZonedDateTime dueDate = createdDate.plusDays(1);
-    String formattedDueDate = CAMUNDA_DATA_TIME_FORMATTER.format(dueDate);
+    }
 
-    Map<String, Object> taskAttributes = new HashMap<>();
-    taskAttributes.put("taskType", taskType);
-    taskAttributes.put("name", taskName);
-    taskAttributes.put("title", taskTitle);
-    taskAttributes.put("caseId", caseId);
-    taskAttributes.put("created", formattedCreatedDate);
-    taskAttributes.put("dueDate", formattedDueDate);
+    protected Response findTasksByCaseId(String caseId, int expectedTaskAmount) {
 
-    InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(INITIATION, taskAttributes);
+        log.info("Finding task for caseId = {}", caseId);
+        AtomicReference<Response> response = new AtomicReference<>();
+        await().ignoreException(AssertionError.class)
+            .pollInterval(1000, MILLISECONDS)
+            .atMost(60, SECONDS)
+            .until(
+                () -> {
+                    Response result = given()
+                        .relaxedHTTPSValidation()
+                        .header(SERVICE_AUTHORIZATION, s2sToken)
+                        .contentType(APPLICATION_JSON_VALUE)
+                        .baseUri(camundaUrl)
+                        .basePath("/task")
+                        .param("processVariables", "caseId_eq_" + caseId)
+                        .when()
+                        .get();
 
-    Response result = restApiActions.post(
-      TASK_INITIATION_ENDPOINT,
-      taskId,
-      initiateTaskRequest,
-      authenticationHeaders
-    );
+                    result
+                        .then().assertThat()
+                        .statusCode(HttpStatus.OK.value())
+                        .body("size()", is(expectedTaskAmount));
 
-    assertResponse(result, caseId, taskId);
-  }
+                    response.set(result);
+                    return true;
+                });
 
-  public String getWaCaseId() {
-    TestVariables taskVariables = common.createWaCase();
-    requireNonNull(taskVariables, "taskVariables is null");
-    requireNonNull(taskVariables.getCaseId(), "case id is null");
-    caseIds.add(taskVariables.getCaseId());
-    return taskVariables.getCaseId();
+        return response.get();
+    }
 
-  }
+    protected Response findTaskDetailsForGivenTaskId(String taskId) {
+        log.info("Attempting to retrieve task details with taskId = {}", taskId);
 
-  protected Response findTasksByCaseId(String caseId, int expectedTaskAmount) {
-
-    log.info("Finding task for caseId = {}", caseId);
-    AtomicReference<Response> response = new AtomicReference<>();
-    await().ignoreException(AssertionError.class)
-      .pollInterval(1000, MILLISECONDS)
-      .atMost(60, SECONDS)
-      .until(
-        () -> {
-          Response result = given()
-            .relaxedHTTPSValidation()
+        return given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
             .contentType(APPLICATION_JSON_VALUE)
             .baseUri(camundaUrl)
-            .basePath("/task")
-            .param("processVariables", "caseId_eq_" + caseId)
+            .basePath("/task/" + taskId + "/variables")
             .when()
             .get();
-
-          result
-            .then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .body("size()", is(expectedTaskAmount));
-
-          response.set(result);
-          return true;
-        });
-
-    return response.get();
-  }
-
-  protected Response findTaskDetailsForGivenTaskId(String taskId) {
-    log.info("Attempting to retrieve task details with taskId = {}", taskId);
-
-    return given()
-      .header(SERVICE_AUTHORIZATION, s2sToken)
-      .contentType(APPLICATION_JSON_VALUE)
-      .baseUri(camundaUrl)
-      .basePath("/task/" + taskId + "/variables")
-      .when()
-      .get();
-  }
-
-  private void assertResponse(Response response, String caseId, String taskId) {
-    response.prettyPrint();
-
-    int statusCode = response.getStatusCode();
-    switch (statusCode) {
-      case 503:
-        log.info("Initiation failed due to Database Conflict Error, so handling gracefully, {}", statusCode);
-
-        response.then().assertThat()
-          .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
-          .contentType(APPLICATION_PROBLEM_JSON_VALUE)
-          .body("type", equalTo(
-            "https://github.com/hmcts/wa-task-management-api/problem/database-conflict"))
-          .body("title", equalTo("Database Conflict Error"))
-          .body("status", equalTo(503))
-          .body("detail", equalTo(
-            "Database Conflict Error: The action could not be completed because "
-              + "there was a conflict in the database."));
-        break;
-      case 201:
-        log.info("task Initiation got successfully with status, {}", statusCode);
-        response.then().assertThat()
-          .statusCode(HttpStatus.CREATED.value())
-          .and()
-          .contentType(APPLICATION_JSON_VALUE)
-          .body("task_id", equalTo(taskId))
-          .body("case_id", equalTo(caseId));
-        break;
-      default:
-        log.info("task Initiation failed with status, {}", statusCode);
-        throw new RuntimeException("Invalid status received for task initiation " + statusCode);
     }
-  }
+
+    private void assertResponse(Response response, String caseId, String taskId) {
+        response.prettyPrint();
+
+        int statusCode = response.getStatusCode();
+        switch (statusCode) {
+            case 503:
+                log.info("Initiation failed due to Database Conflict Error, so handling gracefully, {}", statusCode);
+
+                response.then().assertThat()
+                    .statusCode(HttpStatus.SERVICE_UNAVAILABLE.value())
+                    .contentType(APPLICATION_PROBLEM_JSON_VALUE)
+                    .body("type", equalTo(
+                        "https://github.com/hmcts/wa-task-management-api/problem/database-conflict"))
+                    .body("title", equalTo("Database Conflict Error"))
+                    .body("status", equalTo(503))
+                    .body("detail", equalTo(
+                        "Database Conflict Error: The action could not be completed because "
+                            + "there was a conflict in the database."));
+                break;
+            case 201:
+                log.info("task Initiation got successfully with status, {}", statusCode);
+                response.then().assertThat()
+                    .statusCode(HttpStatus.CREATED.value())
+                    .and()
+                    .contentType(APPLICATION_JSON_VALUE)
+                    .body("task_id", equalTo(taskId))
+                    .body("case_id", equalTo(caseId));
+                break;
+            default:
+                log.info("task Initiation failed with status, {}", statusCode);
+                throw new RuntimeException("Invalid status received for task initiation " + statusCode);
+        }
+    }
 }
