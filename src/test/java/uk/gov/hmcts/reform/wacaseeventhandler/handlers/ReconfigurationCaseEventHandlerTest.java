@@ -227,10 +227,7 @@ class ReconfigurationCaseEventHandlerTest {
             anyString(),
             any(TaskOperationRequest.class)
         );
-
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
-        Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
+        assertConsoleOutputHasMessages(output);
     }
 
     @Test
@@ -277,17 +274,7 @@ class ReconfigurationCaseEventHandlerTest {
             anyString(),
             any(TaskOperationRequest.class)
         );
-
-        await().ignoreException(Exception.class)
-            .pollInterval(100, MILLISECONDS)
-            .atMost(5, SECONDS)
-            .untilAsserted(() -> {
-                Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
-                Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
-                Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
-            });
-
-
+        assertConsoleOutputHasMessages(output);
     }
 
     @Test
@@ -329,11 +316,8 @@ class ReconfigurationCaseEventHandlerTest {
             anyString(),
             any(TaskOperationRequest.class)
         );
-
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
-        Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
-    }
+        assertConsoleOutputHasMessages(output);
+   }
 
     @Test
     void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_blank_warning_code() {
@@ -411,11 +395,8 @@ class ReconfigurationCaseEventHandlerTest {
             anyString(),
             any(TaskOperationRequest.class)
         );
-
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
-        Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
-    }
+        assertConsoleOutputHasMessages(output);
+     }
 
     @Test
     void should_evaluate_the_dmn_table_and_return_empty_results() {
@@ -515,5 +496,18 @@ class ReconfigurationCaseEventHandlerTest {
 
         return new EvaluateDmnRequest(variables);
     }
+
+    private void assertConsoleOutputHasMessages(CapturedOutput output) {
+        await().ignoreException(Exception.class)
+            .pollInterval(100, MILLISECONDS)
+            .atMost(5, SECONDS)
+            .untilAsserted(() -> {
+                Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
+                Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
+                Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
+            });
+
+    }
+
 
 }
