@@ -16,7 +16,10 @@ import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageReposit
 import java.util.List;
 
 import static java.util.Collections.emptyList;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,7 +37,7 @@ public class CleanUpMessageJobTest {
     private CleanUpJobConfiguration cleanUpJobConfiguration;
 
     private CleanUpMessageJob cleanUpMessageJob;
-    
+
     @BeforeEach
     void setUp() {
 
@@ -82,9 +85,7 @@ public class CleanUpMessageJobTest {
 
         String expectedLogMessage = "CleanUpJobConfiguration(environment=PROD, deleteLimit=5, startedDaysBefore=90, "
                                     + "stateForProd=[PROCESSED], stateForNonProd=[PROCESSED])";
-
-        assertTrue(output.getOut().contains(expectedLogMessage));
-        assertTrue(output.getOut().contains("CLEAN_UP_MESSAGES job completed"));
+        assertConsoleOutputHasMessages(output, expectedLogMessage);
     }
 
     @Test
@@ -115,10 +116,20 @@ public class CleanUpMessageJobTest {
 
         String expectedLogMessage = "CleanUpJobConfiguration(environment=aat, deleteLimit=5, startedDaysBefore=90, "
                                     + "stateForProd=[PROCESSED], stateForNonProd=[PROCESSED, READY])";
-
-        assertTrue(output.getOut().contains(expectedLogMessage));
-        assertTrue(output.getOut().contains("CLEAN_UP_MESSAGES job completed"));
+        assertConsoleOutputHasMessages(output, expectedLogMessage);
     }
+
+    private void assertConsoleOutputHasMessages(CapturedOutput output, String expectedLogMessage) {
+        await().ignoreException(Exception.class)
+            .pollInterval(100, MILLISECONDS)
+            .atMost(5, SECONDS)
+            .untilAsserted(() -> {
+                assertTrue(output.getOut().contains(expectedLogMessage));
+                assertTrue(output.getOut().contains("CLEAN_UP_MESSAGES job completed"));
+            });
+    }
+
+
 
 
 }

@@ -22,7 +22,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
@@ -128,8 +131,13 @@ class CcdEventProcessorTest {
 
         output.length();
 
-        assertThat(output).contains("Case details: \n");
-        assertThat(output).contains("Additional data: \n");
+        await().ignoreException(Exception.class)
+            .pollInterval(100, MILLISECONDS)
+            .atMost(5, SECONDS)
+            .untilAsserted(() -> {
+                assertThat(output).contains("Case details: \n");
+                assertThat(output).contains("Additional data: \n");
+            });
     }
 
     public String asJsonString(final Object obj) throws JsonProcessingException {
