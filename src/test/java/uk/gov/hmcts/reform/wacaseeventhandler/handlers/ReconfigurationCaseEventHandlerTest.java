@@ -317,7 +317,7 @@ class ReconfigurationCaseEventHandlerTest {
             any(TaskOperationRequest.class)
         );
         assertConsoleOutputHasMessages(output);
-   }
+    }
 
     @Test
     void should_evaluate_the_dmn_table_and_return_results_for_reconfigure_action_with_blank_warning_code() {
@@ -396,7 +396,7 @@ class ReconfigurationCaseEventHandlerTest {
             any(TaskOperationRequest.class)
         );
         assertConsoleOutputHasMessages(output);
-     }
+    }
 
     @Test
     void should_evaluate_the_dmn_table_and_return_empty_results() {
