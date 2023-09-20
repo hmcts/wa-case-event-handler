@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services.ccd;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -22,7 +23,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
@@ -128,8 +131,13 @@ class CcdEventProcessorTest {
 
         output.length();
 
-        assertThat(output).contains("Case details: \n");
-        assertThat(output).contains("Additional data: \n");
+        await().ignoreException(Exception.class)
+            .pollInterval(100, MILLISECONDS)
+            .atMost(5, SECONDS)
+            .untilAsserted(() -> {
+                Assertions.assertTrue(output.getOut().contains("Case details: \n"));
+                Assertions.assertTrue(output.getOut().contains("Additional data: \n"));
+            });
     }
 
     public String asJsonString(final Object obj) throws JsonProcessingException {
