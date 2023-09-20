@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,7 +19,6 @@ import java.util.List;
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -74,7 +74,7 @@ public class CleanUpMessageJobTest {
 
         List<String> response = cleanUpMessageJob.run();
 
-        assertThat(response).isEqualTo(emptyList());
+        Assertions.assertTrue(response.equals(emptyList()));
 
         verify(caseEventMessageRepository, times(1))
             .removeOldMessages(
@@ -105,7 +105,7 @@ public class CleanUpMessageJobTest {
 
         List<String> response = cleanUpMessageJob.run();
 
-        assertThat(response).isEqualTo(emptyList());
+        Assertions.assertTrue(response.equals(emptyList()));
 
         verify(caseEventMessageRepository, times(1))
             .removeOldMessages(
@@ -124,8 +124,8 @@ public class CleanUpMessageJobTest {
             .pollInterval(100, MILLISECONDS)
             .atMost(5, SECONDS)
             .untilAsserted(() -> {
-                assertTrue(output.getOut().contains(expectedLogMessage));
-                assertTrue(output.getOut().contains("CLEAN_UP_MESSAGES job completed"));
+                Assertions.assertTrue(output.getOut().contains(expectedLogMessage));
+                Assertions.assertTrue(output.getOut().contains("CLEAN_UP_MESSAGES job completed"));
             });
     }
 

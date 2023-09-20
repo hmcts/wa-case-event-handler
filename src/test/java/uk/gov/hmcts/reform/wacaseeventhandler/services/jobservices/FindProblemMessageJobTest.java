@@ -1,6 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,11 +21,7 @@ import java.util.List;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith({MockitoExtension.class})
@@ -51,16 +48,16 @@ public class FindProblemMessageJobTest {
 
     @Test
     void should_be_able_to_run_find_problem_message_job() {
-        assertTrue(findProblemMessageJob.canRun(JobName.FIND_PROBLEM_MESSAGES));
-        assertFalse(findProblemMessageJob.canRun(JobName.RESET_PROBLEM_MESSAGES));
+        Assertions.assertTrue(findProblemMessageJob.canRun(JobName.FIND_PROBLEM_MESSAGES));
+        Assertions.assertFalse(findProblemMessageJob.canRun(JobName.RESET_PROBLEM_MESSAGES));
     }
 
     @Test
     void should_return_empty_list_when_no_unprocessable_message_is_found() {
         when(caseEventMessageRepository.findProblemMessages(messageTimeLimit)).thenReturn(Collections.emptyList());
         List<String> messages = findProblemMessageJob.run();
-        assertEquals(0, messages.size());
-        assertEquals(Collections.emptyList(), messages);
+        Assertions.assertEquals(0, messages.size());
+        Assertions.assertEquals(Collections.emptyList(), messages);
     }
 
     @Test
@@ -72,8 +69,8 @@ public class FindProblemMessageJobTest {
             .thenReturn(Collections.singletonList(mockCaseEventMessageEntity));
 
         List<String> unprocessableMessages = findProblemMessageJob.run();
-        assertEquals(1, unprocessableMessages.size());
-        assertEquals(MESSAGE_ID, unprocessableMessages.get(0));
+        Assertions.assertEquals(1, unprocessableMessages.size());
+        Assertions.assertEquals(MESSAGE_ID, unprocessableMessages.get(0));
     }
 
     @Test
@@ -82,8 +79,8 @@ public class FindProblemMessageJobTest {
         when(caseEventMessageRepository.findProblemMessages(messageTimeLimit))
             .thenReturn(Collections.singletonList(mockCaseEventMessageEntity));
         List<String> readyMessages = findProblemMessageJob.run();
-        assertEquals(1, readyMessages.size());
-        assertEquals(MESSAGE_ID, readyMessages.get(0));
+        Assertions.assertEquals(1, readyMessages.size());
+        Assertions.assertEquals(MESSAGE_ID, readyMessages.get(0));
     }
 
     @ExtendWith(OutputCaptureExtension.class)
@@ -97,7 +94,7 @@ public class FindProblemMessageJobTest {
             .pollInterval(100, MILLISECONDS)
             .atMost(5, SECONDS)
             .untilAsserted(() -> {
-                assertThat(log.getOut().contains("\"caseTypeId\" : \"CaseType_123\""));
+                Assertions.assertTrue(log.getOut().contains("\"caseTypeId\" : \"CaseType_123\""));
             });
     }
 

@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services.ccd;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -24,7 +25,6 @@ import java.util.UUID;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.any;
@@ -135,8 +135,8 @@ class CcdEventProcessorTest {
             .pollInterval(100, MILLISECONDS)
             .atMost(5, SECONDS)
             .untilAsserted(() -> {
-                assertThat(output).contains("Case details: \n");
-                assertThat(output).contains("Additional data: \n");
+                Assertions.assertTrue(output.getOut().contains("Case details: \n"));
+                Assertions.assertTrue(output.getOut().contains("Additional data: \n"));
             });
     }
 
