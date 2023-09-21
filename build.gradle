@@ -244,7 +244,7 @@ dependencyManagement {
       entry 'logback-classic'
       entry 'logback-core'
     }
-    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.96.Final') {
+    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.97.Final') {
       entry 'netty-buffer'
       entry 'netty-codec'
       entry 'netty-codec-dns'
@@ -316,7 +316,7 @@ def versions = [
   springDoc    : '1.7.0',
   springBoot   : '2.7.14',
   serenity     : '3.1.20',
-  pitest       : '1.14.2',
+  pitest       : '1.14.4',
   logbook      : '2.16.0',
   tomcat       : '9.0.80',
   log4j        : '2.17.2',
@@ -359,7 +359,7 @@ dependencies {
   implementation group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.1'
   implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '3.1.4'
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.9.2'
-  implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.14.2'
+  implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.14.4'
   implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.9'
   implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.1.9'
 
