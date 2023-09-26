@@ -937,7 +937,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
 
         // caseId1 with category Followup overdue
         // task1
-        String caseId1Task1Id = createTaskWithId(
+        final String caseId1Task1Id = createTaskWithId(
             caseId1,
             "requestRespondentEvidence",
             "", "awaitingRespondentEvidence", false,
@@ -949,7 +949,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         // caseId2 with category Case progression
         String caseId2 = getWaCaseId();
         String taskId2DmnColumn = "reviewAppealSkeletonArgument";
-        String caseId2Task1Id = createTaskWithId(caseId2, "submitCase",
+        final String caseId2Task1Id = createTaskWithId(caseId2, "submitCase",
             "", "caseUnderReview",
             false, taskId2DmnColumn, "WA", "WaCaseType"
         );
@@ -985,7 +985,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         //caseId1 with category Case progression
         String caseId1 = getWaCaseId();
         String taskIdDmnColumn = "reviewRespondentEvidence";
-        String caseId1Task1Id = createTaskWithId(
+        final String caseId1Task1Id = createTaskWithId(
             caseId1,
             "uploadHomeOfficeBundle",
             "", "awaitingRespondentEvidence", false,
@@ -997,7 +997,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         //caseId1 with category Case progression
         String caseId2 = getWaCaseId();
         String taskId2DmnColumn = "reviewRespondentEvidence";
-        String caseId2Task1Id = createTaskWithId(caseId2, "uploadHomeOfficeBundle",
+        final String caseId2Task1Id = createTaskWithId(caseId2, "uploadHomeOfficeBundle",
             "", "awaitingRespondentEvidence",
             false, taskId2DmnColumn, "WA", "WaCaseType"
         );
