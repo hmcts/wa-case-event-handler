@@ -320,7 +320,7 @@ def versions = [
   logbook      : '2.16.0',
   tomcat       : '9.0.80',
   log4j        : '2.17.2',
-  retry        : '2.0.2'
+  retry        : '2.0.3'
 ]
 
 ext.libraries = [
