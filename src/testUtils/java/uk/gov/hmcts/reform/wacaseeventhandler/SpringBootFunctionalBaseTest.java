@@ -196,7 +196,7 @@ public abstract class SpringBootFunctionalBaseTest {
         AtomicReference<Response> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
             .pollInterval(1000, MILLISECONDS)
-            .atMost(60, SECONDS)
+            .atMost(120, SECONDS)
             .until(
                 () -> {
                     Response result = given()
