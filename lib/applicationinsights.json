@@ -16,7 +16,29 @@
             }
           ],
           "percentage": 1
-        }
+        },
+        {
+          "telemetryType": "exception",
+          "attributes": [
+            {
+              "key": "exception.type",
+              "value": "com.azure.messaging.servicebus.ServiceBusException",
+              "matchType": "strict"
+            }
+          ],
+          "percentage": 1
+        },
+        {
+          "telemetryType": "exception",
+          "attributes": [
+            {
+              "key": "exception.type",
+              "value": "reactor.core.Exceptions",
+              "matchType": "strict"
+            }
+          ],
+          "percentage": 1
+        },
       ]
     }
   }
