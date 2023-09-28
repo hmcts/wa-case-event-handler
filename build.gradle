@@ -316,7 +316,7 @@ def versions = [
   springDoc    : '1.7.0',
   springBoot   : '2.7.16',
   serenity     : '3.1.20',
-  pitest       : '1.14.4',
+  pitest       : '1.15.0',
   logbook      : '2.16.0',
   tomcat       : '9.0.80',
   log4j        : '2.17.2',
