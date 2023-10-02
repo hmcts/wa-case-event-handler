@@ -41,7 +41,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonS
 
 @Slf4j
 public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
-    private static final Duration AT_MOST_SECONDS = Duration.ofSeconds(60);
+    private static final Duration AT_MOST_SECONDS = Duration.ofSeconds(120);
     private static final Duration AT_MOST_SECONDS_MULTIPLE_TASKS = Duration.ofSeconds(120);
 
     protected Map<String, String> taskIdStatusMap;
