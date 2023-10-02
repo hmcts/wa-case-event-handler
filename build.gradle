@@ -231,7 +231,7 @@ dependencyManagement {
     dependencySet(group: 'commons-fileupload', version: '1.5') {
       entry 'commons-fileupload'
     }
-    dependency group: 'commons-io', name: 'commons-io', version: '2.13.0'
+    dependency group: 'commons-io', name: 'commons-io', version: '2.14.0'
 
     //CVE-2021-27568
     dependency group: 'net.minidev', name: 'json-smart', version: '2.5.0'
