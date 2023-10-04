@@ -312,7 +312,7 @@ repositories {
 def versions = [
   junit        : '5.9.0',
   junitPlatform: '1.10.0',
-  reformLogging: '5.1.9',
+  reformLogging: '6.0.1',
   springDoc    : '1.7.0',
   springBoot   : '2.7.16',
   serenity     : '3.1.20',
@@ -371,6 +371,7 @@ dependencies {
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '6.2.1'
   implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.13.0'
   implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.1.8'
+  implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '7.0.1'
 
   testImplementation libraries.junit5
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
