@@ -224,7 +224,7 @@ dependencyManagement {
     dependency group: 'com.github.docker-java', name: 'docker-java', version: '3.3.3'
     dependency group: 'org.bouncycastle', name: 'bcpkix-jdk15on', version: '1.70'
     // CVE-2018-10237 - Unbounded memory allocation
-    dependencySet(group: 'com.google.guava', version: '31.1-jre') {
+    dependencySet(group: 'com.google.guava', version: '32.1.2-jre') {
       entry 'guava'
     }
     // CVE-2023-24998 - DoS with a malicious upload or series of uploads possible
