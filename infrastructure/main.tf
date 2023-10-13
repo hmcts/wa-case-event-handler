@@ -66,6 +66,39 @@ module "wa_case_event_handler_database" {
   subscription       = "${var.subscription}"
 }
 
+//Azure Flexible Server DB
+module "wa_case_event_handler_database_flex" {
+  providers = {
+    azurerm.postgres_network = azurerm.postgres_network
+  }
+
+  source          = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
+  product         = var.product
+  component       = var.component
+  name            = "${var.product}-${var.component}-postgres-db-flex"
+  location        = var.location
+  business_area   = "cft"
+  env             = var.env
+  pgsql_databases = [
+    {
+      name : var.postgresql_database_name
+    }
+  ]
+
+  pgsql_server_configuration = [
+    {
+      name  = "azure.extensions"
+      value = "plpgsql,pg_stat_statements,pg_buffercache"
+    }
+  ]
+
+  pgsql_version = 15
+  common_tags   = merge(var.common_tags, tomap({ "lastUpdated" = timestamp() }))
+
+  admin_user_object_id = var.jenkins_AAD_objectId
+
+}
+
 
 // Save secrets in vault
 resource "azurerm_key_vault_secret" "POSTGRES-USER" {
@@ -95,5 +128,37 @@ resource "azurerm_key_vault_secret" "POSTGRES_PORT" {
 resource "azurerm_key_vault_secret" "POSTGRES_DATABASE" {
   name         = "${var.postgres_db_component_name}-POSTGRES-DATABASE"
   value        = module.wa_case_event_handler_database.postgresql_database
+  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+}
+
+
+// Secrets for flex server
+resource "azurerm_key_vault_secret" "POSTGRES-USER-FLEX" {
+  name         = "${var.postgres_db_component_name}-POSTGRES-USER-FLEX"
+  value        = module.wa_case_event_handler_database_flex.user_name
+  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+}
+
+resource "azurerm_key_vault_secret" "POSTGRES-PASS-FLEX" {
+  name         = "${var.postgres_db_component_name}-POSTGRES-PASS-FLEX"
+  value        = module.wa_case_event_handler_database_flex.postgresql_password
+  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+}
+
+resource "azurerm_key_vault_secret" "POSTGRES_HOST-FLEX" {
+  name         = "${var.postgres_db_component_name}-POSTGRES-HOST-FLEX"
+  value        = module.wa_case_event_handler_database_flex.host_name
+  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+}
+
+resource "azurerm_key_vault_secret" "POSTGRES_PORT-FLEX" {
+  name         = "${var.postgres_db_component_name}-POSTGRES-PORT-FLEX"
+  value        = module.wa_case_event_handler_database_flex.postgresql_listen_port
+  key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+}
+
+resource "azurerm_key_vault_secret" "POSTGRES_DATABASE-FLEX" {
+  name         = "${var.postgres_db_component_name}-POSTGRES-DATABASE-FLEX"
+  value        = module.wa_case_event_handler_database_flex.postgresql_database
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
 }
