@@ -12,7 +12,8 @@ public class DelayUntilDateTimeCalculator implements DelayUntilCalculator {
 
     @Override
     public boolean supports(DelayUntilRequest delayUntilRequest) {
-
+        log.info(
+            "Supported DelayUntilConfigurator is {}: ", this.getClass().getName());
         return Optional.ofNullable(delayUntilRequest.getDelayUntilTime()).isPresent()
             && Optional.ofNullable(delayUntilRequest.getDelayUntilOrigin()).isEmpty()
             && Optional.ofNullable(delayUntilRequest.getDelayUntil()).isEmpty();
@@ -20,6 +21,7 @@ public class DelayUntilDateTimeCalculator implements DelayUntilCalculator {
 
     @Override
     public LocalDateTime calculateDate(DelayUntilRequest delayUntilRequest) {
+        log.info("DEFAULT_DATE_TIME {}: ", DEFAULT_DATE_TIME);
         return addTimeToDate(delayUntilRequest.getDelayUntilTime(), DEFAULT_DATE_TIME);
     }
 

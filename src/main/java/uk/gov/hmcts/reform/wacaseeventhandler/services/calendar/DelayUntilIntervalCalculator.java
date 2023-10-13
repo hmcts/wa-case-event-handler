@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.calendar;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.calendar.DelayUntilIntervalData;
@@ -25,7 +27,8 @@ public class DelayUntilIntervalCalculator implements DelayUntilCalculator {
 
     @Override
     public boolean supports(DelayUntilRequest delayUntilRequest) {
-
+        log.info(
+            "Supported DelayUntilConfigurator is {}: ", this.getClass().getName());
         return Optional.ofNullable(delayUntilRequest.getDelayUntilOrigin()).isPresent()
             && Optional.ofNullable(delayUntilRequest.getDelayUntil()).isEmpty();
     }
@@ -36,6 +39,16 @@ public class DelayUntilIntervalCalculator implements DelayUntilCalculator {
 
         LocalDateTime referenceDate = delayUntilIntervalData.getReferenceDate();
         LocalDate localDate = referenceDate.toLocalDate();
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            log.info(
+                "Delay until Interval data is : {}",
+                objectMapper.writeValueAsString(delayUntilIntervalData)
+            );
+        } catch (JsonProcessingException jpe) {
+            log.error(jpe.getMessage());
+        }
+        log.info("referenceDate {}, localDate {}", referenceDate, localDate);
         if (delayUntilIntervalData.isSkipNonWorkingDays()) {
             localDate = skipNonWorkingDays(delayUntilIntervalData, localDate);
         } else {
