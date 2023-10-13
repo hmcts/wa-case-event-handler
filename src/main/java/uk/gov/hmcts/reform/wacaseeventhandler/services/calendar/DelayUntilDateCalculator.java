@@ -13,6 +13,8 @@ public class DelayUntilDateCalculator implements DelayUntilCalculator {
 
     @Override
     public boolean supports(DelayUntilRequest delayUntilRequest) {
+        log.info(
+            "Supported DelayUntilConfigurator is {}: ", this.getClass().getName());
         return Optional.ofNullable(delayUntilRequest.getDelayUntil()).isPresent();
     }
 
@@ -20,6 +22,7 @@ public class DelayUntilDateCalculator implements DelayUntilCalculator {
     public LocalDateTime calculateDate(DelayUntilRequest delayUntilRequest) {
         var delayUntilResponse = delayUntilRequest.getDelayUntil();
         var delayUntilTimeResponse = delayUntilRequest.getDelayUntilTime();
+        log.info("delayUntilResponse {}, delayUntilTimeResponse {} ",delayUntilResponse, delayUntilTimeResponse);
         if (Optional.ofNullable(delayUntilTimeResponse).isPresent()) {
             return addTimeToDate(delayUntilTimeResponse, parseDateTime(delayUntilResponse));
         } else {
