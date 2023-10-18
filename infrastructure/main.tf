@@ -99,7 +99,7 @@ module "wa_case_event_handler_database_flex" {
     }
   ]
 
-  pgsql_version = "14"
+  pgsql_version = "15"
   common_tags   = merge(var.common_tags, tomap({ "lastUpdated" = timestamp() }))
 
   admin_user_object_id = var.jenkins_AAD_objectId
