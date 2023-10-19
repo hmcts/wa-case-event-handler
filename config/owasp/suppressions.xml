@@ -102,4 +102,10 @@
     </notes>
     <cve>CVE-2023-4586</cve>
   </suppress>
+  <suppress until= "2023-11-30">
+    <notes>
+    Affects azure-messaging-servicebus netty packages and io.projectreactor.netty.  Upgrades are either still in beta or have not been used so suppressing for now.
+    </notes>
+    <cve>CVE-2023-44487</cve>
+  </suppress>
 </suppressions>
