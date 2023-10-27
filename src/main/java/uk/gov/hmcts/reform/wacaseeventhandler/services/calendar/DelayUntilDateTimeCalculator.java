@@ -3,6 +3,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services.calendar;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -13,7 +14,7 @@ public class DelayUntilDateTimeCalculator implements DelayUntilCalculator {
     @Override
     public boolean supports(DelayUntilRequest delayUntilRequest) {
         log.info(
-            "Supported DelayUntilConfigurator is {}: " + this.getClass().getName());
+            "Supported DelayUntilConfigurator is {}: ", this.getClass().getName());
         return Optional.ofNullable(delayUntilRequest.getDelayUntilTime()).isPresent()
             && Optional.ofNullable(delayUntilRequest.getDelayUntilOrigin()).isEmpty()
             && Optional.ofNullable(delayUntilRequest.getDelayUntil()).isEmpty();
@@ -21,7 +22,7 @@ public class DelayUntilDateTimeCalculator implements DelayUntilCalculator {
 
     @Override
     public LocalDateTime calculateDate(DelayUntilRequest delayUntilRequest) {
-        log.info("Default Date Time {}: " + DEFAULT_DATE_TIME);
+        log.info("Default Date Time {} Instant Time {}: ", DEFAULT_DATE_TIME, Instant.now());
         return addTimeToDate(delayUntilRequest.getDelayUntilTime(), DEFAULT_DATE_TIME);
     }
 
