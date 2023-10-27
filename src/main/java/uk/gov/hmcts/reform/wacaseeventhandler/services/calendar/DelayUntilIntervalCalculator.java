@@ -27,8 +27,8 @@ public class DelayUntilIntervalCalculator implements DelayUntilCalculator {
 
     @Override
     public boolean supports(DelayUntilRequest delayUntilRequest) {
-        log.info(
-            "Supported DelayUntilConfigurator is {}: ", this.getClass().getName());
+        System.out.println(
+            "Supported DelayUntilConfigurator is {}: " + this.getClass().getName());
         return Optional.ofNullable(delayUntilRequest.getDelayUntilOrigin()).isPresent()
             && Optional.ofNullable(delayUntilRequest.getDelayUntil()).isEmpty();
     }
@@ -41,14 +41,14 @@ public class DelayUntilIntervalCalculator implements DelayUntilCalculator {
         LocalDate localDate = referenceDate.toLocalDate();
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            log.info(
-                "Delay until Interval data is : {}",
+            System.out.println(
+                "Delay until Interval data is : {}" +
                 objectMapper.writeValueAsString(delayUntilIntervalData)
             );
         } catch (JsonProcessingException jpe) {
             log.error(jpe.getMessage());
         }
-        log.info("referenceDate {}, localDate {}", referenceDate, localDate);
+        System.out.println("referenceDate {}" + referenceDate + "localDate {}" + localDate);
         if (delayUntilIntervalData.isSkipNonWorkingDays()) {
             localDate = skipNonWorkingDays(delayUntilIntervalData, localDate);
         } else {
