@@ -26,7 +26,7 @@ public class DelayUntilIntervalCalculator implements DelayUntilCalculator {
     @Override
     public boolean supports(DelayUntilRequest delayUntilRequest) {
         log.info(
-            "Supported DelayUntilConfigurator is {}: " + this.getClass().getName());
+            "Supported DelayUntilConfigurator is {}:", this.getClass().getName());
         return Optional.ofNullable(delayUntilRequest.getDelayUntilOrigin()).isPresent()
             && Optional.ofNullable(delayUntilRequest.getDelayUntil()).isEmpty();
     }
