@@ -22,7 +22,7 @@ public class DelayUntilDateTimeCalculator implements DelayUntilCalculator {
 
     @Override
     public LocalDateTime calculateDate(DelayUntilRequest delayUntilRequest) {
-        log.info("Default Date Time {} Instant Time {}: ", DEFAULT_DATE_TIME, Instant.now());
+        log.info("Default Date Time From Instant {} LocalDateTime {}: ", DEFAULT_DATE_TIME, LocalDateTime.now());
         return addTimeToDate(delayUntilRequest.getDelayUntilTime(), DEFAULT_DATE_TIME);
     }
 
