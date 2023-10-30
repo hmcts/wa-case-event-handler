@@ -3,7 +3,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services.calendar;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
