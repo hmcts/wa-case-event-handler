@@ -18,9 +18,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DATE_FORMATTER;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DEFAULT_NON_WORKING_CALENDAR;
 
@@ -45,7 +45,7 @@ public class DelayUntilConfiguratorTest {
 
         DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder().build();
         LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
-        assertThat(localDateTime).isEqualTo(LocalDateTime.now());
+        assertThat(localDateTime).isCloseTo(LocalDateTime.now(), within(100, ChronoUnit.SECONDS));
     }
 
     @Test
@@ -124,7 +124,7 @@ public class DelayUntilConfiguratorTest {
     @Test
     public void shouldReturnDefaultDelayUntilWhenNoDelayUntilPropertiesAreAvailable() {
         LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(DelayUntilRequest.builder().build());
-        assertThat(localDateTime).isEqualTo(LocalDateTime.now());
+        assertThat(localDateTime).isCloseTo(LocalDateTime.now(), within(100, ChronoUnit.SECONDS));
     }
 
     @DisplayName("('delayUntil' and 'delayUntilOrigin')")
