@@ -8,8 +8,6 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DEFAULT_DATE_TIME;
-
 @Slf4j
 @Component
 public class DelayUntilConfigurator {
@@ -25,7 +23,7 @@ public class DelayUntilConfigurator {
             .filter(delayUntilCalculator -> delayUntilCalculator.supports(delayUntilRequest))
             .findFirst()
             .map(dateCalculator -> dateCalculator.calculateDate(delayUntilRequest))
-            .orElse(DEFAULT_DATE_TIME);
+            .orElse(LocalDateTime.now());
     }
 
     private static void logInput(DelayUntilRequest delayUntilRequest) {

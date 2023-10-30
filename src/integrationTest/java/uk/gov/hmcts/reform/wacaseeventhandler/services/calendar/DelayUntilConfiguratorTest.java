@@ -46,7 +46,7 @@ public class DelayUntilConfiguratorTest {
 
         DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder().build();
         LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
-        assertThat(localDateTime).isEqualTo(DEFAULT_DATE_TIME);
+        assertThat(localDateTime).isEqualTo(LocalDateTime.now());
     }
 
     @Test
@@ -86,7 +86,7 @@ public class DelayUntilConfiguratorTest {
             .build();
 
         LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
-        String defaultDelayUntil = DEFAULT_DATE_TIME.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String defaultDelayUntil = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         assertThat(localDateTime)
             .isEqualTo(defaultDelayUntil + "T16:00");
@@ -125,7 +125,7 @@ public class DelayUntilConfiguratorTest {
     @Test
     public void shouldReturnDefaultDelayUntilWhenNoDelayUntilPropertiesAreAvailable() {
         LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(DelayUntilRequest.builder().build());
-        assertThat(localDateTime).isEqualTo(DEFAULT_DATE_TIME);
+        assertThat(localDateTime).isEqualTo(LocalDateTime.now());
     }
 
     @DisplayName("('delayUntil' and 'delayUntilOrigin')")

@@ -9,14 +9,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static org.mockito.Mockito.lenient;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.calendar.DelayUntilIntervalData.MUST_BE_WORKING_DAY_NEXT;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DATE_FORMATTER;
-import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DEFAULT_DATE_TIME;
 
 @ExtendWith(MockitoExtension.class)
 class DelayUntilConfiguratorTest {
@@ -37,7 +38,7 @@ class DelayUntilConfiguratorTest {
         void should_return_default_calculated_dates_when_there_are_no_dmn_responses() {
             LocalDateTime calculateDelayUntil = delayUntilConfigurator.calculateDelayUntil(
                 DelayUntilRequest.builder().build());
-            assertThat(calculateDelayUntil).isEqualTo(DEFAULT_DATE_TIME);
+            assertThat(calculateDelayUntil).isCloseTo(LocalDateTime.now(), within(100, ChronoUnit.SECONDS));
         }
 
         @Test
@@ -46,7 +47,7 @@ class DelayUntilConfiguratorTest {
                 DelayUntilRequest.builder().delayUntil("2023-01-10T16:00").build()
             );
 
-            assertThat(calculateDelayUntil).isEqualTo(DEFAULT_DATE_TIME);
+            assertThat(calculateDelayUntil).isCloseTo(LocalDateTime.now(), within(100, ChronoUnit.SECONDS));
         }
     }
 
@@ -84,7 +85,7 @@ class DelayUntilConfiguratorTest {
         void should_return_default_calculated_dates_when_there_are_no_dmn_responses() {
             LocalDateTime calculateDelayUntil = delayUntilConfigurator.calculateDelayUntil(
                 DelayUntilRequest.builder().build());
-            assertThat(calculateDelayUntil).isEqualTo(DEFAULT_DATE_TIME);
+            assertThat(calculateDelayUntil).isCloseTo(LocalDateTime.now(), within(100, ChronoUnit.SECONDS));
         }
 
         @Test
@@ -101,7 +102,7 @@ class DelayUntilConfiguratorTest {
 
         @Test
         void should_calculate_delay_until_when_time_is_given() {
-            String localDateTime = DEFAULT_DATE_TIME.format(DATE_FORMATTER);
+            String localDateTime = LocalDateTime.now().format(DATE_FORMATTER);
 
             DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
                 .delayUntilTime("16:00")
