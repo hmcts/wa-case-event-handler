@@ -107,6 +107,7 @@ module "wa_case_event_handler_database_flex" {
   common_tags   = merge(var.common_tags, tomap({ "lastUpdated" = timestamp() }))
 
   admin_user_object_id = var.jenkins_AAD_objectId
+  force_user_permissions_trigger = "yes"
 
 }
 
