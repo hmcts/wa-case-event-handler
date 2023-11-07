@@ -18,11 +18,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.within;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DATE_FORMATTER;
-import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DEFAULT_DATE_TIME;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DEFAULT_NON_WORKING_CALENDAR;
 
 @ExtendWith(SpringExtension.class)
@@ -46,7 +47,7 @@ public class DelayUntilConfiguratorTest {
 
         DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder().build();
         LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
-        assertThat(localDateTime).isEqualTo(DEFAULT_DATE_TIME);
+        assertThat(localDateTime).isCloseTo(LocalDateTime.now(), within(100, ChronoUnit.SECONDS));
     }
 
     @Test
@@ -86,7 +87,7 @@ public class DelayUntilConfiguratorTest {
             .build();
 
         LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
-        String defaultDelayUntil = DEFAULT_DATE_TIME.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String defaultDelayUntil = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         assertThat(localDateTime)
             .isEqualTo(defaultDelayUntil + "T16:00");
@@ -125,7 +126,7 @@ public class DelayUntilConfiguratorTest {
     @Test
     public void shouldReturnDefaultDelayUntilWhenNoDelayUntilPropertiesAreAvailable() {
         LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(DelayUntilRequest.builder().build());
-        assertThat(localDateTime).isEqualTo(DEFAULT_DATE_TIME);
+        assertThat(localDateTime).isCloseTo(LocalDateTime.now(), within(100, ChronoUnit.SECONDS));
     }
 
     @DisplayName("('delayUntil' and 'delayUntilOrigin')")

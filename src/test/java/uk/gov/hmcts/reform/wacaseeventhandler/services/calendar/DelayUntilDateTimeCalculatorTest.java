@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DATE_FORMATTER;
-import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilCalculator.DEFAULT_DATE_TIME;
 
 @ExtendWith(MockitoExtension.class)
 class DelayUntilDateTimeCalculatorTest {
@@ -57,7 +56,7 @@ class DelayUntilDateTimeCalculatorTest {
 
     @Test
     void should_calculate_delay_until_when_time_is_given() {
-        String localDateTime = DEFAULT_DATE_TIME.format(DATE_FORMATTER);
+        String localDateTime = LocalDateTime.now().format(DATE_FORMATTER);
 
         DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilTime("16:00")
