@@ -98,8 +98,8 @@ module "wa_case_event_handler_database_flex" {
       value = "plpgsql,pg_stat_statements,pg_buffercache"
     },
     {
-    name = "enable_seqscan"
-    value = "off"
+      name = "enable_seqscan"
+      value = "off"
     }
   ]
 
