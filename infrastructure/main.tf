@@ -74,7 +74,7 @@ module "wa_case_event_handler_database" {
 }
 
 //Azure Flexible Server DB
-module "wa_case_event_handler_database_flex_15" {
+module "wa_case_event_handler_database_flex" {
   providers = {
     azurerm.postgres_network = azurerm.postgres_network
   }
