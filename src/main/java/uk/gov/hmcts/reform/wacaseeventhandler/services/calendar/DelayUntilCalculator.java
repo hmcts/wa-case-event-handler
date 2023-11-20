@@ -1,6 +1,9 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.calendar;
 
-import java.time.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoField;
@@ -12,7 +15,6 @@ public interface DelayUntilCalculator {
 
     String DEFAULT_NON_WORKING_CALENDAR = "https://www.gov.uk/bank-holidays/england-and-wales.json";
     DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    LocalDateTime DEFAULT_DATE_TIME = LocalDateTime.ofInstant(Instant.now(), ZoneId.systemDefault());
 
     boolean supports(DelayUntilRequest delayUntilRequest);
 
