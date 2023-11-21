@@ -108,4 +108,10 @@
     </notes>
     <cve>CVE-2023-44487</cve>
   </suppress>
+  <suppress until= "2023-11-30">
+    <notes>
+      Azure CLI REST Command Information Disclosure Vulnerability
+    </notes>
+    <cve>CVE-2023-36052</cve>
+  </suppress>
 </suppressions>
