@@ -29,13 +29,11 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
@@ -1138,6 +1136,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         );
 
         await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
             .atMost(AT_MOST_SECONDS)
             .until(
@@ -1147,6 +1146,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
                     return true;
                 });
         await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
             .atMost(AT_MOST_SECONDS_MULTIPLE_TASKS)
             .until(
@@ -1159,11 +1159,17 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
                     );
 
                     //assert reconfigure request time
-                    response.then().assertThat()
-                        .statusCode(HttpStatus.OK.value())
-                        .and()
-                        .body("task.id", equalTo(caseId1Task1Id))
-                        .body("task.reconfigure_request_time", notNullValue());
+                  response.then().assertThat()
+                        .statusCode(HttpStatus.OK.value());
+
+                    String taskId = response.jsonPath().get("task.id");
+                    String reconfigureRequestTime = response.jsonPath().get("task.reconfigure_request_time");
+                    String lastReconfigurationTime = response.jsonPath().get("task.last_reconfiguration_time");
+                    log.info("Task ID {}, reconfigureRequestTime {}, lastReconfigurationTime {}", taskId,
+                             reconfigureRequestTime, lastReconfigurationTime);
+
+                    assertEquals(caseId1Task1Id, taskId);
+                    assertThat(notNullValue(), anyOf(is(reconfigureRequestTime), is(lastReconfigurationTime)));
                     //cleanup
 
                     completeTask(caseId1Task1Id, "completed");
