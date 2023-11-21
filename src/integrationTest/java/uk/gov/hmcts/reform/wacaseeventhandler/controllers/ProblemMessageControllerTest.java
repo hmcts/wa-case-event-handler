@@ -24,6 +24,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DeadLetterQueuePeekService;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -75,7 +76,7 @@ class ProblemMessageControllerTest {
 
     @NotNull
     private String randomMessageId() {
-        return "messageId_" + ThreadLocalRandom.current().nextLong(1000000);
+        return UUID.randomUUID().toString();
     }
 
     @NotNull

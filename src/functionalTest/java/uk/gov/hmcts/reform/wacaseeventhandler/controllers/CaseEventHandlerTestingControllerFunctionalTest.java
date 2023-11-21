@@ -434,7 +434,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     }
 
     private String randomMessageId() {
-        return "" + ThreadLocalRandom.current().nextLong(1000000);
+        return UUID.randomUUID().toString();
     }
 
     private Response getMessagesFromRestEndpoint(String states,

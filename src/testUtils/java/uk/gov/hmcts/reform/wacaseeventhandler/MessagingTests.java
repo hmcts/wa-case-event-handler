@@ -13,7 +13,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -29,7 +29,7 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
     private static final Integer SECONDS_TO_WAIT_FOR_THE_MESSAGE_TO_BE_PROCESSED = 3;
 
     protected String randomMessageId() {
-        return "" + ThreadLocalRandom.current().nextLong(1000000);
+        return UUID.randomUUID().toString();
     }
 
     @NotNull

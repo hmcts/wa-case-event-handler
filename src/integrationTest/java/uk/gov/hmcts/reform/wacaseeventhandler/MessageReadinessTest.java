@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.DeadLetterQueuePeekServic
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
@@ -56,7 +57,7 @@ public class MessageReadinessTest {
     private MockMvc mockMvc;
 
     private String randomMessageId() {
-        return "" + ThreadLocalRandom.current().nextLong(1000000);
+        return UUID.randomUUID().toString();
     }
 
     private static String getCaseEventMessage() {
