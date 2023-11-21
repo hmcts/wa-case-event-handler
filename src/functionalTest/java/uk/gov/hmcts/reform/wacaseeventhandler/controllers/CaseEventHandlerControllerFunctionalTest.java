@@ -1138,7 +1138,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         );
 
         await().ignoreException(AssertionError.class)
-            .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
             .atMost(AT_MOST_SECONDS)
             .until(
@@ -1148,7 +1147,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
                     return true;
                 });
         await().ignoreException(AssertionError.class)
-            .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
             .atMost(AT_MOST_SECONDS_MULTIPLE_TASKS)
             .until(
