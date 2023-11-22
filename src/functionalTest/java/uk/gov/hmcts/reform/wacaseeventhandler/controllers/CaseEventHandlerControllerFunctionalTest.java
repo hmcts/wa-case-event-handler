@@ -29,8 +29,9 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.junit.jupiter.api.Assertions.*;
@@ -1169,7 +1170,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
                              reconfigureRequestTime, lastReconfigurationTime);
 
                     assertEquals(caseId1Task1Id, taskId);
-                    assertThat(notNullValue(), anyOf(is(reconfigureRequestTime), is(lastReconfigurationTime)));
+                    assertTrue(reconfigureRequestTime !=null || lastReconfigurationTime != null);
                     //cleanup
 
                     completeTask(caseId1Task1Id, "completed");
