@@ -1160,9 +1160,8 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
                         caseId1Task1Id,
                         caseworkerCredentials.getHeaders()
                     );
-
                     //assert reconfigure request time
-                  response.then().assertThat()
+                    response.then().assertThat()
                         .statusCode(HttpStatus.OK.value());
 
                     String taskId = response.jsonPath().get("task.id");
@@ -1170,7 +1169,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
                     String lastReconfigurationTime = response.jsonPath().get("task.last_reconfiguration_time");
 
                     assertEquals(caseId1Task1Id, taskId);
-                    assertTrue(reconfigureRequestTime !=null || lastReconfigurationTime != null);
+                    assertTrue(reconfigureRequestTime != null || lastReconfigurationTime != null);
                     //cleanup
 
                     completeTask(caseId1Task1Id, "completed");
