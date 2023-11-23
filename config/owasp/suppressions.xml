@@ -108,9 +108,9 @@
     </notes>
     <cve>CVE-2023-44487</cve>
   </suppress>
-  <suppress until= "2023-11-30">
+    <suppress until= "2023-12-30">
     <notes>
-      Azure CLI REST Command Information Disclosure Vulnerability
+    Affects azure-messaging-servicebus azure-core, azure-core-amqp, azure-core-http-netty, azure-json. Upgrade still in beta, no fix yet.
     </notes>
     <cve>CVE-2023-36052</cve>
   </suppress>
