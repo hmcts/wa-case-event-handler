@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -36,7 +37,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
@@ -1176,7 +1176,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
                              reconfigureRequestTime, lastReconfigurationTime);
 
                     assertEquals(caseId1Task1Id, taskId);
-                    assertTrue(reconfigureRequestTime != null || lastReconfigurationTime != null);
+                    assertThat(reconfigureRequestTime != null || lastReconfigurationTime != null);
                     //cleanup
 
                     completeTask(caseId1Task1Id, "completed");
