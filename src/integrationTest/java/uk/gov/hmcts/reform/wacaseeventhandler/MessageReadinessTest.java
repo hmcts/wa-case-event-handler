@@ -19,7 +19,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.DeadLetterQueuePeekServic
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Stream;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
