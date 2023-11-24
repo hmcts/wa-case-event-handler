@@ -36,7 +36,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
@@ -1148,25 +1147,30 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
                     findTasksByCaseId(caseIdForTask1, 1);
                     return true;
                 });
-        await().ignoreException(Exception.class)
+        await().ignoreException(AssertionError.class)
             .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
             .atMost(AT_MOST_SECONDS_MULTIPLE_TASKS)
             .until(
                 () -> {
+                    log.info("Task ID {}, reconfigureRequestTime {}, lastReconfigurationTime {}");
                     //get task from CFT
                     Response response = restApiActions.get(
                         TASK_ENDPOINT,
                         caseId1Task1Id,
                         caseworkerCredentials.getHeaders()
                     );
+
                     //assert reconfigure request time
                     response.then().assertThat()
-                        .statusCode(HttpStatus.OK.value());
+                        .statusCode(HttpStatus.OK.value())
+                        .contentType(APPLICATION_JSON_VALUE);
+
+
 
                     String taskId = response.jsonPath().get("task.id");
-                    String reconfigureRequestTime = response.jsonPath().get("task.reconfigure_request_time");
-                    String lastReconfigurationTime = response.jsonPath().get("task.last_reconfiguration_time");
+                    String reconfigureRequestTime = response.then().extract().jsonPath().get("task.reconfigure_request_time");
+                    String lastReconfigurationTime = response.then().extract().jsonPath().get("task.last_reconfiguration_time");
                     log.info("Task ID {}, reconfigureRequestTime {}, lastReconfigurationTime {}", taskId,
                              reconfigureRequestTime, lastReconfigurationTime);
 
