@@ -28,7 +28,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -1153,7 +1152,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             .pollDelay(2, SECONDS)
             .pollInterval(5, SECONDS)
             .atMost(AT_MOST_SECONDS_MULTIPLE_TASKS)
-            .untilAsserted(
+            .until(
                 () -> {
                     //get task from CFT
                     Response response = restApiActions.get(
@@ -1162,7 +1161,8 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
                         caseworkerCredentials.getHeaders()
                     );
                     //assert reconfigure request time
-                    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK.value());
+                    response.then().assertThat()
+                        .statusCode(HttpStatus.OK.value());
 
                     String taskId = response.jsonPath().get("task.id");
                     String reconfigureRequestTime = response.jsonPath().get("task.reconfigure_request_time");
