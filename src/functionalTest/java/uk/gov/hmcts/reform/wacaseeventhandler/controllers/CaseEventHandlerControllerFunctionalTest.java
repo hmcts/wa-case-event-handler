@@ -1177,8 +1177,9 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
                              reconfigureRequestTime, lastReconfigurationTime);
 
                     assertEquals(caseId1Task1Id, taskId);
-                    if (reconfigureRequestTime == null && lastReconfigurationTime == null)
+                    if (reconfigureRequestTime == null && lastReconfigurationTime == null) {
                         return false;
+                    }
                     //cleanup
 
                     completeTask(caseId1Task1Id, "completed");
