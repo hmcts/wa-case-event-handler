@@ -1170,8 +1170,10 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
 
 
                     String taskId = response.jsonPath().get("task.id");
-                    String reconfigureRequestTime = response.then().extract().jsonPath().get("task.reconfigure_request_time");
-                    String lastReconfigurationTime = response.then().extract().jsonPath().get("task.last_reconfiguration_time");
+                    String reconfigureRequestTime = response.then().extract().jsonPath()
+                        .get("task.reconfigure_request_time");
+                    String lastReconfigurationTime = response.then().extract().jsonPath()
+                        .get("task.last_reconfiguration_time");
                     log.info("Task ID {}, reconfigureRequestTime {}, lastReconfigurationTime {}", taskId,
                              reconfigureRequestTime, lastReconfigurationTime);
 
