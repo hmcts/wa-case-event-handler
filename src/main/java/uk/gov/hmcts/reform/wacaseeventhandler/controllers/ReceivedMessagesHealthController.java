@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Health;
@@ -15,6 +16,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component("ccdMessagesReceived")
+@Slf4j
 public class ReceivedMessagesHealthController implements HealthIndicator {
 
     protected static final String CASE_EVENT_HANDLER_MESSAGE_HEALTH = "caseEventHandlerMessageHealth";
@@ -56,7 +58,11 @@ public class ReceivedMessagesHealthController implements HealthIndicator {
                 .build();
         }
 
-        LocalDateTime now = LocalDateTime.now(clock).minusHours(1);
+
+        LocalDateTime nowMinusOneHours = LocalDateTime.now(clock).minusHours(1);
+        LocalDateTime now = LocalDateTime.now().minusHours(1);
+        log.info("LocalDate Clock time minus hour {}, localDate time minus one hour {}", nowMinusOneHours, now);
+
         if (isDateWithinWorkingHours(now)) {
             if (repository.getNumberOfMessagesReceivedInLastHour(now) == 0) {
                 return Health
