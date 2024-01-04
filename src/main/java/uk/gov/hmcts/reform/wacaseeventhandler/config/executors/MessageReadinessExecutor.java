@@ -32,13 +32,8 @@ public class MessageReadinessExecutor {
     @PostConstruct
     public void start() {
         log.info("Starting message readiness executor");
-        try {
-            messageReadinessExecutorService.scheduleWithFixedDelay(messageReadinessConsumer, 10_000, pollInterval,
+        messageReadinessExecutorService.scheduleWithFixedDelay(messageReadinessConsumer, 10_000, pollInterval,
                                                                    TimeUnit.MILLISECONDS);
-        } catch (Exception ex) {
-            log.error("Error while starting readiness executor", ex);
-            throw ex;
-        }
     }
 
     @PreDestroy
