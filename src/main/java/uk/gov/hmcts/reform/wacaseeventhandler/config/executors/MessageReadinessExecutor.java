@@ -32,7 +32,7 @@ public class MessageReadinessExecutor {
     @PostConstruct
     public void start() {
         log.info("Starting message readiness executor");
-        messageReadinessExecutorService.scheduleWithFixedDelay(messageReadinessConsumer, 10_000, pollInterval,
+        messageReadinessExecutorService.scheduleWithFixedDelay(messageReadinessConsumer, 9000, pollInterval,
                                                                    TimeUnit.MILLISECONDS);
     }
 
