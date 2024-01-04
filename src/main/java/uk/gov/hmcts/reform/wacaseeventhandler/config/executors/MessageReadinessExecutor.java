@@ -32,8 +32,13 @@ public class MessageReadinessExecutor {
     @PostConstruct
     public void start() {
         log.info("Starting message readiness executor");
-        messageReadinessExecutorService.scheduleWithFixedDelay(messageReadinessConsumer, 5000, pollInterval,
-            TimeUnit.MILLISECONDS);
+        try {
+            messageReadinessExecutorService.scheduleWithFixedDelay(messageReadinessConsumer, 10000, pollInterval,
+                                                                   TimeUnit.MILLISECONDS);
+        } catch (Exception ex) {
+            log.error("Error while starting readiness executor", ex);
+            throw ex;
+        }
     }
 
     @PreDestroy
@@ -51,6 +56,7 @@ public class MessageReadinessExecutor {
             }
         } catch (InterruptedException ie) {
             // (Re-)Cancel if current thread also interrupted
+            log.error("Error while cleanup of Readiness Executor", ie);
             messageReadinessExecutorService.shutdownNow();
             // Preserve interrupt status
             Thread.currentThread().interrupt();
