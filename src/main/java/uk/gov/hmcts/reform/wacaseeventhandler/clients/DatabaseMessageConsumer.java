@@ -25,7 +25,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.ccd.CcdEventProcessor;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -184,8 +183,7 @@ public class DatabaseMessageConsumer implements Runnable {
     }
 
     private Optional<MessageUpdateRetry> processRetryableError(CaseEventMessage caseEventMessage) {
-        int retryCount = Objects.nonNull(caseEventMessage) && Objects.nonNull(caseEventMessage.getRetryCount())
-            ?  caseEventMessage.getRetryCount() + 1 : 1;
+        int retryCount = caseEventMessage.getRetryCount() + 1;
         Integer newHoldUntilIncrement = RETRY_COUNT_TO_DELAY_MAP.get(retryCount);
         String messageId = caseEventMessage.getMessageId();
 
