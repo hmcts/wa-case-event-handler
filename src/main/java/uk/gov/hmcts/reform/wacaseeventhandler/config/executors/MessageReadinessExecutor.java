@@ -33,7 +33,7 @@ public class MessageReadinessExecutor {
     public void start() {
         log.info("Starting message readiness executor");
         try {
-            messageReadinessExecutorService.scheduleWithFixedDelay(messageReadinessConsumer, 15000L, pollInterval,
+            messageReadinessExecutorService.scheduleWithFixedDelay(messageReadinessConsumer, 5000 * 3, pollInterval,
                                                                    TimeUnit.MILLISECONDS);
             log.info("Readiness check thread started successfully");
         } catch (Exception ex) {
