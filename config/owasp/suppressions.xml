@@ -96,16 +96,22 @@
     </notes>
     <cve>CVE-2021-4235</cve>
   </suppress>
-  <suppress until= "2023-11-30">
+  <suppress until= "2024-01-31">
     <notes>
      Looks like a real vulnerability in Netty, but no report or patch has been published so far.
     </notes>
     <cve>CVE-2023-4586</cve>
   </suppress>
-  <suppress until= "2023-11-30">
+  <suppress until= "2024-01-31">
     <notes>
     Affects azure-messaging-servicebus netty packages and io.projectreactor.netty.  Upgrades are either still in beta or have not been used so suppressing for now.
     </notes>
     <cve>CVE-2023-44487</cve>
+  </suppress>
+    <suppress until= "2024-01-31">
+    <notes>
+    Affects azure-messaging-servicebus azure-core, azure-core-amqp, azure-core-http-netty, azure-json. Upgrade still in beta, no fix yet.
+    </notes>
+    <cve>CVE-2023-36052</cve>
   </suppress>
 </suppressions>

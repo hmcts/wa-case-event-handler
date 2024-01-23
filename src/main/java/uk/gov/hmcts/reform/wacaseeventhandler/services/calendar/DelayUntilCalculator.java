@@ -15,7 +15,6 @@ public interface DelayUntilCalculator {
 
     String DEFAULT_NON_WORKING_CALENDAR = "https://www.gov.uk/bank-holidays/england-and-wales.json";
     DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    LocalDateTime DEFAULT_DATE_TIME = LocalDateTime.now();
 
     boolean supports(DelayUntilRequest delayUntilRequest);
 

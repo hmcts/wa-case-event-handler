@@ -107,7 +107,7 @@ public class DelayUntilIntervalCalculator implements DelayUntilCalculator {
         return DelayUntilIntervalData.builder()
             .referenceDate(Optional.ofNullable(delayUntilRequest.getDelayUntilOrigin())
                                .map(this::parseDateTime)
-                               .orElse(DEFAULT_DATE_TIME))
+                               .orElse(LocalDateTime.now()))
             .intervalDays(Optional.ofNullable(delayUntilRequest.getDelayUntilIntervalDays())
                               .map(Long::valueOf)
                               .orElse(0L))
