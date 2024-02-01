@@ -8,6 +8,19 @@ management:
       newMessageStateThreshold: ${NEW_MESSAGE_STATE_THRESHOLD:10}
       newMessageStateCheckEnvEnabled: ${NEW_MESSAGE_STATE_HEALTH_CHECK:prod,aat}
       receivedMessageCheckEnvEnabled: ${RECEIVED_MESSAGE_HEALTH_CHECK:prod,aat}
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include: livenessState, CEHLivenessHealthController
+        readiness:
+          include: readinessState, CEHReadinessHealthController
+      show-components: always
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
   endpoints:
     web:
       base-path: /
