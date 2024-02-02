@@ -12,9 +12,9 @@ management:
         enabled: true
       group:
         liveness:
-          include: livenessState, CEHLivenessHealthController
+          include: livenessState, caseEventHandlerLivenessHealthController
         readiness:
-          include: readinessState, CEHReadinessHealthController
+          include: readinessState, caseEventHandlerReadinessHealthController
       show-components: always
   health:
     livenessState:

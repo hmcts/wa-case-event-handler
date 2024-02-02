@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.availability.ApplicationAvailability;
+import org.testcontainers.exception.ConnectionCreationException;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,7 +46,8 @@ public class CaseEventHandlerReadinessHealthControllerTest {
 
         // GIVEN
         when(caseEventMessageRepository.getNumberOfMessagesReceivedInLastHour(any())).thenThrow(
-            new RuntimeException("An I/O error occurred while sending to the backend"));
+            new ConnectionCreationException("Unable to connect to DB",
+                                            new Throwable("An I/O error occurred while sending to the backend")));
 
         // WHEN
         Health health = caseEventHandlerReadinessHealthController.health();

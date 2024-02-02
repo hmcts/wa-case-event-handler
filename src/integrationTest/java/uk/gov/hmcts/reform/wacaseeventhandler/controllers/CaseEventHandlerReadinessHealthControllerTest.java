@@ -2,8 +2,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.postgresql.util.PSQLException;
-import org.postgresql.util.ServerErrorMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -13,6 +11,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
+import org.testcontainers.exception.ConnectionCreationException;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -49,7 +48,8 @@ public class CaseEventHandlerReadinessHealthControllerTest {
     @Test
     void test_readiness_health_for_failure() throws Exception {
         when(caseEventMessageRepository.getNumberOfMessagesReceivedInLastHour(any())).thenThrow(
-            new PSQLException(new ServerErrorMessage("An I/O error occurred while sending to the backend")));
+            new ConnectionCreationException("Unable to connect to DB",
+                                            new Throwable("An I/O error occurred while sending to the backend")));
 
         assertReadinessHealthStatus(OUT_OF_SERVICE);
     }
@@ -57,7 +57,7 @@ public class CaseEventHandlerReadinessHealthControllerTest {
     private void assertReadinessHealthStatus(Status status) throws Exception {
         mockMvc.perform(get("/health/readiness"))
             .andExpect(
-                jsonPath("$.components.CEHReadinessHealthController.status")
+                jsonPath("$.components.caseEventHandlerReadinessHealthController.status")
                     .value(status.toString()));
     }
 

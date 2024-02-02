@@ -51,7 +51,7 @@ public class CaseEventHandlerLivenessHealthControllerTest {
     private void assertLivenessHealthStatus(Status status) throws Exception {
         mockMvc.perform(get("/health/liveness"))
             .andExpect(
-                jsonPath("$.components.CEHLivenessHealthController.status")
+                jsonPath("$.components.caseEventHandlerLivenessHealthController.status")
                     .value(status.toString()));
     }
 
