@@ -9,8 +9,6 @@ import org.springframework.boot.availability.ReadinessState;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
-import static java.time.LocalDateTime.now;
-
 @Slf4j
 @Component
 public class CaseEventHandlerReadinessHealthController extends ReadinessStateHealthIndicator  {
