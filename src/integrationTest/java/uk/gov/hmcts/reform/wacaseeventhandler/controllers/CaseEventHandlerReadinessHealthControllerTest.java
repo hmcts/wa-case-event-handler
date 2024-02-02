@@ -14,7 +14,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.exception.ConnectionCreationException;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.actuate.health.Status.OUT_OF_SERVICE;
@@ -47,7 +46,7 @@ public class CaseEventHandlerReadinessHealthControllerTest {
 
     @Test
     void test_readiness_health_for_failure() throws Exception {
-        when(caseEventMessageRepository.getNumberOfMessagesReceivedInLastHour(any())).thenThrow(
+        when(caseEventMessageRepository.getAllMessagesInNewState()).thenThrow(
             new ConnectionCreationException("Unable to connect to DB",
                                             new Throwable("An I/O error occurred while sending to the backend")));
 

@@ -10,8 +10,9 @@ import org.springframework.boot.availability.ApplicationAvailability;
 import org.testcontainers.exception.ConnectionCreationException;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
+import java.util.Collections;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.actuate.health.Status.OUT_OF_SERVICE;
 import static org.springframework.boot.actuate.health.Status.UP;
@@ -32,7 +33,7 @@ public class CaseEventHandlerReadinessHealthControllerTest {
     @Test
     void test_get_state_for_success() {
         // GIVEN
-        when(caseEventMessageRepository.getNumberOfMessagesReceivedInLastHour(any())).thenReturn(5);
+        when(caseEventMessageRepository.getAllMessagesInNewState()).thenReturn(Collections.emptyList());
 
         // WHEN
         Health health = caseEventHandlerReadinessHealthController.health();
@@ -45,7 +46,7 @@ public class CaseEventHandlerReadinessHealthControllerTest {
     void test_get_state_for_failure() {
 
         // GIVEN
-        when(caseEventMessageRepository.getNumberOfMessagesReceivedInLastHour(any())).thenThrow(
+        when(caseEventMessageRepository.getAllMessagesInNewState()).thenThrow(
             new ConnectionCreationException("Unable to connect to DB",
                                             new Throwable("An I/O error occurred while sending to the backend")));
 

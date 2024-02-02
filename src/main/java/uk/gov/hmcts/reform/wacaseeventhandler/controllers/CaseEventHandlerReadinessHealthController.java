@@ -28,7 +28,7 @@ public class CaseEventHandlerReadinessHealthController extends ReadinessStateHea
     protected AvailabilityState getState(ApplicationAvailability applicationAvailability) {
         log.info("CaseEventHandler Readiness check Invoked");
         try {
-            caseEventMessageRepository.getNumberOfMessagesReceivedInLastHour(now());
+            caseEventMessageRepository.getAllMessagesInNewState();
         } catch (Exception e) {
             return ReadinessState.REFUSING_TRAFFIC;
         }
