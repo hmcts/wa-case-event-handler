@@ -28,6 +28,20 @@ management:
       exposure:
         include: health, info, prometheus
 
+security:
+  anonymousPaths:
+    - "/"
+    - "/health"
+    - "/health/liveness"
+    - "/health/readiness"
+    - "/loggers/**"
+    - "/swagger-resources/**"
+    - "/swagger-ui/**"
+    - "/swagger-ui/index.html"
+    - "/v3/**"
+    - "/webjars/**"
+    - "/favicon.ico"
+
 idam:
   api:
     baseUrl: ${IDAM_URL:http://sidam-api}
