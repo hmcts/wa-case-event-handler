@@ -12,7 +12,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DeadLetterQueuePeekService;
 
-import java.time.LocalTime;
 import java.util.List;
 
 @Slf4j
@@ -54,10 +53,7 @@ public class MessageReadinessConsumer implements Runnable {
             log.info("Number of messages to check the readiness {}", allMessageInNewState.size());
 
             //ToDO remove later , only for PR or local testing
-            if (LocalTime.now().isBefore(LocalTime.of(17, 0, 0, 0))
-                && LocalTime.now().isAfter(LocalTime.of(18, 0, 0, 0))) {
-                allMessageInNewState.forEach(this::checkMessageToMoveToReadyState);
-            }
+            allMessageInNewState.subList(0, 10).forEach(this::checkMessageToMoveToReadyState);
 
         } catch (Exception ex) {
             log.warn("An error occurred when running message readiness check. "
