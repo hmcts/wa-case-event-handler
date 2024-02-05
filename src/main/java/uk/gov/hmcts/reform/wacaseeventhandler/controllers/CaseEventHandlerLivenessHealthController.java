@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.availability.LivenessStateHealthIndicator;
 import org.springframework.boot.availability.ApplicationAvailability;
 import org.springframework.boot.availability.AvailabilityState;
@@ -16,6 +17,12 @@ import java.util.List;
 @Component
 public class CaseEventHandlerLivenessHealthController extends LivenessStateHealthIndicator {
 
+    @Value("${spring.datasource.username}")
+    private String user;
+
+    @Value("${spring.datasource.password}")
+    private String userpass;
+
     CaseEventMessageRepository caseEventMessageRepository;
 
     @Autowired
@@ -27,7 +34,7 @@ public class CaseEventHandlerLivenessHealthController extends LivenessStateHealt
 
     @Override
     protected AvailabilityState getState(ApplicationAvailability applicationAvailability) {
-        log.info("CaseEventHandler Liveness check Invoked");
+        log.info("CaseEventHandler Liveness check Invoked : {} , {}", user, userpass);
         final int maxNoOfMessagesInNewState = 100;
 
         final List<CaseEventMessageEntity> allMessageInNewState =
