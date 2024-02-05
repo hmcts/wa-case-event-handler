@@ -17,9 +17,6 @@ import java.util.List;
 @Component
 public class CaseEventHandlerLivenessHealthController extends LivenessStateHealthIndicator {
 
-    @Value("${spring.datasource.url}")
-    private String url;
-
     CaseEventMessageRepository caseEventMessageRepository;
 
     @Autowired
@@ -31,7 +28,7 @@ public class CaseEventHandlerLivenessHealthController extends LivenessStateHealt
 
     @Override
     protected AvailabilityState getState(ApplicationAvailability applicationAvailability) {
-        log.info("CaseEventHandler Liveness check Invoked : {} ", url);
+        log.info("CaseEventHandler Liveness check Invoked");
         final int maxNoOfMessagesInNewState = 100;
 
         final List<CaseEventMessageEntity> allMessageInNewState =
