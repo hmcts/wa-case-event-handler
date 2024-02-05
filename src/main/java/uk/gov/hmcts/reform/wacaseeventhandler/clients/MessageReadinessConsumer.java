@@ -20,6 +20,7 @@ import java.util.List;
 @ConditionalOnProperty("azure.servicebus.enableASB-DLQ")
 @Profile("!functional & !local")
 public class MessageReadinessConsumer implements Runnable {
+
     private final DeadLetterQueuePeekService deadLetterQueuePeekService;
     private final CaseEventMessageRepository caseEventMessageRepository;
 
@@ -53,7 +54,12 @@ public class MessageReadinessConsumer implements Runnable {
             log.info("Number of messages to check the readiness {}", allMessageInNewState.size());
 
             //ToDO remove later , only for PR or local testing
-            allMessageInNewState.subList(0, 10).forEach(this::checkMessageToMoveToReadyState);
+            final int chunkSize = 10;
+            if (allMessageInNewState.size() > chunkSize) {
+                allMessageInNewState.subList(0, chunkSize).forEach(this::checkMessageToMoveToReadyState);
+            } else {
+                allMessageInNewState.forEach(this::checkMessageToMoveToReadyState);
+            }
 
         } catch (Exception ex) {
             log.warn("An error occurred when running message readiness check. "
