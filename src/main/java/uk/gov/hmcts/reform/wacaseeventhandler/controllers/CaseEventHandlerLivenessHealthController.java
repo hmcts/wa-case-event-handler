@@ -17,11 +17,8 @@ import java.util.List;
 @Component
 public class CaseEventHandlerLivenessHealthController extends LivenessStateHealthIndicator {
 
-    @Value("${spring.datasource.username}")
-    private String user;
-
-    @Value("${spring.datasource.password}")
-    private String userpass;
+    @Value("${spring.datasource.url}")
+    private String url;
 
     CaseEventMessageRepository caseEventMessageRepository;
 
@@ -34,7 +31,7 @@ public class CaseEventHandlerLivenessHealthController extends LivenessStateHealt
 
     @Override
     protected AvailabilityState getState(ApplicationAvailability applicationAvailability) {
-        log.info("CaseEventHandler Liveness check Invoked : {} , {}", user, userpass);
+        log.info("CaseEventHandler Liveness check Invoked : {} ", url);
         final int maxNoOfMessagesInNewState = 100;
 
         final List<CaseEventMessageEntity> allMessageInNewState =
