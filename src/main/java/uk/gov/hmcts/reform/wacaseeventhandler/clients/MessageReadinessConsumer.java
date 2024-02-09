@@ -20,7 +20,6 @@ import java.util.List;
 @ConditionalOnProperty("azure.servicebus.enableASB-DLQ")
 @Profile("!functional & !local")
 public class MessageReadinessConsumer implements Runnable {
-
     private final DeadLetterQueuePeekService deadLetterQueuePeekService;
     private final CaseEventMessageRepository caseEventMessageRepository;
 

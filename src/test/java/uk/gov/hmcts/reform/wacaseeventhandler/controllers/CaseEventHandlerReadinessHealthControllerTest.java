@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -8,7 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.availability.ApplicationAvailability;
 import org.testcontainers.exception.ConnectionCreationException;
-import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageService;
 
 import java.util.Collections;
 
@@ -16,12 +17,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 import static org.springframework.boot.actuate.health.Status.OUT_OF_SERVICE;
 import static org.springframework.boot.actuate.health.Status.UP;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @ExtendWith(MockitoExtension.class)
 public class CaseEventHandlerReadinessHealthControllerTest {
 
     @Mock
-    private CaseEventMessageRepository caseEventMessageRepository;
+    private CaseEventMessageService caseEventMessageService;
 
     @Mock
     ApplicationAvailability availability;
@@ -29,11 +31,15 @@ public class CaseEventHandlerReadinessHealthControllerTest {
     @InjectMocks
     private CaseEventHandlerReadinessHealthController caseEventHandlerReadinessHealthController;
 
+    @BeforeEach
+    void setup() {
+        setField(caseEventHandlerReadinessHealthController, "environment", "validEnvironment");
+    }
 
     @Test
     void test_get_state_for_success() {
         // GIVEN
-        when(caseEventMessageRepository.getAllMessagesInNewState()).thenReturn(Collections.emptyList());
+        when(caseEventMessageService.getAllMessagesInNewState("validEnvironment")).thenReturn(Collections.emptyList());
 
         // WHEN
         Health health = caseEventHandlerReadinessHealthController.health();
@@ -46,7 +52,7 @@ public class CaseEventHandlerReadinessHealthControllerTest {
     void test_get_state_for_failure() {
 
         // GIVEN
-        when(caseEventMessageRepository.getAllMessagesInNewState()).thenThrow(
+        when(caseEventMessageService.getAllMessagesInNewState("validEnvironment")).thenThrow(
             new ConnectionCreationException("Unable to connect to DB",
                                             new Throwable("An I/O error occurred while sending to the backend")));
 
