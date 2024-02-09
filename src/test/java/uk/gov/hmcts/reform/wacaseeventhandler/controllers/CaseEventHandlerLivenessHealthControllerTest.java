@@ -10,7 +10,7 @@ import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.availability.ApplicationAvailability;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageService;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageCacheService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 public class CaseEventHandlerLivenessHealthControllerTest {
 
     @Mock
-    private CaseEventMessageService caseEventMessageService;
+    private CaseEventMessageCacheService caseEventMessageCacheService;
 
     @Mock
     ApplicationAvailability availability;
@@ -47,7 +47,7 @@ public class CaseEventHandlerLivenessHealthControllerTest {
     @Test
     void test_get_state_for_success_when_no_new_messages() {
         // GIVEN
-        when(caseEventMessageService.getAllMessagesInNewState("validEnvironment")).thenReturn(Collections.emptyList());
+        when(caseEventMessageCacheService.getAllMessagesInNewState("validEnvironment")).thenReturn(Collections.emptyList());
 
         // WHEN
         Health health = caseEventHandlerLivenessHealthController.health();
@@ -73,7 +73,7 @@ public class CaseEventHandlerLivenessHealthControllerTest {
         });
 
         // GIVEN
-        when(caseEventMessageService.getAllMessagesInNewState("validEnvironment")).thenReturn(messages);
+        when(caseEventMessageCacheService.getAllMessagesInNewState("validEnvironment")).thenReturn(messages);
 
         // WHEN
         Health health = caseEventHandlerLivenessHealthController.health();
@@ -94,7 +94,7 @@ public class CaseEventHandlerLivenessHealthControllerTest {
 
         // THEN
         assertEquals(UP, health.getStatus());
-        verifyNoInteractions(caseEventMessageService);
+        verifyNoInteractions(caseEventMessageCacheService);
     }
 
     @Test
@@ -114,7 +114,7 @@ public class CaseEventHandlerLivenessHealthControllerTest {
         });
 
         // GIVEN
-        when(caseEventMessageService.getAllMessagesInNewState("validEnvironment")).thenReturn(messages);
+        when(caseEventMessageCacheService.getAllMessagesInNewState("validEnvironment")).thenReturn(messages);
 
         // WHEN
         Health health = caseEventHandlerLivenessHealthController.health();

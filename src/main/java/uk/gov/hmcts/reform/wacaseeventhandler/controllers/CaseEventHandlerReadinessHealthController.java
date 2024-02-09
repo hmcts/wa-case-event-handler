@@ -8,29 +8,29 @@ import org.springframework.boot.availability.ApplicationAvailability;
 import org.springframework.boot.availability.AvailabilityState;
 import org.springframework.boot.availability.ReadinessState;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageService;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageCacheService;
 
 @Slf4j
 @Component
 public class CaseEventHandlerReadinessHealthController extends ReadinessStateHealthIndicator  {
 
-    CaseEventMessageService caseEventMessageService;
+    CaseEventMessageCacheService caseEventMessageCacheService;
 
     @Value("${environment}")
     private String environment;
 
     @Autowired
     public CaseEventHandlerReadinessHealthController(ApplicationAvailability availability,
-                                                     CaseEventMessageService caseEventMessageService) {
+                                                     CaseEventMessageCacheService caseEventMessageCacheService) {
         super(availability);
-        this.caseEventMessageService = caseEventMessageService;
+        this.caseEventMessageCacheService = caseEventMessageCacheService;
     }
 
     @Override
     protected AvailabilityState getState(ApplicationAvailability applicationAvailability) {
         log.info("CaseEventHandler Readiness check Invoked");
         try {
-            caseEventMessageService.getAllMessagesInNewState(environment);
+            caseEventMessageCacheService.getAllMessagesInNewState(environment);
         } catch (Exception e) {
             return ReadinessState.REFUSING_TRAFFIC;
         }

@@ -9,7 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.availability.ApplicationAvailability;
 import org.testcontainers.exception.ConnectionCreationException;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageService;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageCacheService;
 
 import java.util.Collections;
 
@@ -23,7 +23,7 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 public class CaseEventHandlerReadinessHealthControllerTest {
 
     @Mock
-    private CaseEventMessageService caseEventMessageService;
+    private CaseEventMessageCacheService caseEventMessageCacheService;
 
     @Mock
     ApplicationAvailability availability;
@@ -39,7 +39,7 @@ public class CaseEventHandlerReadinessHealthControllerTest {
     @Test
     void test_get_state_for_success() {
         // GIVEN
-        when(caseEventMessageService.getAllMessagesInNewState("validEnvironment")).thenReturn(Collections.emptyList());
+        when(caseEventMessageCacheService.getAllMessagesInNewState("validEnvironment")).thenReturn(Collections.emptyList());
 
         // WHEN
         Health health = caseEventHandlerReadinessHealthController.health();
@@ -52,7 +52,7 @@ public class CaseEventHandlerReadinessHealthControllerTest {
     void test_get_state_for_failure() {
 
         // GIVEN
-        when(caseEventMessageService.getAllMessagesInNewState("validEnvironment")).thenThrow(
+        when(caseEventMessageCacheService.getAllMessagesInNewState("validEnvironment")).thenThrow(
             new ConnectionCreationException("Unable to connect to DB",
                                             new Throwable("An I/O error occurred while sending to the backend")));
 

@@ -10,7 +10,7 @@ import org.springframework.boot.availability.AvailabilityState;
 import org.springframework.boot.availability.LivenessState;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
-import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageService;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageCacheService;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -31,13 +31,13 @@ public class CaseEventHandlerLivenessHealthController extends LivenessStateHealt
     @Value("${environment}")
     private String environment;
 
-    CaseEventMessageService caseEventMessageService;
+    CaseEventMessageCacheService caseEventMessageCacheService;
 
     @Autowired
     public CaseEventHandlerLivenessHealthController(ApplicationAvailability availability,
-                                                    CaseEventMessageService caseEventMessageService) {
+                                                    CaseEventMessageCacheService caseEventMessageCacheService) {
         super(availability);
-        this.caseEventMessageService = caseEventMessageService;
+        this.caseEventMessageCacheService = caseEventMessageCacheService;
     }
 
     @Override
@@ -48,7 +48,7 @@ public class CaseEventHandlerLivenessHealthController extends LivenessStateHealt
 
         if (StringUtils.isNoneBlank(environment) && isEnabledForEnvironment(environment)) {
             final List<CaseEventMessageEntity> allMessageInNewState =
-                caseEventMessageService.getAllMessagesInNewState(environment);
+                caseEventMessageCacheService.getAllMessagesInNewState(environment);
             final int minNoOfMessages = 1;
             final long numberOfHours = 1L;
             final int noOfNewMessages = allMessageInNewState.size();
