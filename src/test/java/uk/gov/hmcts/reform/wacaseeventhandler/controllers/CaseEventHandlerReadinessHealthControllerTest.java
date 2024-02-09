@@ -39,7 +39,8 @@ public class CaseEventHandlerReadinessHealthControllerTest {
     @Test
     void test_get_state_for_success() {
         // GIVEN
-        when(caseEventMessageCacheService.getAllMessagesInNewState("validEnvironment")).thenReturn(Collections.emptyList());
+        when(caseEventMessageCacheService.getAllMessagesInNewState("validEnvironment"))
+            .thenReturn(Collections.emptyList());
 
         // WHEN
         Health health = caseEventHandlerReadinessHealthController.health();

@@ -106,7 +106,8 @@ class CaseEventMessageCacheServiceTest {
 
         TestConfiguration.fakeTicker.advance(25, TimeUnit.MINUTES);
 
-        List<CaseEventMessageEntity> messagesFromCacheAgain = caseEventMessageCacheService.getAllMessagesInNewState("test");
+        List<CaseEventMessageEntity> messagesFromCacheAgain =
+            caseEventMessageCacheService.getAllMessagesInNewState("test");
         assertThat(messagesFromCacheAgain).isNotEmpty();
 
         assertThat(messages).isSameAs(messagesFromCache).isNotSameAs(messagesFromCacheAgain);
