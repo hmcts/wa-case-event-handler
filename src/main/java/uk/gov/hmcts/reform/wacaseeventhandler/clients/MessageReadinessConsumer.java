@@ -52,13 +52,7 @@ public class MessageReadinessConsumer implements Runnable {
 
             log.info("Number of messages to check the readiness {}", allMessageInNewState.size());
 
-            //ToDO remove later , only for PR or local testing
-            final int chunkSize = 10;
-            if (allMessageInNewState.size() > chunkSize) {
-                allMessageInNewState.subList(0, chunkSize).forEach(this::checkMessageToMoveToReadyState);
-            } else {
-                allMessageInNewState.forEach(this::checkMessageToMoveToReadyState);
-            }
+            allMessageInNewState.forEach(this::checkMessageToMoveToReadyState);
 
         } catch (Exception ex) {
             log.warn("An error occurred when running message readiness check. "
