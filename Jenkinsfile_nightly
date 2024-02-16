@@ -20,10 +20,10 @@ def component = "case-event-handler"
 def secrets = [
   'wa-${env}' : [
     secret('ld-secret', 'LAUNCH_DARKLY_SDK_KEY'),
-    secret('wa-case-event-handler-POSTGRES-PASS', 'POSTGRES_PASSWORD'),
-    secret('wa-case-event-handler-POSTGRES-USER', 'POSTGRES_USERNAME'),
-    secret('wa-case-event-handler-POSTGRES-HOST', 'POSTGRES_HOST'),
-    secret('wa-case-event-handler-POSTGRES-PORT', 'POSTGRES_PORT'),
+    secret('wa-case-event-handler-POSTGRES-PASS-V15', 'POSTGRES_PASSWORD'),
+    secret('wa-case-event-handler-POSTGRES-USER-V15', 'POSTGRES_USERNAME'),
+    secret('wa-case-event-handler-POSTGRES-HOST-V15', 'POSTGRES_HOST'),
+    secret('wa-case-event-handler-POSTGRES-PORT-V15', 'POSTGRES_PORT'),
     secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
     secret('idam-secret', 'IA_IDAM_SECRET'),
     secret('wa-idam-client-secret', 'WA_IDAM_CLIENT_SECRET'),
