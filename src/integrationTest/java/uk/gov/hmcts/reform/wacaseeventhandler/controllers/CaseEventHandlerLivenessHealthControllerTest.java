@@ -22,6 +22,8 @@ import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageReposit
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.boot.actuate.health.Status.DOWN;
 import static org.springframework.boot.actuate.health.Status.UP;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -49,6 +51,7 @@ public class CaseEventHandlerLivenessHealthControllerTest {
     void test_liveness_health_for_success() throws Exception {
         TestConfiguration.fakeTicker.advance(1, TimeUnit.HOURS);
         assertLivenessHealthStatus(UP);
+        verify(caseEventMessageRepository, times(1)).getAllMessagesInNewState();
     }
 
     @Test
@@ -56,6 +59,7 @@ public class CaseEventHandlerLivenessHealthControllerTest {
     void test_liveness_health_for_failure() throws Exception {
         TestConfiguration.fakeTicker.advance(1, TimeUnit.HOURS);
         assertLivenessHealthStatus(DOWN);
+        verify(caseEventMessageRepository, times(1)).getAllMessagesInNewState();
     }
 
     private void assertLivenessHealthStatus(Status status) throws Exception {

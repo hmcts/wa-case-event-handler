@@ -3,9 +3,11 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services;
 import com.github.benmanes.caffeine.cache.Ticker;
 import com.google.common.testing.FakeTicker;
 import org.apache.commons.collections4.IterableUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -24,6 +26,9 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 @ActiveProfiles(profiles = {"db", "integration"})
@@ -33,9 +38,13 @@ class CaseEventMessageCacheServiceTest {
     @Autowired
     private CaseEventMessageCacheService caseEventMessageCacheService;
 
-    @Autowired
+    @SpyBean
     private CaseEventMessageRepository caseEventMessageRepository;
 
+    @BeforeEach
+    void setup() {
+        reset(caseEventMessageRepository);
+    }
 
     @Test
     @Sql({"classpath:sql/delete_from_case_event_messages.sql"})
@@ -47,7 +56,7 @@ class CaseEventMessageCacheServiceTest {
 
     @Test
     @Sql({"classpath:sql/delete_from_case_event_messages.sql"})
-    public void should_call_external_api_only_once() {
+    public void should_serve_service_call_from_cache() {
         TestConfiguration.fakeTicker.advance(1, TimeUnit.HOURS);
         List<CaseEventMessageEntity> messages = caseEventMessageCacheService.getAllMessagesInNewState("test");
         assertThat(messages).isEmpty();
@@ -72,12 +81,14 @@ class CaseEventMessageCacheServiceTest {
 
         assertThat(messages).isSameAs(messagesFromCache);
         assertNotEquals(messages, messagesFromDb);
+        verify(caseEventMessageRepository, times(1)).getAllMessagesInNewState();
+        verify(caseEventMessageRepository, times(1)).findAll();
     }
 
 
     @Test
     @Sql({"classpath:sql/delete_from_case_event_messages.sql"})
-    public void should_change_after_cache_expiry_external_api() {
+    public void should_invalidate_cache_and_serve_service_call_from_database_call() {
         TestConfiguration.fakeTicker.advance(1, TimeUnit.HOURS);
         List<CaseEventMessageEntity> messages = caseEventMessageCacheService.getAllMessagesInNewState("test");
         assertThat(messages).isEmpty();
@@ -112,6 +123,8 @@ class CaseEventMessageCacheServiceTest {
 
         assertThat(messages).isSameAs(messagesFromCache).isNotSameAs(messagesFromCacheAgain);
         assertEquals(messagesFromDb, messagesFromCacheAgain);
+        verify(caseEventMessageRepository, times(2)).getAllMessagesInNewState();
+        verify(caseEventMessageRepository, times(1)).findAll();
     }
 
     @Configuration

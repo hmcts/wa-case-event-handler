@@ -42,20 +42,25 @@ public class CaseEventHandlerLivenessHealthController extends LivenessStateHealt
 
     @Override
     protected AvailabilityState getState(ApplicationAvailability applicationAvailability) {
-        log.info("CaseEventHandler Liveness check Invoked for environment {} ", environment);
-        log.info("CaseEventHandler Liveness check configured for environments {} ",
+        log.debug("CaseEventHandler Liveness check Invoked for environment {} ", environment);
+        log.debug("CaseEventHandler Liveness check configured for environments {} ",
                  newMessageLivenessStateCheckEnvEnabled);
 
         if (StringUtils.isNoneBlank(environment) && isEnabledForEnvironment(environment)) {
-            final List<CaseEventMessageEntity> allMessageInNewState =
-                caseEventMessageCacheService.getAllMessagesInNewState(environment);
+            List<CaseEventMessageEntity> allMessageInNewState;
+            try {
+                allMessageInNewState =
+                    caseEventMessageCacheService.getAllMessagesInNewState(environment);
+            } catch (Exception e) {
+                return LivenessState.BROKEN;
+            }
             final int minNoOfMessages = 1;
             final long numberOfHours = 1L;
             final int noOfNewMessages = allMessageInNewState.size();
 
             if (noOfNewMessages > minNoOfMessages
                 && noOfNewMessages > newMessageStateThresholdForLivenessCheck
-                && allMessageInNewState.get(noOfNewMessages - 1).getEventTimestamp()
+                && allMessageInNewState.get(noOfNewMessages - 1).getReceived()
                     .isBefore(LocalDateTime.now().minusHours(numberOfHours))) {
                 return LivenessState.BROKEN;
             }

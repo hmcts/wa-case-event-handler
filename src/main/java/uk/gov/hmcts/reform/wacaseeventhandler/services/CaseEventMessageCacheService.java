@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
@@ -14,8 +13,11 @@ import java.util.List;
 @Service
 public class CaseEventMessageCacheService {
 
-    @Autowired
-    CaseEventMessageRepository caseEventMessageRepository;
+    private final CaseEventMessageRepository caseEventMessageRepository;
+
+    public CaseEventMessageCacheService(CaseEventMessageRepository caseEventMessageRepository) {
+        this.caseEventMessageRepository = caseEventMessageRepository;
+    }
 
     @Cacheable(value = "liveness_database_check_cache", key = "#environment", sync = true,
             cacheManager = "livenessDatabaseCheckCacheManager")

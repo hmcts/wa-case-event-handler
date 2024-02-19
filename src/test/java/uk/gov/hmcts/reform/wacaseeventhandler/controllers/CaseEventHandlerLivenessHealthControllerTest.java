@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.availability.ApplicationAvailability;
+import org.testcontainers.exception.ConnectionCreationException;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageCacheService;
@@ -99,7 +100,7 @@ public class CaseEventHandlerLivenessHealthControllerTest {
     }
 
     @Test
-    void test_get_state_for_failure() {
+    void test_get_state_for_failure_with_blocked_messages_in_new_state() {
 
         List<CaseEventMessageEntity> messages = new ArrayList<>();
 
@@ -116,6 +117,21 @@ public class CaseEventHandlerLivenessHealthControllerTest {
 
         // GIVEN
         when(caseEventMessageCacheService.getAllMessagesInNewState("validEnvironment")).thenReturn(messages);
+
+        // WHEN
+        Health health = caseEventHandlerLivenessHealthController.health();
+
+        // THEN
+        assertEquals(DOWN, health.getStatus());
+    }
+
+    @Test
+    void test_get_state_for_failure_with_database_exception() {
+
+        // GIVEN
+        when(caseEventMessageCacheService.getAllMessagesInNewState("validEnvironment")).thenThrow(
+            new ConnectionCreationException("Unable to connect to DB",
+                                            new Throwable("An I/O error occurred while sending to the backend")));
 
         // WHEN
         Health health = caseEventHandlerLivenessHealthController.health();
