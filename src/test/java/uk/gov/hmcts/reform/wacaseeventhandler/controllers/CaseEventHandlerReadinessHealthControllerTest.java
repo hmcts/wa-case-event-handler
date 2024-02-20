@@ -20,7 +20,7 @@ import static org.springframework.boot.actuate.health.Status.UP;
 import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 @ExtendWith(MockitoExtension.class)
-public class CaseEventHandlerReadinessHealthControllerTest {
+class CaseEventHandlerReadinessHealthControllerTest {
 
     @Mock
     private CaseEventMessageCacheService caseEventMessageCacheService;
