@@ -28,6 +28,12 @@ public class CaffeineConfiguration {
     @Value("#{T(java.util.concurrent.TimeUnit).of('${caffeine.calendar.timeout.unit}')}")
     private TimeUnit calendarCacheDurationUnit;
 
+    @Value("${caffeine.liveness.database.check.duration}")
+    private Integer livenessDatabaseCheckCacheDuration;
+
+    @Value("#{T(java.util.concurrent.TimeUnit).of('${caffeine.liveness.database.check.unit}')}")
+    private TimeUnit livenessDatabaseCheckCacheUnit;
+
     @Bean
     public Ticker ticker() {
         return Ticker.systemTicker();
@@ -60,6 +66,22 @@ public class CaffeineConfiguration {
         CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
         caffeineCacheManager.setCaffeine(calendarCaffeineConfig);
         caffeineCacheManager.setCacheNames(List.of("calendar_cache"));
+        return caffeineCacheManager;
+    }
+
+    @Bean
+    public Caffeine<Object, Object> livenessDatabaseCheckCaffeineConfig(Ticker ticker) {
+        return Caffeine.newBuilder()
+            .expireAfterWrite(livenessDatabaseCheckCacheDuration, livenessDatabaseCheckCacheUnit)
+            .ticker(ticker);
+    }
+
+    @Bean
+    public CacheManager livenessDatabaseCheckCacheManager(
+                Caffeine<Object, Object> livenessDatabaseCheckCaffeineConfig) {
+        CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
+        caffeineCacheManager.setCaffeine(livenessDatabaseCheckCaffeineConfig);
+        caffeineCacheManager.setCacheNames(List.of("liveness_database_check_cache"));
         return caffeineCacheManager;
     }
 

@@ -7,5 +7,4 @@ feign:
       default:
         loggerLevel: full
 
-
 spring.jackson.serialization.indent_output: true
