@@ -62,6 +62,7 @@ public class CaseEventHandlerLivenessHealthController extends LivenessStateHealt
                 && noOfNewMessages > newMessageStateThresholdForLivenessCheck
                 && allMessageInNewState.get(noOfNewMessages - 1).getReceived()
                     .isBefore(LocalDateTime.now().minusHours(numberOfHours))) {
+                log.info("Liveness check failed due to message readiness check failures");
                 return LivenessState.BROKEN;
             }
         }
