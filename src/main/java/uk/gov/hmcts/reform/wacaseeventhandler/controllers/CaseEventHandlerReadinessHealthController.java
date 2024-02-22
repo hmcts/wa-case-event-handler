@@ -32,6 +32,7 @@ public class CaseEventHandlerReadinessHealthController extends ReadinessStateHea
         try {
             caseEventMessageCacheService.getAllMessagesInNewState(environment);
         } catch (Exception e) {
+            log.error("Readiness check failed with exception {} ", e.getMessage());
             return ReadinessState.REFUSING_TRAFFIC;
         }
         return ReadinessState.ACCEPTING_TRAFFIC;
