@@ -16,7 +16,7 @@
   </suppress>
   <suppress until= "2024-04-05">
   <notes>
-    Latest upgrade for azure-messaging-servicebus not in jitpack
+    Affects azure-messaging-servicebus azure-core, azure-core-amqp, azure-core-http-netty, azure-json. Upgrade still in beta, no fix yet.
   </notes>
   <cve>CVE-2023-36052</cve>
   </suppress>
