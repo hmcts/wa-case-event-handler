@@ -14,4 +14,10 @@
     <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson\-databind@.*$</packageUrl>
     <cpe>cpe:/a:fasterxml:jackson-modules-java8</cpe>
   </suppress>
+  <suppress until= "2024-04-05">
+  <notes>
+    Latest upgrade for azure-messaging-servicebus not in jitpack
+  </notes>
+  <cve>CVE-2023-36052</cve>
+  </suppress>
 </suppressions>
