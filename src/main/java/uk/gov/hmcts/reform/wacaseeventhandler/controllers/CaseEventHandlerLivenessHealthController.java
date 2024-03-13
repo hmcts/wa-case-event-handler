@@ -42,9 +42,8 @@ public class CaseEventHandlerLivenessHealthController extends LivenessStateHealt
 
     @Override
     protected AvailabilityState getState(ApplicationAvailability applicationAvailability) {
-        log.debug("CaseEventHandler Liveness check Invoked for environment {} ", environment);
-        log.debug("CaseEventHandler Liveness check configured for environments {} ",
-                 newMessageLivenessStateCheckEnvEnabled);
+        log.info("CaseEventHandler Liveness check Invoked for environment {} with configured environments {} ",
+                 environment, newMessageLivenessStateCheckEnvEnabled);
 
         if (StringUtils.isNoneBlank(environment) && isEnabledForEnvironment(environment)) {
             List<CaseEventMessageEntity> allMessageInNewState;

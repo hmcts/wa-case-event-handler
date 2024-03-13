@@ -28,7 +28,7 @@ public class CaseEventHandlerReadinessHealthController extends ReadinessStateHea
 
     @Override
     protected AvailabilityState getState(ApplicationAvailability applicationAvailability) {
-        log.debug("CaseEventHandler Readiness check Invoked");
+        log.info("CaseEventHandler Readiness check Invoked");
         try {
             caseEventMessageCacheService.getAllMessagesInNewState(environment);
         } catch (Exception e) {
