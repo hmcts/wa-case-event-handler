@@ -139,7 +139,23 @@ class ReceivedMessagesHealthControllerTest {
 
         receivedMessagesHealthController.health();
 
-        verify(caseEventMessageRepository).getNumberOfMessagesReceivedInLastHour(withinWorkingHoursDate.minusHours(1));
+        verify(caseEventMessageRepository).getNumberOfMessagesReceivedInLastHour(withinWorkingHoursDate.plusHours(1));
+    }
+
+    @ParameterizedTest
+    @MethodSource(value = "workingHoursWithTimeZoneScenarioProvider")
+    void test_health_calls_repository_if_working_day_time_is_within_working_hours_with_timezone(
+        LocalDateTime withinWorkingHoursDate) {
+        // GIVEN
+        setupMockClock(withinWorkingHoursDate);
+        when(caseEventMessageRepository.getNumberOfMessagesReceivedInLastHour(any())).thenReturn(10);
+
+        // WHEN
+        Health health = receivedMessagesHealthController.health();
+
+        // THEN
+        assertEquals(UP, health.getStatus());
+        assertEquals(MESSAGES_RECEIVED, health.getDetails().get(CASE_EVENT_HANDLER_MESSAGE_HEALTH));
     }
 
     @Test
@@ -172,7 +188,7 @@ class ReceivedMessagesHealthControllerTest {
 
     private static Stream<LocalDateTime> nonWorkingHoursScenarioProvider() {
         return Stream.of(
-            LocalDateTime.of(2022, Month.SEPTEMBER, 01, 8, 29),
+            LocalDateTime.of(2022, Month.SEPTEMBER, 01, 7, 29),
             LocalDateTime.of(2022, Month.SEPTEMBER, 01, 18, 31),
             LocalDateTime.of(2022, Month.SEPTEMBER, 01, 0, 0)
 
@@ -181,10 +197,17 @@ class ReceivedMessagesHealthControllerTest {
 
     private static Stream<LocalDateTime> workingHoursScenarioProvider() {
         return Stream.of(
-            LocalDateTime.of(2022, Month.SEPTEMBER, 01, 9, 30),
-            LocalDateTime.of(2022, Month.SEPTEMBER, 01, 9, 31),
-            LocalDateTime.of(2022, Month.SEPTEMBER, 01, 18, 30),
-            LocalDateTime.of(2022, Month.SEPTEMBER, 01, 18, 29)
+            LocalDateTime.of(2022, Month.SEPTEMBER, 01, 8, 30),
+            LocalDateTime.of(2022, Month.SEPTEMBER, 01, 8, 31),
+            LocalDateTime.of(2022, Month.SEPTEMBER, 01, 16, 29),
+            LocalDateTime.of(2022, Month.SEPTEMBER, 01, 16, 30)
+        );
+    }
+
+    private static Stream<LocalDateTime> workingHoursWithTimeZoneScenarioProvider() {
+        return Stream.of(
+            LocalDateTime.of(2024, Month.JANUARY, 01, 10, 00),
+            LocalDateTime.of(2024, Month.MAY, 01, 9, 00)
         );
     }
 }
