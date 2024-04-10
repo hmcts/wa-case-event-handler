@@ -63,13 +63,13 @@ public class ReceivedMessagesHealthController implements HealthIndicator {
 
         ZoneId ukTimeZone = ZoneId.of("Europe/London");
         ZonedDateTime utcDateTime = LocalDateTime.now(clock).atZone(ZoneOffset.UTC);
-        ZonedDateTime zonedDateTime = utcDateTime.withZoneSameInstant(ukTimeZone);
-        LocalDateTime localTime = zonedDateTime.toLocalDateTime();
+        ZonedDateTime ukZonedDateTime = utcDateTime.withZoneSameInstant(ukTimeZone);
+        LocalDateTime ukLocalDateTime = ukZonedDateTime.toLocalDateTime();
 
-        log.info("UTC time {}, localDate time {}", utcDateTime, localTime);
+        log.info("UTC date and time {}, UK local date and time {}", ukZonedDateTime, ukLocalDateTime);
 
-        if (isDateWithinWorkingHours(localTime)) {
-            if (repository.getNumberOfMessagesReceivedInLastHour(localTime) == 0) {
+        if (isDateWithinWorkingHours(ukLocalDateTime)) {
+            if (repository.getNumberOfMessagesReceivedInLastHour(ukLocalDateTime) == 0) {
                 return Health
                     .down()
                     .withDetail(
