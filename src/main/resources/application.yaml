@@ -7,7 +7,7 @@ management:
       show-details: "always"
       newMessageStateThreshold: ${NEW_MESSAGE_STATE_THRESHOLD:10}
       newMessageStateCheckEnvEnabled: ${NEW_MESSAGE_STATE_HEALTH_CHECK:prod,aat}
-      receivedMessageCheckEnvEnabled: ${RECEIVED_MESSAGE_HEALTH_CHECK:prod,aat,demo}
+      receivedMessageCheckEnvEnabled: ${RECEIVED_MESSAGE_HEALTH_CHECK:prod,aat}
       newMessageStateThresholdForLivenessCheck: ${NEW_MESSAGE_STATE_THRESHOLD_FOR_LIVENESS_CHECK:100}
       newMessageLivenessStateCheckEnvEnabled: ${NEW_MESSAGE_LIVENESS_STATE_HEALTH_CHECK:test,aat,local-arm-arch}
       probes:
