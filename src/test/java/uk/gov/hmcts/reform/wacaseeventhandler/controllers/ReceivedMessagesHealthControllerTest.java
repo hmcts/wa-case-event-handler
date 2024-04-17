@@ -159,7 +159,7 @@ class ReceivedMessagesHealthControllerTest {
     }
 
     @ParameterizedTest
-    @MethodSource(value = "nonWorkingHoursWithTimeZoneScenarioProvider")
+    @MethodSource(value = "nonWorkingHoursForDstTimeZoneStartTimeAndEndTime")
     void test_health_calls_repository_if_working_day_time_is_outside_working_hours_with_timezone(
         LocalDateTime outsideWorkingHoursDate) {
         // GIVEN
@@ -226,9 +226,9 @@ class ReceivedMessagesHealthControllerTest {
         );
     }
 
-    private static Stream<LocalDateTime> nonWorkingHoursWithTimeZoneScenarioProvider() {
+    private static Stream<LocalDateTime> nonWorkingHoursForDstTimeZoneStartTimeAndEndTime() {
         return Stream.of(
-            LocalDateTime.of(2024, Month.OCTOBER, 29, 07, 00),
+            LocalDateTime.of(2024, Month.OCTOBER, 27, 07, 00),
             LocalDateTime.of(2024, Month.MARCH, 31, 17, 00)
         );
     }
