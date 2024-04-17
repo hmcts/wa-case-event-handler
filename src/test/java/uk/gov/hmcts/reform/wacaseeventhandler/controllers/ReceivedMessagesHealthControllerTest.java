@@ -158,6 +158,21 @@ class ReceivedMessagesHealthControllerTest {
         assertEquals(MESSAGES_RECEIVED, health.getDetails().get(CASE_EVENT_HANDLER_MESSAGE_HEALTH));
     }
 
+    @ParameterizedTest
+    @MethodSource(value = "nonWorkingHoursWithTimeZoneScenarioProvider")
+    void test_health_calls_repository_if_working_day_time_is_outside_working_hours_with_timezone(
+        LocalDateTime outsideWorkingHoursDate) {
+        // GIVEN
+        setupMockClock(outsideWorkingHoursDate);
+
+        // WHEN
+        Health health = receivedMessagesHealthController.health();
+
+        // THEN
+        assertEquals(UP, health.getStatus());
+        assertEquals(NO_MESSAGE_CHECK, health.getDetails().get(CASE_EVENT_HANDLER_MESSAGE_HEALTH));
+    }
+
     @Test
     void test_health_reports_success_if_messages_check_disabled_in_current_environment() {
         // GIVEN
@@ -208,6 +223,13 @@ class ReceivedMessagesHealthControllerTest {
         return Stream.of(
             LocalDateTime.of(2024, Month.JANUARY, 01, 10, 00),
             LocalDateTime.of(2024, Month.MAY, 01, 9, 00)
+        );
+    }
+
+    private static Stream<LocalDateTime> nonWorkingHoursWithTimeZoneScenarioProvider() {
+        return Stream.of(
+            LocalDateTime.of(2024, Month.OCTOBER, 29, 07, 00),
+            LocalDateTime.of(2024, Month.MARCH, 31, 17, 00)
         );
     }
 }
