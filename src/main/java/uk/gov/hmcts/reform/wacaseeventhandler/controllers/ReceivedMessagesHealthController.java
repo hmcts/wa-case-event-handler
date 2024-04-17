@@ -11,6 +11,9 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates.HolidayServi
 
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -58,12 +61,15 @@ public class ReceivedMessagesHealthController implements HealthIndicator {
                 .build();
         }
 
-        LocalDateTime now = LocalDateTime.now(clock).minusHours(1);
-        LocalDateTime nowMinusOneHours = LocalDateTime.now().minusHours(1);
-        log.info("LocalDate Clock time minus hour {}, localDate time minus one hour {}", now, nowMinusOneHours);
+        ZoneId ukTimeZone = ZoneId.of("Europe/London");
+        ZonedDateTime utcDateTime = LocalDateTime.now(clock).atZone(ZoneOffset.UTC);
+        ZonedDateTime ukZonedDateTime = utcDateTime.withZoneSameInstant(ukTimeZone);
+        LocalDateTime ukLocalDateTime = ukZonedDateTime.toLocalDateTime();
 
-        if (isDateWithinWorkingHours(now)) {
-            if (repository.getNumberOfMessagesReceivedInLastHour(now) == 0) {
+        log.info("UTC date and time {}, UK local date and time {}", ukZonedDateTime, ukLocalDateTime);
+
+        if (isDateWithinWorkingHours(ukLocalDateTime)) {
+            if (repository.getNumberOfMessagesReceivedInLastHour(ukLocalDateTime) == 0) {
                 return Health
                     .down()
                     .withDetail(
