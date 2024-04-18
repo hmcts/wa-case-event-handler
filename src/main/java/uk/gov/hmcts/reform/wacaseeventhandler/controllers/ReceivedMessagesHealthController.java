@@ -6,9 +6,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates.HolidayService;
 
+import java.net.URI;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -28,6 +30,10 @@ public class ReceivedMessagesHealthController implements HealthIndicator {
 
     protected static final String NO_MESSAGE_CHECK = "Out Of Hours, no check for messages";
     protected static final String CHECK_DISABLED_MESSAGE = "check disabled in %s";
+
+    protected static final String ENV_AAT = "aat";
+
+    protected static final String STAGING_TEXT = "staging";
 
     @Value("${management.endpoint.health.receivedMessageCheckEnvEnabled}")
     private String receivedMessageCheckEnvEnabled;
@@ -114,6 +120,12 @@ public class ReceivedMessagesHealthController implements HealthIndicator {
     }
 
     private boolean isNotEnabledForEnvironment(String env) {
+        if (ENV_AAT.equals(env)) {
+            URI currentUri = ServletUriComponentsBuilder.fromCurrentRequestUri().build().toUri();
+            if (currentUri.toString().contains(STAGING_TEXT)) {
+                return true;
+            }
+        }
         Set<String> envsToEnable = Arrays.stream(receivedMessageCheckEnvEnabled.split(","))
             .map(String::trim).collect(Collectors.toSet());
         return !envsToEnable.contains(env);
