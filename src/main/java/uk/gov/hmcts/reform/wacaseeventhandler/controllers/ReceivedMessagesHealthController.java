@@ -123,11 +123,8 @@ public class ReceivedMessagesHealthController implements HealthIndicator {
         if (ENV_AAT.equals(env)) {
 
             URI currentUri = ServletUriComponentsBuilder.fromCurrentRequestUri().build().toUri();
-            String currentUriString = "";
-            if (null != currentUri) {
-                currentUriString = currentUri.toString();
-            }
-            if (currentUriString.contains(STAGING_TEXT)) {
+            log.info("Invoked API URI: {}", currentUri);
+            if (currentUri.toString().contains(STAGING_TEXT)) {
                 return true;
             }
         }
