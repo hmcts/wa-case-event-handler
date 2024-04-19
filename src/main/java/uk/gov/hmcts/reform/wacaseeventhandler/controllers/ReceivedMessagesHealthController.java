@@ -119,10 +119,15 @@ public class ReceivedMessagesHealthController implements HealthIndicator {
             && (localDateTime.equals(workingHoursEndTime) || localDateTime.isBefore(workingHoursEndTime));
     }
 
-    private boolean isNotEnabledForEnvironment(String env) {
+    public boolean isNotEnabledForEnvironment(String env) {
         if (ENV_AAT.equals(env)) {
+
             URI currentUri = ServletUriComponentsBuilder.fromCurrentRequestUri().build().toUri();
-            if (currentUri.toString().contains(STAGING_TEXT)) {
+            String currentUriString = "";
+            if (null != currentUri) {
+                currentUriString = currentUri.toString();
+            }
+            if (currentUriString.contains(STAGING_TEXT)) {
                 return true;
             }
         }

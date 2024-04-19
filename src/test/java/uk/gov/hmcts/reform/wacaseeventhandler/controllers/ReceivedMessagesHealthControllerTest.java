@@ -9,6 +9,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.actuate.health.Health;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates.HolidayService;
 
@@ -21,6 +24,8 @@ import java.time.ZoneOffset;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -173,7 +178,8 @@ class ReceivedMessagesHealthControllerTest {
         assertEquals(NO_MESSAGE_CHECK, health.getDetails().get(CASE_EVENT_HANDLER_MESSAGE_HEALTH));
     }
 
-    @Test
+    @ParameterizedTest
+    @MethodSource(value = "nonWorkingHoursForDstTimeZoneStartTimeAndEndTime")
     void test_health_reports_success_if_messages_check_disabled_in_current_environment() {
         // GIVEN
         setField(receivedMessagesHealthController, "environment", "invalidEnvironment");
@@ -189,6 +195,48 @@ class ReceivedMessagesHealthControllerTest {
         verifyNoInteractions(clock);
         verifyNoInteractions(holidayService);
         verifyNoInteractions(caseEventMessageRepository);
+    }
+
+    @ParameterizedTest
+    @MethodSource(value = "enabledEnvProvider")
+    void test_enabled_for_environment_return_false_prod_aat(String env) {
+
+        setField(receivedMessagesHealthController, "receivedMessageCheckEnvEnabled", "prod,aat");
+
+        MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+        mockHttpServletRequest.setServerName("case-event-handler.any.environment");
+        mockHttpServletRequest.setRequestURI("/health");
+
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(mockHttpServletRequest));
+
+        assertFalse(receivedMessagesHealthController.isNotEnabledForEnvironment(env));
+    }
+
+    @ParameterizedTest
+    @MethodSource(value = "disabledEnvProvider")
+    void test_enabled_for_environment_return_true_demo_ithc(String env) {
+
+        setField(receivedMessagesHealthController, "receivedMessageCheckEnvEnabled", "prod,aat");
+
+        MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+        mockHttpServletRequest.setServerName("case-event-handler.any.environment");
+        mockHttpServletRequest.setRequestURI("/health");
+
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(mockHttpServletRequest));
+
+        assertTrue(receivedMessagesHealthController.isNotEnabledForEnvironment(env));
+    }
+
+    @Test
+    void test_enabled_for_environment_return_true_staging_aat() {
+
+        MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
+        mockHttpServletRequest.setServerName("case-event-handler.staging.aat");
+        mockHttpServletRequest.setRequestURI("/health");
+
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(mockHttpServletRequest));
+
+        assertTrue(receivedMessagesHealthController.isNotEnabledForEnvironment("aat"));
     }
 
     private void setupDefaultMockClock() {
@@ -230,6 +278,18 @@ class ReceivedMessagesHealthControllerTest {
         return Stream.of(
             LocalDateTime.of(2024, Month.OCTOBER, 27, 07, 00),
             LocalDateTime.of(2024, Month.MARCH, 31, 17, 00)
+        );
+    }
+
+    private static Stream<String> enabledEnvProvider() {
+        return Stream.of(
+            "prod","aat"
+        );
+    }
+
+    private static Stream<String> disabledEnvProvider() {
+        return Stream.of(
+            "demo","ithc"
         );
     }
 }
