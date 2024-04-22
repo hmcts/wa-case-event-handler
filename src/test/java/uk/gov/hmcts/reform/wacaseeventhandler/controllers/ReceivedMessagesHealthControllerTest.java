@@ -200,7 +200,7 @@ class ReceivedMessagesHealthControllerTest {
 
     @ParameterizedTest
     @MethodSource(value = "enabledEnvProvider")
-    void test_enabled_for_environment_return_false_prod_aat(String env) {
+    void test_not_enabled_for_environment_return_false_prod_aat(String env) {
 
         setField(receivedMessagesHealthController, "receivedMessageCheckEnvEnabled", "prod,aat");
 
@@ -215,7 +215,7 @@ class ReceivedMessagesHealthControllerTest {
 
     @ParameterizedTest
     @MethodSource(value = "disabledEnvProvider")
-    void test_enabled_for_environment_return_true_demo_ithc(String env) {
+    void test_not_enabled_for_environment_return_true_demo_ithc(String env) {
 
         setField(receivedMessagesHealthController, "receivedMessageCheckEnvEnabled", "prod,aat");
 
@@ -229,7 +229,7 @@ class ReceivedMessagesHealthControllerTest {
     }
 
     @Test
-    void test_enabled_for_environment_return_true_staging_aat() {
+    void test_not_enabled_for_environment_return_true_staging_aat() {
 
         MockHttpServletRequest mockHttpServletRequest = new MockHttpServletRequest();
         mockHttpServletRequest.setServerName("case-event-handler.staging.aat");
