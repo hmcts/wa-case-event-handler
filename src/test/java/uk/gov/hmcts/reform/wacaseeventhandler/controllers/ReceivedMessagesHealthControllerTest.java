@@ -145,7 +145,7 @@ class ReceivedMessagesHealthControllerTest {
 
         receivedMessagesHealthController.health();
 
-        verify(caseEventMessageRepository).getNumberOfMessagesReceivedInLastHour(withinWorkingHoursDate.plusHours(1));
+        verify(caseEventMessageRepository).getNumberOfMessagesReceivedInLastHour(withinWorkingHoursDate.minusHours(1));
     }
 
     @ParameterizedTest
@@ -162,6 +162,18 @@ class ReceivedMessagesHealthControllerTest {
         // THEN
         assertEquals(UP, health.getStatus());
         assertEquals(MESSAGES_RECEIVED, health.getDetails().get(CASE_EVENT_HANDLER_MESSAGE_HEALTH));
+    }
+
+    @ParameterizedTest
+    @MethodSource(value = "workingHoursWithTimeZoneScenarioProvider")
+    void test_health_calls_repository_with_utc_minus_hour_with_any_timezone(
+        LocalDateTime withinWorkingHoursDate) {
+
+        setupMockClock(withinWorkingHoursDate);
+
+        receivedMessagesHealthController.health();
+
+        verify(caseEventMessageRepository).getNumberOfMessagesReceivedInLastHour(withinWorkingHoursDate.minusHours(1));
     }
 
     @ParameterizedTest
