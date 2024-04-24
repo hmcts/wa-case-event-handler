@@ -129,6 +129,38 @@ public class ReceivedMessagesHealthControllerTest {
         verify(caseEventMessageRepository, never()).getNumberOfMessagesReceivedInLastHour(any());
     }
 
+    @Test
+    void test_health_reports_up_if_received_messages_in_last_hour() throws Exception {
+
+        // GIVEN
+        setClock(LocalDateTime.of(2024, 4, 2, 14,15));
+
+        // THEN
+        mockMvc.perform(get("/health"))
+            .andExpect(
+                jsonPath("$.components.ccdMessagesReceived.status")
+                    .value(UP.toString()))
+            .andExpect(jsonPath("$.components.ccdMessagesReceived.details." + CASE_EVENT_HANDLER_MESSAGE_HEALTH)
+                           .value(String.format(MESSAGES_RECEIVED, "test")));
+
+    }
+
+    @Test
+    void test_health_reports_down_if_not_received_messages_in_last_hour() throws Exception {
+
+        // GIVEN
+        setClock(LocalDateTime.of(2024, 4, 2, 15,15));
+
+        // THEN
+        mockMvc.perform(get("/health"))
+            .andExpect(
+                jsonPath("$.components.ccdMessagesReceived.status")
+                    .value(DOWN.toString()))
+            .andExpect(jsonPath("$.components.ccdMessagesReceived.details." + CASE_EVENT_HANDLER_MESSAGE_HEALTH)
+                           .value(String.format(NO_MESSAGES_RECEIVED, "test")));
+
+    }
+
     private void assertReceivedMessagesHealthStatus(Status status, String details) throws Exception {
         mockMvc.perform(get("/health"))
             .andExpect(

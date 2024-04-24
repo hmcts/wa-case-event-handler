@@ -50,4 +50,17 @@ VALUES
    '2022-08-26 14:00:00.350754',
    0,
    '2022-01-04 12:45:54.887100',
+   0),
+
+   ('MessageId_bc8299fc-5d31-45c7-b847-c2622014a85b',
+      7,
+      '9140-9312-3701-4412',
+      '2024-04-02 14:00:00.887100',
+      false,
+      'NEW',
+      'null',
+      '{"EventInstanceId":"77838838-2369-443d-a076-9c80bcda17d6","EventTimeStamp":[2022,1,14,12,45,54,887100000],"CaseId":"9140-9312-3701-4413","JurisdictionId":"ia","CaseTypeId":"asylum","EventId":"dummyEvent","PreviousStateId":"","NewStateId":"","UserId":"some user Id","AdditionalData":{"Data":{"lastModifiedDirection":{"dateDue":"","uniqueId":"","directionType":""},"appealType":"protection"},"Definition":null}}',
+      '2024-04-02 14:00:00.350754',
+      0,
+      null,
    0);
