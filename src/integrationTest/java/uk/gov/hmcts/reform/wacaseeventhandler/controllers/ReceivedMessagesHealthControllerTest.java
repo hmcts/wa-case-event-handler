@@ -130,6 +130,8 @@ public class ReceivedMessagesHealthControllerTest {
     }
 
     @Test
+    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+        scripts = {"classpath:scripts/insert_case_event_messages_for_recived_messages_test.sql"})
     void test_health_reports_up_if_received_messages_in_last_hour() throws Exception {
 
         // GIVEN
@@ -146,6 +148,8 @@ public class ReceivedMessagesHealthControllerTest {
     }
 
     @Test
+    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+        scripts = {"classpath:scripts/insert_case_event_messages_for_recived_messages_test.sql"})
     void test_health_reports_down_if_not_received_messages_in_last_hour() throws Exception {
 
         // GIVEN
