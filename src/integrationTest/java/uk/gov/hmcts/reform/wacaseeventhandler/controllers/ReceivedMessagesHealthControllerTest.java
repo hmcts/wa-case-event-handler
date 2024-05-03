@@ -200,7 +200,7 @@ public class ReceivedMessagesHealthControllerTest {
 
     private static Stream<LocalDateTime> workingHoursWithTimeZoneScenarioProvider() {
         return Stream.of(
-            LocalDateTime.of(2024, Month.JANUARY, 01, 10, 00),
+            LocalDateTime.of(2024, Month.JANUARY, 02, 10, 00),
             LocalDateTime.of(2024, Month.MAY, 01, 9, 00)
         );
     }
