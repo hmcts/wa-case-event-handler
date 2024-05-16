@@ -6,13 +6,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
-import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName.SET_STATE_TO_PROCESSED_ON_MESSAGES;
+import static uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState.PROCESSED;
+import static uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState.READY;
+import static uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState.UNPROCESSABLE;
 
 @Service
 @Slf4j
@@ -32,8 +33,8 @@ public class SetStateToProcessedMessageJob implements MessageJob {
     @Override
     public boolean canRun(JobName jobName) {
         return this.messageIds != null
-                && !this.messageIds.isEmpty()
-                && SET_STATE_TO_PROCESSED_ON_MESSAGES.equals(jobName);
+               && !this.messageIds.isEmpty()
+               && SET_STATE_TO_PROCESSED_ON_MESSAGES.equals(jobName);
     }
 
     @Override
@@ -44,12 +45,13 @@ public class SetStateToProcessedMessageJob implements MessageJob {
             return List.of();
         }
 
-        log.info("Setting message state to {}", MessageState.PROCESSED);
+        log.info("Setting message state to {}", PROCESSED);
         List<CaseEventMessageEntity> messages = caseEventMessageRepository.findByMessageId(this.messageIds);
 
-        List<CaseEventMessageEntity> setMessageStateList = messages.stream()
-            .filter(msg -> MessageState.UNPROCESSABLE.equals(msg.getState()) || MessageState.READY.equals(msg.getState()))
-            .toList();
+        List<CaseEventMessageEntity> setMessageStateList =
+            messages.stream()
+                .filter(msg -> UNPROCESSABLE.equals(msg.getState()) || READY.equals(msg.getState()))
+                .toList();
 
         if (setMessageStateList.isEmpty()) {
             log.info(
@@ -66,9 +68,9 @@ public class SetStateToProcessedMessageJob implements MessageJob {
                 messageEntity.getMessageId(),
                 messageEntity.getCaseId(),
                 messageEntity.getState(),
-                MessageState.PROCESSED
+                PROCESSED
             );
-            messageEntity.setState(MessageState.PROCESSED);
+            messageEntity.setState(PROCESSED);
         });
 
         return this.messageIds;
