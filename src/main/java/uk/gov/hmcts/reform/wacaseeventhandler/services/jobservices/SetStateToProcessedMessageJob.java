@@ -45,6 +45,7 @@ public class SetStateToProcessedMessageJob implements MessageJob {
             return List.of();
         }
 
+        //This should be refactored to be done atomically
         log.info("Setting message state to {}", PROCESSED);
         List<CaseEventMessageEntity> messages = caseEventMessageRepository.findByMessageId(this.messageIds);
 
