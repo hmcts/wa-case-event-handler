@@ -59,7 +59,7 @@ public class SetStateToProcessedMessageJobTest {
 
         when(caseEventMessageRepository.findByMessageId(messageIds))
             .thenReturn(List.of(new CaseEventMessageEntity().buildMessage("messageId_1", MessageState.NEW),
-                                new CaseEventMessageEntity().buildMessage("messageId_2", MessageState.READY),
+                                //new CaseEventMessageEntity().buildMessage("messageId_2", MessageState.READY),
                                 new CaseEventMessageEntity().buildMessage("messageId_3", MessageState.PROCESSED)));
         assertTrue(setStateToProcessedMessageJob.run().isEmpty());
     }

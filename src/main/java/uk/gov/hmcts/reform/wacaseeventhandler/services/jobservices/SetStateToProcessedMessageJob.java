@@ -48,12 +48,12 @@ public class SetStateToProcessedMessageJob implements MessageJob {
         List<CaseEventMessageEntity> messages = caseEventMessageRepository.findByMessageId(this.messageIds);
 
         List<CaseEventMessageEntity> setMessageStateList = messages.stream()
-            .filter(msg -> MessageState.UNPROCESSABLE.equals(msg.getState()))
-            .collect(Collectors.toList());
+            .filter(msg -> MessageState.UNPROCESSABLE.equals(msg.getState()) || MessageState.READY.equals(msg.getState()))
+            .toList();
 
         if (setMessageStateList.isEmpty()) {
             log.info(
-                "{} There is no any UNPROCESSABLE message with setting message state",
+                "{} There are no messages to update to PROCESSED state.",
                 SET_STATE_TO_PROCESSED_ON_MESSAGES.name()
             );
             return List.of();
