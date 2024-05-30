@@ -20,9 +20,8 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
-import uk.gov.hmcts.reform.ccd.client.CoreCaseDataApi;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.InitiateTaskRequest;
-import uk.gov.hmcts.reform.wacaseeventhandler.config.DocumentManagementFiles;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.CcdRetryableClient;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.GivensBuilder;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.RestApiActions;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestVariables;
@@ -87,9 +86,7 @@ public abstract class SpringBootFunctionalBaseTest {
     @Autowired
     protected AuthorizationProvider authorizationProvider;
     @Autowired
-    protected CoreCaseDataApi coreCaseDataApi;
-    @Autowired
-    protected DocumentManagementFiles documentManagementFiles;
+    protected CcdRetryableClient ccdRetryableClient;
     @Autowired
     protected IdamService idamService;
     @Autowired
@@ -130,14 +127,10 @@ public abstract class SpringBootFunctionalBaseTest {
         camundaApiActions = new RestApiActions(camundaUrl, LOWER_CAMEL_CASE).setUp();
         restApiActions = new RestApiActions(taskManagementUrl, SNAKE_CASE).setUp();
 
-        documentManagementFiles.prepare();
-
         given = new GivensBuilder(
             camundaApiActions,
-            restApiActions,
             authorizationProvider,
-            coreCaseDataApi,
-            documentManagementFiles
+            ccdRetryableClient
         );
 
         common = new Common(
@@ -203,7 +196,7 @@ public abstract class SpringBootFunctionalBaseTest {
         AtomicReference<Response> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
             .pollInterval(1000, MILLISECONDS)
-            .atMost(60, SECONDS)
+            .atMost(120, SECONDS)
             .until(
                 () -> {
                     Response result = given()

@@ -145,13 +145,15 @@ public class DatabaseMessageConsumer implements Runnable {
                 );
                 return updateMessageState(MessageState.PROCESSED, caseEventMessageId, 0, null);
             } catch (FeignException fe) {
-                log.error("FeignException while processing message.", fe);
+                log.error("FeignException while processing message. caseEventMessage:{} exception: ",
+                    caseEventMessage, fe);
                 return processException(fe, caseEventMessage);
             } catch (JsonProcessingException jpe) {
-                log.error("JsonProcessingException while processing message.", jpe);
+                log.error("JsonProcessingException while processing message. caseEventMessage:{} exception: ",
+                    caseEventMessage, jpe);
                 return processError(caseEventMessage);
             } catch (Exception ex) {
-                log.error("Exception while processing message.", ex);
+                log.error("Exception while processing message. caseEventMessage:{} exception: ", caseEventMessage, ex);
                 return processRetryableError(caseEventMessage);
             }
         }
@@ -163,6 +165,7 @@ public class DatabaseMessageConsumer implements Runnable {
         try {
             final HttpStatus httpStatus = HttpStatus.valueOf(fce.status());
             isNonRetryableError = UnprocessableHttpErrors.isNonRetryableError(httpStatus);
+            log.info("caseId: {} httpStatus:{}", caseEventMessage.getCaseId(), httpStatus);
         } catch (IllegalArgumentException iae) {
             if (fce instanceof RetryableException) {
                 isNonRetryableError = false;
@@ -172,9 +175,8 @@ public class DatabaseMessageConsumer implements Runnable {
         if (isNonRetryableError) {
             return processError(caseEventMessage);
         } else {
-            log.info("Retryable error occurred when processing message with messageId: {} and caseId: {}",
-                caseEventMessage.getMessageId(),
-                caseEventMessage.getCaseId()
+            log.warn("Retryable error occurred when processing message with caseEventMessage: {}",
+                caseEventMessage
             );
             return processRetryableError(caseEventMessage);
         }
@@ -198,9 +200,8 @@ public class DatabaseMessageConsumer implements Runnable {
 
     private Optional<MessageUpdateRetry> processError(CaseEventMessage caseEventMessage) {
         String caseEventMessageId = caseEventMessage.getMessageId();
-        log.info("Could not process message with id {} and caseId {}, setting state to Unprocessable",
-            caseEventMessageId,
-            caseEventMessage.getCaseId()
+        log.warn("Could not process message with caseEventMessage: {}, setting state to Unprocessable.",
+            caseEventMessage
         );
 
         return updateMessageState(MessageState.UNPROCESSABLE, caseEventMessageId, 0, null);

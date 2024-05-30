@@ -134,7 +134,7 @@ class DatabaseMessageConsumerTest {
             .thenReturn(caseEventMessage);
 
         final Request request = mock(Request.class);
-        FeignException.InternalServerError internalServerError = new FeignException.InternalServerError(
+        FeignException.BadRequest internalServerError = new FeignException.BadRequest(
             "Error Message",
             request,
             new byte[]{},
@@ -193,7 +193,7 @@ class DatabaseMessageConsumerTest {
             .thenReturn(caseEventMessage);
 
         final Request request = mock(Request.class);
-        FeignException.NotFound errorMessage = new FeignException.NotFound(
+        FeignException.InternalServerError errorMessage = new FeignException.InternalServerError(
             "Error Message",
             request, new byte[]{},
             Collections.emptyMap()
@@ -305,7 +305,7 @@ class DatabaseMessageConsumerTest {
         doNothing().when(transactionStatus).setRollbackOnly();
 
         final Request request = mock(Request.class);
-        FeignException.NotFound errorMessage = new FeignException.NotFound(
+        FeignException.InternalServerError errorMessage = new FeignException.InternalServerError(
             "Error Message",
             request, new byte[]{},
             Collections.emptyMap()
