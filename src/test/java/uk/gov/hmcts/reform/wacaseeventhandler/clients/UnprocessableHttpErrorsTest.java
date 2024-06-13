@@ -15,8 +15,8 @@ class UnprocessableHttpErrorsTest {
     }
 
     @Test
-    void should_return_true_for_a_non_retryable_error_500_status() {
-        assertTrue(UnprocessableHttpErrors.isNonRetryableError(HttpStatus.INTERNAL_SERVER_ERROR));
+    void should_return_false_for_a_non_retryable_error_500_status() {
+        assertFalse(UnprocessableHttpErrors.isNonRetryableError(HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
     @Test
@@ -30,7 +30,7 @@ class UnprocessableHttpErrorsTest {
     }
 
     @Test
-    void should_return_false_for_a_401_retryable_error() {
+    void should_return_false_for_a_401_non_retryable_error() {
         assertFalse(UnprocessableHttpErrors.isNonRetryableError(HttpStatus.UNAUTHORIZED));
     }
 

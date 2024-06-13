@@ -19,7 +19,6 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
@@ -64,7 +63,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
         String messageId = randomMessageId();
         String eventInstanceId = UUID.randomUUID().toString();
 
-        LocalDateTime timeStamp = LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS);
+        LocalDateTime timeStamp = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
 
         String timeStampString = timeStamp.toString().replaceAll("/(0+$)/g", "");
         EventInformation eventInformation = buildEventInformation(eventInstanceId, caseIdForTask,
@@ -434,7 +433,7 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
     }
 
     private String randomMessageId() {
-        return "" + ThreadLocalRandom.current().nextLong(1000000);
+        return UUID.randomUUID().toString();
     }
 
     private Response getMessagesFromRestEndpoint(String states,
