@@ -57,7 +57,7 @@ public class EventMessageReceiverService {
     }
 
     public CaseEventMessage handleCcdCaseEventAsbMessage(String messageId, String sessionId, String message) {
-        log.info("Received CCD Case Events ASB message with id '{}'", messageId);
+        log.debug("Received CCD Case Events ASB message with id '{}'", messageId);
 
         return handleMessage(messageId, sessionId, message, false);
     }

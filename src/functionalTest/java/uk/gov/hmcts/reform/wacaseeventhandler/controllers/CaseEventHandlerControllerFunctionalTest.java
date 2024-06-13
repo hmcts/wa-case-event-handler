@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
-import com.azure.messaging.servicebus.ServiceBusMessage;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
@@ -9,14 +8,14 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
-import uk.gov.hmcts.reform.wacaseeventhandler.clients.TaskManagementTestClient;
+import uk.gov.hmcts.reform.wacaseeventhandler.MessagingTests;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestAuthenticationCredentials;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -41,20 +40,15 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
 @Slf4j
-public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunctionalBaseTest {
+public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
+    private static final Duration AT_MOST_SECONDS = Duration.ofSeconds(120);
+    private static final Duration AT_MOST_SECONDS_MULTIPLE_TASKS = Duration.ofSeconds(120);
 
     protected Map<String, String> taskIdStatusMap;
-    protected String caseId1Task1Id;
-    protected String caseId1Task2Id;
-    protected String caseId2Task1Id;
-    protected String caseId2Task2Id;
     protected TestAuthenticationCredentials caseworkerCredentials;
     private LocalDateTime eventTimeStamp;
     @Autowired
     private DueDateService dueDateService;
-
-    @Autowired
-    private TaskManagementTestClient taskManagementTestClient;
 
     protected void sendMessage(String caseId,
                                String event,
@@ -66,6 +60,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         if (taskDelay) {
             eventTimeStamp = LocalDateTime.now().plusSeconds(2);
+        } else {
+            eventTimeStamp = LocalDateTime.now().minusDays(1);
         }
         EventInformation eventInformation = getEventInformation(
             caseId,
@@ -77,12 +73,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             caseTypeId
         );
 
-        if (publisher != null) {
-            publishMessageToTopic(eventInformation);
-            waitSeconds(2);
-        } else {
-            callRestEndpoint(s2sToken, eventInformation);
-        }
+        sendMessageToTopic(randomMessageId(), eventInformation);
     }
 
     protected void sendMessageWithAdditionalData(String caseId, String event, String previousStateId,
@@ -90,16 +81,14 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         if (taskDelay) {
             eventTimeStamp = LocalDateTime.now().plusSeconds(2);
+        } else {
+            eventTimeStamp = LocalDateTime.now().minusDays(1);
         }
         EventInformation eventInformation = getEventInformationWithAdditionalData(
             caseId, event, previousStateId, newStateId, eventTimeStamp
         );
 
-        if (publisher != null) {
-            publishMessageToTopic(eventInformation);
-        } else {
-            callRestEndpoint(s2sToken, eventInformation);
-        }
+        sendMessageToTopic(randomMessageId(), eventInformation);
     }
 
     protected void sendMessageWithAdditionalDataForWA(String caseId, String event, String previousStateId,
@@ -107,16 +96,14 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         if (taskDelay) {
             eventTimeStamp = LocalDateTime.now().plusSeconds(2);
+        } else {
+            eventTimeStamp = LocalDateTime.now().minusDays(1);
         }
         EventInformation eventInformation = getEventInformationWithAdditionalDataForWA(
                 caseId, event, previousStateId, newStateId, eventTimeStamp
         );
 
-        if (publisher != null) {
-            publishMessageToTopic(eventInformation);
-        } else {
-            callRestEndpoint(s2sToken, eventInformation);
-        }
+        sendMessageToTopic(randomMessageId(), eventInformation);
     }
 
     protected String createTaskWithId(String caseId,
@@ -134,7 +121,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         // to expire. The task is delayed for 2 seconds,
         // so manually waiting for 5 seconds for process to start
         if (delayUntil) {
-            waitSeconds(10);
+            waitSeconds(8);
         } else {
             waitSeconds(5);
         }
@@ -185,15 +172,10 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         caseworkerCredentials = authorizationProvider.getNewWaTribunalCaseworker("wa-ft-test-r2-");
 
         taskIdStatusMap = new HashMap<>();
-        caseId1Task1Id = "";
-        caseId1Task2Id = "";
-        caseId2Task1Id = "";
-        caseId2Task2Id = "";
     }
 
     @After
     public void cleanUp() {
-        taskIdStatusMap.forEach(this::completeTask);
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
         common.cleanUpTask(caseworkerCredentials.getHeaders(), caseIds);
     }
@@ -215,7 +197,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
-        caseId1Task1Id = taskFound
+        String caseId1Task1Id = taskFound
             .then().assertThat()
             .body("[0].id", notNullValue())
             .extract()
@@ -260,13 +242,11 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
-        caseId1Task1Id = taskFound
+        String caseId1Task1Id = taskFound
             .then().assertThat()
             .body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
-
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
 
         Response response = findTaskDetailsForGivenTaskId(caseId1Task1Id);
 
@@ -290,6 +270,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .body("hasWarnings.value", is(false))
             .body("warningList.value", is("[]"));
 
+        completeTask(caseId1Task1Id, "completed");
+
     }
 
     @Test
@@ -307,13 +289,11 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
-        caseId1Task1Id = taskFound
+        String caseId1Task1Id = taskFound
             .then().assertThat()
             .body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
-
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
 
         Response response = findTaskDetailsForGivenTaskId(caseId1Task1Id);
 
@@ -338,6 +318,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .body("hasWarnings.value", is(false))
             .body("warningList.value", is("[]"));
 
+        completeTask(caseId1Task1Id, "completed");
+
     }
 
     @Test
@@ -355,13 +337,11 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
-        caseId1Task1Id = taskFound
+        String caseId1Task1Id = taskFound
             .then().assertThat()
             .body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
-
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
 
         sendMessage(
             caseId,
@@ -391,13 +371,11 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
-        caseId1Task1Id = taskFound
+        String caseId1Task1Id = taskFound
             .then().assertThat()
             .body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
-
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
 
         sendMessage(
             caseId,
@@ -409,16 +387,17 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         taskFound = findTasksByCaseId(caseId, 2);
 
-        caseId1Task2Id = taskFound
+        String caseId1Task2Id = taskFound
             .then().assertThat()
             .body("[1].id", notNullValue())
             .extract()
             .path("[1].id");
 
-        taskIdStatusMap.put(caseId1Task2Id, "completed");
-
         // Assert the task warning was set
         assertTaskHasWarnings(caseId, caseId1Task1Id, true);
+
+        completeTask(caseId1Task1Id, "completed");
+        completeTask(caseId1Task2Id, "completed");
 
     }
 
@@ -444,13 +423,11 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         Response taskFound = findTasksByCaseId(caseId, 1);
 
-        caseId1Task1Id = taskFound
+        String caseId1Task1Id = taskFound
             .then().assertThat()
             .body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
-
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
 
         Response response = findTaskDetailsForGivenTaskId(caseId1Task1Id);
 
@@ -458,6 +435,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .body("taskId.value", is("checkFeeStatus"));
+
+        completeTask(caseId1Task1Id, "completed");
 
     }
 
@@ -473,7 +452,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         String caseIdForTask1 = getWaCaseId();
 
         String taskIdDmnColumn = "decideOnTimeExtension";
-        caseId1Task1Id = createTaskWithId(
+        String caseId1Task1Id = createTaskWithId(
             caseIdForTask1,
             "submitTimeExtension",
             "", "",
@@ -481,22 +460,18 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             taskIdDmnColumn, "WA", "WaCaseType"
         );
 
-        taskIdStatusMap.put(caseId1Task1Id, "deleted");
-
         // test for workingDaysAllowed  = 2
         Response responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task1Id);
         assertDelayDuration(responseTaskDetails);
 
         // create task2
         String caseIdForTask2 = getWaCaseId();
-        caseId1Task2Id = createTaskWithId(
+        String caseId1Task2Id = createTaskWithId(
             caseIdForTask2,
             "submitTimeExtension",
             "", "", false,
             taskIdDmnColumn, "WA", "WaCaseType"
         );
-
-        taskIdStatusMap.put(caseId1Task2Id, "completed");
 
         // test for workingDaysAllowed  = 2
         responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task2Id);
@@ -512,6 +487,8 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         // Assert the task1 is deleted
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
         assertTaskDeleteReason(caseId1Task1Id, "deleted");
+
+        completeTask(caseId1Task2Id, "completed");
     }
 
     @Test
@@ -521,14 +498,12 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         // notice this creates only one task with the follow up category
         String caseIdForTask1 = getWaCaseId();
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
-        caseId1Task1Id = createTaskWithId(
+        String caseId1Task1Id = createTaskWithId(
             caseIdForTask1,
             "requestRespondentEvidence",
             "", "awaitingRespondentEvidence", false,
             taskIdDmnColumn, "WA", "WaCaseType"
         );
-
-        taskIdStatusMap.put(caseId1Task1Id, "deleted");
 
         // Then cancel the task1
         String eventToCancelTask = "uploadHomeOfficeBundle";
@@ -536,10 +511,18 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         sendMessage(caseIdForTask1, eventToCancelTask,
             previousStateToCancelTask, "", false, "WA", "WaCaseType");
 
-        waitSeconds(5);
-        // Assert the task1 is deleted
-        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-        assertTaskDeleteReason(caseId1Task1Id, "deleted");
+        await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
+            .pollInterval(5, SECONDS)
+            .atMost(AT_MOST_SECONDS)
+            .until(
+                () -> {
+
+                    // Assert the task1 is deleted
+                    assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
+                    assertTaskDeleteReason(caseId1Task1Id, "deleted");
+                    return true;
+                });
     }
 
     @Test
@@ -553,24 +536,28 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
 
         // task1
-        caseId1Task1Id = createTaskWithId(
+        String caseId1Task1Id = createTaskWithId(
             caseIdForTask1,
             "requestRespondentEvidence",
             "", "awaitingRespondentEvidence", false,
             taskIdDmnColumn, "WA", "WaCaseType"
         );
 
-        taskIdStatusMap.put(caseId1Task1Id, "deleted");
-
         // Then cancel all tasks
         String eventToCancelTask = "removeAppealFromOnline";
         sendMessage(caseIdForTask1, eventToCancelTask,
             "", "", false, "WA", "WaCaseType");
 
-        waitSeconds(5);
-        assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-
-        assertTaskDeleteReason(caseId1Task1Id, "deleted");
+        await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
+            .pollInterval(5, SECONDS)
+            .atMost(AT_MOST_SECONDS)
+            .until(
+                () -> {
+                    assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
+                    assertTaskDeleteReason(caseId1Task1Id, "deleted");
+                    return true;
+                });
 
     }
 
@@ -582,37 +569,40 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         String task1IdDmnColumn = "reviewRespondentEvidence";
 
         // task1 with category Case progression
-        caseId1Task1Id = createTaskWithId(
+        String caseId1Task1Id = createTaskWithId(
             caseIdForTask1,
             "uploadHomeOfficeBundle",
             "", "awaitingRespondentEvidence", false,
             task1IdDmnColumn, "WA", "WaCaseType"
         );
 
-        taskIdStatusMap.put(caseId1Task1Id, "deleted");
-
         // task2 with category Time Extension
         String task2IdDmnColumn = "decideOnTimeExtension";
-        caseId1Task2Id = createTaskWithId(
+        String caseId1Task2Id = createTaskWithId(
             caseIdForTask1,
             "submitTimeExtension",
             "", "", false,
             task2IdDmnColumn, "WA", "WaCaseType"
         );
 
-        taskIdStatusMap.put(caseId1Task2Id, "deleted");
-
         // Then cancel all tasks
         String eventToCancelTask = "removeAppealFromOnline";
         sendMessage(caseIdForTask1, eventToCancelTask,
             "", "", false, "WA", "WaCaseType");
 
-        waitSeconds(5);
-        assertTaskDoesNotExist(caseIdForTask1, task1IdDmnColumn);
-        assertTaskDoesNotExist(caseIdForTask1, task2IdDmnColumn);
+        await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
+            .pollInterval(5, SECONDS)
+            .atMost(AT_MOST_SECONDS)
+            .until(
+                () -> {
+                    assertTaskDoesNotExist(caseIdForTask1, task1IdDmnColumn);
+                    assertTaskDoesNotExist(caseIdForTask1, task2IdDmnColumn);
 
-        assertTaskDeleteReason(caseId1Task1Id, "deleted");
-        assertTaskDeleteReason(caseId1Task2Id, "deleted");
+                    assertTaskDeleteReason(caseId1Task1Id, "deleted");
+                    assertTaskDeleteReason(caseId1Task2Id, "deleted");
+                    return true;
+                });
 
     }
 
@@ -621,12 +611,10 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         String caseIdForTask1 = getWaCaseId();
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
-        caseId1Task1Id = createTaskWithId(caseIdForTask1, "requestRespondentEvidence",
+        String caseId1Task1Id = createTaskWithId(caseIdForTask1, "requestRespondentEvidence",
             "", "awaitingRespondentEvidence",
             false, taskIdDmnColumn, "WA", "WaCaseType"
         );
-
-        taskIdStatusMap.put(caseId1Task1Id, "deleted");
 
         // Then cancel the task1
         sendMessage(caseIdForTask1, "uploadHomeOfficeBundle",
@@ -643,12 +631,10 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         // create task1
         String caseIdForTask1 = getWaCaseId();
         String taskIdDmnColumn = "dummyActivity";
-        caseId1Task1Id = createTaskWithId(caseIdForTask1, "dummyEventForMultipleCategories",
+        String caseId1Task1Id = createTaskWithId(caseIdForTask1, "dummyEventForMultipleCategories",
             "", "DONE",
             true, taskIdDmnColumn, "WA", "WaCaseType"
         );
-
-        taskIdStatusMap.put(caseId1Task1Id, "deleted");
 
         // Then cancel the task1
         sendMessage(caseIdForTask1, "withdrawAppeal", "", "", false, "WA", "WaCaseType");
@@ -662,32 +648,36 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
     public void given_initiate_tasks_with_follow_up_overdue_category_then_warn_task_with_no_category() {
         // Given multiple existing tasks
         String caseIdForTask1 = getWaCaseId();
-        caseId1Task1Id = createTaskWithId(
+        String caseId1Task1Id = createTaskWithId(
             caseIdForTask1,
             "requestCaseBuilding",
             "", "caseBuilding", false,
             "followUpOverdueCaseBuilding", "WA", "WaCaseType"
         );
 
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
-
         sendMessage(caseIdForTask1, "makeAnApplication",
             "", "", false, "WA", "WaCaseType"
         );
 
-        waitSeconds(5);
+        await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
+            .pollInterval(5, SECONDS)
+            .atMost(AT_MOST_SECONDS)
+            .until(
+                () -> {
+                    Response taskFound = findTasksByCaseId(caseIdForTask1, 2);
+                    String caseId1Task2Id = taskFound
+                        .then().assertThat()
+                        .body("[1].id", notNullValue())
+                        .extract()
+                        .path("[1].id");
+                    taskIdStatusMap.put(caseId1Task2Id, "completed");
 
-        Response taskFound = findTasksByCaseId(caseIdForTask1, 2);
+                    assertTaskHasWarnings(caseIdForTask1, caseId1Task1Id, true);
+                    return true;
+                });
 
-        caseId1Task2Id = taskFound
-            .then().assertThat()
-            .body("[1].id", notNullValue())
-            .extract()
-            .path("[1].id");
-
-        taskIdStatusMap.put(caseId1Task2Id, "completed");
-
-        assertTaskHasWarnings(caseIdForTask1, caseId1Task1Id, true);
+        completeTask(caseId1Task1Id, "completed");
 
     }
 
@@ -703,14 +693,12 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         Response response = findTasksByCaseId(caseIdForTask1, 1);
 
-        caseId1Task1Id = response
+        String caseId1Task1Id = response
             .then()
             .body("size()", is(1))
             .assertThat().body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
-
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
 
         // test for workingDaysAllowed  = 5
         Response responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task1Id);
@@ -723,14 +711,12 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         response = findTasksByCaseId(caseIdForTask1, 2);
 
-        caseId1Task2Id = response
+        String caseId1Task2Id = response
             .then()
             .body("size()", is(2))
             .assertThat().body("[1].id", notNullValue())
             .extract()
             .path("[1].id");
-
-        taskIdStatusMap.put(caseId1Task2Id, "completed");
 
         // send warning message
         sendMessageWithAdditionalData(
@@ -740,23 +726,31 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "",
             false
         );
-        waitSeconds(5);
+        await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
+            .pollInterval(5, SECONDS)
+            .atMost(AT_MOST_SECONDS)
+            .until(
+                () -> {
 
-        response = findTasksByCaseId(
-            caseIdForTask1, 3);
+                    Response result = findTasksByCaseId(
+                        caseIdForTask1, 3);
 
-        final String caseId1Task3Id = response
-            .then()
-            .body("size()", is(3))
-            .assertThat().body("[2].id", notNullValue())
-            .extract()
-            .path("[2].id");
+                    final String caseId1Task3Id = result
+                        .then()
+                        .body("size()", is(3))
+                        .assertThat().body("[2].id", notNullValue())
+                        .extract()
+                        .path("[2].id");
+                    taskIdStatusMap.put(caseId1Task3Id, "completed");
+                    // check for warnings flag on both the tasks
+                    assertTaskHasWarnings(caseIdForTask1, caseId1Task1Id, true);
+                    assertTaskHasWarnings(caseIdForTask1, caseId1Task2Id, true);
+                    return true;
+                });
 
-        taskIdStatusMap.put(caseId1Task3Id, "completed");
-
-        // check for warnings flag on both the tasks
-        assertTaskHasWarnings(caseIdForTask1, caseId1Task1Id, true);
-        assertTaskHasWarnings(caseIdForTask1, caseId1Task2Id, true);
+        completeTask(caseId1Task1Id, "completed");
+        completeTask(caseId1Task2Id, "completed");
 
     }
 
@@ -774,13 +768,11 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         Response response = findTasksByCaseId(
             caseIdForTask1, 1);
 
-        caseId1Task1Id = response
+        String caseId1Task1Id = response
             .then()
             .assertThat().body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
-
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
 
         // initiate task2, category (followUpOverdue)
         sendMessage(caseIdForTask1, "requestCaseBuilding", "",
@@ -790,14 +782,12 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         response = findTasksByCaseId(
             caseIdForTask1, 2);
 
-        caseId1Task2Id = response
+        String caseId1Task2Id = response
             .then()
             .body("size()", is(2))
             .assertThat().body("[1].id", notNullValue())
             .extract()
             .path("[1].id");
-
-        taskIdStatusMap.put(caseId1Task2Id, "completed");
 
         // send warning message
         sendMessageWithAdditionalData(
@@ -807,29 +797,38 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "",
             false
         );
-        waitSeconds(5);
+        await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
+            .pollInterval(5, SECONDS)
+            .atMost(AT_MOST_SECONDS_MULTIPLE_TASKS)
+            .until(
+                () -> {
 
-        response = findTasksByCaseId(caseIdForTask1, 3);
+                    Response result = findTasksByCaseId(caseIdForTask1, 3);
 
-        String caseId1Task3Id = response
-            .then().assertThat()
-            .body("[2].id", notNullValue())
-            .extract()
-            .path("[2].id");
+                    String caseId1Task3Id = result
+                        .then().assertThat()
+                        .body("[2].id", notNullValue())
+                        .extract()
+                        .path("[2].id");
 
-        taskIdStatusMap.put(caseId1Task3Id, "completed");
+                    // check for warnings flag on both the tasks
+                    assertTaskHasWarnings(caseIdForTask1, caseId1Task1Id, true);
+                    assertTaskHasWarnings(caseIdForTask1, caseId1Task2Id, true);
 
-        // check for warnings flag on both the tasks
-        assertTaskHasWarnings(caseIdForTask1, caseId1Task1Id, true);
-        assertTaskHasWarnings(caseIdForTask1, caseId1Task2Id, true);
+                    completeTask(caseId1Task3Id, "completed");
+                    return true;
+                });
 
+        completeTask(caseId1Task1Id, "completed");
+        completeTask(caseId1Task2Id, "completed");
     }
 
     @Test
     public void given_initiated_tasks_with_delayTimer_toFuture_and_without_followup_overdue_then_complete_task() {
 
         String caseId = getWaCaseId();
-        caseId1Task1Id = createTaskWithId(
+        String caseId1Task1Id = createTaskWithId(
             caseId,
             "uploadHomeOfficeBundle",
             "",
@@ -839,20 +838,21 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         );
 
         // add tasks to tear down.
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
+        completeTask(caseId1Task1Id, "completed");
     }
 
     @Test
     public void given_initiated_tasks_with_delayTimer_toCurrentTime_and_without_followup_overdue_then_complete_task() {
 
         String caseId = getWaCaseId();
-        caseId1Task1Id = createTaskWithId(caseId, "listCma",
+        String caseId1Task1Id = createTaskWithId(caseId, "listCma",
             "", "cmaListed",
             false, "attendCma", "WA", "WaCaseType"
         );
 
         // add tasks to tear down.
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
+        completeTask(caseId1Task1Id, "completed");
+
     }
 
     @Test
@@ -861,12 +861,10 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         eventTimeStamp = LocalDateTime.parse("2020-10-23T12:56:19.403975");
 
         String caseIdForTask1 = getWaCaseId();
-        caseId1Task1Id = createTaskWithId(caseIdForTask1, "uploadHomeOfficeBundle",
+        String caseId1Task1Id = createTaskWithId(caseIdForTask1, "uploadHomeOfficeBundle",
             "", "awaitingRespondentEvidence",
             false, "reviewRespondentEvidence", "WA", "WaCaseType"
         );
-
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
 
         // test for workingDaysAllowed  = 2
         Response responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task1Id);
@@ -874,12 +872,14 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
 
         String caseIdForTask2 = getWaCaseId();
-        caseId1Task2Id = createTaskWithId(caseIdForTask2, "submitAppeal",
+        String caseId1Task2Id = createTaskWithId(caseIdForTask2, "submitAppeal",
             "", "appealSubmitted",
             false, "inspectAppeal", "WA", "WaCaseType"
         );
 
-        taskIdStatusMap.put(caseId1Task2Id, "completed");
+        completeTask(caseId1Task1Id, "completed");
+        completeTask(caseId1Task2Id, "completed");
+
     }
 
     @Test
@@ -890,24 +890,20 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         // caseId1 with category Followup overdue
         // task1
-        caseId1Task1Id = createTaskWithId(
+        final String caseId1Task1Id = createTaskWithId(
             caseId1,
             "requestRespondentEvidence",
             "", "awaitingRespondentEvidence", false,
             taskIdDmnColumn, "WA", "WaCaseType"
         );
 
-        taskIdStatusMap.put(caseId1Task1Id, "deleted");
-
         // caseId2 with category Case progression
         String caseId2 = getWaCaseId();
         String taskId2DmnColumn = "reviewAppealSkeletonArgument";
-        caseId2Task1Id = createTaskWithId(caseId2, "submitCase",
+        final String caseId2Task1Id = createTaskWithId(caseId2, "submitCase",
             "", "caseUnderReview",
             false, taskId2DmnColumn, "WA", "WaCaseType"
         );
-
-        taskIdStatusMap.put(caseId2Task1Id, "deleted");
 
         // Then cancel all tasks on both caseIDs
         String eventToCancelTask = "removeAppealFromOnline";
@@ -916,13 +912,20 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         waitSeconds(5);
         sendMessage(caseId2, eventToCancelTask,
             "", "", false, "WA", "WaCaseType");
-        waitSeconds(5);
+        await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
+            .pollInterval(5, SECONDS)
+            .atMost(AT_MOST_SECONDS)
+            .until(
+                () -> {
 
-        assertTaskDoesNotExist(caseId1, taskIdDmnColumn);
-        assertTaskDoesNotExist(caseId2, taskId2DmnColumn);
+                    assertTaskDoesNotExist(caseId1, taskIdDmnColumn);
+                    assertTaskDoesNotExist(caseId2, taskId2DmnColumn);
 
-        assertTaskDeleteReason(caseId1Task1Id, "deleted");
-        assertTaskDeleteReason(caseId2Task1Id, "deleted");
+                    assertTaskDeleteReason(caseId1Task1Id, "deleted");
+                    assertTaskDeleteReason(caseId2Task1Id, "deleted");
+                    return true;
+                });
 
     }
 
@@ -931,59 +934,72 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
         //caseId1 with category Case progression
         String caseId1 = getWaCaseId();
         String taskIdDmnColumn = "reviewRespondentEvidence";
-        caseId1Task1Id = createTaskWithId(
+        final String caseId1Task1Id = createTaskWithId(
             caseId1,
             "uploadHomeOfficeBundle",
             "", "awaitingRespondentEvidence", false,
             taskIdDmnColumn, "WA", "WaCaseType"
         );
 
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
-
         //caseId1 with category Case progression
         String caseId2 = getWaCaseId();
         String taskId2DmnColumn = "reviewRespondentEvidence";
-        caseId2Task1Id = createTaskWithId(caseId2, "uploadHomeOfficeBundle",
+        final String caseId2Task1Id = createTaskWithId(caseId2, "uploadHomeOfficeBundle",
             "", "awaitingRespondentEvidence",
             false, taskId2DmnColumn, "WA", "WaCaseType"
         );
-
-        taskIdStatusMap.put(caseId2Task1Id, "completed");
 
         // Then cancel all tasks on both caseIDs
         sendMessage(caseId1, "makeAnApplication",
             "", "", false, "WA", "WaCaseType"
         );
-        waitSeconds(5);
+        await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
+            .pollInterval(5, SECONDS)
+            .atMost(AT_MOST_SECONDS)
+            .until(
+                () -> {
+                    Response taskFound = findTasksByCaseId(caseId1, 2);
 
-        Response taskFound = findTasksByCaseId(caseId1, 2);
+                    String caseId1Task2Id = taskFound
+                        .then().assertThat()
+                        .body("[1].id", notNullValue())
+                        .extract()
+                        .path("[1].id");
+                    taskIdStatusMap.put(caseId1Task2Id, "completed");
+                    return true;
+                });
 
-        caseId1Task2Id = taskFound
-            .then().assertThat()
-            .body("[1].id", notNullValue())
-            .extract()
-            .path("[1].id");
-
-        taskIdStatusMap.put(caseId1Task2Id, "completed");
 
         sendMessage(caseId2, "makeAnApplication",
             "", "", false, "WA", "WaCaseType"
         );
-        waitSeconds(5);
+        await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
+            .pollInterval(5, SECONDS)
+            .atMost(AT_MOST_SECONDS)
+            .until(
+                () -> {
 
-        taskFound = findTasksByCaseId(caseId2, 2);
 
-        caseId2Task2Id = taskFound
-            .then().assertThat()
-            .body("[1].id", notNullValue())
-            .extract()
-            .path("[1].id");
+                    Response taskFoundInDb = findTasksByCaseId(caseId2, 2);
 
-        taskIdStatusMap.put(caseId2Task2Id, "completed");
+                    String caseId2Task2Id = taskFoundInDb
+                        .then().assertThat()
+                        .body("[1].id", notNullValue())
+                        .extract()
+                        .path("[1].id");
 
-        // check for warnings flag on both the tasks
-        assertTaskHasWarnings(caseId1, caseId1Task1Id, true);
-        assertTaskHasWarnings(caseId2, caseId2Task1Id, true);
+                    // check for warnings flag on both the tasks
+                    assertTaskHasWarnings(caseId1, caseId1Task1Id, true);
+                    assertTaskHasWarnings(caseId2, caseId2Task1Id, true);
+
+                    completeTask(caseId2Task2Id, "completed");
+                    return true;
+                });
+
+        completeTask(caseId1Task1Id, "completed");
+        completeTask(caseId2Task1Id, "completed");
 
     }
 
@@ -1017,13 +1033,13 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         callRestEndpoint(s2sToken, eventInformation);
 
-        caseId1Task1Id = findTaskForGivenCaseId(
+        String caseId1Task1Id = findTaskForGivenCaseId(
             caseIdForTask,
             "followUpOverdueCaseBuilding"
         );
 
         // add tasks to tear down.
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
+        completeTask(caseId1Task1Id, "completed");
     }
 
     @Test
@@ -1054,13 +1070,13 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         callRestEndpoint(s2sToken, eventInformation);
 
-        caseId1Task1Id = findTaskForGivenCaseId(
+        String caseId1Task1Id = findTaskForGivenCaseId(
             caseIdForTask,
             "followUpOverdueRespondentEvidence"
         );
 
         // add tasks to tear down.
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
+        completeTask(caseId1Task1Id, "completed");
     }
 
     @Test
@@ -1071,14 +1087,12 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         // caseId1 with category Followup overdue
         // task1
-        caseId1Task1Id = createTaskWithId(
+        String caseId1Task1Id = createTaskWithId(
             caseId1,
             "requestCaseBuilding",
             "", "caseBuilding", false,
             taskIdDmnColumn, "WA", "WaCaseType"
         );
-
-        taskIdStatusMap.put(caseId1Task1Id, "deleted");
 
         // Then cancel all tasks on both caseIDs
         sendMessage(caseId1, "applyNocDecision",
@@ -1094,7 +1108,7 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
     public void given_initiate_tasks_then_reconfigure_task_to_mark_tasks_for_reconfiguration_for_WA() {
 
         TestVariables taskVariables = common.setupWaTaskAndRetrieveIds();
-        caseId1Task1Id = taskVariables.getTaskId();
+        String caseId1Task1Id = taskVariables.getTaskId();
 
         String caseIdForTask1 = taskVariables.getCaseId();
         common.setupCftOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
@@ -1116,7 +1130,6 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .body("task.id", equalTo(caseId1Task1Id))
             .body("task.reconfigure_request_time", nullValue());
 
-
         //send update event to trigger reconfigure action
         String jurisdiction = "WA";
         String caseType = "WaCaseType";
@@ -1124,34 +1137,52 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             "", "", false, jurisdiction, caseType
         );
 
-        waitSeconds(5);
+        await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
+            .pollInterval(5, SECONDS)
+            .atMost(AT_MOST_SECONDS)
+            .until(
+                () -> {
+                    //assert task in camunda
+                    findTasksByCaseId(caseIdForTask1, 1);
+                    return true;
+                });
+        await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
+            .pollInterval(5, SECONDS)
+            .atMost(AT_MOST_SECONDS_MULTIPLE_TASKS)
+            .until(
+                () -> {
+                    //get task from CFT
+                    Response response = restApiActions.get(
+                        TASK_ENDPOINT,
+                        caseId1Task1Id,
+                        caseworkerCredentials.getHeaders()
+                    );
 
-        //assert task in camunda
-        Response taskFound = findTasksByCaseId(caseIdForTask1, 1);
-        caseId1Task2Id = taskFound
-            .then().assertThat()
-            .body("[0].id", notNullValue())
-            .extract()
-            .path("[0].id");
+                    //assert reconfigure request time
+                    response.then().assertThat()
+                        .statusCode(HttpStatus.OK.value())
+                        .contentType(APPLICATION_JSON_VALUE);
 
-        waitSeconds(5);
 
-        //get task from CFT
-        result = restApiActions.get(
-            TASK_ENDPOINT,
-            caseId1Task1Id,
-            caseworkerCredentials.getHeaders()
-        );
 
-        //assert reconfigure request time
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and()
-            .body("task.id", equalTo(caseId1Task1Id))
-            .body("task.reconfigure_request_time", notNullValue());
+                    String taskId = response.jsonPath().get("task.id");
+                    String reconfigureRequestTime = response.then().extract().jsonPath()
+                        .get("task.reconfigure_request_time");
+                    String lastReconfigurationTime = response.then().extract().jsonPath()
+                        .get("task.last_reconfiguration_time");
 
-        //cleanup
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
+                    assertEquals(caseId1Task1Id, taskId);
+                    if (reconfigureRequestTime == null && lastReconfigurationTime == null) {
+                        return false;
+                    }
+                    //cleanup
+
+                    completeTask(caseId1Task1Id, "completed");
+
+                    return true;
+                });
         common.clearAllRoleAssignments(caseworkerCredentials.getHeaders(), "WA");
     }
 
@@ -1181,8 +1212,9 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
     private void assertTaskDoesNotExist(String caseId, String taskId) {
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(30, SECONDS)
+            .pollDelay(500, MILLISECONDS)
+            .pollInterval(2, SECONDS)
+            .atMost(AT_MOST_SECONDS_MULTIPLE_TASKS)
             .until(
                 () -> {
                     given()
@@ -1205,11 +1237,11 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
     private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
         log.info("Finding warnings task for caseId = {} and taskId = {}", caseId, taskId);
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(500, MILLISECONDS)
+            .pollInterval(2, SECONDS)
+            .atMost(AT_MOST_SECONDS_MULTIPLE_TASKS)
             .until(
                 () -> {
-
                     Response result = given()
                         .header(SERVICE_AUTHORIZATION, s2sToken)
                         .contentType(APPLICATION_JSON_VALUE)
@@ -1295,14 +1327,6 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
             .statusCode(HttpStatus.NO_CONTENT.value());
     }
 
-    private void publishMessageToTopic(EventInformation eventInformation) {
-        String jsonMessage = asJsonString(eventInformation);
-        ServiceBusMessage message = new ServiceBusMessage(jsonMessage.getBytes());
-        message.setSessionId(eventInformation.getCaseId());
-
-        publisher.sendMessage(message);
-    }
-
     private String findTaskForGivenCaseId(String caseId, String taskIdDmnColumn) {
 
         log.info("Attempting to retrieve task with caseId = {} and taskId = {}", caseId, taskIdDmnColumn);
@@ -1310,8 +1334,9 @@ public class CaseEventHandlerControllerFunctionalTest extends SpringBootFunction
 
         AtomicReference<String> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
+            .pollDelay(500, MILLISECONDS)
+            .pollInterval(2, SECONDS)
+            .atMost(AT_MOST_SECONDS_MULTIPLE_TASKS)
             .until(
                 () -> {
 

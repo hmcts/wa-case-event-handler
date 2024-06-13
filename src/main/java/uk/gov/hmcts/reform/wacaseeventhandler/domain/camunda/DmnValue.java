@@ -1,11 +1,13 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import java.util.Map;
 
 @EqualsAndHashCode
+@JsonIgnoreProperties(ignoreUnknown = true)
 @ToString
 public class DmnValue<T> {
     private T value;

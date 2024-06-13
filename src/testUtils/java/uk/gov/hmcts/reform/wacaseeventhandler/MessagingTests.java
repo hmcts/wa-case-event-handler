@@ -5,7 +5,6 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpStatus;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResponse;
@@ -14,7 +13,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -25,15 +24,12 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonS
 
 @Slf4j
 public class MessagingTests extends SpringBootFunctionalBaseTest {
+    // Messages go to Camunda that is locking the DB. This is to avoid OptimisticLockingException,
+    // that we have seen, when multiple threads try to update the DB at the same time.
+    private static final Integer SECONDS_TO_WAIT_FOR_THE_MESSAGE_TO_BE_PROCESSED = 3;
 
     protected String randomMessageId() {
-        return "" + ThreadLocalRandom.current().nextLong(1000000);
-    }
-
-    private AdditionalData additionalData() {
-        return AdditionalData.builder()
-            .data(dataAsMap())
-            .build();
+        return UUID.randomUUID().toString();
     }
 
     @NotNull
@@ -94,8 +90,20 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.OK.value());
     }
 
+    protected void sendMessagesToDlq(Map<String, EventInformation> eventInformationMessages) {
+        for (var entry : eventInformationMessages.entrySet()) {
+            sendMessageToDlq(entry.getKey(), entry.getValue());
+        }
+    }
+
     protected void sendMessageToDlq(String messageId, EventInformation eventInformation) {
         sendMessage(messageId, eventInformation, true);
+    }
+
+    protected void sendMessagesToTopic(Map<String, EventInformation> eventInformationMessages) {
+        for (var entry : eventInformationMessages.entrySet()) {
+            sendMessageToTopic(entry.getKey(), entry.getValue());
+        }
     }
 
     protected void sendMessageToTopic(String messageId, EventInformation eventInformation) {
@@ -119,13 +127,18 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
             .statusCode(HttpStatus.CREATED.value());
     }
 
-    protected void sendMessage(String messageId,
-                               EventInformation eventInformation,
-                               boolean sendDirectlyToDlq) {
+    private void sendMessage(String messageId,
+                             EventInformation eventInformation,
+                             boolean sendDirectlyToDlq) {
         if (publisher != null) {
+            log.info("sendMessage to the topic, using publisher with message ID " + messageId + ","
+                         + " caseId: " + eventInformation.getCaseId() + ", toDLQ: " + sendDirectlyToDlq);
             publishMessageToTopic(eventInformation, sendDirectlyToDlq);
-            waitSeconds(3);
+
+            waitSeconds(SECONDS_TO_WAIT_FOR_THE_MESSAGE_TO_BE_PROCESSED);
         } else {
+            log.info("sendMessage to the topic, using restEndpoint with message ID " + messageId + ","
+                         + " caseId: " + eventInformation.getCaseId() + ", toDLQ: " + sendDirectlyToDlq);
             callRestEndpoint(s2sToken, eventInformation, sendDirectlyToDlq, messageId);
         }
     }
@@ -138,8 +151,6 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
         }
 
         publisher.sendMessage(message);
-
-        waitSeconds(3);
     }
 
     protected EventMessageQueryResponse getMessagesFromDb(String caseId, boolean fromDlq) {

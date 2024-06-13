@@ -11,13 +11,14 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-
 
 public class AsbMessagesToDatabaseTest extends MessagingTests {
 
@@ -49,7 +50,9 @@ public class AsbMessagesToDatabaseTest extends MessagingTests {
             .caseTypeId("wacasetype")
             .build();
 
-        messageIds.forEach(msgId -> sendMessageToTopic(msgId, eventInformation));
+        Map<String, EventInformation> messages = new HashMap<>();
+        messageIds.forEach(msgId -> messages.put(msgId, eventInformation));
+        sendMessagesToTopic(messages);
 
         await().ignoreException(AssertionError.class)
             .pollInterval(3, SECONDS)
@@ -63,9 +66,8 @@ public class AsbMessagesToDatabaseTest extends MessagingTests {
                         Assertions.assertEquals(messageIds.size(), caseEventMessages.size(),
                             "Number of messages stored in database does not match");
 
-                        caseEventMessages.forEach(msg ->
-                            Assertions.assertTrue(messageIds.contains(msg.getMessageId()),
-                                "messageId mismatch"));
+                        Assertions.assertTrue(caseEventMessages.stream().map(CaseEventMessage::getMessageId)
+                                                  .allMatch(messageIds::contains), "messageId mismatch");
 
                         Assertions.assertTrue(caseEventMessages.stream().noneMatch(CaseEventMessage::getFromDlq),
                             "None of the messages stored in DB should be in DLQ state");
