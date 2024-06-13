@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.ProblemMessage;
@@ -17,8 +18,12 @@ class CaseEventMessageMapperTest {
     private static final LocalDateTime EVENT_TIME_STAMP = LocalDateTime.now();
     private static final LocalDateTime RECEIVED = LocalDateTime.now();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private CaseEventMessageMapper mapper;
 
-    private final CaseEventMessageMapper mapper = new CaseEventMessageMapper();
+    @BeforeEach
+    void setUp() {
+        mapper = new CaseEventMessageMapper(objectMapper);
+    }
 
     @Test
     void shouldMapEntity() throws Exception {
@@ -70,7 +75,14 @@ class CaseEventMessageMapperTest {
         entity.setFromDlq(true);
         entity.setState(MessageState.NEW);
         entity.setMessageProperties(objectMapper.readValue("{\"Property1\":\"Test\"}", JsonNode.class));
-        entity.setMessageContent("{\"CaseId\":\"12345\",\"MessageProperties\":{\"Property1\":\"Test\"}}");
+        entity.setMessageContent("{\"EventInstanceId\":\"EventInstanceId_123\", "
+                                 + "\"EventTimeStamp\":\"2023-05-10T08:25:51.713379525\","
+                                 + "\"CaseId\":\"CaseId_123\","
+                                 + "\"CaseTypeId\":\"CaseType_123\","
+                                 + "\"EventId\":\"EventId_123\","
+                                 + "\"PreviousStateId\":\"\","
+                                 + "\"NewstateId\":\"NewstateId_123\","
+                                 + "\"UserId\":\"UserId_123\"}");
         entity.setReceived(RECEIVED);
         entity.setDeliveryCount(1);
         entity.setHoldUntil(RECEIVED.plusDays(2));
@@ -80,6 +92,7 @@ class CaseEventMessageMapperTest {
 
         assertEquals(entity.getMessageId(), message.getMessageId());
         assertEquals(entity.getCaseId(), message.getCaseId());
+        assertEquals("CaseType_123", message.getCaseTypeId());
         assertEquals(entity.getEventTimestamp(), message.getEventTimestamp());
         assertEquals(entity.getFromDlq(), message.getFromDlq());
         assertEquals(entity.getState(), message.getState());

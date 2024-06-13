@@ -8,6 +8,21 @@ management:
       newMessageStateThreshold: ${NEW_MESSAGE_STATE_THRESHOLD:10}
       newMessageStateCheckEnvEnabled: ${NEW_MESSAGE_STATE_HEALTH_CHECK:prod,aat}
       receivedMessageCheckEnvEnabled: ${RECEIVED_MESSAGE_HEALTH_CHECK:prod,aat}
+      newMessageStateThresholdForLivenessCheck: ${NEW_MESSAGE_STATE_THRESHOLD_FOR_LIVENESS_CHECK:100}
+      newMessageLivenessStateCheckEnvEnabled: ${NEW_MESSAGE_LIVENESS_STATE_HEALTH_CHECK:test,aat,local-arm-arch}
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include: livenessState, caseEventHandlerLivenessHealthController
+        readiness:
+          include: readinessState, caseEventHandlerReadinessHealthController
+      show-components: always
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
   endpoints:
     web:
       base-path: /
@@ -38,6 +53,8 @@ spring:
   application:
     name: WA Case Event Handler
   jackson.serialization.indent_output: true
+  main:
+    allow-bean-definition-overriding: true
   flyway:
     out-of-order: true
     ignore-missing-migrations: true
@@ -63,6 +80,7 @@ spring:
 
 springdoc:
   packagesToScan: uk.gov.hmcts.reform.wacaseeventhandler.controllers
+  writer-with-order-by-keys: true
 
 security:
   anonymousPaths:
@@ -151,3 +169,18 @@ retry:
     delay: ${RESILIENCE_RETRY_BACK_OFF_DELAY:5000}
     maxDelay: ${RESILIENCE_RETRY_BACK_OFF_MAX_DELAY:10000}
     random: ${RESILIENCE_RETRY_BACK_OFF_RANDOM:true}
+
+caffeine:
+  timeout:
+    duration: 30
+    unit: MINUTES
+  calendar:
+    timeout:
+      duration: ${CALENDAR_CACHE_TIMEOUT_DURATION:24}
+      unit: ${CALENDAR_CACHE_TIMEOUT_TIMEUNIT:HOURS}
+  liveness:
+    database:
+      check:
+        duration: ${LIVENESS_DATABASE_CHECK_CACHE_DURATION:30}
+        unit: ${LIVENESS_DATABASE_CHECK_CACHE_TIMEUNIT:MINUTES}
+

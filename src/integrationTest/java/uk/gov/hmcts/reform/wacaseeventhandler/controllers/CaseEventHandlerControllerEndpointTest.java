@@ -35,7 +35,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -400,7 +400,7 @@ class CaseEventHandlerControllerEndpointTest {
 
         @NotNull
         private String randomMessageId() {
-            return "messageId_" + ThreadLocalRandom.current().nextLong(1000000);
+            return UUID.randomUUID().toString();
         }
 
         @NotNull

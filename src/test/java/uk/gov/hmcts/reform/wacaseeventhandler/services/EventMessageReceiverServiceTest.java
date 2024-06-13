@@ -78,7 +78,7 @@ class EventMessageReceiverServiceTest {
     private CaseEventMessageRepository caseEventMessageRepository;
 
     @Spy
-    private CaseEventMessageMapper caseEventMessageMapper = new CaseEventMessageMapper();
+    private CaseEventMessageMapper caseEventMessageMapper = new CaseEventMessageMapper(objectMapper);
 
     @Captor
     private ArgumentCaptor<CaseEventMessageEntity> caseEventMessageEntityCaptor;

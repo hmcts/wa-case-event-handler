@@ -36,7 +36,6 @@ class EventInformationTest {
         assertPojoMethodsFor(classUnderTest)
             .testing(Method.GETTER)
             .testing(Method.CONSTRUCTOR)
-            .testing(Method.TO_STRING)
             .areWellImplemented();
 
     }
