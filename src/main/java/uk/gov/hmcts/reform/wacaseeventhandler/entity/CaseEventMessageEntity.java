@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
 import com.vladmihalcea.hibernate.type.json.JsonType;
@@ -26,6 +27,7 @@ import javax.persistence.Table;
 @ToString
 @TypeDef(name = "json", typeClass = JsonType.class)
 @TypeDef(name = "pgsql_enum", typeClass = PostgreSQLEnumType.class)
+@SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class CaseEventMessageEntity implements Serializable {
 
     private static final String MESSAGE_ID = "message_id";
@@ -110,6 +112,8 @@ public class CaseEventMessageEntity implements Serializable {
         return eventTimestamp;
     }
 
+
+
     public void setEventTimestamp(LocalDateTime eventTimestamp) {
         this.eventTimestamp = eventTimestamp;
     }
@@ -176,5 +180,12 @@ public class CaseEventMessageEntity implements Serializable {
 
     public void setRetryCount(Integer retryCount) {
         this.retryCount = retryCount;
+    }
+
+    @JsonIgnore
+    public CaseEventMessageEntity buildMessage(String id, MessageState state) {
+        this.messageId = id;
+        this.state = state;
+        return this;
     }
 }

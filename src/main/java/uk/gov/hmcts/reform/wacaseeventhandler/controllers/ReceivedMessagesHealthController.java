@@ -1,20 +1,27 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates.HolidayService;
 
+import java.net.URI;
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component("ccdMessagesReceived")
+@Slf4j
 public class ReceivedMessagesHealthController implements HealthIndicator {
 
     protected static final String CASE_EVENT_HANDLER_MESSAGE_HEALTH = "caseEventHandlerMessageHealth";
@@ -23,6 +30,10 @@ public class ReceivedMessagesHealthController implements HealthIndicator {
 
     protected static final String NO_MESSAGE_CHECK = "Out Of Hours, no check for messages";
     protected static final String CHECK_DISABLED_MESSAGE = "check disabled in %s";
+
+    protected static final String ENV_AAT = "aat";
+
+    protected static final String STAGING_TEXT = "staging";
 
     @Value("${management.endpoint.health.receivedMessageCheckEnvEnabled}")
     private String receivedMessageCheckEnvEnabled;
@@ -56,9 +67,17 @@ public class ReceivedMessagesHealthController implements HealthIndicator {
                 .build();
         }
 
-        LocalDateTime now = LocalDateTime.now(clock).minusHours(1);
-        if (isDateWithinWorkingHours(now)) {
-            if (repository.getNumberOfMessagesReceivedInLastHour(now) == 0) {
+        ZoneId ukTimeZone = ZoneId.of("Europe/London");
+        ZonedDateTime utcDateTime = LocalDateTime.now(clock).atZone(ZoneOffset.UTC);
+        ZonedDateTime ukZonedDateTime = utcDateTime.withZoneSameInstant(ukTimeZone);
+        LocalDateTime ukLocalDateTime = ukZonedDateTime.toLocalDateTime();
+        LocalDateTime utcTimeMinusOneHour = utcDateTime.minusHours(1).toLocalDateTime();
+
+        log.info("UTC date and time {}, UTC date time minus 1 hour {}, UK local date and time {}",
+                 utcDateTime,utcTimeMinusOneHour, ukLocalDateTime);
+
+        if (isDateWithinWorkingHours(ukLocalDateTime)) {
+            if (repository.getNumberOfMessagesReceivedInLastHour(utcTimeMinusOneHour) == 0) {
                 return Health
                     .down()
                     .withDetail(
@@ -102,7 +121,15 @@ public class ReceivedMessagesHealthController implements HealthIndicator {
             && (localDateTime.equals(workingHoursEndTime) || localDateTime.isBefore(workingHoursEndTime));
     }
 
-    private boolean isNotEnabledForEnvironment(String env) {
+    public boolean isNotEnabledForEnvironment(String env) {
+        if (ENV_AAT.equals(env)) {
+
+            URI currentUri = ServletUriComponentsBuilder.fromCurrentRequestUri().build().toUri();
+            log.info("Invoked API URI: {}", currentUri);
+            if (currentUri.toString().contains(STAGING_TEXT)) {
+                return true;
+            }
+        }
         Set<String> envsToEnable = Arrays.stream(receivedMessageCheckEnvEnabled.split(","))
             .map(String::trim).collect(Collectors.toSet());
         return !envsToEnable.contains(env);

@@ -70,7 +70,7 @@ class CcdCaseEventConsumerTest {
         publishMessageToReceiver();
 
         doThrow(new ServiceBusException(new Exception(), ServiceBusErrorSource.UNKNOWN)).doNothing()
-                .when(receiverClient).complete(receivedMessage);
+            .when(receiverClient).complete(receivedMessage);
 
         underTest.consumeMessage(sessionReceiverClient);
 
@@ -86,7 +86,7 @@ class CcdCaseEventConsumerTest {
         publishMessageToReceiver();
 
         doThrow(new ServiceBusException(new Exception(), ServiceBusErrorSource.UNKNOWN))
-                .when(receiverClient).complete(receivedMessage);
+            .when(receiverClient).complete(receivedMessage);
         doThrow(new ServiceBusException(new Exception(), ServiceBusErrorSource.UNKNOWN))
             .when(receiverClient).abandon(receivedMessage);
 
@@ -165,6 +165,19 @@ class CcdCaseEventConsumerTest {
             }).subscribeOn(Schedulers.single());
 
         when(receiverClient.receiveMessages(1)).thenReturn(new IterableStream<>(iterableStreamFlux));
+    }
+
+    @Test
+    void should_not_throw_npe_if_receiver_is_null() {
+
+        when(sessionReceiverClient.acceptNextSession()).thenReturn(null);
+
+        underTest.consumeMessage(sessionReceiverClient);
+
+        verify(receiverClient, Mockito.times(0)).complete(receivedMessage);
+        verify(receiverClient, Mockito.times(0)).abandon(any());
+        verify(receiverClient, Mockito.times(0)).deadLetter(any(), any());
+
     }
 
 }

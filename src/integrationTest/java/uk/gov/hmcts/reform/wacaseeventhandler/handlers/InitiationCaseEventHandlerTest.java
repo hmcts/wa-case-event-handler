@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.InitiateEv
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DueDateService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.IdempotencyKeyGenerator;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilConfigurator;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates.HolidayService;
 
@@ -46,15 +47,25 @@ class InitiationCaseEventHandlerTest {
     private static final String EVENT_DATE = "2022-07-19T09:00:00.000000";
     private String eventInstanceId;
 
-    @Mock private AuthTokenGenerator serviceAuthGenerator;
-    @Mock private WorkflowApiClient workflowApiClient;
-    @Mock private IdempotencyKeyGenerator idempotencyKeyGenerator;
-    @Mock private IsoDateFormatter isoDateFormatter;
-    @Mock private ObjectMapper objectMapper;
+    @Mock
+    private AuthTokenGenerator serviceAuthGenerator;
+    @Mock
+    private WorkflowApiClient workflowApiClient;
+    @Mock
+    private IdempotencyKeyGenerator idempotencyKeyGenerator;
+    @Mock
+    private IsoDateFormatter isoDateFormatter;
+    @Mock
+    private ObjectMapper objectMapper;
 
-    @Mock HolidayService holidayService;
+    @Mock
+    private DelayUntilConfigurator delayUntilConfigurator;
 
-    @Captor private ArgumentCaptor<SendMessageRequest> sendMessageRequestCaptor;
+    @Mock
+    HolidayService holidayService;
+
+    @Captor
+    private ArgumentCaptor<SendMessageRequest> sendMessageRequestCaptor;
 
     private DueDateService dueDateService;
 
@@ -70,7 +81,8 @@ class InitiationCaseEventHandlerTest {
             idempotencyKeyGenerator,
             isoDateFormatter,
             dueDateService,
-            objectMapper
+            objectMapper,
+            delayUntilConfigurator
         );
 
         eventInstanceId = UUID.randomUUID().toString();

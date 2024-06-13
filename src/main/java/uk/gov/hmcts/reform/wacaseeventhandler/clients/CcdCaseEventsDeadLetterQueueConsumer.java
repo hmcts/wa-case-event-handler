@@ -66,7 +66,7 @@ public class CcdCaseEventsDeadLetterQueueConsumer implements Runnable {
                     }
                 });
         } catch (Exception ex) {
-            log.error("Error occurred while completing the message processing", ex);
+            log.error("Error occurred while completing the message processing {}", ex.getMessage());
         }
     }
 

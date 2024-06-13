@@ -4,13 +4,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Builder;
-import lombok.ToString;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
-@ToString
 @Builder
 @SuppressWarnings("PMD.ExcessiveParameterList")
 public class CaseEventMessage implements Serializable {
@@ -103,5 +101,21 @@ public class CaseEventMessage implements Serializable {
 
     public Integer getRetryCount() {
         return retryCount;
+    }
+
+    @Override
+    public String toString() {
+        return "CaseEventMessage{"
+               + "messageId=" + messageId
+               + ", sequence=" + sequence
+               + ", caseId=" + caseId
+               + ", eventTimestamp=" + eventTimestamp
+               + ", fromDlq=" + fromDlq
+               + ", state=" + state
+               + ", received=" + received
+               + ", deliveryCount=" + deliveryCount
+               + ", holdUntil=" + holdUntil
+               + ", retryCount=" + retryCount
+               + "}";
     }
 }

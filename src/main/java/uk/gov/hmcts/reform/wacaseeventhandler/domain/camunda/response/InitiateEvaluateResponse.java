@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.ToString;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilRequest;
 
 @ToString
 @Builder
@@ -17,6 +18,7 @@ public final class InitiateEvaluateResponse implements EvaluateResponse {
     private final DmnValue<String> name;
     private final DmnValue<String> taskCategory;
     private final DmnValue<String> processCategories;
+    private final DmnValue<DelayUntilRequest> delayUntil;
 
     @JsonCreator
     public InitiateEvaluateResponse(@JsonProperty("taskId") DmnValue<String> taskId,
@@ -24,13 +26,15 @@ public final class InitiateEvaluateResponse implements EvaluateResponse {
                                     @JsonProperty("workingDaysAllowed") DmnValue<Integer> workingDaysAllowed,
                                     @JsonProperty("name") DmnValue<String> name,
                                     @JsonProperty("taskCategory") DmnValue<String> taskCategory,
-                                    @JsonProperty("processCategories") DmnValue<String> processCategories) {
+                                    @JsonProperty("processCategories") DmnValue<String> processCategories,
+                                    @JsonProperty("delayUntil") DmnValue<DelayUntilRequest> delayUntil) {
         this.taskId = taskId;
         this.delayDuration = delayDuration;
         this.workingDaysAllowed = workingDaysAllowed;
         this.name = name;
         this.taskCategory = taskCategory;
         this.processCategories = processCategories;
+        this.delayUntil = delayUntil;
     }
 
     public DmnValue<String> getTaskId() {
@@ -51,6 +55,10 @@ public final class InitiateEvaluateResponse implements EvaluateResponse {
 
     public DmnValue<String> getProcessCategories() {
         return processCategories;
+    }
+
+    public DmnValue<DelayUntilRequest> getDelayUntil() {
+        return delayUntil;
     }
 
     /**

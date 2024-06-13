@@ -66,7 +66,7 @@ public class ReceivedMessagesHealthControllerTest {
     @Test
     void test_health_reports_down_if_no_messages_received_in_last_hour_during_working_hours() throws Exception {
         // GIVEN
-        setClock(LocalDateTime.of(2022, 8, 26, 17,15));
+        setClock(LocalDateTime.of(2022, 8, 26, 16,15));
 
         //THEN
         assertReceivedMessagesHealthStatus(DOWN, NO_MESSAGES_RECEIVED);
@@ -110,7 +110,7 @@ public class ReceivedMessagesHealthControllerTest {
     @Test
     void test_health_reports_up_if_time_outside_of_working_hours_start_time() throws Exception {
         // GIVEN
-        setClock(LocalDateTime.of(2022, 8, 26, 9,29));
+        setClock(LocalDateTime.of(2022, 8, 26, 7,29));
 
         // THEN
         assertReceivedMessagesHealthStatus(UP, NO_MESSAGE_CHECK);

@@ -31,7 +31,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmn
 @Slf4j
 @Service
 @Order(3)
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "unchecked"})
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
 public class ReconfigurationCaseEventHandler implements CaseEventHandler {
 
     private final AuthTokenGenerator serviceAuthGenerator;
@@ -46,18 +46,18 @@ public class ReconfigurationCaseEventHandler implements CaseEventHandler {
     }
 
     @Override
-    public List<? extends EvaluateResponse> evaluateDmn(EventInformation eventInformation) {
+    public List<? extends EvaluateResponse> evaluateDmn(EventInformation reconfigurationEventInformation) {
         String tableKey = TASK_CANCELLATION.getTableKey(
-            eventInformation.getJurisdictionId(),
-            eventInformation.getCaseTypeId()
+            reconfigurationEventInformation.getJurisdictionId(),
+            reconfigurationEventInformation.getCaseTypeId()
         );
-
-        String tenantId = eventInformation.getJurisdictionId();
+        log.debug("tableKey : {}", tableKey);
+        String tenantId = reconfigurationEventInformation.getJurisdictionId();
 
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateDmnRequest(
-            eventInformation.getPreviousStateId(),
-            eventInformation.getEventId(),
-            eventInformation.getNewStateId()
+            reconfigurationEventInformation.getPreviousStateId(),
+            reconfigurationEventInformation.getEventId(),
+            reconfigurationEventInformation.getNewStateId()
         );
 
         EvaluateDmnResponse<CancellationEvaluateResponse> response = workflowApiClient.evaluateCancellationDmn(
@@ -70,7 +70,8 @@ public class ReconfigurationCaseEventHandler implements CaseEventHandler {
     }
 
     @Override
-    public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
+    public void handle(List<? extends EvaluateResponse> results, EventInformation reconfigurationEventInformation) {
+        log.info("ReconfigurationCaseEventHandler eventInformation:{}", reconfigurationEventInformation);
         results.stream()
             .filter(CancellationEvaluateResponse.class::isInstance)
             .map(CancellationEvaluateResponse.class::cast)
@@ -78,18 +79,19 @@ public class ReconfigurationCaseEventHandler implements CaseEventHandler {
                 CancellationActions.RECONFIGURE == CancellationActions.from(result.getAction().getValue())
             )
             .forEach(reconfigureResponse -> {
-                evaluateReconfigureActionResponse(eventInformation.getEventId(), reconfigureResponse);
-                sendReconfigurationRequest(eventInformation.getCaseId());
+                log.info("sendReconfigurationRequest request:{}", reconfigureResponse);
+                evaluateReconfigureActionResponse(reconfigureResponse);
+                sendReconfigurationRequest(reconfigurationEventInformation.getCaseId());
             });
     }
 
-    private void evaluateReconfigureActionResponse(String eventId, CancellationEvaluateResponse response) {
-        if (eventId.equals("UPDATE")  && (response.getWarningCode() != null
+    private void evaluateReconfigureActionResponse(CancellationEvaluateResponse response) {
+        if (response.getWarningCode() != null
                 && isNotBlank(response.getWarningCode().getValue())
                 || response.getWarningText() != null
                    && isNotBlank(response.getWarningText().getValue())
                 || response.getProcessCategories() != null
-                   && isNotBlank(response.getProcessCategories().getValue()))) {
+                   && isNotBlank(response.getProcessCategories().getValue())) {
             log.warn(
                 "DMN configuration has provided fields not suitable for Reconfiguration and they will be ignored"
             );
@@ -113,6 +115,7 @@ public class ReconfigurationCaseEventHandler implements CaseEventHandler {
     private void sendReconfigurationRequest(String caseReference) {
         TaskOperationRequest taskOperationRequest = buildTaskOperationRequest(caseReference);
         taskManagementApiClient.performOperation(serviceAuthGenerator.generate(), taskOperationRequest);
+        log.info("Reconfiguration completed caseReference:{}", caseReference);
     }
 
     private TaskOperationRequest buildTaskOperationRequest(String caseReference) {

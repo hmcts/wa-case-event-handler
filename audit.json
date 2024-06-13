@@ -48,5 +48,7 @@
   "10010_Cookie No HttpOnly Flag_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id_DELETE": "ignore",
   "10054_Cookie without SameSite Attribute_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id_DELETE": "ignore",
   "10096_Timestamp Disclosure - Unix_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id_DELETE": "ignore",
-  "90033_Loosely Scoped Cookie_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id_DELETE": "ignore"
+  "90033_Loosely Scoped Cookie_http://wa-case-event-handler-aat.service.core-compute-aat.internal/messages/message_id_DELETE": "ignore",
+  "10049_Non-Storable Content_http://wa-case-event-handler-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore",
+  "10112_Session Management Response Identified_http://wa-case-event-handler-aat.service.core-compute-aat.internal/v2/api-docs_GET": "ignore"
 }

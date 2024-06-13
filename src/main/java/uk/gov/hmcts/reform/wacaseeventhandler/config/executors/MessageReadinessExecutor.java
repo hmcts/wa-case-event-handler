@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.MessageReadinessConsumer;
 
@@ -16,6 +17,7 @@ import javax.annotation.PreDestroy;
 @Component
 @Slf4j
 @ConditionalOnProperty("azure.servicebus.enableASB-DLQ")
+@Profile("!functional & !local")
 public class MessageReadinessExecutor {
     @Value("${scheduledExecutors.messageReadiness.pollIntervalMilliSeconds}")
     private int pollInterval;
@@ -30,8 +32,14 @@ public class MessageReadinessExecutor {
     @PostConstruct
     public void start() {
         log.info("Starting message readiness executor");
-        messageReadinessExecutorService.scheduleAtFixedRate(messageReadinessConsumer,5000, pollInterval,
-                                                            TimeUnit.MILLISECONDS);
+        try {
+            messageReadinessExecutorService.scheduleWithFixedDelay(messageReadinessConsumer, 9000, pollInterval,
+                                                                   TimeUnit.MILLISECONDS);
+            log.info("Readiness check thread started successfully");
+        } catch (Exception ex) {
+            log.error("Error while starting readiness executor", ex);
+            throw ex;
+        }
     }
 
     @PreDestroy
@@ -49,6 +57,7 @@ public class MessageReadinessExecutor {
             }
         } catch (InterruptedException ie) {
             // (Re-)Cancel if current thread also interrupted
+            log.error("Error while cleanup of Readiness Executor", ie);
             messageReadinessExecutorService.shutdownNow();
             // Preserve interrupt status
             Thread.currentThread().interrupt();

@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 import javax.annotation.PreDestroy;
 
 @Configuration
-@ConditionalOnExpression("${azure.servicebus.enableASB:true} || ${azure.servicebus.enableASB-DLQ:true}")
+@ConditionalOnExpression("${azure.servicebus.enableASB-DLQ:true}")
 public class CcdEventPublisherConfiguration {
 
     @Value("${azure.servicebus.connection-string}")

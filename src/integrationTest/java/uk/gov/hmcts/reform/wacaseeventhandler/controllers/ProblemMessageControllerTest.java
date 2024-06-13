@@ -24,6 +24,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.DeadLetterQueuePeekService;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -42,7 +43,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
     "azure.servicebus.connection-string="
     + "Endpoint=sb://REPLACE_ME/;SharedAccessKeyName=REPLACE_ME;SharedAccessKey=REPLACE_ME",
     "azure.servicebus.topic-name=test",
-    "azure.servicebus.subscription-name=test",
     "azure.servicebus.ccd-case-events-subscription-name=test",
     "azure.servicebus.retry-duration=2"})
 class ProblemMessageControllerTest {
@@ -76,7 +76,7 @@ class ProblemMessageControllerTest {
 
     @NotNull
     private String randomMessageId() {
-        return "messageId_" + ThreadLocalRandom.current().nextLong(1000000);
+        return UUID.randomUUID().toString();
     }
 
     @NotNull

@@ -2,6 +2,9 @@ package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
@@ -15,8 +18,8 @@ import java.util.List;
 @Component
 @SuppressWarnings("PMD.DoNotUseThreads")
 @ConditionalOnProperty("azure.servicebus.enableASB-DLQ")
+@Profile("!functional & !local")
 public class MessageReadinessConsumer implements Runnable {
-
     private final DeadLetterQueuePeekService deadLetterQueuePeekService;
     private final CaseEventMessageRepository caseEventMessageRepository;
 
@@ -26,6 +29,19 @@ public class MessageReadinessConsumer implements Runnable {
         this.caseEventMessageRepository = caseEventMessageRepository;
     }
 
+    /**
+     * Spring Uniform Random Backoff Policy used for retry mechanism.
+     *
+     * @see <a href="https://docs.spring.io/spring-retry/docs/api/current/index.html?org/springframework/retry/annotation/Backoff.html">spring.docs</a>
+     */
+    @Retryable(
+        maxAttemptsExpression = "${retry.maxAttempts}",
+        backoff = @Backoff(
+            delayExpression = "${retry.backOff.delay}",
+            maxDelayExpression = "${retry.backOff.maxDelay}",
+            randomExpression = "${retry.backOff.random}"
+        )
+    )
     @Override
     @Transactional
     public void run() {
@@ -38,9 +54,9 @@ public class MessageReadinessConsumer implements Runnable {
 
             allMessageInNewState.forEach(this::checkMessageToMoveToReadyState);
 
-        } catch (Exception e) {
+        } catch (Exception ex) {
             log.warn("An error occurred when running message readiness check. "
-                     + "Catching exception continuing execution", e);
+                     + "Catching exception continuing execution", ex);
         }
 
     }

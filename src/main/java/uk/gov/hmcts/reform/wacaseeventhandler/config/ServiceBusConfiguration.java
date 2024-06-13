@@ -16,7 +16,7 @@ import java.time.Duration;
 @Slf4j
 @Component
 @Scope("prototype")
-@ConditionalOnExpression("${azure.servicebus.enableASB:true} || ${azure.servicebus.enableASB-DLQ:true}")
+@ConditionalOnExpression("${azure.servicebus.enableASB-DLQ:true}")
 public class ServiceBusConfiguration {
 
     @Value("${azure.servicebus.connection-string}")

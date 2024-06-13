@@ -8,13 +8,11 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.Locale;
 import javax.validation.constraints.NotEmpty;
 
-@ToString
 @Builder
 @EqualsAndHashCode
 @SuppressWarnings("PMD.ExcessiveParameterList")
@@ -37,6 +35,7 @@ public final class EventInformation {
     private final String newStateId;
     @NotEmpty
     private final String userId;
+
     private final AdditionalData additionalData;
 
     @JsonCreator
@@ -100,5 +99,20 @@ public final class EventInformation {
 
     public AdditionalData getAdditionalData() {
         return additionalData;
+    }
+
+    @Override
+    public String toString() {
+        return "EventInformation{"
+               + "eventInstanceId=" + eventInstanceId
+               + ", eventTimeStamp=" + eventTimeStamp
+               + ", caseId=" + caseId
+               + ", jurisdictionId=" + jurisdictionId
+               + ", caseTypeId=" + caseTypeId
+               + ", eventId=" + eventId
+               + ", previousStateId=" + previousStateId
+               + ", newStateId=" + newStateId
+               + ", userId=" + userId
+               + "}";
     }
 }

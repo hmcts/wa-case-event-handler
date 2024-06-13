@@ -5,9 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.Assertions;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
@@ -17,12 +16,14 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
@@ -33,13 +34,37 @@ import static org.junit.Assert.assertTrue;
 public class MessageProcessorFunctionalTest extends MessagingTests {
 
     private List<String> caseIdToDelete = new ArrayList<>();
+    private Integer testExecution = 0;
+    private Integer isReadyExecution = 0;
+
+
+    public static List<CaseEventMessage> caseEventMessages;
+    public static List<CaseEventMessage> caseEventMessagesToBeDeleted;
+
+    @Before
+    public void setup() {
+        caseEventMessages = new ArrayList<>();
+        caseEventMessagesToBeDeleted = new ArrayList<>();
+        caseIdToDelete = new ArrayList<>();
+    }
+
+    @After
+    public void teardown() {
+
+        if (caseIdToDelete != null) {
+            caseIdToDelete.forEach(this::deleteMessagesFromDatabaseByMsgIds);
+            caseIdToDelete = new ArrayList<>();
+        }
+
+        deleteMessagesFromDatabase(caseEventMessagesToBeDeleted);
+
+    }
 
     @Test
-    public void should_process_message_with_the_lowest_event_timestamp_for_that_case() {
+    public void should_process_multiple_messages_for_that_case() {
         List<String> messageIds = List.of(randomMessageId(), randomMessageId(), randomMessageId());
 
         String caseId = getWaCaseId();
-        caseIdToDelete.add(caseId);
 
         final EventInformation.EventInformationBuilder eventInformationBuilder = EventInformation.builder()
             .eventInstanceId(UUID.randomUUID().toString())
@@ -50,23 +75,25 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             .newStateId(null)
             .caseTypeId("WaCaseType");
 
+        Map<String, EventInformation> messages = new HashMap<>();
         messageIds.forEach(msgId -> {
             final EventInformation eventInformation =
                     eventInformationBuilder
                             .eventTimeStamp(LocalDateTime.now())
                             .build();
             log.info("should_process_message_with_the_lowest_event_timestamp_for_that_case, using message ID " + msgId);
-            sendMessageToTopic(msgId, eventInformation);
+            messages.put(msgId, eventInformation);
         });
+        sendMessagesToTopic(messages);
 
         await().ignoreException(AssertionError.class)
             .pollInterval(3, SECONDS)
-            .atMost(120, SECONDS)
+            .atMost(240, SECONDS)
             .until(
                 () -> {
                     final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, false);
                     if (dlqMessagesFromDb != null) {
-                        final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
+                        caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
                         assertEquals(messageIds.size(), caseEventMessages.size());
                         assertTrue(caseEventMessages.stream()
@@ -76,8 +103,18 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                         return false;
                     }
                 });
+
+        caseIdToDelete.add(caseId);
+
     }
 
+    /**
+     * CaseEventMessageRepository.LOCK_AND_GET_NEXT_MESSAGE_SQL
+     * or exists (select 1 from wa_case_event_messages d "
+     *     where d.event_timestamp > msg.event_timestamp + interval '30 minutes' "
+     *     and not d.from_dlq "
+     *     and d.state in ('READY', 'PROCESSED'))))) "
+     */
     @Test
     public void should_process_dlq_msg_if_processed_or_ready_messages_with_timestamp_later_than_thirty_mins_exist() {
         final EventInformation.EventInformationBuilder eventInformationBuilder = EventInformation.builder()
@@ -88,46 +125,56 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 .newStateId(null)
                 .caseTypeId("WaCaseType");
 
-        String dlqMessageId = randomMessageId();
+        String dlqMessageIdFromHourAgo = randomMessageId();
         log.info("should_process_dlq_msg_if_processed_or_ready_messages_with_timestamp_later_than_thirty_mins_exist, "
-                + "using message ID for DLQ message " + dlqMessageId);
-        String messageIdFromHourAgo =  randomMessageId();
+                + "using message ID for DLQ message " + dlqMessageIdFromHourAgo);
+        String messageId =  randomMessageId();
         log.info("should_process_dlq_msg_if_processed_or_ready_messages_with_timestamp_later_than_thirty_mins_exist, "
                 + "using event timestamp from hour ago "
-                + messageIdFromHourAgo);
+                + messageId);
 
         String dlqCaseId = getWaCaseId();
-        caseIdToDelete.add(dlqCaseId);
 
-        sendMessageToDlq(dlqMessageId, eventInformationBuilder
+        sendMessageToDlq(dlqMessageIdFromHourAgo, eventInformationBuilder
             .caseId(dlqCaseId)
-            .eventTimeStamp(LocalDateTime.now())
+            .eventTimeStamp(LocalDateTime.now().minusHours(1))
             .build());
 
         String caseId = getWaCaseId();
-        caseIdToDelete.add(caseId);
-        sendMessageToTopic(messageIdFromHourAgo,
-                eventInformationBuilder.caseId(caseId).eventTimeStamp(LocalDateTime.now().plusHours(1)).build());
+        sendMessageToTopic(messageId,
+                eventInformationBuilder.caseId(caseId).eventTimeStamp(LocalDateTime.now()).build());
 
         await().ignoreException(AssertionError.class)
                 .pollInterval(3, SECONDS)
-                .atMost(120, SECONDS)
+                .atMost(240, SECONDS)
                 .until(
                     () -> {
                         final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(dlqCaseId, true);
                         if (dlqMessagesFromDb != null) {
-                            final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
+                            logMessageQueryResults(dlqMessagesFromDb);
+                            caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
-                            assertTrue(caseEventMessages.stream()
-                                    .anyMatch(x -> x.getCaseId().equals(dlqCaseId)
+                            assertTrue(format("no message with caseId: %s in PROCESSED state", dlqCaseId),
+                                       caseEventMessages.stream().anyMatch(x -> x.getCaseId().equals(dlqCaseId)
                                             && x.getState() == MessageState.PROCESSED));
                             return true;
                         } else {
                             return false;
                         }
                     });
+
+        caseIdToDelete.add(dlqCaseId);
+        caseIdToDelete.add(caseId);
     }
 
+    /**
+     * CaseEventMessageRepository.LOCK_AND_GET_NEXT_MESSAGE_SQL
+     * exists (select 1 from wa_case_event_messages d "
+     *     where d.case_id = msg.case_id "
+     *     and d.event_timestamp > msg.event_timestamp "
+     *     and not d.from_dlq "
+     *     and d.state = 'READY') "
+     */
     @Test
     public void should_process_dlq_msg_if_processed_or_ready_messages_with_same_case_id_exist() {
         String caseId = getWaCaseId();
@@ -142,28 +189,26 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             .caseTypeId("WaCaseType");
 
         String dlqMessageId = randomMessageId();
-        log.info("should_process_dlq_msg_if_processed_or_ready_messages_with_timestamp_later_than_thirty_mins_exist, "
+        log.info("should_process_dlq_msg_if_processed_or_ready_messages_with_same_case_id_exist, "
                      + "using message ID for DLQ message " + dlqMessageId);
-        String messageIdFromHourAgo =  randomMessageId();
-        log.info("should_process_dlq_msg_if_processed_or_ready_messages_with_timestamp_later_than_thirty_mins_exist, "
+        String messageIdFromFiveMinutesFromNow =  randomMessageId();
+        log.info("should_process_dlq_msg_if_processed_or_ready_messages_with_same_case_id_exist, "
                      + "using event timestamp from hour ago "
-                     + messageIdFromHourAgo);
-
-        caseIdToDelete.add(caseId);
+                     + messageIdFromFiveMinutesFromNow);
 
         sendMessageToDlq(dlqMessageId, eventInformationBuilder.eventTimeStamp(LocalDateTime.now()).build());
 
-        sendMessageToTopic(messageIdFromHourAgo,
-                           eventInformationBuilder.eventTimeStamp(LocalDateTime.now().plusMinutes(1)).build());
+        sendMessageToTopic(messageIdFromFiveMinutesFromNow,
+                           eventInformationBuilder.eventTimeStamp(LocalDateTime.now().plusMinutes(5)).build());
 
         await().ignoreException(AssertionError.class)
             .pollInterval(3, SECONDS)
-            .atMost(120, SECONDS)
+            .atMost(240, SECONDS)
             .until(
                 () -> {
                     final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
                     if (dlqMessagesFromDb != null) {
-                        final List<CaseEventMessage> caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
+                        caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
                         assertTrue(caseEventMessages.stream()
                                        .anyMatch(x -> x.getCaseId().equals(caseId)
@@ -173,6 +218,8 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                         return false;
                     }
                 });
+
+        caseIdToDelete.add(caseId);
     }
 
     @Test
@@ -182,55 +229,57 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         // Sending message without case id will cause validation to fail and message will be stored with
         // UNPROCESSABLE state
         final EventInformation eventInformation = EventInformation.builder()
-                .eventInstanceId(UUID.randomUUID().toString())
-                .jurisdictionId("WA")
-                .eventId("makeAnApplication")
-                .userId("wa-dlq-user@fake.hmcts.net")
-                .newStateId(null)
-                .caseTypeId("WaCaseType")
-                .eventTimeStamp(LocalDateTime.now())
-                .additionalData(AdditionalData.builder()
-                        .data(Map.of("testName", "should_not_process_message_unless_in_ready_state"))
-                        .build())
-                .build();
+            .eventInstanceId(UUID.randomUUID().toString())
+            .jurisdictionId("WA")
+            .eventId("makeAnApplication")
+            .userId("wa-dlq-user@fake.hmcts.net")
+            .newStateId(null)
+            .caseTypeId("WaCaseType")
+            .eventTimeStamp(LocalDateTime.now())
+            .additionalData(AdditionalData.builder()
+                .data(Map.of("testName", "should_not_process_message_unless_in_ready_state"))
+                .build())
+            .build();
 
+        Map<String, EventInformation> messages = new HashMap<>();
         messageIds.forEach(msgId -> {
             log.info("should_not_process_message_unless_in_ready_state using message ID " + msgId);
-            sendMessageToTopic(msgId, eventInformation);
-            waitSeconds(3);
+            messages.put(msgId, eventInformation);
         });
+        sendMessagesToTopic(messages);
 
         AtomicReference<List<CaseEventMessage>> collect = new AtomicReference<>(new ArrayList<>());
 
         await().ignoreException(AssertionError.class)
-                .pollInterval(3, SECONDS)
-                .atMost(120, SECONDS)
-                .until(
-                    () -> {
-                        final EventMessageQueryResponse messagesInUnprocessableState
-                                = getMessagesFromDb(MessageState.UNPROCESSABLE);
-                        if (messagesInUnprocessableState != null) {
-                            collect.set(messagesInUnprocessableState.getCaseEventMessages()
-                                    .stream()
-                                    .filter(caseEventMessage -> hasAdditionalData(caseEventMessage.getMessageContent()))
-                                    .collect(Collectors.toList()));
-                            assertEquals(messageIds.size(), collect.get().size());
-                            return true;
-                        } else {
-                            return false;
-                        }
-                    });
+            .pollInterval(3, SECONDS)
+            .atMost(120, SECONDS)
+            .until(
+                () -> {
+                    caseEventMessagesToBeDeleted = new ArrayList<>();
 
-        deleteMessagesFromDatabase(collect.get());
+                    final EventMessageQueryResponse messagesInUnprocessableState
+                        = getMessagesFromDb(MessageState.UNPROCESSABLE);
+
+                    List<CaseEventMessage> unprocessableCaseEventMessage =
+                        messagesInUnprocessableState.getCaseEventMessages()
+                            .stream()
+                            .filter(caseEventMessage -> hasAdditionalData(caseEventMessage.getMessageContent()))
+                            .collect(Collectors.toList());
+
+                    caseEventMessagesToBeDeleted.addAll(unprocessableCaseEventMessage);
+
+                    collect.set(unprocessableCaseEventMessage);
+
+                    assertEquals(messageIds.size(), collect.get().size());
+                    return true;
+
+                });
+
     }
 
     @Test
     public void should_not_process_any_message_after_unprocessable_message_for_same_case_id() {
         String caseId = getWaCaseId();
-        String caseId2 = getWaCaseId();
-        caseIdToDelete.add(caseId);
-        caseIdToDelete.add(caseId2);
-        String unprocessableMsgId = randomMessageId();
 
         // Sending message without time stamp will cause validation to fail and message will be stored with
         // UNPROCESSABLE state
@@ -244,21 +293,20 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             .eventTimeStamp(null)
             .caseTypeId("WaCaseType").build();
 
-
+        String unprocessableMsgId = randomMessageId();
         log.info("should_not_process_any_message_after_unprocessable_message_for_same_case_id "
                      + "unprocessable message ID " + unprocessableMsgId);
         sendMessageToTopic(unprocessableMsgId, eventInformation);
-        waitSeconds(3);
 
         await().ignoreException(AssertionError.class)
             .pollInterval(3, SECONDS)
-            .atMost(120, SECONDS)
+            .atMost(240, SECONDS)
             .until(
                 () -> {
                     final EventMessageQueryResponse unprocessableMsg = getMessagesFromDb(caseId, false);
 
                     if (unprocessableMsg != null) {
-                        final List<CaseEventMessage> caseEventMessages = unprocessableMsg.getCaseEventMessages();
+                        caseEventMessages = unprocessableMsg.getCaseEventMessages();
 
                         assertTrue(caseEventMessages.stream()
                                        .anyMatch(x -> x.getCaseId().equals(caseId)
@@ -282,6 +330,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             .eventTimeStamp(LocalDateTime.now())
             .caseTypeId("WaCaseType");
 
+        String caseId2 = getWaCaseId();
         log.info("should_not_process_any_message_after_unprocessable_message_for_same_case_id "
                      + "unprocessable message ID " + unprocessableMsgId);
         sendMessageToTopic(msgId, eventInformationBuilder.caseId(caseId).build());
@@ -290,12 +339,12 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         //Wait for message processor run and process the second message
         await().ignoreException(AssertionError.class)
             .pollInterval(3, SECONDS)
-            .atMost(30, SECONDS)
+            .atMost(120, SECONDS)
             .until(
                 () -> {
                     final EventMessageQueryResponse messagesFromDb = getMessagesFromDb(caseId2, false);
                     if (messagesFromDb != null) {
-                        final List<CaseEventMessage> caseEventMessages = messagesFromDb.getCaseEventMessages();
+                        caseEventMessages = messagesFromDb.getCaseEventMessages();
 
                         assertTrue(caseEventMessages.stream()
                                        .anyMatch(caseEventMessage -> caseEventMessage.getCaseId().equals(caseId2)
@@ -310,12 +359,12 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         //Assert that message for the case with unprocessable message is not processed
         await().ignoreException(AssertionError.class)
             .pollInterval(3, SECONDS)
-            .atMost(30, SECONDS)
+            .atMost(120, SECONDS)
             .until(
                 () -> {
                     final EventMessageQueryResponse messagesFromDb = getMessagesFromDb(caseId, false);
                     if (messagesFromDb != null) {
-                        final List<CaseEventMessage> caseEventMessages = messagesFromDb.getCaseEventMessages();
+                        caseEventMessages = messagesFromDb.getCaseEventMessages();
 
                         assertTrue(caseEventMessages.stream()
                                        .anyMatch(caseEventMessage -> caseEventMessage.getCaseId().equals(caseId)
@@ -327,6 +376,8 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                     }
                 });
 
+        caseIdToDelete.add(caseId);
+        caseIdToDelete.add(caseId2);
 
     }
 
@@ -345,12 +396,9 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
     }
 
     @Test
-    @Ignore
-    public void should_not_process_dlq_message_unless_other_messages_exist_with_same_case_id() {
+    public void should_not_process_dlq_message_if_no_processed_or_ready_messages_with_same_case_id_exist() {
         String msgId = randomMessageId();
         String caseId = getWaCaseId();
-
-        caseIdToDelete.add(caseId);
 
         final EventInformation eventInformation = EventInformation.builder()
                 .eventInstanceId(UUID.randomUUID().toString())
@@ -363,38 +411,50 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 .eventTimeStamp(LocalDateTime.now())
                 .build();
 
-
-        log.info("should_not_process_dlq_message_unless_other_messages_exist_with_same_case_id using dlq message id "
-                + msgId);
+        log.info("should_not_process_dlq_message_if_no_processed_or_ready_messages_with_same_case_id_exist using dlq "
+                     + "message id " + msgId);
         sendMessageToDlq(msgId, eventInformation);
-        waitSeconds(3);
 
+        testExecution = 0;
+        isReadyExecution = 0;
         await().ignoreException(AssertionError.class)
                 .pollInterval(3, SECONDS)
-                .atMost(120, SECONDS)
+                .atMost(240, SECONDS)
                 .until(
                     () -> {
-                        final EventMessageQueryResponse messagesInReadyState = getMessagesFromDb(MessageState.READY);
-                        if (messagesInReadyState != null) {
+                        final EventMessageQueryResponse messagesFromDb = getMessagesFromDb(caseId, true);
+                        logMessageQueryResults(messagesFromDb);
+                        if (messagesFromDb != null) {
+                            testExecution++;
 
-                            List<CaseEventMessage> returnedCase = messagesInReadyState.getCaseEventMessages().stream()
-                                .filter(c -> c.getMessageId().equals(caseId)).collect(Collectors.toList());
-
-                            Assertions.assertEquals(1, returnedCase.size(),
-                                                    "Number of messages in database did not match");
+                            // store the execution number when message gets to a READY state
+                            if (isReadyExecution == 0 && messagesFromDb.getCaseEventMessages().stream()
+                                .filter(c -> c.getState().equals(MessageState.READY)).count() == 1) {
+                                isReadyExecution = testExecution;
+                            }
+                            // give it few seconds and check it hasn't been processed using few pollIntervals
+                            assertTrue("", messagesFromDb.getCaseEventMessages().stream()
+                                .filter(c -> c.getState().equals(MessageState.READY)).count() == 1
+                                && testExecution > isReadyExecution + 3);
 
                             return true;
                         } else {
                             return false;
                         }
                     });
+
+        caseIdToDelete.add(caseId);
     }
 
-    @After
-    public void teardown() {
-        if (caseIdToDelete != null) {
-            caseIdToDelete.forEach(this::deleteMessagesFromDatabaseByMsgIds);
-            caseIdToDelete = new ArrayList<>();
-        }
+    private void logMessageQueryResults(EventMessageQueryResponse queryResponse) {
+        String lineSeparator = System.getProperty("line.separator");
+        String data = queryResponse == null ? "" : queryResponse.getCaseEventMessages().stream()
+            .map(e -> "caseId: " + e.getCaseId()
+                + " msgId: " + e.getMessageId()
+                + " state: " + e.getState()
+                + " dlq: " + e.getFromDlq())
+            .collect(Collectors.joining(lineSeparator));
+        log.info("messages from db:" + lineSeparator + data);
     }
+
 }

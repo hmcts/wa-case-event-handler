@@ -1,12 +1,23 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.ProblemMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 
+@Slf4j
 @Component
 public class CaseEventMessageMapper {
+
+    private final ObjectMapper objectMapper;
+
+    public CaseEventMessageMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     public CaseEventMessage mapToCaseEventMessage(CaseEventMessageEntity entity) {
         if (entity == null) {
@@ -28,14 +39,31 @@ public class CaseEventMessageMapper {
             entity.getRetryCount());
     }
 
+    private String getCaseTypeId(CaseEventMessageEntity entity) {
+        String caseTypeId = null;
+        if (entity.getMessageContent() != null) {
+            try {
+                JsonNode jsonNodeMessageContent = objectMapper.readTree(entity.getMessageContent());
+                JsonNode jsonNodeCaseTypeId = jsonNodeMessageContent.get("CaseTypeId");
+                caseTypeId = jsonNodeCaseTypeId.asText();
+            } catch (JsonProcessingException jsonProcessingException) {
+                log.info("Error extracting CaseTypeId from message", jsonProcessingException);
+            }
+        }
+        return caseTypeId;
+    }
+
     public ProblemMessage mapToProblemMessage(CaseEventMessageEntity entity) {
         if (entity == null) {
             return null;
         }
 
+        String caseTypeId = getCaseTypeId(entity);
+
         return new ProblemMessage(
             entity.getMessageId(),
             entity.getCaseId(),
+            caseTypeId,
             entity.getEventTimestamp(),
             entity.getFromDlq(),
             entity.getState());

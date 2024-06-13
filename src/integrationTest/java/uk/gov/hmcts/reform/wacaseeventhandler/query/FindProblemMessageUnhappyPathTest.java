@@ -1,8 +1,10 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.query;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -22,9 +24,11 @@ import java.util.List;
 @Testcontainers
 @Sql("/scripts/problem_messages_unhappy_path_data.sql")
 public class FindProblemMessageUnhappyPathTest {
+    @Mock
+    private ObjectMapper objectMapper;
 
+    private final CaseEventMessageMapper caseEventMessageMapper =  new CaseEventMessageMapper(objectMapper);
 
-    private final CaseEventMessageMapper caseEventMessageMapper =  new CaseEventMessageMapper();
     @Autowired
     private CaseEventMessageRepository caseEventMessageRepository;
 

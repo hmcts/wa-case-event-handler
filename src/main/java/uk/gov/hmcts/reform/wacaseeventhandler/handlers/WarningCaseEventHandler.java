@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -22,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
@@ -32,7 +32,8 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmn
 
 @Service
 @Order(2)
-@SuppressWarnings({"PMD.DataflowAnomalyAnalysis", "unchecked"})
+@Slf4j
+@SuppressWarnings({"PMD.DataflowAnomalyAnalysis"})
 public class WarningCaseEventHandler implements CaseEventHandler {
 
     private final AuthTokenGenerator serviceAuthGenerator;
@@ -70,6 +71,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
     @SuppressWarnings("PMD.ConfusingTernary")
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
+        log.info("WarningCaseEventHandler eventInformation:{}", eventInformation);
         Set<CancellationEvaluateResponse> emptyWarnings = new LinkedHashSet<>();
         Set<CancellationEvaluateResponse> ctgWarnings = new LinkedHashSet<>();
         Set<Warning> warnings = new LinkedHashSet<>();
@@ -162,10 +164,10 @@ public class WarningCaseEventHandler implements CaseEventHandler {
 
         warningMessageRequest.forEach(message -> {
                 if (message != null) {
+                    log.info("sendWarningMessage message:{}", message);
                     workflowApiClient.sendMessage(serviceAuthGenerator.generate(), message);
                 }
             }
-
         );
     }
 
@@ -203,7 +205,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
         if (categories != null && categories.getValue() != null) {
             List<String> categoriesToCancel = Stream.of(categories.getValue().split(","))
                 .map(String::trim)
-                .collect(Collectors.toList());
+                .toList();
 
             categoriesToCancel.forEach(cat ->
                 correlationKeys.put("__processCategory__" + cat, dmnBooleanValue(true))
@@ -213,7 +215,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
         if (processCategories != null && processCategories.getValue() != null) {
             List<String> categoriesToCancel = Stream.of(processCategories.getValue().split(","))
                 .map(String::trim)
-                .collect(Collectors.toList());
+                .toList();
 
             categoriesToCancel.forEach(cat ->
                 correlationKeys.put("__processCategory__" + cat, dmnBooleanValue(true))
