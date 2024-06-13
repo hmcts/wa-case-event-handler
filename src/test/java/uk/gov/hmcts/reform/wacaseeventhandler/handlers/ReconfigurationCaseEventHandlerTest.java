@@ -26,7 +26,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
@@ -224,10 +227,7 @@ class ReconfigurationCaseEventHandlerTest {
             anyString(),
             any(TaskOperationRequest.class)
         );
-
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
-        Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
+        assertConsoleOutputHasMessages(output);
     }
 
     @Test
@@ -274,11 +274,7 @@ class ReconfigurationCaseEventHandlerTest {
             anyString(),
             any(TaskOperationRequest.class)
         );
-
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
-        Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
-
+        assertConsoleOutputHasMessages(output);
     }
 
     @Test
@@ -320,10 +316,7 @@ class ReconfigurationCaseEventHandlerTest {
             anyString(),
             any(TaskOperationRequest.class)
         );
-
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
-        Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
+        assertConsoleOutputHasMessages(output);
     }
 
     @Test
@@ -402,10 +395,7 @@ class ReconfigurationCaseEventHandlerTest {
             anyString(),
             any(TaskOperationRequest.class)
         );
-
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
-        Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
-        Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
+        assertConsoleOutputHasMessages(output);
     }
 
     @Test
@@ -506,5 +496,18 @@ class ReconfigurationCaseEventHandlerTest {
 
         return new EvaluateDmnRequest(variables);
     }
+
+    private void assertConsoleOutputHasMessages(CapturedOutput output) {
+        await().ignoreException(Exception.class)
+            .pollInterval(100, MILLISECONDS)
+            .atMost(5, SECONDS)
+            .untilAsserted(() -> {
+                Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_EVENT_INFORMATION_LOG));
+                Assertions.assertTrue(output.getOut().contains(SEND_RECONFIGURATION_REQUEST_LOG));
+                Assertions.assertTrue(output.getOut().contains(RECONFIGURATION_COMPLETED_LOG));
+            });
+
+    }
+
 
 }

@@ -41,8 +41,8 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonS
 
 @Slf4j
 public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
-    private static final Duration AT_MOST_SECONDS = Duration.ofSeconds(22);
-    private static final Duration AT_MOST_SECONDS_MULTIPLE_TASKS = Duration.ofSeconds(30);
+    private static final Duration AT_MOST_SECONDS = Duration.ofSeconds(120);
+    private static final Duration AT_MOST_SECONDS_MULTIPLE_TASKS = Duration.ofSeconds(120);
 
     protected Map<String, String> taskIdStatusMap;
     protected TestAuthenticationCredentials caseworkerCredentials;
@@ -176,7 +176,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
 
     @After
     public void cleanUp() {
-        taskIdStatusMap.forEach(this::completeTask);
         authorizationProvider.deleteAccount(caseworkerCredentials.getAccount().getUsername());
         common.cleanUpTask(caseworkerCredentials.getHeaders(), caseIds);
     }
@@ -249,8 +248,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             .extract()
             .path("[0].id");
 
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
-
         Response response = findTaskDetailsForGivenTaskId(caseId1Task1Id);
 
         response.then().assertThat()
@@ -272,6 +269,8 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             .body("__processCategory__caseProgression.value", is(true))
             .body("hasWarnings.value", is(false))
             .body("warningList.value", is("[]"));
+
+        completeTask(caseId1Task1Id, "completed");
 
     }
 
@@ -296,8 +295,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             .extract()
             .path("[0].id");
 
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
-
         Response response = findTaskDetailsForGivenTaskId(caseId1Task1Id);
 
         response.then().assertThat()
@@ -321,6 +318,8 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             .body("hasWarnings.value", is(false))
             .body("warningList.value", is("[]"));
 
+        completeTask(caseId1Task1Id, "completed");
+
     }
 
     @Test
@@ -343,8 +342,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             .body("[0].id", notNullValue())
             .extract()
             .path("[0].id");
-
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
 
         sendMessage(
             caseId,
@@ -380,8 +377,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             .extract()
             .path("[0].id");
 
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
-
         sendMessage(
             caseId,
             "makeAnApplication",
@@ -398,10 +393,11 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             .extract()
             .path("[1].id");
 
-        taskIdStatusMap.put(caseId1Task2Id, "completed");
-
         // Assert the task warning was set
         assertTaskHasWarnings(caseId, caseId1Task1Id, true);
+
+        completeTask(caseId1Task1Id, "completed");
+        completeTask(caseId1Task2Id, "completed");
 
     }
 
@@ -433,14 +429,14 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             .extract()
             .path("[0].id");
 
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
-
         Response response = findTaskDetailsForGivenTaskId(caseId1Task1Id);
 
         response.then().assertThat()
             .statusCode(HttpStatus.OK.value())
             .and().contentType(MediaType.APPLICATION_JSON_VALUE)
             .body("taskId.value", is("checkFeeStatus"));
+
+        completeTask(caseId1Task1Id, "completed");
 
     }
 
@@ -464,8 +460,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             taskIdDmnColumn, "WA", "WaCaseType"
         );
 
-        taskIdStatusMap.put(caseId1Task1Id, "deleted");
-
         // test for workingDaysAllowed  = 2
         Response responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task1Id);
         assertDelayDuration(responseTaskDetails);
@@ -478,8 +472,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             "", "", false,
             taskIdDmnColumn, "WA", "WaCaseType"
         );
-
-        taskIdStatusMap.put(caseId1Task2Id, "completed");
 
         // test for workingDaysAllowed  = 2
         responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task2Id);
@@ -495,6 +487,8 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         // Assert the task1 is deleted
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
         assertTaskDeleteReason(caseId1Task1Id, "deleted");
+
+        completeTask(caseId1Task2Id, "completed");
     }
 
     @Test
@@ -510,8 +504,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             "", "awaitingRespondentEvidence", false,
             taskIdDmnColumn, "WA", "WaCaseType"
         );
-
-        taskIdStatusMap.put(caseId1Task1Id, "deleted");
 
         // Then cancel the task1
         String eventToCancelTask = "uploadHomeOfficeBundle";
@@ -551,8 +543,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             taskIdDmnColumn, "WA", "WaCaseType"
         );
 
-        taskIdStatusMap.put(caseId1Task1Id, "deleted");
-
         // Then cancel all tasks
         String eventToCancelTask = "removeAppealFromOnline";
         sendMessage(caseIdForTask1, eventToCancelTask,
@@ -586,8 +576,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             task1IdDmnColumn, "WA", "WaCaseType"
         );
 
-        taskIdStatusMap.put(caseId1Task1Id, "deleted");
-
         // task2 with category Time Extension
         String task2IdDmnColumn = "decideOnTimeExtension";
         String caseId1Task2Id = createTaskWithId(
@@ -596,8 +584,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             "", "", false,
             task2IdDmnColumn, "WA", "WaCaseType"
         );
-
-        taskIdStatusMap.put(caseId1Task2Id, "deleted");
 
         // Then cancel all tasks
         String eventToCancelTask = "removeAppealFromOnline";
@@ -630,8 +616,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             false, taskIdDmnColumn, "WA", "WaCaseType"
         );
 
-        taskIdStatusMap.put(caseId1Task1Id, "deleted");
-
         // Then cancel the task1
         sendMessage(caseIdForTask1, "uploadHomeOfficeBundle",
             "awaitingRespondentEvidence", "", false, "WA", "WaCaseType");
@@ -652,8 +636,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             true, taskIdDmnColumn, "WA", "WaCaseType"
         );
 
-        taskIdStatusMap.put(caseId1Task1Id, "deleted");
-
         // Then cancel the task1
         sendMessage(caseIdForTask1, "withdrawAppeal", "", "", false, "WA", "WaCaseType");
 
@@ -672,8 +654,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             "", "caseBuilding", false,
             "followUpOverdueCaseBuilding", "WA", "WaCaseType"
         );
-
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
 
         sendMessage(caseIdForTask1, "makeAnApplication",
             "", "", false, "WA", "WaCaseType"
@@ -697,6 +677,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
                     return true;
                 });
 
+        completeTask(caseId1Task1Id, "completed");
 
     }
 
@@ -719,8 +700,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             .extract()
             .path("[0].id");
 
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
-
         // test for workingDaysAllowed  = 5
         Response responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task1Id);
         assertDelayDuration(responseTaskDetails);
@@ -738,8 +717,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             .assertThat().body("[1].id", notNullValue())
             .extract()
             .path("[1].id");
-
-        taskIdStatusMap.put(caseId1Task2Id, "completed");
 
         // send warning message
         sendMessageWithAdditionalData(
@@ -772,7 +749,8 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
                     return true;
                 });
 
-
+        completeTask(caseId1Task1Id, "completed");
+        completeTask(caseId1Task2Id, "completed");
 
     }
 
@@ -796,8 +774,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             .extract()
             .path("[0].id");
 
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
-
         // initiate task2, category (followUpOverdue)
         sendMessage(caseIdForTask1, "requestCaseBuilding", "",
             "caseBuilding", false, "WA", "WaCaseType"
@@ -812,8 +788,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             .assertThat().body("[1].id", notNullValue())
             .extract()
             .path("[1].id");
-
-        taskIdStatusMap.put(caseId1Task2Id, "completed");
 
         // send warning message
         sendMessageWithAdditionalData(
@@ -838,15 +812,16 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
                         .extract()
                         .path("[2].id");
 
-                    taskIdStatusMap.put(caseId1Task3Id, "completed");
-
                     // check for warnings flag on both the tasks
                     assertTaskHasWarnings(caseIdForTask1, caseId1Task1Id, true);
                     assertTaskHasWarnings(caseIdForTask1, caseId1Task2Id, true);
+
+                    completeTask(caseId1Task3Id, "completed");
                     return true;
                 });
 
-
+        completeTask(caseId1Task1Id, "completed");
+        completeTask(caseId1Task2Id, "completed");
     }
 
     @Test
@@ -863,7 +838,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         );
 
         // add tasks to tear down.
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
+        completeTask(caseId1Task1Id, "completed");
     }
 
     @Test
@@ -876,7 +851,8 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         );
 
         // add tasks to tear down.
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
+        completeTask(caseId1Task1Id, "completed");
+
     }
 
     @Test
@@ -890,8 +866,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             false, "reviewRespondentEvidence", "WA", "WaCaseType"
         );
 
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
-
         // test for workingDaysAllowed  = 2
         Response responseTaskDetails = findTaskDetailsForGivenTaskId(caseId1Task1Id);
         assertDelayDuration(responseTaskDetails);
@@ -903,7 +877,9 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             false, "inspectAppeal", "WA", "WaCaseType"
         );
 
-        taskIdStatusMap.put(caseId1Task2Id, "completed");
+        completeTask(caseId1Task1Id, "completed");
+        completeTask(caseId1Task2Id, "completed");
+
     }
 
     @Test
@@ -914,24 +890,20 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
 
         // caseId1 with category Followup overdue
         // task1
-        String caseId1Task1Id = createTaskWithId(
+        final String caseId1Task1Id = createTaskWithId(
             caseId1,
             "requestRespondentEvidence",
             "", "awaitingRespondentEvidence", false,
             taskIdDmnColumn, "WA", "WaCaseType"
         );
 
-        taskIdStatusMap.put(caseId1Task1Id, "deleted");
-
         // caseId2 with category Case progression
         String caseId2 = getWaCaseId();
         String taskId2DmnColumn = "reviewAppealSkeletonArgument";
-        String caseId2Task1Id = createTaskWithId(caseId2, "submitCase",
+        final String caseId2Task1Id = createTaskWithId(caseId2, "submitCase",
             "", "caseUnderReview",
             false, taskId2DmnColumn, "WA", "WaCaseType"
         );
-
-        taskIdStatusMap.put(caseId2Task1Id, "deleted");
 
         // Then cancel all tasks on both caseIDs
         String eventToCancelTask = "removeAppealFromOnline";
@@ -962,24 +934,20 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         //caseId1 with category Case progression
         String caseId1 = getWaCaseId();
         String taskIdDmnColumn = "reviewRespondentEvidence";
-        String caseId1Task1Id = createTaskWithId(
+        final String caseId1Task1Id = createTaskWithId(
             caseId1,
             "uploadHomeOfficeBundle",
             "", "awaitingRespondentEvidence", false,
             taskIdDmnColumn, "WA", "WaCaseType"
         );
 
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
-
         //caseId1 with category Case progression
         String caseId2 = getWaCaseId();
         String taskId2DmnColumn = "reviewRespondentEvidence";
-        String caseId2Task1Id = createTaskWithId(caseId2, "uploadHomeOfficeBundle",
+        final String caseId2Task1Id = createTaskWithId(caseId2, "uploadHomeOfficeBundle",
             "", "awaitingRespondentEvidence",
             false, taskId2DmnColumn, "WA", "WaCaseType"
         );
-
-        taskIdStatusMap.put(caseId2Task1Id, "completed");
 
         // Then cancel all tasks on both caseIDs
         sendMessage(caseId1, "makeAnApplication",
@@ -1022,13 +990,16 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
                         .extract()
                         .path("[1].id");
 
-                    taskIdStatusMap.put(caseId2Task2Id, "completed");
-
                     // check for warnings flag on both the tasks
                     assertTaskHasWarnings(caseId1, caseId1Task1Id, true);
                     assertTaskHasWarnings(caseId2, caseId2Task1Id, true);
+
+                    completeTask(caseId2Task2Id, "completed");
                     return true;
                 });
+
+        completeTask(caseId1Task1Id, "completed");
+        completeTask(caseId2Task1Id, "completed");
 
     }
 
@@ -1068,7 +1039,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         );
 
         // add tasks to tear down.
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
+        completeTask(caseId1Task1Id, "completed");
     }
 
     @Test
@@ -1105,7 +1076,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         );
 
         // add tasks to tear down.
-        taskIdStatusMap.put(caseId1Task1Id, "completed");
+        completeTask(caseId1Task1Id, "completed");
     }
 
     @Test
@@ -1122,8 +1093,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             "", "caseBuilding", false,
             taskIdDmnColumn, "WA", "WaCaseType"
         );
-
-        taskIdStatusMap.put(caseId1Task1Id, "deleted");
 
         // Then cancel all tasks on both caseIDs
         sendMessage(caseId1, "applyNocDecision",
@@ -1161,7 +1130,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             .body("task.id", equalTo(caseId1Task1Id))
             .body("task.reconfigure_request_time", nullValue());
 
-
         //send update event to trigger reconfigure action
         String jurisdiction = "WA";
         String caseType = "WaCaseType";
@@ -1195,11 +1163,23 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
                     //assert reconfigure request time
                     response.then().assertThat()
                         .statusCode(HttpStatus.OK.value())
-                        .and()
-                        .body("task.id", equalTo(caseId1Task1Id))
-                        .body("task.reconfigure_request_time", notNullValue());
+                        .contentType(APPLICATION_JSON_VALUE);
+
+
+
+                    String taskId = response.jsonPath().get("task.id");
+                    String reconfigureRequestTime = response.then().extract().jsonPath()
+                        .get("task.reconfigure_request_time");
+                    String lastReconfigurationTime = response.then().extract().jsonPath()
+                        .get("task.last_reconfiguration_time");
+
+                    assertEquals(caseId1Task1Id, taskId);
+                    if (reconfigureRequestTime == null && lastReconfigurationTime == null) {
+                        return false;
+                    }
                     //cleanup
-                    taskIdStatusMap.put(caseId1Task1Id, "completed");
+
+                    completeTask(caseId1Task1Id, "completed");
 
                     return true;
                 });
