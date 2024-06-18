@@ -415,7 +415,6 @@ dependencies {
 
   implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.5.13'
   implementation group: 'com.zaxxer', name: 'HikariCP', version: '5.0.1'
-  implementation group: 'com.vladmihalcea', name: 'hibernate-types-60', version: '2.21.1'
 
   implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.15.2'
   runtimeOnly group: 'org.postgresql', name: 'postgresql', version: '42.7.2'

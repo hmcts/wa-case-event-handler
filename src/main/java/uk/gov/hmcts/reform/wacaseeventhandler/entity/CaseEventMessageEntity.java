@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -14,7 +13,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcType;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
 import org.hibernate.type.SqlTypes;
 
 import java.io.Serializable;
@@ -58,6 +59,7 @@ public class CaseEventMessageEntity implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "message_state_enum")
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     private MessageState state;
 
     @Column(name = MESSAGE_PROPERTIES, columnDefinition = "jsonb")
