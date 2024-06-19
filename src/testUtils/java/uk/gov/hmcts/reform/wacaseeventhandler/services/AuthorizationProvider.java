@@ -27,7 +27,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTes
 
 @Slf4j
 @Service
-@Import({IdamWebApi.class})
+@Import({IdamWebApi.class,IdamServiceApi.class})
 public class AuthorizationProvider {
 
     private final Map<String, String> tokens = new ConcurrentHashMap<>();

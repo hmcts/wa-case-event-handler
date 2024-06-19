@@ -13,7 +13,8 @@ import org.springframework.retry.annotation.EnableRetry;
         "uk.gov.hmcts.reform.ccd.client",
         "uk.gov.hmcts.reform.wacaseeventhandler.clients",
         "uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates",
-        "uk.gov.hmcts.reform.wacaseeventhandler.entities.idam"
+        "uk.gov.hmcts.reform.wacaseeventhandler.entities.idam",
+        "uk.gov.hmcts.reform.wacaseeventhandler.services"
     })
 public class Application {
 
