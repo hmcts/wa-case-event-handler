@@ -239,7 +239,7 @@ dependencyManagement {
     dependency group: 'org.glassfish', name: 'jakarta.el', version: '4.0.2'
 
     //CVE-2021-42550
-    dependencySet(group: 'ch.qos.logback', version: '1.5.6') {
+    dependencySet(group: 'ch.qos.logback', version: '1.2.13') {
       entry 'logback-classic'
       entry 'logback-core'
     }
@@ -277,7 +277,7 @@ dependencyManagement {
       entry 'selenium-support'
     }
 
-    dependencySet(group: 'org.springframework.security', version: '6.0.8') {
+    dependencySet(group: 'org.springframework.security', version: '5.8.9') {
       entry 'spring-security-core'
       entry 'spring-security-acl'
       entry 'spring-security-aspects'
@@ -309,18 +309,18 @@ repositories {
 }
 
 def versions = [
-  junit        : '5.10.2',
-  junitPlatform: '1.10.2',
-  reformLogging: '6.1.4',
-  springDoc    : '2.2.0',
-  springBoot   : '3.3.0',
-  serenity     : '3.4.2',
+  junit        : '5.9.0',
+  junitPlatform: '1.10.0',
+  reformLogging: '6.0.1',
+  springDoc    : '1.7.0',
+  springBoot   : '2.7.18',
+  serenity     : '3.1.20',
   gradlePitest  : '1.9.11',
   pitest       : '1.15.0',
   sonarPitest   : '0.5',
-  logbook      : '3.9.0',
-  tomcat       : '10.1.16',
-  log4j        : '2.23.1',
+  logbook      : '2.16.0',
+  tomcat       : '9.0.83',
+  log4j        : '2.17.2',
   retry        : '2.0.3'
 ]
 
@@ -348,21 +348,17 @@ dependencies {
   implementation group: 'org.springframework.security', name: 'spring-security-rsa', version: '1.1.1'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: versions.springBoot
   implementation group: 'org.springframework.retry', name: 'spring-retry', version: versions.retry
-  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '4.1.1'
+  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '3.1.8'
 
-  implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.3.1'
+  implementation group: 'org.springdoc', name: 'springdoc-openapi-ui', version: versions.springDoc
 
-  implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: versions.springDoc
-
-  implementation group: 'org.zalando', name: 'logbook-core', version: versions.logbook
   implementation group: 'org.zalando', name: 'logbook-spring-boot-starter', version: versions.logbook
-  implementation group: 'org.zalando', name: 'logbook-httpclient5', version: versions.logbook
 
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: versions.reformLogging
   implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: versions.reformLogging
 
   implementation group: 'com.github.hmcts', name: 'properties-volume-spring-boot-starter', version: '0.1.1'
-  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.1.2'
+  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '3.1.4'
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.9.2'
   implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.15.0'
   implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.11'
@@ -390,8 +386,8 @@ dependencies {
   testImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
   testImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
   testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
-  testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.19.8'
-  testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.19.8'
+  testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.16.2'
+  testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.17.6'
 
 
   testImplementation group: 'org.pitest', name: 'pitest', version: versions.pitest
@@ -415,6 +411,7 @@ dependencies {
 
   implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.5.13'
   implementation group: 'com.zaxxer', name: 'HikariCP', version: '5.0.1'
+  implementation group: 'com.vladmihalcea', name: 'hibernate-types-52', version: '2.21.1'
 
   implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.15.2'
   runtimeOnly group: 'org.postgresql', name: 'postgresql', version: '42.7.2'
