@@ -51,7 +51,6 @@ class CaseEventHandlerControllerInvalidMessageTest {
 
     public static final String S2S_TOKEN = "Bearer s2s token";
     public static final String TENANT_ID = "ia";
-    public static final String INITIATE_DMN_TABLE = "wa-task-initiation-ia-asylum";
     public static final String CANCELLATION_DMN_TABLE = "wa-task-cancellation-ia-asylum";
     public static final String CASE_REFERENCE = "some case reference";
     public static final LocalDateTime EVENT_TIME_STAMP = LocalDateTime.now();
