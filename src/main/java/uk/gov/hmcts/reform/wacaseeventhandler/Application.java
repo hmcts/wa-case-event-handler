@@ -6,9 +6,16 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.retry.annotation.EnableRetry;
 
 @SpringBootApplication
-@EnableFeignClients
 @EnableRetry
 @SuppressWarnings("HideUtilityClassConstructor") // Spring needs a constructor, its not a utility class
+@EnableFeignClients(basePackages =
+    {
+        "uk.gov.hmcts.reform.ccd.client",
+        "uk.gov.hmcts.reform.wacaseeventhandler.clients",
+        "uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates",
+        "uk.gov.hmcts.reform.wacaseeventhandler.entities.idam",
+        "uk.gov.hmcts.reform.wacaseeventhandler.services"
+    })
 public class Application {
 
     public static void main(final String[] args) {

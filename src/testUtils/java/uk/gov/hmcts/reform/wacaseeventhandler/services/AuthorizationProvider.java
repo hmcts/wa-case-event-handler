@@ -5,6 +5,7 @@ import io.restassured.http.Headers;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -26,6 +27,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTes
 
 @Slf4j
 @Service
+@Import({IdamWebApi.class,IdamServiceApi.class})
 public class AuthorizationProvider {
 
     private final Map<String, String> tokens = new ConcurrentHashMap<>();

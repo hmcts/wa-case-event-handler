@@ -2,31 +2,29 @@ package uk.gov.hmcts.reform.wacaseeventhandler.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.vladmihalcea.hibernate.type.basic.PostgreSQLEnumType;
-import com.vladmihalcea.hibernate.type.json.JsonType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
+import org.hibernate.annotations.JdbcType;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.dialect.PostgreSQLEnumJdbcType;
+import org.hibernate.type.SqlTypes;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
 
 @Table(name = "wa_case_event_messages")
 @Entity
 @EqualsAndHashCode
 @ToString
-@TypeDef(name = "json", typeClass = JsonType.class)
-@TypeDef(name = "pgsql_enum", typeClass = PostgreSQLEnumType.class)
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class CaseEventMessageEntity implements Serializable {
 
@@ -61,12 +59,12 @@ public class CaseEventMessageEntity implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @Column(columnDefinition = "message_state_enum")
-    @Type(type = "pgsql_enum")
+    @JdbcType(PostgreSQLEnumJdbcType.class)
     private MessageState state;
 
     @Column(name = MESSAGE_PROPERTIES, columnDefinition = "jsonb")
     @Convert(disableConversion = true)
-    @Type(type = "json")
+    @JdbcTypeCode(SqlTypes.JSON)
     private JsonNode messageProperties;
 
     @Column(name = MESSAGE_CONTENT)
