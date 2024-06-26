@@ -19,3 +19,5 @@ java:
     RECEIVED_MESSAGE_HEALTH_CHECK: disabled
   postgresql:
     enabled: true
+    image:
+      tag: '14.5.0'
