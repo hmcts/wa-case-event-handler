@@ -99,7 +99,7 @@ public class ReceivedMessagesHealthControllerTest {
     }
 
     @Test
-    void test_health_reports_up_if_no_messages_received_in_last_hour_during_holiday() throws Exception {
+    void should_health_reports_up_when_no_messages_received_in_last_hour_during_holiday() throws Exception {
         // GIVEN
         LocalDateTime localDateTime = LocalDateTime.of(2022, 8, 29, 12, 15);
         setClock(localDateTime);
@@ -154,7 +154,7 @@ public class ReceivedMessagesHealthControllerTest {
     @Test
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
         scripts = {"classpath:scripts/insert_case_event_messages_for_received_messages_check.sql"})
-    void should_health_check_reports_down_when_no_messages_received_in_last_hour() throws Exception {
+    void should_verify_health_check_reports_is_down_when_no_messages_received_in_last_hour() throws Exception {
 
         // GIVEN
         setClock(LocalDateTime.of(2024, 4, 2, 15,15));
