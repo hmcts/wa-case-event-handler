@@ -136,7 +136,7 @@ public class ReceivedMessagesHealthControllerTest {
     @Test
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
         scripts = {"classpath:scripts/insert_case_event_messages_for_received_messages_check.sql"})
-    void test_health_reports_up_if_received_messages_in_last_hour() throws Exception {
+    void should_health_check_reports_up_when_messages_received_in_last_hour() throws Exception {
 
         // GIVEN
         setClock(LocalDateTime.of(2024, 4, 2, 14,15));
@@ -154,7 +154,7 @@ public class ReceivedMessagesHealthControllerTest {
     @Test
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
         scripts = {"classpath:scripts/insert_case_event_messages_for_received_messages_check.sql"})
-    void test_health_reports_down_if_not_received_messages_in_last_hour() throws Exception {
+    void should_health_check_reports_down_when_no_messages_received_in_last_hour() throws Exception {
 
         // GIVEN
         setClock(LocalDateTime.of(2024, 4, 2, 15,15));
@@ -171,7 +171,7 @@ public class ReceivedMessagesHealthControllerTest {
 
     @ParameterizedTest
     @MethodSource(value = "workingHoursWithTimeZoneScenarioProvider")
-    void test_health_calls_repository_if_working_day_time_is_within_working_hours_with_timezone(
+    void should_invoke_case_event_repo_when_time_is_within_working_hours(
         LocalDateTime withinWorkingHoursDate) throws Exception {
 
         // GIVEN
@@ -186,7 +186,7 @@ public class ReceivedMessagesHealthControllerTest {
 
     @ParameterizedTest
     @MethodSource(value = "nonWorkingHoursForDstTimeZoneStartTimeAndEndTime")
-    void test_health_calls_repository_if_working_day_time_is_outside_working_hours_with_timezone(
+    void should_not_invoke_case_event_repo_when_time_is_outside_working_hours(
         LocalDateTime outsideWorkingHoursDate) throws Exception {
 
         // GIVEN
