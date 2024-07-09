@@ -88,6 +88,26 @@ class CaseEventMessageRepositoryTest {
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+        scripts = {"classpath:sql/insert_case_event_messages_for_received_messages_check.sql"})
+    @Test
+    void should_return_number_of_messages_received_as_1_after_specified_time() {
+        final int numberOfMessagesReceived =
+            caseEventMessageRepository.getNumberOfMessagesReceivedInLastHour(
+                LocalDateTime.of(2024, 4, 2, 13,55));
+        assertEquals(1, numberOfMessagesReceived);
+    }
+
+    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
+        scripts = {"classpath:sql/insert_case_event_messages_for_received_messages_check.sql"})
+    @Test
+    void should_return_number_of_messages_received_as_0_after_specified_time() {
+        final int numberOfMessagesReceived =
+            caseEventMessageRepository.getNumberOfMessagesReceivedInLastHour(
+                LocalDateTime.of(2024, 4, 2, 14,5));
+        assertEquals(0, numberOfMessagesReceived);
+    }
+
+    @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
             scripts = {"classpath:sql/insert_case_event_messages.sql"})
     @Test
     void should_return_null_case_event_message_when_no_matching_messages_match_query_criteria() {
