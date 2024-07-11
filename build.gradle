@@ -158,6 +158,7 @@ jacocoTestReport {
 
 pitest {
   junit5PluginVersion = '1.0.0'
+  pitestVersion = '1.5.2'
   targetClasses = ['uk.gov.hmcts.reform.wacaseeventhandler.*']
   excludedClasses = [
     'uk.gov.hmcts.reform.wacaseeventhandler.config.*',
@@ -309,8 +310,8 @@ repositories {
 }
 
 def versions = [
-  junit        : '5.9.0',
-  junitPlatform: '1.10.0',
+  junit        : '5.10.2',
+  junitPlatform: '1.10.2',
   reformLogging: '6.0.1',
   springDoc    : '1.7.0',
   springBoot   : '2.7.18',
