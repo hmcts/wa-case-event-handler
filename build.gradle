@@ -18,7 +18,7 @@ plugins {
   id 'com.github.ben-manes.versions' version '0.48.0'
   id 'uk.gov.hmcts.java' version '0.12.45'
   id 'org.sonarqube' version '3.5.0.2730'
-  id 'info.solidsoft.pitest' version '1.9.11'
+  id 'info.solidsoft.pitest' version '1.15.0'
   id 'io.freefair.lombok' version '6.5.1'
 }
 
@@ -157,7 +157,7 @@ jacocoTestReport {
 }
 
 pitest {
-  junit5PluginVersion = '1.0.0'
+  junit5PluginVersion = '1.1.0'
   pitestVersion = '1.5.2'
   targetClasses = ['uk.gov.hmcts.reform.wacaseeventhandler.*']
   excludedClasses = [
@@ -169,6 +169,8 @@ pitest {
   outputFormats = ['XML', 'HTML']
   timestampedReports = false
   mutationThreshold = 80
+  verbose = true
+  testPlugin = 'junit5'
 }
 
 project.tasks['pitest'].group = "Verification"
@@ -327,6 +329,7 @@ def versions = [
 
 ext.libraries = [
   junit5: [
+    "org.junit.jupiter:junit-jupiter:${versions.junit}",
     "org.junit.jupiter:junit-jupiter-api:${versions.junit}",
     "org.junit.jupiter:junit-jupiter-engine:${versions.junit}",
     "org.junit.jupiter:junit-jupiter-params:${versions.junit}",
@@ -338,6 +341,10 @@ ext.libraries = [
 ext['snakeyaml.version'] = '2.0'
 
 dependencies {
+  testImplementation platform('org.junit:junit-bom:5.10.0')
+  testImplementation 'org.junit.jupiter:junit-jupiter-api'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
