@@ -47,7 +47,7 @@ public class AsbMessagesToDatabaseTest extends MessagingTests {
             .eventId("makeAnApplication")
             .caseId(caseId)
             .userId("insert_true")
-            .caseTypeId("WaCaseType")
+            .caseTypeId("wacasetype")
             .build();
 
         Map<String, EventInformation> messages = new HashMap<>();
@@ -90,7 +90,7 @@ public class AsbMessagesToDatabaseTest extends MessagingTests {
             .eventId("makeAnApplication")
             .caseId(caseId)
             .userId("insert_true")
-            .caseTypeId("WaCaseType")
+            .caseTypeId("wacasetype")
             .build();
 
         sendMessageToTopic(randomMessageId(), eventInformation);
