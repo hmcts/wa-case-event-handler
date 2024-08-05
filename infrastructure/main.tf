@@ -1,9 +1,9 @@
 provider "azurerm" {
   features {
-     resource_group {
-       prevent_deletion_if_contains_resources = false
-     }
-   }
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 }
 
 provider "azurerm" {
@@ -70,13 +70,13 @@ module "wa_case_event_handler_database_flex" {
     azurerm.postgres_network = azurerm.postgres_network
   }
 
-  source          = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
-  product         = var.product
-  component       = var.component
-  name            = "${var.product}-${var.component}-postgres-db-flex"
-  location        = var.location
-  business_area   = "cft"
-  env             = var.env
+  source        = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
+  product       = var.product
+  component     = var.component
+  name          = "${var.product}-${var.component}-postgres-db-flex"
+  location      = var.location
+  business_area = "cft"
+  env           = var.env
   pgsql_databases = [
     {
       name : var.postgresql_database_name
@@ -89,7 +89,7 @@ module "wa_case_event_handler_database_flex" {
       value = "plpgsql,pg_stat_statements,pg_buffercache"
     },
     {
-      name = "enable_seqscan"
+      name  = "enable_seqscan"
       value = "off"
     }
   ]
@@ -128,6 +128,6 @@ resource "azurerm_key_vault_secret" "POSTGRES_PORT-V15" {
 
 resource "azurerm_key_vault_secret" "POSTGRES_DATABASE-V15" {
   name         = "${var.postgres_db_component_name}-POSTGRES-DATABASE-V15"
-  value        = "${var.postgresql_database_name}"
+  value        = var.postgresql_database_name
   key_vault_id = data.azurerm_key_vault.wa_key_vault.id
 }
