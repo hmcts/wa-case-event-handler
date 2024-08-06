@@ -214,9 +214,6 @@ dependencyCheck {
   // CVE Scanning only relevant to production code that is published, not test or other implementations
   scanConfigurations += 'releaseCompileClasspath'
 
-//   nvd{
-//    apiKey = 'de90a783-8ef5-47dd-815c-e5e67aeb5f51'
-//  }
   analyzers {
     // Disable scanning of .NET related binaries
     assemblyEnabled = false
