@@ -361,7 +361,7 @@ dependencies {
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.9.2'
   implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.15.0'
   implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.11'
-  implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.1.11'
+  implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.1.21'
 
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: versions.tomcat
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: versions.tomcat
@@ -385,8 +385,8 @@ dependencies {
   testImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
   testImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
   testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
-  testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.20.0'
-  testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.20.0'
+  testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.20.1'
+  testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.20.1'
 
 
   testImplementation group: 'org.pitest', name: 'pitest', version: versions.pitest
