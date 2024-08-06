@@ -243,7 +243,7 @@ dependencyManagement {
       entry 'logback-classic'
       entry 'logback-core'
     }
-    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.100.Final') {
+    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.112.Final') {
       entry 'netty-buffer'
       entry 'netty-codec'
       entry 'netty-codec-dns'
@@ -361,7 +361,7 @@ dependencies {
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.9.2'
   implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.15.0'
   implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.11'
-  implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.1.11'
+  implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.1.21'
 
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: versions.tomcat
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: versions.tomcat
