@@ -16,7 +16,7 @@
   </suppress>
   <suppress until= "2024-09-06">
   <notes>
-    affects azure-cli.after upgrading to recommended version, CVE still appears. False positive
+    affects azure-cli. After upgrading to recommended version, CVE still appears. False positive
   </notes>
   <cve>CVE-2023-36052</cve>
   </suppress>
