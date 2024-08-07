@@ -14,9 +14,9 @@
     <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson\-databind@.*$</packageUrl>
     <cpe>cpe:/a:fasterxml:jackson-modules-java8</cpe>
   </suppress>
-  <suppress until= "2024-08-09">
+  <suppress until= "2024-09-06">
   <notes>
-    Affects azure-messaging-servicebus azure-core, azure-core-amqp, azure-core-http-netty, azure-json. Upgrade still in beta, no fix yet.
+    affects azure-cli.after upgrading to recommended version, CVE still appears. False positive
   </notes>
   <cve>CVE-2023-36052</cve>
   </suppress>
