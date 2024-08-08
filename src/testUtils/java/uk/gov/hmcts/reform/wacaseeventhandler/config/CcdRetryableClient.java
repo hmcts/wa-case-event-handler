@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.config;
 
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Import;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import uk.gov.hmcts.reform.ccd.client.model.StartEventResponse;
 
 @Slf4j
 @Service
+@Import({CoreCaseDataApi.class})
 public class CcdRetryableClient {
     private final CoreCaseDataApi coreCaseDataApi;
 

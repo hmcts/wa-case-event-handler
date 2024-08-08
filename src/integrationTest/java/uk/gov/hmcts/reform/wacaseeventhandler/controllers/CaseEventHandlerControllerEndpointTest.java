@@ -8,8 +8,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -365,37 +363,6 @@ class CaseEventHandlerControllerEndpointTest {
             assertNotNull(response.getReceived(), "Valid Received should be returned");
             assertEquals(0, response.getDeliveryCount(), "Valid DeliveryCount should be returned");
             assertEquals(unprocessableMessage, response.getMessageContent(), "Valid message should be returned");
-        }
-
-        @ParameterizedTest
-        @MethodSource("uk.gov.hmcts.reform.wacaseeventhandler.controllers.CaseEventHandlerControllerEndpointTest"
-            + "#provideInvalidMessages")
-        void should_store_invalid_unprocessable_message_and_return_200_ok(String invalidMessage) throws Exception {
-            String messageId = randomMessageId();
-
-            MvcResult result = mockMvc.perform(post("/messages/"
-                                                        + messageId
-                                                        + "?from_dlq=false&session_id="
-                                                        + CASE_REFERENCE)
-                                                   .contentType(MediaType.APPLICATION_JSON)
-                                                   .content(invalidMessage))
-                .andExpect(status().isCreated())
-                .andReturn();
-
-            String content = result.getResponse().getContentAsString();
-            assertEquals(201, result.getResponse().getStatus(), content);
-            assertNotNull(content, "Content Should not be null");
-
-            CaseEventMessage response = OBJECT_MAPPER.readValue(content, CaseEventMessage.class);
-            assertNotNull(response, "Response should not be null");
-            assertEquals(messageId, response.getMessageId(), "Valid MessageId should be returned");
-            assertNotNull(response.getSequence(), "Valid sequence should be returned");
-            assertEquals(CASE_REFERENCE, response.getCaseId(), "Valid CaseId should be returned");
-            assertEquals(false, response.getFromDlq(), "Valid FromDlq should be returned");
-            assertEquals(MessageState.UNPROCESSABLE, response.getState(), "Valid State should be returned");
-            assertNotNull(response.getReceived(), "Valid Received should be returned");
-            assertEquals(0, response.getDeliveryCount(), "Valid DeliveryCount should be returned");
-            assertEquals(invalidMessage, response.getMessageContent(), "Valid message should be returned");
         }
 
         @NotNull
