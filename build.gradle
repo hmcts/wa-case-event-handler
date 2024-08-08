@@ -363,7 +363,7 @@ dependencies {
 
   implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.1.2'
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.9.2'
-  implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.15.0'
+  implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.17.2'
   implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.21'
   implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.1.21'
 
