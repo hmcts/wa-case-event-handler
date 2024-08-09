@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
@@ -222,6 +223,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         caseIdToDelete.add(caseId);
     }
 
+    @Disabled("Disabled as this is creating data that is blocking messages being processed.  See: RWA-3683")
     @Test
     public void should_not_process_message_unless_in_ready_state() {
         List<String> messageIds = List.of(randomMessageId(), randomMessageId());
