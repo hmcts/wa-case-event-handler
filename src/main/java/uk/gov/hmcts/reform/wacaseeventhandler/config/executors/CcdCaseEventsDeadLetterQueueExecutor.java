@@ -1,7 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.config.executors;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +11,8 @@ import uk.gov.hmcts.reform.wacaseeventhandler.clients.CcdCaseEventsDeadLetterQue
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
 @Slf4j
 @Component
