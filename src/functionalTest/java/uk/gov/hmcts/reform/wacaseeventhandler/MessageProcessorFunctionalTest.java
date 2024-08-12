@@ -265,8 +265,8 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                             .stream()
                             //below condition is to check for the messages that are created as part of this test
                             .filter(caseEventMessage -> messageIds.contains(caseEventMessage.getMessageId()))
-                            .filter(caseEventMessage -> !caseEventMessage.getMessageContent().isEmpty() &&
-                                hasAdditionalData(caseEventMessage.getMessageContent()))
+                            .filter(caseEventMessage -> !caseEventMessage.getMessageContent().isEmpty()
+                                && hasAdditionalData(caseEventMessage.getMessageContent()))
                             .collect(Collectors.toList());
                     caseEventMessagesToBeDeleted.addAll(unprocessableCaseEventMessage);
                     collect.set(unprocessableCaseEventMessage);
