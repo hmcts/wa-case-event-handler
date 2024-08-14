@@ -20,6 +20,6 @@ public class HolidayLoader {
         UkHolidayDates holidayDates = govUkHolidayDatesClient.getHolidayDates();
         return holidayDates.getEnglandAndWales().getEvents().stream()
             .map(HolidayDate::getDate)
-            .collect(Collectors.toList());
+            .toList();
     }
 }

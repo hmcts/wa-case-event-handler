@@ -42,7 +42,7 @@ class EventMessageQueryServiceTest {
     EventMessageQueryService underTest;
 
     @Test
-    public void shouldGetMessages() {
+    void shouldGetMessages() {
         given(repository.countAll()).willReturn(9L);
 
         CaseEventMessageEntity entity1 = mock(CaseEventMessageEntity.class);
@@ -59,16 +59,16 @@ class EventMessageQueryServiceTest {
         EventMessageQueryResponse result = underTest.getMessages("", CASE_ID, EVENT_TIMESTAMP.toString(),
                                                                  NOT_FROM_DLQ);
 
-        assertEquals(result.getMessage(), String.format(FOUND_MESSAGES, 2));
-        assertEquals(result.getNumberOfMessagesFound(), 2);
-        assertEquals(result.getTotalNumberOfMessages(), 9);
-        assertEquals(result.getCaseEventMessages().size(), 2);
+        assertEquals(String.format(FOUND_MESSAGES, 2), result.getMessage());
+        assertEquals(2, result.getNumberOfMessagesFound());
+        assertEquals(9, result.getTotalNumberOfMessages());
+        assertEquals(2, result.getCaseEventMessages().size());
         assertTrue(result.getCaseEventMessages().contains(message1));
         assertTrue(result.getCaseEventMessages().contains(message2));
     }
 
     @Test
-    public void shouldGetMessagesWhenNoRecordsMatchingTheQuery() {
+    void shouldGetMessagesWhenNoRecordsMatchingTheQuery() {
         given(repository.countAll()).willReturn(9L);
 
         List<CaseEventMessageEntity> queryMessages = List.of();
@@ -77,50 +77,50 @@ class EventMessageQueryServiceTest {
         EventMessageQueryResponse result = underTest.getMessages("NEW", CASE_ID, EVENT_TIMESTAMP.toString(),
                                                                  NOT_FROM_DLQ);
 
-        assertEquals(result.getMessage(), NO_MATCHING_RECORDS_FOR_THE_QUERY);
-        assertEquals(result.getNumberOfMessagesFound(), 0);
-        assertEquals(result.getTotalNumberOfMessages(), 9);
-        assertEquals(result.getCaseEventMessages().size(), 0);
+        assertEquals(NO_MATCHING_RECORDS_FOR_THE_QUERY, result.getMessage());
+        assertEquals(0, result.getNumberOfMessagesFound());
+        assertEquals(9, result.getTotalNumberOfMessages());
+        assertEquals(0, result.getCaseEventMessages().size());
     }
 
     @Test
-    public void shouldGetMessagesWhenNoMessagesInDb() {
+    void shouldGetMessagesWhenNoMessagesInDb() {
         given(repository.countAll()).willReturn(0L);
 
         EventMessageQueryResponse result = underTest.getMessages("", CASE_ID, null, null);
 
-        assertEquals(result.getMessage(), NO_RECORDS_IN_THE_DATABASE);
-        assertEquals(result.getNumberOfMessagesFound(), 0);
-        assertEquals(result.getTotalNumberOfMessages(), 0);
-        assertEquals(result.getCaseEventMessages().size(), 0);
+        assertEquals(NO_RECORDS_IN_THE_DATABASE, result.getMessage());
+        assertEquals(0, result.getNumberOfMessagesFound());
+        assertEquals(0, result.getTotalNumberOfMessages());
+        assertEquals(0, result.getCaseEventMessages().size());
     }
 
     @Test
-    public void shouldGetMessagesWhenNoParametersProvided() {
+    void shouldGetMessagesWhenNoParametersProvided() {
         given(repository.countAll()).willReturn(9L);
 
         EventMessageQueryResponse result = underTest.getMessages(null, null, null, null);
 
-        assertEquals(result.getMessage(), NO_QUERY_PARAMETERS_SPECIFIED);
-        assertEquals(result.getNumberOfMessagesFound(), 0);
-        assertEquals(result.getTotalNumberOfMessages(), 9);
-        assertEquals(result.getCaseEventMessages().size(), 0);
+        assertEquals(NO_QUERY_PARAMETERS_SPECIFIED, result.getMessage());
+        assertEquals(0, result.getNumberOfMessagesFound());
+        assertEquals(9, result.getTotalNumberOfMessages());
+        assertEquals(0, result.getCaseEventMessages().size());
     }
 
     @Test
-    public void shouldGetMessagesWhenEmptyParametersProvided() {
+    void shouldGetMessagesWhenEmptyParametersProvided() {
         given(repository.countAll()).willReturn(9L);
 
         EventMessageQueryResponse result = underTest.getMessages("", "", "", null);
 
-        assertEquals(result.getMessage(), NO_QUERY_PARAMETERS_SPECIFIED);
-        assertEquals(result.getNumberOfMessagesFound(), 0);
-        assertEquals(result.getTotalNumberOfMessages(), 9);
-        assertEquals(result.getCaseEventMessages().size(), 0);
+        assertEquals(NO_QUERY_PARAMETERS_SPECIFIED, result.getMessage());
+        assertEquals(0, result.getNumberOfMessagesFound());
+        assertEquals(9, result.getTotalNumberOfMessages());
+        assertEquals(0, result.getCaseEventMessages().size());
     }
 
     @Test
-    public void shouldThrowInvalidRequestParametersExceptionWhenStatesParameterInvalid() {
+    void shouldThrowInvalidRequestParametersExceptionWhenStatesParameterInvalid() {
         given(repository.countAll()).willReturn(2L);
 
         assertThatThrownBy(
@@ -130,7 +130,7 @@ class EventMessageQueryServiceTest {
     }
 
     @Test
-    public void shouldThrowInvalidRequestParametersExceptionWhenCaseIdParameterInvalid() {
+    void shouldThrowInvalidRequestParametersExceptionWhenCaseIdParameterInvalid() {
         given(repository.countAll()).willReturn(2L);
 
         assertThatThrownBy(
@@ -140,7 +140,7 @@ class EventMessageQueryServiceTest {
     }
 
     @Test
-    public void shouldThrowInvalidRequestParametersExceptionWhenEventTimestampParameterInvalid() {
+    void shouldThrowInvalidRequestParametersExceptionWhenEventTimestampParameterInvalid() {
         given(repository.countAll()).willReturn(2L);
 
         assertThatThrownBy(

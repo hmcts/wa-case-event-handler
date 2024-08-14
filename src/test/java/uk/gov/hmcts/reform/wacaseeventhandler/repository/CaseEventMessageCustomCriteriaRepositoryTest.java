@@ -33,10 +33,10 @@ class CaseEventMessageCustomCriteriaRepositoryTest {
     public void clearDownData() {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(db);
 
-        String truncateTablesQuery =
-            "START TRANSACTION;\n"
-                + "TRUNCATE TABLE WA_CASE_EVENT_MESSAGES CASCADE;"
-                + "\nCOMMIT;";
+        String truncateTablesQuery = """
+                START TRANSACTION;
+                TRUNCATE TABLE WA_CASE_EVENT_MESSAGES CASCADE;
+                COMMIT;""";
         jdbcTemplate.execute(truncateTablesQuery);
 
         jdbcTemplate.execute("ALTER SEQUENCE WA_CASE_EVENT_MESSAGES_SEQUENCE_SEQ RESTART WITH 1");
@@ -77,11 +77,11 @@ class CaseEventMessageCustomCriteriaRepositoryTest {
                 null
             );
         assertEquals(3, messageEntities.size());
-        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).collect(Collectors.toList())
+        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).toList()
                        .contains("6761-0650-5813-1570"));
-        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).collect(Collectors.toList())
+        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).toList()
                        .contains("8375-3716-6885-2639"));
-        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).collect(Collectors.toList())
+        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).toList()
                        .contains("9140-9312-3701-4412"));
     }
 
@@ -97,9 +97,9 @@ class CaseEventMessageCustomCriteriaRepositoryTest {
                 null
             );
         assertEquals(2, messageEntities.size());
-        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).collect(Collectors.toList())
+        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).toList()
                        .contains("6761-0650-5813-1570"));
-        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).collect(Collectors.toList())
+        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).toList()
                        .contains("8375-3716-6885-2639"));
     }
 
@@ -160,9 +160,9 @@ class CaseEventMessageCustomCriteriaRepositoryTest {
                 Boolean.FALSE
             );
         assertEquals(2, messageEntities.size());
-        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).collect(Collectors.toList())
+        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).toList()
                        .contains("6761-0650-5813-1570"));
-        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).collect(Collectors.toList())
+        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).toList()
                        .contains("9140-9312-3701-4412"));
     }
 }
