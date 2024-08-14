@@ -10,6 +10,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.EventMessageQueryResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -172,6 +173,15 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
         return getMessages(params);
     }
 
+    protected List<CaseEventMessage> getMessagesFromDb(List<String> messageIds) {
+        Map<String, Object> params = new HashMap<>();
+        List<CaseEventMessage> messages = new ArrayList<>();
+        for (String messageId : messageIds) {
+            messages.add(getMessageByMessageId(messageId));
+        }
+        return messages;
+    }
+
     private EventMessageQueryResponse getMessages(Map<String, Object> queryParameters) {
         final Response response = given()
             .log()
@@ -194,5 +204,16 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
             .get("/messages/" + messageId);
 
         return response.then().extract().statusCode() == HttpStatus.OK.value();
+    }
+
+    private CaseEventMessage getMessageByMessageId(String messageId) {
+        log.info("Retrieving case event messages from DB with message Id " + messageId);
+        final Response response = given()
+            .contentType(APPLICATION_JSON_VALUE)
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .when()
+            .get("/messages/" + messageId);
+        return response.body().as(CaseEventMessage.class);
+
     }
 }

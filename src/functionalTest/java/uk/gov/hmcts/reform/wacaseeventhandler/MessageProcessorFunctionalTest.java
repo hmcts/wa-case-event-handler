@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
@@ -223,7 +222,6 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         caseIdToDelete.add(caseId);
     }
 
-    @Ignore("Disabled as this is creating data that is blocking messages being processed.  See: RWA-3683")
     @Test
     public void should_not_process_message_unless_in_ready_state() {
         List<String> messageIds = List.of(randomMessageId(), randomMessageId());
@@ -257,26 +255,23 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             .atMost(120, SECONDS)
             .until(
                 () -> {
-                    caseEventMessagesToBeDeleted = new ArrayList<>();
+                    final List<CaseEventMessage> messageList = getMessagesFromDb(messageIds);
 
-                    final EventMessageQueryResponse messagesInUnprocessableState
-                        = getMessagesFromDb(MessageState.UNPROCESSABLE);
+                    caseEventMessagesToBeDeleted.addAll(messageList);
 
                     List<CaseEventMessage> unprocessableCaseEventMessage =
-                        messagesInUnprocessableState.getCaseEventMessages()
+                        messageList
                             .stream()
-                            .filter(caseEventMessage -> hasAdditionalData(caseEventMessage.getMessageContent()))
+                            //below condition is to check for the messages that are created as part of this test
+                            .filter(caseEventMessage -> caseEventMessage.getState().equals(MessageState.UNPROCESSABLE))
+                            .filter(caseEventMessage -> !caseEventMessage.getMessageContent().isEmpty()
+                                && hasAdditionalData(caseEventMessage.getMessageContent()))
                             .collect(Collectors.toList());
-
-                    caseEventMessagesToBeDeleted.addAll(unprocessableCaseEventMessage);
-
                     collect.set(unprocessableCaseEventMessage);
 
                     assertEquals(messageIds.size(), collect.get().size());
                     return true;
-
                 });
-
     }
 
     @Test
