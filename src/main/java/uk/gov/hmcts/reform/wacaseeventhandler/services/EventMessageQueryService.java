@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
@@ -63,7 +62,7 @@ public class EventMessageQueryService {
             fromDlq
         );
         List<CaseEventMessage> messages = messageEntities.stream()
-            .map(mapper::mapToCaseEventMessage).collect(Collectors.toList());
+            .map(mapper::mapToCaseEventMessage).toList();
 
         String message = messages.isEmpty() ? NO_MATCHING_RECORDS_FOR_THE_QUERY
             : format(FOUND_MESSAGES, messages.size());
@@ -123,7 +122,7 @@ public class EventMessageQueryService {
             .filter(Objects::nonNull)
             .map(String::toUpperCase)
             .map(MessageState::valueOf)
-            .collect(Collectors.toList());
+            .toList();
     }
 
 }

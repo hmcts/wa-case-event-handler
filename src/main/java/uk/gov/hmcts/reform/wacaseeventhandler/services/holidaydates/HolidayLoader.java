@@ -5,7 +5,6 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class HolidayLoader {
@@ -20,6 +19,6 @@ public class HolidayLoader {
         UkHolidayDates holidayDates = govUkHolidayDatesClient.getHolidayDates();
         return holidayDates.getEnglandAndWales().getEvents().stream()
             .map(HolidayDate::getDate)
-            .collect(Collectors.toList());
+            .toList();
     }
 }

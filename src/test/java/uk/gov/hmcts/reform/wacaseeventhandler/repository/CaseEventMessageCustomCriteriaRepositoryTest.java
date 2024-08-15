@@ -13,7 +13,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -77,11 +76,11 @@ class CaseEventMessageCustomCriteriaRepositoryTest {
                 null
             );
         assertEquals(3, messageEntities.size());
-        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).collect(Collectors.toList())
+        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).toList()
                        .contains("6761-0650-5813-1570"));
-        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).collect(Collectors.toList())
+        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).toList()
                        .contains("8375-3716-6885-2639"));
-        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).collect(Collectors.toList())
+        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).toList()
                        .contains("9140-9312-3701-4412"));
     }
 
@@ -97,9 +96,9 @@ class CaseEventMessageCustomCriteriaRepositoryTest {
                 null
             );
         assertEquals(2, messageEntities.size());
-        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).collect(Collectors.toList())
+        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).toList()
                        .contains("6761-0650-5813-1570"));
-        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).collect(Collectors.toList())
+        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).toList()
                        .contains("8375-3716-6885-2639"));
     }
 
@@ -160,9 +159,9 @@ class CaseEventMessageCustomCriteriaRepositoryTest {
                 Boolean.FALSE
             );
         assertEquals(2, messageEntities.size());
-        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).collect(Collectors.toList())
+        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).toList()
                        .contains("6761-0650-5813-1570"));
-        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).collect(Collectors.toList())
+        assertTrue(messageEntities.stream().map(CaseEventMessageEntity::getCaseId).toList()
                        .contains("9140-9312-3701-4412"));
     }
 }
