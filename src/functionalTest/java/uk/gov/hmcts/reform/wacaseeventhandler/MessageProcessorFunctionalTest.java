@@ -255,26 +255,23 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
             .atMost(120, SECONDS)
             .until(
                 () -> {
-                    caseEventMessagesToBeDeleted = new ArrayList<>();
+                    final List<CaseEventMessage> messageList = getMessagesFromDb(messageIds);
 
-                    final EventMessageQueryResponse messagesInUnprocessableState
-                        = getMessagesFromDb(MessageState.UNPROCESSABLE);
+                    caseEventMessagesToBeDeleted.addAll(messageList);
 
                     List<CaseEventMessage> unprocessableCaseEventMessage =
-                        messagesInUnprocessableState.getCaseEventMessages()
+                        messageList
                             .stream()
-                            .filter(caseEventMessage -> hasAdditionalData(caseEventMessage.getMessageContent()))
+                            //below condition is to check for the messages that are created as part of this test
+                            .filter(caseEventMessage -> caseEventMessage.getState().equals(MessageState.UNPROCESSABLE))
+                            .filter(caseEventMessage -> !caseEventMessage.getMessageContent().isEmpty()
+                                && hasAdditionalData(caseEventMessage.getMessageContent()))
                             .collect(Collectors.toList());
-
-                    caseEventMessagesToBeDeleted.addAll(unprocessableCaseEventMessage);
-
                     collect.set(unprocessableCaseEventMessage);
 
                     assertEquals(messageIds.size(), collect.get().size());
                     return true;
-
                 });
-
     }
 
     @Test
