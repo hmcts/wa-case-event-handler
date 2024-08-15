@@ -16,6 +16,8 @@ public class LaunchDarklyFeatureFlagProvider {
     private static final String FIRST_NAME = "Work Allocation";
     private static final String LAST_NAME = "Case Event Handler";
 
+    private static final String MSG_NULL_FEATURE_FLAG = "featureFlag is null";
+
     public LaunchDarklyFeatureFlagProvider(LDClientInterface ldClient) {
         this.ldClient = ldClient;
     }
@@ -36,20 +38,20 @@ public class LaunchDarklyFeatureFlagProvider {
     }
 
     public boolean getBooleanValue(FeatureFlag featureFlag) {
-        requireNonNull(featureFlag, "featureFlag is null");
+        requireNonNull(featureFlag, MSG_NULL_FEATURE_FLAG);
         log.trace("Attempting to retrieve feature flag '{}' as Boolean", featureFlag.getKey());
         return ldClient.boolVariation(featureFlag.getKey(), createLaunchDarklyUser(), false);
     }
 
     public boolean getBooleanValue(FeatureFlag featureFlag, String userId) {
-        requireNonNull(featureFlag, "featureFlag is null");
+        requireNonNull(featureFlag, MSG_NULL_FEATURE_FLAG);
         requireNonNull(userId, "userId is null");
         log.trace("Attempting to retrieve feature flag '{}' as Boolean", featureFlag.getKey());
         return ldClient.boolVariation(featureFlag.getKey(), createLaunchDarklyUser(userId), false);
     }
 
     public String getStringValue(FeatureFlag featureFlag, String userId) {
-        requireNonNull(featureFlag, "featureFlag is null");
+        requireNonNull(featureFlag, MSG_NULL_FEATURE_FLAG);
         requireNonNull(userId, "userId is null");
         log.trace("Attempting to retrieve feature flag '{}' as String", featureFlag.getKey());
         return ldClient.stringVariation(featureFlag.getKey(), createLaunchDarklyUser(userId), "");
