@@ -54,7 +54,6 @@ public class ProblemMessageControllerFunctionalTest extends MessagingTests {
         deleteMessagesFromDatabaseByMsgIds(messagesToBeDeleted);
     }
 
-
     @Ignore
     @Test
     public void should_check_for_unprocessable_messages_using_job_request_endpoint() throws Exception {
