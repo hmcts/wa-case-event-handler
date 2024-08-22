@@ -20,6 +20,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobResponse;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -38,7 +39,7 @@ public class ProblemMessageControllerFunctionalTest extends MessagingTests {
 
     private LocalDateTime eventTimestamp1;
     private LocalDateTime holdUntilTimestamp;
-    public static List<String> messagesToBeDeleted;
+    public static List<String> messagesToBeDeleted = new ArrayList<>();
 
 
     @Before
