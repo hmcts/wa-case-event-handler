@@ -47,9 +47,9 @@ public class ProblemMessageControllerFunctionalTest extends MessagingTests {
         eventTimestamp1 = LocalDateTime.parse("2020-03-27T12:56:10.403975").minusDays(1);
         holdUntilTimestamp = LocalDateTime.parse("2020-03-27T12:56:10.403975").plusDays(10);
     }
+
     @After
-    public void teardown()
-    {
+    public void teardown() {
         deleteMessagesFromDatabaseByMsgIds(messagesToBeDeleted);
     }
 
