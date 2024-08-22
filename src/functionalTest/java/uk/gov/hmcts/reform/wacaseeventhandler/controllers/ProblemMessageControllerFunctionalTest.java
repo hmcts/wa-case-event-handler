@@ -7,6 +7,7 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobResponse;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -37,6 +39,8 @@ public class ProblemMessageControllerFunctionalTest extends MessagingTests {
 
     private LocalDateTime eventTimestamp1;
     private LocalDateTime holdUntilTimestamp;
+    public static List<String> messagesToBeDeleted = new ArrayList<>();
+
 
     @Before
     public void setup() {
@@ -44,9 +48,15 @@ public class ProblemMessageControllerFunctionalTest extends MessagingTests {
         holdUntilTimestamp = LocalDateTime.parse("2020-03-27T12:56:10.403975").plusDays(10);
     }
 
+    @After
+    public void teardown() {
+        deleteMessagesFromDatabaseByMsgIds(messagesToBeDeleted);
+    }
+
     @Test
     public void should_check_for_unprocessable_messages_using_job_request_endpoint() throws Exception {
         String messageId = randomMessageId();
+        messagesToBeDeleted.add(messageId);
         String caseIdForTask = null;
         String eventInstanceId = UUID.randomUUID().toString();
 
@@ -71,7 +81,6 @@ public class ProblemMessageControllerFunctionalTest extends MessagingTests {
         assertThat(response.getMessageIds()).asList()
             .containsSubsequence(messageId);
 
-        deleteMessagesFromDatabaseByMsgIds(List.of(messageId));
     }
 
 
