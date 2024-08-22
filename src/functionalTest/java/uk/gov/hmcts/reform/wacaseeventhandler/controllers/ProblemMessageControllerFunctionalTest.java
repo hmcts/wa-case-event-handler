@@ -18,7 +18,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformatio
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 
 import java.time.LocalDateTime;
 import java.util.List;
