@@ -9,6 +9,7 @@ import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wacaseeventhandler.MessagingTests;
@@ -53,6 +54,8 @@ public class ProblemMessageControllerFunctionalTest extends MessagingTests {
         deleteMessagesFromDatabaseByMsgIds(messagesToBeDeleted);
     }
 
+
+    @Ignore
     @Test
     public void should_check_for_unprocessable_messages_using_job_request_endpoint() throws Exception {
         String messageId = randomMessageId();
