@@ -18,6 +18,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformatio
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,7 +39,7 @@ public class ProblemMessageControllerFunctionalTest extends MessagingTests {
 
     private LocalDateTime eventTimestamp1;
     private LocalDateTime holdUntilTimestamp;
-    private String messageId;
+    public static List<String> messagesToBeDeleted;
 
 
     @Before
@@ -49,12 +50,13 @@ public class ProblemMessageControllerFunctionalTest extends MessagingTests {
     @After
     public void teardown()
     {
-        deleteMessagesFromDatabaseByMsgIds(List.of(messageId));
+        deleteMessagesFromDatabaseByMsgIds(messagesToBeDeleted);
     }
 
     @Test
     public void should_check_for_unprocessable_messages_using_job_request_endpoint() throws Exception {
-        messageId = randomMessageId();
+        String messageId = randomMessageId();
+        messagesToBeDeleted.add(messageId);
         String caseIdForTask = null;
         String eventInstanceId = UUID.randomUUID().toString();
 
