@@ -1187,13 +1187,15 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
     }
 
     public void completeTask(String taskId, String status) {
+        Map<String,Integer> body = new HashMap<>();
         log.info(String.format("Completing task : %s", taskId));
         given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
             .accept(APPLICATION_JSON_VALUE)
-            .contentType(APPLICATION_JSON_VALUE).then().log().all()
+            .contentType(APPLICATION_JSON_VALUE)
+            .body(body)
             .when()
-            .post(camundaUrl + "/task/{task-id}/complete", taskId).then().log().all();
+            .post(camundaUrl + "/task/{task-id}/complete", taskId);
 
         assertTaskDeleteReason(taskId, status);
     }
