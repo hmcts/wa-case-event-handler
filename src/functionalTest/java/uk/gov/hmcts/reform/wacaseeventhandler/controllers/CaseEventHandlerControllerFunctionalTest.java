@@ -1191,7 +1191,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
             .accept(APPLICATION_JSON_VALUE)
-            .contentType(APPLICATION_JSON_VALUE)
+            .contentType(APPLICATION_JSON_VALUE).then().log().all()
             .when()
             .post(camundaUrl + "/task/{task-id}/complete", taskId).then().log().all();
 
