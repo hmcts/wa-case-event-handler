@@ -1193,7 +1193,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             .accept(APPLICATION_JSON_VALUE)
             .contentType(APPLICATION_JSON_VALUE)
             .when()
-            .post(camundaUrl + "/task/{task-id}/complete", taskId);
+            .post(camundaUrl + "/task/{task-id}/complete", taskId).then().log().all();
 
         assertTaskDeleteReason(taskId, status);
     }
