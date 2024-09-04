@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.util.Collections.emptyMap;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
@@ -1187,7 +1188,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
     }
 
     public void completeTask(String taskId, String status) {
-        Map<String,Integer> body = new HashMap<>();
+        Map<String,Integer> body = emptyMap();
         log.info(String.format("Completing task : %s", taskId));
         given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
