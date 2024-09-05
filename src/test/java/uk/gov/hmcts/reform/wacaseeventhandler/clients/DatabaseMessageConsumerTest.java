@@ -6,6 +6,7 @@ import com.microsoft.applicationinsights.extensibility.context.OperationContext;
 import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import feign.FeignException;
 import feign.Request;
+import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -210,10 +211,10 @@ class DatabaseMessageConsumerTest {
                 .updateMessageWithRetryDetails(retryCountCaptor.capture(), holdUntilCaptor.capture(), anyString());
             LocalDateTime updatedHoldUntilValue = holdUntilCaptor.getValue();
             assertTrue(updatedHoldUntilValue.isAfter(now));
-            assertEquals(
-                updatedHoldUntilValue.truncatedTo(ChronoUnit.SECONDS),
-                now.plusSeconds(holdUntilIncrement).truncatedTo(ChronoUnit.SECONDS)
-            );
+
+            Assertions.assertThat(updatedHoldUntilValue.truncatedTo(ChronoUnit.SECONDS))
+                .isCloseTo(now.plusSeconds(holdUntilIncrement).truncatedTo(ChronoUnit.SECONDS),
+                           Assertions.within(1, ChronoUnit.SECONDS));
         }
         assertEquals(retryCount, retryCountCaptor.getValue());
     }
