@@ -73,7 +73,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             jurisdictionId,
             caseTypeId
         );
-
         sendMessageToTopic(randomMessageId(), eventInformation);
     }
 
@@ -691,7 +690,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         sendMessage(caseIdForTask1, "submitCase", null,
             "caseUnderReview", false, "WA", "WaCaseType"
         );
-
+        log.info("caseIdForTask1 {}", caseIdForTask1);
         Response response = findTasksByCaseId(caseIdForTask1, 1);
 
         String caseId1Task1Id = response

@@ -108,6 +108,7 @@ public class MessagingTests extends SpringBootFunctionalBaseTest {
     }
 
     protected void sendMessageToTopic(String messageId, EventInformation eventInformation) {
+        log.info("Message ID {} caseID {}", messageId, eventInformation.getCaseId());
         sendMessage(messageId, eventInformation, false);
     }
 
