@@ -94,7 +94,7 @@ public class DatabaseMessageConsumer implements Runnable {
                 if (caseEventMessageEntity == null) {
                     log.trace("No message returned from database for processing");
                 } else {
-                    log.info("Start message processing");
+                    log.info("Start message processing for message {}", caseEventMessageEntity.getMessageId());
 
                     final CaseEventMessage caseEventMessage = caseEventMessageMapper
                         .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
@@ -123,9 +123,10 @@ public class DatabaseMessageConsumer implements Runnable {
     }
 
     private CaseEventMessageEntity selectNextMessage() {
-        log.trace("Selecting next message for processing from the database");
-
-        return caseEventMessageRepository.getNextAvailableMessageReadyToProcess();
+        log.info("Selecting next message for processing from the database");
+        CaseEventMessageEntity messageEntity = caseEventMessageRepository.getNextAvailableMessageReadyToProcess();
+        log.info("Processing message {} with message id{}", messageEntity.getMessageId(), messageEntity);
+        return messageEntity;
     }
 
     private Optional<MessageUpdateRetry> processMessage(CaseEventMessage caseEventMessage) {
