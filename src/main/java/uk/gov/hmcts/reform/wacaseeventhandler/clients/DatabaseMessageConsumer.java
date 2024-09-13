@@ -218,15 +218,15 @@ public class DatabaseMessageConsumer implements Runnable {
         try {
             log.info("MessageState {}, messageID {} {} {} ", state, messageId, retryCount, holdUntil);
             if (state == null) {
-                log.info("Before updating messageID{}", messageId);
+                log.info("Before updating messageID 1{}", messageId);
 
                 caseEventMessageRepository.updateMessageWithRetryDetails(retryCount, holdUntil, messageId);
-                log.info("After updating messageID{}", messageId);
+                log.info("After updating messageID 1{}", messageId);
             } else {
-                log.info("Before updating messageID{}", messageId);
+                log.info("Before updating messageID 2{}", messageId);
 
                 caseEventMessageRepository.updateMessageState(state, List.of(messageId));
-                log.info("After updating messageID{}", messageId);
+                log.info("After updating messageID 2{}", messageId);
 
             }
         } catch (RuntimeException e) {

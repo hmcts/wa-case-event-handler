@@ -227,8 +227,10 @@ public class EventMessageReceiverService {
 
     private boolean validate(String messageId, EventInformation eventInformation, Boolean fromDlq) {
 
-        log.info("Message validation for message id {} - [case id : {}, event timestamp : {}, from DLQ {}]",
-                 messageId, eventInformation.getCaseId(), eventInformation.getEventTimeStamp(), fromDlq);
+        log.info("Message validation for message id {} - [case id : {}, event timestamp : {}, from DLQ {}] "
+                     + "caseType {} jurisdiction {}",
+                 messageId, eventInformation.getCaseId(), eventInformation.getEventTimeStamp(), fromDlq,
+                 eventInformation.getCaseTypeId(), eventInformation.getJurisdictionId());
         return isNotBlank(eventInformation.getCaseId())
             && isNotBlank(messageId)
             && eventInformation.getEventTimeStamp() != null
