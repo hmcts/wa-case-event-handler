@@ -47,7 +47,7 @@ public class EventMessageReceiverService {
     }
 
     public CaseEventMessage handleDlqMessage(String messageId, String sessionId, String message) {
-        log.info("Received Case Event Dead Letter Queue message with id '{}'", messageId);
+        log.info("Received Case Event Dead Letter Queue message with id '{}' and message {}", messageId, message);
         return handleMessage(messageId, sessionId,  message, true);
     }
 
@@ -128,9 +128,11 @@ public class EventMessageReceiverService {
             CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId, message, fromDlq);
             CaseEventMessageEntity savedEntity = insertMessage(messageEntity);
 
-            log.info("Message with id '{}' successfully stored into the DB", messageId);
-
-            return mapper.mapToCaseEventMessage(savedEntity);
+            log.info("Message with id '{}' successfully stored into the DB with content '{}'", messageId,
+                     savedEntity.getMessageContent());
+            CaseEventMessage caseEventMessage = mapper.mapToCaseEventMessage(savedEntity);
+            log.info("Case Event Message that is mapped '{}'", caseEventMessage);
+            return caseEventMessage;
         } catch (JsonProcessingException e) {
             log.error("Could not parse the message with id '{}' case id '{}'", messageId, sessionId);
 
