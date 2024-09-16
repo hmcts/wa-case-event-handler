@@ -20,7 +20,7 @@ import java.util.List;
 @SpringBootTest
 @ActiveProfiles("integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Sql("/scripts/problem_messages_data.sql")
+@Sql("/scripts/reset_problem_messages_data.sql")
 public class ResetProblemMessageTest {
 
     @Autowired
