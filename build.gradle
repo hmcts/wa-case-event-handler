@@ -243,7 +243,7 @@ dependencyManagement {
       entry 'logback-classic'
       entry 'logback-core'
     }
-    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.112.Final') {
+    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.113.Final') {
       entry 'netty-buffer'
       entry 'netty-codec'
       entry 'netty-codec-dns'
@@ -311,7 +311,7 @@ repositories {
 def versions = [
   junit        : '5.11.0',
   junitPlatform: '1.11.0',
-  reformLogging: '6.1.4',
+  reformLogging: '6.1.6',
   springDoc    : '2.2.0',
   springBoot   : '3.3.0',
   serenity     : '3.4.2',
@@ -361,7 +361,7 @@ dependencies {
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: versions.reformLogging
   implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: versions.reformLogging
 
-  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.1.2'
+  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.2.0'
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.9.2'
   implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.17.3'
   implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.22'
@@ -370,7 +370,7 @@ dependencies {
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: versions.tomcat
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: versions.tomcat
   implementation group: 'org.camunda.bpm', name: 'camunda-external-task-client', version: '7.19.0'
-  implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '6.3.0'
+  implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '6.2.1'
   implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.13.0'
   implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.1.8'
   implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '7.0.1'
