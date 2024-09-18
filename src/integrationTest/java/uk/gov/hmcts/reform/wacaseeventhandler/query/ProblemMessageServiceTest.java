@@ -17,11 +17,15 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices.ProblemMessag
 
 import java.util.List;
 
+import static java.util.Collections.singletonList;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 @SpringBootTest
 @ActiveProfiles("integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Sql("/scripts/problem_messages_data.sql")
-public class ResetProblemMessageTest {
+public class ProblemMessageServiceTest {
 
     @Autowired
     private ProblemMessageService problemMessageService;
@@ -32,6 +36,8 @@ public class ResetProblemMessageTest {
     @MockBean
     private TelemetryClient telemetryClient;
 
+    private static final String MESSAGE_ID = "ID:d257fa4f-73ad-4a82-a30e-9acc377f593d:1:1:2-1675";
+
 
     @Test
     void should_retrieve_an_ready_message() {
@@ -41,9 +47,22 @@ public class ResetProblemMessageTest {
         Assertions.assertThat(caseEventMessages.get(0)).isEqualTo("ID:d257fa4f-73ad-4a82-a30e-9acc377f593d:1:1:1-2704");
         Assertions.assertThat(caseEventMessages.get(1)).isEqualTo("ID:ce8467a0-cea9-4a65-99dd-3ae9a94a4453:16:1:1-811");
 
-
         List<CaseEventMessageEntity> messages = caseEventMessageRepository.findByMessageId(caseEventMessages);
         messages.forEach(msg -> Assertions.assertThat(msg.getState()).isEqualTo(MessageState.NEW));
+    }
+
+    @Test
+    void should_retrieve_an_ready_message_with_content() {
+        List<CaseEventMessageEntity> messageEntity =
+            caseEventMessageRepository.findByMessageId(singletonList(MESSAGE_ID));
+        String messageContent = messageEntity.get(0).getMessageContent();
+        assertNotNull(messageContent);
+        assertEquals("{\"EventInstanceId\":\"d7ebb30c-8b48-4edf-9e16-f4735b13b214\"}", messageContent);
+        problemMessageService.process(JobName.FIND_PROBLEM_MESSAGES);
+        messageEntity = caseEventMessageRepository.findByMessageId(singletonList(MESSAGE_ID));
+        String messageContentAfterJobRun = messageEntity.get(0).getMessageContent();
+        assertNotNull(messageContentAfterJobRun);
+        assertEquals(messageContent, messageContentAfterJobRun);
     }
 }
 

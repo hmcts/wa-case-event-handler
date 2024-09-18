@@ -58,7 +58,6 @@ public class CaseEventHandlerTestingController {
                                                             required = false) final Boolean fromDlq) {
         if (isNonProdEnvironment()) {
             if (fromDlq != null && fromDlq) {
-                log.info("Processing message {} session {} message {} ", messageId, sessionId, message);
                 return eventMessageReceiverService.handleDlqMessage(messageId, sessionId, message);
             } else {
                 return eventMessageReceiverService.handleCcdCaseEventAsbMessage(messageId, sessionId, message);

@@ -94,19 +94,14 @@ public class DatabaseMessageConsumer implements Runnable {
                 if (caseEventMessageEntity == null) {
                     log.trace("No message returned from database for processing");
                 } else {
-                    log.info("Start message processing for message {}", caseEventMessageEntity.getMessageId());
+                    log.info("Start message processing");
 
                     final CaseEventMessage caseEventMessage = caseEventMessageMapper
                         .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
                     Optional<MessageUpdateRetry> updatable = processMessage(caseEventMessage);
-                    log.info("End message processing for message {}", updatable.isPresent() ?
-                        updatable.get().getMessageId() : caseEventMessageEntity.getMessageId());
+
                     //if record state update failed, Rollback the transaction
-                    updatable.ifPresent(r -> {
-                        log.info("Processing item: {}, status {}", r, status);
-                        status.setRollbackOnly();
-                    }
-                    );
+                    updatable.ifPresent(r -> status.setRollbackOnly());
                     return updatable;
 
                 }
@@ -128,7 +123,7 @@ public class DatabaseMessageConsumer implements Runnable {
     }
 
     private CaseEventMessageEntity selectNextMessage() {
-        log.info("Selecting next message for processing from the database");
+        log.trace("Selecting next message for processing from the database");
 
         return caseEventMessageRepository.getNextAvailableMessageReadyToProcess();
     }
@@ -194,12 +189,11 @@ public class DatabaseMessageConsumer implements Runnable {
 
         if (newHoldUntilIncrement != null) {
             LocalDateTime newHoldUntil = LocalDateTime.now().plusSeconds(newHoldUntilIncrement);
-            log.info("Updating values, retry_count {} and hold_until {} on case event message {} and state {}",
+            log.info("Updating values, retry_count {} and hold_until {} on case event message {}",
                 retryCount,
                 newHoldUntil,
-                messageId,
-                     caseEventMessage.getState());
-            return updateMessageState(caseEventMessage.getState(), messageId, retryCount, newHoldUntil);
+                messageId);
+            return updateMessageState(null, messageId, retryCount, newHoldUntil);
         }
         return updateMessageState(MessageState.UNPROCESSABLE, messageId, 0, null);
     }
@@ -216,18 +210,10 @@ public class DatabaseMessageConsumer implements Runnable {
     private Optional<MessageUpdateRetry> updateMessageState(MessageState state, String messageId,
                                                             int retryCount, LocalDateTime holdUntil) {
         try {
-            log.info("MessageState {}, messageID {} {} {} ", state, messageId, retryCount, holdUntil);
             if (state == null) {
-                log.info("Before updating messageID 1{}", messageId);
-
                 caseEventMessageRepository.updateMessageWithRetryDetails(retryCount, holdUntil, messageId);
-                log.info("After updating messageID 1{}", messageId);
             } else {
-                log.info("Before updating messageID 2{}", messageId);
-
                 caseEventMessageRepository.updateMessageState(state, List.of(messageId));
-                log.info("After updating messageID 2{}", messageId);
-
             }
         } catch (RuntimeException e) {
             log.info("Error in updating message with id {}, retrying to update", messageId);
