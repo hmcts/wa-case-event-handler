@@ -18,7 +18,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName.FIND_PR
 
 @Slf4j
 @Service
-@Transactional
+@Transactional(readOnly = true)
 @SuppressWarnings("PMD.TooManyMethods")
 public class FindProblemMessageJob implements MessageJob {
 
