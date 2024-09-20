@@ -56,12 +56,13 @@ public class FindProblemMessageTest {
     void should_retrieve_an_ready_message() {
         caseEventMessages = findProblemMessageJob.run();
         Assertions.assertThat(caseEventMessages.isEmpty()).isFalse();
-        Assertions.assertThat(caseEventMessages.size()).isEqualTo(3);
+        Assertions.assertThat(caseEventMessages.size()).isEqualTo(4);
         Assertions.assertThat(caseEventMessages.get(0)).isEqualTo("ID:c05439ca-ddb2-47d0-a0a6-ba9db76a3064:58:1:1-10");
         MatcherAssert.assertThat(caseEventMessages, containsInAnyOrder(
             "ID:c05439ca-ddb2-47d0-a0a6-ba9db76a3064:58:1:1-10",
             "ID:d257fa4f-73ad-4a82-a30e-9acc377f593d:1:1:1-2704",
-            "ID:ce8467a0-cea9-4a65-99dd-3ae9a94a4453:16:1:1-811"));
+            "ID:ce8467a0-cea9-4a65-99dd-3ae9a94a4453:16:1:1-811",
+            "ID:d257fa4f-73ad-4a82-a30e-9acc377f593d:1:1:2-1675"));
     }
 }
 
