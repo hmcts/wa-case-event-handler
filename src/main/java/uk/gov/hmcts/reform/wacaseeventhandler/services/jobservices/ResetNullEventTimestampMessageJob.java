@@ -13,7 +13,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName.RESET_NULL_EVENT_TIMESTAMP_MESSAGES;
 
@@ -52,7 +51,7 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
 
         List<CaseEventMessageEntity> nullEventTimestampMessageListToReset = messages.stream()
             .filter(msg -> MessageState.UNPROCESSABLE.equals(msg.getState()) && msg.getEventTimestamp() == null)
-            .collect(Collectors.toList());
+            .toList();
 
         if (nullEventTimestampMessageListToReset.isEmpty()) {
             log.info(

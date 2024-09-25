@@ -46,10 +46,10 @@ public class FindProblemMessageJob implements MessageJob {
         List<CaseEventMessageEntity> problemMessages = caseEventMessageRepository.findProblemMessages(messageTimeLimit);
         List<ProblemMessage> results = problemMessages.stream()
             .map(caseEventMessageMapper::mapToProblemMessage)
-            .collect(Collectors.toList());
+            .toList();
         log.info("{} Retrieved problem messages '{}'",
                  FIND_PROBLEM_MESSAGES.name(),
                  results.isEmpty() ?  "no records match the query" : LoggingUtility.logPrettyPrint(results));
-        return results.stream().map(ProblemMessage::getMessageId).collect(Collectors.toList());
+        return results.stream().map(ProblemMessage::getMessageId).toList();
     }
 }
