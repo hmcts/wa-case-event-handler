@@ -12,7 +12,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.util.LoggingUtility;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName.FIND_PROBLEM_MESSAGES;
 
