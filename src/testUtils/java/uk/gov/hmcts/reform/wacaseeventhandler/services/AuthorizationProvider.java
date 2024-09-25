@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
+import feign.FeignException;
 import io.restassured.http.Header;
 import io.restassured.http.Headers;
 import lombok.extern.slf4j.Slf4j;
@@ -20,8 +21,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Arrays.asList;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
 import static uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest.AUTHORIZATION;
 import static uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest.SERVICE_AUTHORIZATION;
 
@@ -155,24 +161,37 @@ public class AuthorizationProvider {
     }
 
     private TestAccount generateIdamTestAccount(String emailPrefix, List<RoleCode> requiredRoles) {
-        String email = emailPrefix + UUID.randomUUID() + "@fake.hmcts.net";
         String password = "London01";
-
-        log.info("Attempting to create a new test account {}", email);
 
         RoleCode userGroup = new RoleCode("caseworker");
 
         Map<String, Object> body = new ConcurrentHashMap<>();
-        body.put("email", email);
         body.put("password", password);
         body.put("forename", "WAFTAccount");
         body.put("surname", "Functional");
         body.put("roles", requiredRoles);
         body.put("userGroup", userGroup);
 
-        idamServiceApi.createTestUser(body);
+        AtomicBoolean accountCreated = new AtomicBoolean(false);
+        AtomicReference<String> email = new AtomicReference<>("");
+        await().ignoreException(Exception.class)
+            .pollInterval(500, MILLISECONDS)
+            .atMost(120, SECONDS)
+            .until(() -> {
+                try {
+                    email.set(emailPrefix + UUID.randomUUID() + "@fake.hmcts.net");
+                    log.info("Attempting to create a new test account {}", email);
+                    body.put("email", email);
+                    idamServiceApi.createTestUser(body);
+                    accountCreated.set(true);
+                } catch (FeignException e) {
+                    log.error("Failed to create test account, retrying...", e);
+                    accountCreated.set(false);
+                }
+                return accountCreated.get();
+            });
 
         log.info("Test account created successfully");
-        return new TestAccount(email, password);
+        return new TestAccount(email.get(), password);
     }
 }
