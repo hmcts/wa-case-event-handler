@@ -61,8 +61,13 @@ public class AuthorizationProvider {
     public void deleteAccount(String username) {
 
         if (testUserDeletionEnabled) {
-            log.info("Deleting test account '{}'", username);
-            idamServiceApi.deleteTestUser(username);
+            //If error is thrown while deleting the user, it will be caught and logged
+            try {
+                log.info("Deleting test account '{}'", username);
+                idamServiceApi.deleteTestUser(username);
+            } catch (FeignException e) {
+                log.error("Failed to delete test account '{}'", username, e);
+            }
         } else {
             log.info("Test User deletion feature flag was not enabled, user '{}' was not deleted", username);
         }
