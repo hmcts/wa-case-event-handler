@@ -45,7 +45,9 @@ public class ProblemMessageServiceTest {
         JsonNode messageProperties = messageEntity.get(0).getMessageProperties();
         assertNotNull(messageContent);
         assertNotNull(messageProperties);
-        assertEquals("{\"EventInstanceId\":\"d7ebb30c-8b48-4edf-9e16-f4735b13b214\"}", messageContent);
+        assertEquals(
+            "{\"EventInstanceId\":\"d7ebb30c-8b48-4edf-9e16-f4735b13b214\",\"CaseTypeId\":\"WaCaseType\"}",
+            messageContent);
         problemMessageService.process(JobName.FIND_PROBLEM_MESSAGES);
         messageEntity = caseEventMessageRepository.findByMessageId(singletonList(MESSAGE_ID));
         String messageContentAfterJobRun = messageEntity.get(0).getMessageContent();
