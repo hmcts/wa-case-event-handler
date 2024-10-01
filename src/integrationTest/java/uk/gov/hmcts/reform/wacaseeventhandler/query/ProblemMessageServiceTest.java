@@ -1,6 +1,8 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.query;
 
+import com.fasterxml.jackson.core.StreamReadFeature;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.applicationinsights.TelemetryClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,8 @@ import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.CaseEventMessageMapper;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices.FindProblemMessageJob;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices.ProblemMessageService;
 
 import java.util.List;
@@ -35,7 +39,19 @@ public class ProblemMessageServiceTest {
     @MockBean
     private TelemetryClient telemetryClient;
 
+
     private static final String MESSAGE_ID = "ID:d257fa4f-73ad-4a82-a30e-9acc377f593d:1:1:2-1675";
+
+    void setUp() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION.mappedFeature(), true);
+        CaseEventMessageMapper caseEventMessageMapper = new CaseEventMessageMapper(objectMapper);
+        FindProblemMessageJob findProblemMessageJob = new FindProblemMessageJob(
+            caseEventMessageRepository,
+            caseEventMessageMapper,
+            60
+        );
+    }
 
     @Test
     void should_retrieve_an_ready_message_with_content() {
