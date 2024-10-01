@@ -42,6 +42,7 @@ public class FindProblemMessageTest {
 
     @BeforeEach
     void setUp() {
+        objectMapper = new ObjectMapper();
         findProblemMessageJob = new FindProblemMessageJob(caseEventMessageRepository,
                                                           caseEventMessageMapper,
                                                           60);
