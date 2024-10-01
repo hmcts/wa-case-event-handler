@@ -29,8 +29,8 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 @Sql("/scripts/problem_messages_data.sql")
 public class FindProblemMessageTest {
 
-    private ObjectMapper objectMapper;
 
+    private final ObjectMapper objectMapper =  new ObjectMapper();
     private final CaseEventMessageMapper caseEventMessageMapper = new CaseEventMessageMapper(objectMapper);
 
     @Autowired
@@ -42,7 +42,6 @@ public class FindProblemMessageTest {
 
     @BeforeEach
     void setUp() {
-        objectMapper = new ObjectMapper();
         findProblemMessageJob = new FindProblemMessageJob(caseEventMessageRepository,
                                                           caseEventMessageMapper,
                                                           60);
