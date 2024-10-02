@@ -24,7 +24,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class UpdateRecordErrorHandlingServiceTest {
+class UpdateRecordErrorHandlingServiceTest {
 
     @Mock
     private CaseEventMessageErrorHandlingRepository errorHandlingRepository;
@@ -36,13 +36,13 @@ public class UpdateRecordErrorHandlingServiceTest {
     private UpdateRecordErrorHandlingService updateRecordErrorHandlingService;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         when(errorHandlingRepository.findByMessageIdToUpdate(anyString())).thenReturn(List.of(messageEntity));
     }
 
     @ParameterizedTest
     @EnumSource(names = {"PROCESSED", "UNPROCESSABLE"})
-    public void should_handle_error_and_retry_update_with_new_state(MessageState newState) {
+    void should_handle_error_and_retry_update_with_new_state(MessageState newState) {
         when(messageEntity.getState()).thenReturn(MessageState.READY);
 
         updateRecordErrorHandlingService.handleUpdateError(newState, "mewssageId", 0, null);
@@ -52,7 +52,7 @@ public class UpdateRecordErrorHandlingServiceTest {
 
     @ParameterizedTest
     @EnumSource(names = {"READY", "UNPROCESSABLE"})
-    public void should_handle_error_and_update_Ready_and_Unprocessable_to_Proccessed(MessageState state) {
+    void should_handle_error_and_update_Ready_and_Unprocessable_to_Proccessed(MessageState state) {
         when(messageEntity.getState()).thenReturn(state);
 
         updateRecordErrorHandlingService.handleUpdateError(MessageState.PROCESSED, "mewssageId", 0, null);
@@ -62,7 +62,7 @@ public class UpdateRecordErrorHandlingServiceTest {
 
     @ParameterizedTest
     @EnumSource(names = {"READY", "UNPROCESSABLE"})
-    public void should_handle_error_and_update_Ready_and_Unprocessable_to_Unprocessable(MessageState state) {
+    void should_handle_error_and_update_Ready_and_Unprocessable_to_Unprocessable(MessageState state) {
         when(messageEntity.getState()).thenReturn(state);
 
         updateRecordErrorHandlingService.handleUpdateError(MessageState.UNPROCESSABLE, "mewssageId", 0, null);
@@ -72,7 +72,7 @@ public class UpdateRecordErrorHandlingServiceTest {
 
     @ParameterizedTest
     @EnumSource(names = {"PROCESSED", "UNPROCESSABLE"})
-    public void should_handle_error_and_should_not_update_if_message_already_processed(MessageState newState) {
+    void should_handle_error_and_should_not_update_if_message_already_processed(MessageState newState) {
         when(messageEntity.getState()).thenReturn(MessageState.PROCESSED);
 
         updateRecordErrorHandlingService.handleUpdateError(newState, "mewssageId", 0, null);
@@ -81,7 +81,7 @@ public class UpdateRecordErrorHandlingServiceTest {
     }
 
     @Test
-    public void should_handle_error_and_update_retry_details() {
+    void should_handle_error_and_update_retry_details() {
         when(messageEntity.getState()).thenReturn(MessageState.READY);
 
         LocalDateTime holdUntil = LocalDateTime.now();
@@ -93,7 +93,7 @@ public class UpdateRecordErrorHandlingServiceTest {
 
     @ParameterizedTest
     @EnumSource(names = {"PROCESSED", "UNPROCESSABLE"})
-    public void should_handle_error_and_should_not_update_retry_if_message_already_processed(MessageState state) {
+    void should_handle_error_and_should_not_update_retry_if_message_already_processed(MessageState state) {
         when(messageEntity.getState()).thenReturn(state);
 
         updateRecordErrorHandlingService.handleUpdateError(null, "mewssageId", 1, LocalDateTime.now());

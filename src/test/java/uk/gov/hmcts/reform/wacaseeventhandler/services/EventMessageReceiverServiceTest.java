@@ -31,7 +31,6 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -645,7 +644,7 @@ class EventMessageReceiverServiceTest {
         List<ILoggingEvent> logsList = listAppender.list;
         assertTrue(logsList.stream()
             .map(ILoggingEvent::getFormattedMessage)
-            .collect(Collectors.toList())
+            .toList()
             .contains(expectedMessage));
     }
 

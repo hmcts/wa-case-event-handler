@@ -34,7 +34,6 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -178,7 +177,7 @@ class DatabaseMessageConsumerTest {
     private static List<Arguments> getRetryableTestParameters() {
         return DatabaseMessageConsumer.RETRY_COUNT_TO_DELAY_MAP.entrySet().stream()
             .map(entrySet -> Arguments.of(entrySet.getKey(), entrySet.getValue()))
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @ParameterizedTest
