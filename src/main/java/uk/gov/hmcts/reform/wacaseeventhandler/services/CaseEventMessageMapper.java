@@ -39,6 +39,7 @@ public class CaseEventMessageMapper {
             entity.getRetryCount());
     }
 
+    @SuppressWarnings("PMD.ConfusingTernary")
     private String getCaseTypeId(CaseEventMessageEntity entity) {
         String caseTypeId = null;
         if (entity.getMessageContent() != null && !entity.getMessageContent().isBlank()) {
