@@ -49,6 +49,8 @@ public class CaseEventMessageMapper {
             } catch (JsonProcessingException jsonProcessingException) {
                 log.info("Error extracting CaseTypeId from message", jsonProcessingException);
             }
+        } else {
+            log.warn("messageContent is null or empty for messageId: {}", entity.getMessageId());
         }
         return caseTypeId;
     }
