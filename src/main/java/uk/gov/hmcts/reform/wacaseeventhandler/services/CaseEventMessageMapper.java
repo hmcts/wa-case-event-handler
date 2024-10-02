@@ -41,7 +41,7 @@ public class CaseEventMessageMapper {
 
     private String getCaseTypeId(CaseEventMessageEntity entity) {
         String caseTypeId = null;
-        if (entity.getMessageContent() != null && !entity.getMessageContent().isBlank()) {
+        if (entity.getMessageContent() != null) {
             try {
                 JsonNode jsonNodeMessageContent = objectMapper.readTree(entity.getMessageContent());
                 JsonNode jsonNodeCaseTypeId = jsonNodeMessageContent.get("CaseTypeId");
