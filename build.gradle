@@ -230,7 +230,7 @@ dependencyManagement {
     dependencySet(group: 'commons-fileupload', version: '1.5') {
       entry 'commons-fileupload'
     }
-    dependency group: 'commons-io', name: 'commons-io', version: '2.16.1'
+    dependency group: 'commons-io', name: 'commons-io', version: '2.17.0'
 
     //CVE-2021-27568
     dependency group: 'net.minidev', name: 'json-smart', version: '2.5.0'
@@ -309,8 +309,8 @@ repositories {
 }
 
 def versions = [
-  junit        : '5.11.0',
-  junitPlatform: '1.11.0',
+  junit        : '5.11.1',
+  junitPlatform: '1.11.1',
   reformLogging: '6.1.6',
   springDoc    : '2.2.0',
   springBoot   : '3.3.0',
@@ -389,8 +389,8 @@ dependencies {
   testImplementation group: 'net.serenity-bdd', name: 'serenity-junit', version: versions.serenity
   testImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity
   testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
-  testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.20.1'
-  testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.20.1'
+  testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.20.2'
+  testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.20.2'
 
   testImplementation group: 'org.pitest', name: 'pitest', version: versions.pitest
   testImplementation group: 'info.solidsoft.gradle.pitest', name: 'gradle-pitest-plugin', version: versions.gradlePitest
