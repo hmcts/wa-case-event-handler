@@ -19,7 +19,6 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
 import static java.util.Collections.singletonList;
@@ -99,7 +98,7 @@ class CaseEventMessageErrorHandlingRepositoryTest {
 
         List<String> messageIds = allMessagesInNewState.stream()
                 .map(CaseEventMessageEntity::getMessageId)
-                .collect(Collectors.toList());
+                .toList();
 
         transactionTemplate.execute(status -> errorHandlingRepository.updateMessageState(MessageState.PROCESSED,
                 messageIds));

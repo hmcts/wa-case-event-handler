@@ -15,7 +15,7 @@ import lombok.ToString;
 @ToString
 public class TaskOperation {
 
-    @Schema(required = true)
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     @JsonProperty("name")
     private final TaskOperationName name;
 
