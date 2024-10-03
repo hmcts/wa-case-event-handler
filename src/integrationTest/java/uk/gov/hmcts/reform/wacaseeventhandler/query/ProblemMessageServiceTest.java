@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @ActiveProfiles("integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Sql("/scripts/problem_messages_data.sql")
-public class ProblemMessageServiceTest {
+class ProblemMessageServiceTest {
 
     @Autowired
     private ProblemMessageService problemMessageService;

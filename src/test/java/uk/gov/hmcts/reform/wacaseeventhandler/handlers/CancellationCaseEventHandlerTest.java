@@ -24,7 +24,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -280,7 +279,7 @@ class CancellationCaseEventHandlerTest {
         if (categories != null && categories.getValue() != null) {
             List<String> categoriesToCancel = Stream.of(categories.getValue().split(","))
                 .map(String::trim)
-                .collect(Collectors.toList());
+                .toList();
 
             categoriesToCancel.forEach(category ->
                 expectedCorrelationKeys.put("__processCategory__" + category, dmnBooleanValue(true))

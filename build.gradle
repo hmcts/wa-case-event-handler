@@ -230,7 +230,7 @@ dependencyManagement {
     dependencySet(group: 'commons-fileupload', version: '1.5') {
       entry 'commons-fileupload'
     }
-    dependency group: 'commons-io', name: 'commons-io', version: '2.16.1'
+    dependency group: 'commons-io', name: 'commons-io', version: '2.17.0'
 
     //CVE-2021-27568
     dependency group: 'net.minidev', name: 'json-smart', version: '2.5.0'
@@ -309,8 +309,8 @@ repositories {
 }
 
 def versions = [
-  junit        : '5.11.0',
-  junitPlatform: '1.11.0',
+  junit        : '5.11.1',
+  junitPlatform: '1.11.1',
   reformLogging: '6.1.6',
   springDoc    : '2.2.0',
   springBoot   : '3.3.0',
@@ -319,7 +319,7 @@ def versions = [
   pitest       : '1.15.0',
   sonarPitest   : '0.5',
   logbook      : '3.9.0',
-  tomcat       : '10.1.29',
+  tomcat       : '10.1.30',
   log4j        : '2.23.1',
   retry        : '2.0.7'
 ]
@@ -370,8 +370,8 @@ dependencies {
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: versions.tomcat
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: versions.tomcat
   implementation group: 'org.camunda.bpm', name: 'camunda-external-task-client', version: '7.19.0'
-  implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '6.2.1'
-  implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.13.0'
+  implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '6.3.0'
+  implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.17.0'
   implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.1.8'
   implementation group: 'net.logstash.logback', name: 'logstash-logback-encoder', version: '7.4'
 
@@ -392,8 +392,8 @@ dependencies {
   }
   testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '5.5.0'
   testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
-  testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.20.1'
-  testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.20.1'
+  testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.20.2'
+  testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.20.2'
 
   testImplementation group: 'org.pitest', name: 'pitest', version: versions.pitest
   testImplementation group: 'info.solidsoft.gradle.pitest', name: 'gradle-pitest-plugin', version: versions.gradlePitest

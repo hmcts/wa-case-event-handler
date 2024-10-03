@@ -22,7 +22,6 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -30,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 @ExtendWith({MockitoExtension.class})
-public class ResetNullEventTimestampMessageJobTest {
+class ResetNullEventTimestampMessageJobTest {
     private ListAppender<ILoggingEvent> listAppender;
 
     @Mock
@@ -161,7 +160,7 @@ public class ResetNullEventTimestampMessageJobTest {
         List<ILoggingEvent> logsList = listAppender.list;
         assertTrue(logsList.stream()
                        .map(ILoggingEvent::getFormattedMessage)
-                       .collect(Collectors.toList())
+                       .toList()
                        .contains(expectedMessage));
     }
 }
