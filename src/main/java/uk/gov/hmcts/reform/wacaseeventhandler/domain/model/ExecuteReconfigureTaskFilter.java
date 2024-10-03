@@ -13,13 +13,13 @@ import lombok.ToString;
 @ToString
 public class ExecuteReconfigureTaskFilter implements TaskFilter<String> {
 
-    @Schema(required = true)
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     private final String key;
 
-    @Schema(required = true)
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     private final String values;
 
-    @Schema(required = true)
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     private final TaskFilterOperator operator;
 
     @JsonCreator

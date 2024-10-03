@@ -25,7 +25,7 @@ import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.when;
 
 @ExtendWith({MockitoExtension.class})
-public class FindProblemMessageJobTest {
+class FindProblemMessageJobTest {
     private static final String MESSAGE_ID = "messageId";
     final int messageTimeLimit = 60;
     @Mock

@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith({MockitoExtension.class})
 
 
-public class SetStateToProcessedMessageJobTest {
+class SetStateToProcessedMessageJobTest {
     @Mock
     private CaseEventMessageRepository caseEventMessageRepository;
 

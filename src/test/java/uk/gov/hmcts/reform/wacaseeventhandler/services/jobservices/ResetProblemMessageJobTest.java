@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith({MockitoExtension.class})
-public class ResetProblemMessageJobTest {
+class ResetProblemMessageJobTest {
 
     @Mock
     private CaseEventMessageRepository caseEventMessageRepository;
@@ -31,7 +31,7 @@ public class ResetProblemMessageJobTest {
     private final List<String> messageIds = List.of("messageId_1", "messageId_2");
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         resetProblemMessageJob = new ResetProblemMessageJob(caseEventMessageRepository, messageIds);
     }
 

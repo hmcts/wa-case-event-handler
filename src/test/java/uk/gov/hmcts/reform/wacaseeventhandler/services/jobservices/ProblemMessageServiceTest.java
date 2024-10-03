@@ -25,12 +25,12 @@ class ProblemMessageServiceTest {
     ProblemMessageService problemMessageService;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         problemMessageService = new ProblemMessageService(List.of(messageJobFind, messageJobReset));
     }
 
     @Test
-    public void should_run_message_job_if_only_pass_can_run_find() {
+    void should_run_message_job_if_only_pass_can_run_find() {
         doReturn(true).when(messageJobFind).canRun(JobName.FIND_PROBLEM_MESSAGES);
         problemMessageService.process(JobName.FIND_PROBLEM_MESSAGES);
         verify(messageJobFind, times(1)).run();
@@ -38,7 +38,7 @@ class ProblemMessageServiceTest {
     }
 
     @Test
-    public void should_run_message_job_if_only_pass_can_run_reset() {
+    void should_run_message_job_if_only_pass_can_run_reset() {
         doReturn(true).when(messageJobReset).canRun(JobName.RESET_PROBLEM_MESSAGES);
         problemMessageService.process(JobName.RESET_PROBLEM_MESSAGES);
         verify(messageJobReset, times(1)).run();
@@ -46,7 +46,7 @@ class ProblemMessageServiceTest {
     }
 
     @Test
-    public void should_run_message_job_and_return_response() {
+    void should_run_message_job_and_return_response() {
         doReturn(true).when(messageJobFind).canRun(JobName.FIND_PROBLEM_MESSAGES);
         when(messageJobFind.run()).thenReturn(List.of("some message"));
         List<String> response = problemMessageService.process(JobName.FIND_PROBLEM_MESSAGES);
