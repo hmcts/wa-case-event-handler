@@ -39,9 +39,10 @@ public class CaseEventMessageMapper {
             entity.getRetryCount());
     }
 
+    @SuppressWarnings("PMD.ConfusingTernary")
     private String getCaseTypeId(CaseEventMessageEntity entity) {
         String caseTypeId = null;
-        if (entity.getMessageContent() != null) {
+        if (entity.getMessageContent() != null && !entity.getMessageContent().isBlank()) {
             try {
                 JsonNode jsonNodeMessageContent = objectMapper.readTree(entity.getMessageContent());
                 JsonNode jsonNodeCaseTypeId = jsonNodeMessageContent.get("CaseTypeId");
@@ -49,6 +50,8 @@ public class CaseEventMessageMapper {
             } catch (JsonProcessingException jsonProcessingException) {
                 log.info("Error extracting CaseTypeId from message", jsonProcessingException);
             }
+        } else {
+            log.warn("messageContent is null or empty for messageId: {}", entity.getMessageId());
         }
         return caseTypeId;
     }
