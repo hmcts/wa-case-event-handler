@@ -18,16 +18,13 @@ import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageReposit
 import uk.gov.hmcts.reform.wacaseeventhandler.services.holidaydates.HolidayService;
 
 import java.time.Clock;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.time.zone.ZoneRules;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
@@ -223,11 +220,7 @@ public class ReceivedMessagesHealthControllerTest {
 
     private void setClock(LocalDateTime localDateTime) {
         when(clock.instant()).thenReturn(localDateTime.toInstant(ZoneOffset.UTC));
-        ZoneId zoneId = mock(ZoneId.class);
-        ZoneRules zoneRules = mock(ZoneRules.class);
-
-        when(zoneRules.getOffset(any(Instant.class))).thenReturn(ZoneOffset.UTC);
-        when(zoneId.getRules()).thenReturn(zoneRules);
+        ZoneId zoneId = ZoneId.of("UTC");
         when(clock.getZone()).thenReturn(zoneId);
     }
 }
