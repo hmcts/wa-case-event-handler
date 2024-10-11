@@ -309,10 +309,10 @@ repositories {
 }
 
 def versions = [
-  junit        : '5.11.1',
-  junitPlatform: '1.11.1',
+  junit        : '5.11.2',
+  junitPlatform: '1.11.2',
   reformLogging: '6.1.6',
-  springDoc    : '2.2.0',
+  springDoc    : '2.6.0',
   springBoot   : '3.3.0',
   serenity     : '3.4.2',
   gradlePitest  : '1.9.11',
@@ -363,7 +363,7 @@ dependencies {
 
   implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.2.0'
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.9.2'
-  implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.17.3'
+  implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.17.4'
   implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.22'
   implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.1.22'
 
