@@ -243,7 +243,7 @@ dependencyManagement {
       entry 'logback-classic'
       entry 'logback-core'
     }
-    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.113.Final') {
+    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.114.Final') {
       entry 'netty-buffer'
       entry 'netty-codec'
       entry 'netty-codec-dns'
@@ -416,7 +416,7 @@ dependencies {
   implementation group: 'org.flywaydb', name: 'flyway-core', version: '8.5.13'
   implementation group: 'com.zaxxer', name: 'HikariCP', version: '5.1.0'
 
-  implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.15.2'
+  implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.18.0'
   runtimeOnly group: 'org.postgresql', name: 'postgresql', version: '42.7.4'
 }
 
