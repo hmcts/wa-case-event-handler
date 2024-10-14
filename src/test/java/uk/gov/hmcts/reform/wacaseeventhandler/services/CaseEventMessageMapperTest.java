@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.verify;
 
 class CaseEventMessageMapperTest {
     private static final LocalDateTime EVENT_TIME_STAMP = LocalDateTime.now();
