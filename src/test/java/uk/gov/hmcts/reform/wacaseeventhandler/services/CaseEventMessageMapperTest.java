@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.verify;
 
 class CaseEventMessageMapperTest {
     private static final LocalDateTime EVENT_TIME_STAMP = LocalDateTime.now();
@@ -76,13 +77,13 @@ class CaseEventMessageMapperTest {
         entity.setState(MessageState.NEW);
         entity.setMessageProperties(objectMapper.readValue("{\"Property1\":\"Test\"}", JsonNode.class));
         entity.setMessageContent("{\"EventInstanceId\":\"EventInstanceId_123\", "
-                                 + "\"EventTimeStamp\":\"2023-05-10T08:25:51.713379525\","
-                                 + "\"CaseId\":\"CaseId_123\","
-                                 + "\"CaseTypeId\":\"CaseType_123\","
-                                 + "\"EventId\":\"EventId_123\","
-                                 + "\"PreviousStateId\":\"\","
-                                 + "\"NewstateId\":\"NewstateId_123\","
-                                 + "\"UserId\":\"UserId_123\"}");
+                                     + "\"EventTimeStamp\":\"2023-05-10T08:25:51.713379525\","
+                                     + "\"CaseId\":\"CaseId_123\","
+                                     + "\"CaseTypeId\":\"CaseType_123\","
+                                     + "\"EventId\":\"EventId_123\","
+                                     + "\"PreviousStateId\":\"\","
+                                     + "\"NewstateId\":\"NewstateId_123\","
+                                     + "\"UserId\":\"UserId_123\"}");
         entity.setReceived(RECEIVED);
         entity.setDeliveryCount(1);
         entity.setHoldUntil(RECEIVED.plusDays(2));
@@ -102,4 +103,26 @@ class CaseEventMessageMapperTest {
     void shouldMapNullEntityToProblemMessage() {
         assertNull(mapper.mapToProblemMessage(null));
     }
+
+    @Test
+    void should_return_null_when_messageContent_is_null() {
+        CaseEventMessageEntity entity = new CaseEventMessageEntity();
+        entity.setMessageContent(null);
+
+        String caseTypeId = mapper.mapToProblemMessage(entity).getCaseTypeId();
+
+        assertNull(caseTypeId);
+    }
+
+    @Test
+    void should_return_null_when_messageContent_is_blank() {
+        CaseEventMessageEntity entity = new CaseEventMessageEntity();
+        entity.setMessageContent(" ");
+
+        String caseTypeId = mapper.mapToProblemMessage(entity).getCaseTypeId();
+
+        assertNull(caseTypeId);
+
+    }
+
 }
