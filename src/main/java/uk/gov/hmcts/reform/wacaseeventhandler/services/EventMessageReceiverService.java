@@ -103,7 +103,7 @@ public class EventMessageReceiverService {
                         .setSequence(eventMessageEntity.getSequence()));
                     repository.save(messageEntity);
 
-                    log.info("Message {} with id '{}' successfully updated and saved into DB",messageEntity, messageId);
+                    log.info("Message with id '{}' successfully updated and saved into DB", messageId);
 
                     return mapper.mapToCaseEventMessage(messageEntity);
                 } catch (JsonProcessingException e) {
