@@ -233,7 +233,7 @@ dependencyManagement {
       entry 'logback-classic'
       entry 'logback-core'
     }
-    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.113.Final') {
+    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.114.Final') {
       entry 'netty-buffer'
       entry 'netty-codec'
       entry 'netty-codec-dns'
@@ -299,10 +299,10 @@ repositories {
 }
 
 def versions = [
-  junit        : '5.11.1',
-  junitPlatform: '1.11.1',
+  junit        : '5.11.2',
+  junitPlatform: '1.11.2',
   reformLogging: '6.1.6',
-  springDoc    : '2.2.0',
+  springDoc    : '2.6.0',
   springBoot   : '3.3.0',
   serenity     : '3.9.8',
   gradlePitest  : '1.9.11',
@@ -353,7 +353,7 @@ dependencies {
 
   implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.2.0'
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '4.9.2'
-  implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.17.3'
+  implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.17.4'
   implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.1.22'
   implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.1.22'
 
@@ -406,7 +406,7 @@ dependencies {
   implementation group: 'org.flywaydb', name: 'flyway-core', version: '9.0.4'
   implementation group: 'com.zaxxer', name: 'HikariCP', version: '5.1.0'
 
-  implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.15.2'
+  implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.18.0'
   runtimeOnly group: 'org.postgresql', name: 'postgresql', version: '42.7.4'
 }
 
