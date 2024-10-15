@@ -3,10 +3,13 @@ package uk.gov.hmcts.reform.wacaseeventhandler;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.cucumber.java.AfterAll;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
@@ -31,6 +34,7 @@ import static org.junit.Assert.assertTrue;
 
 @Slf4j
 @ActiveProfiles(profiles = {"local", "functional"})
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class MessageProcessorFunctionalTest extends MessagingTests {
 
     private List<String> caseIdToDelete = new ArrayList<>();
@@ -40,6 +44,10 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
     public static List<CaseEventMessage> caseEventMessages;
     public static List<CaseEventMessage> caseEventMessagesToBeDeleted;
+
+    public static List<String> messageIdsToBeDeleted;
+
+
 
     @Before
     public void setup() {
@@ -58,6 +66,21 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
         deleteMessagesFromDatabase(caseEventMessagesToBeDeleted);
 
+    }
+
+    @AfterAll
+    public void teardownClass() {
+        await().ignoreException(Exception.class)
+            .pollInterval(3, SECONDS)
+            .atMost(240, SECONDS)
+            .until(
+                () -> {
+                    if (messageIdsToBeDeleted != null) {
+                        deleteMessagesFromDatabaseByMsgIds(messageIdsToBeDeleted);
+                        messageIdsToBeDeleted = new ArrayList<>();
+                    }
+                    return true;
+                });
     }
 
     @Test
@@ -222,9 +245,11 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         caseIdToDelete.add(caseId);
     }
 
+    //make sure the naming convention such that this test runs last in the suite
     @Test
     public void should_not_process_message_unless_in_ready_state() {
         List<String> messageIds = List.of(randomMessageId(), randomMessageId());
+        messageIdsToBeDeleted.addAll(messageIds);
 
         // Sending message without case id will cause validation to fail and message will be stored with
         // UNPROCESSABLE state
