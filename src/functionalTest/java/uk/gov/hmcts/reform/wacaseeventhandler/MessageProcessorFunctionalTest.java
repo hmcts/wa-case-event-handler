@@ -52,6 +52,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
     @Before
     public void setup() {
         caseEventMessages = new ArrayList<>();
+        messageIdsToBeDeleted = new ArrayList<>();
         caseEventMessagesToBeDeleted = new ArrayList<>();
         caseIdToDelete = new ArrayList<>();
     }
