@@ -248,7 +248,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
     //make sure the naming convention such that this test runs last in the suite
     @Test
-    public void should_not_process_message_unless_in_ready_state() {
+    public void should_process_ready_state_messages_only() {
         List<String> messageIds = List.of(randomMessageId(), randomMessageId());
         messageIdsToBeDeleted.addAll(messageIds);
 
