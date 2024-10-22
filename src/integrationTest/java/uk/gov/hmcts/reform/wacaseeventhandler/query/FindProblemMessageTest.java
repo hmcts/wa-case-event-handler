@@ -29,8 +29,8 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 @Sql("/scripts/problem_messages_data.sql")
 public class FindProblemMessageTest {
 
-    private ObjectMapper objectMapper;
 
+    private final ObjectMapper objectMapper =  new ObjectMapper();
     private final CaseEventMessageMapper caseEventMessageMapper = new CaseEventMessageMapper(objectMapper);
 
     @Autowired

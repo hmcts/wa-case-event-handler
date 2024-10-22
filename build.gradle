@@ -229,7 +229,7 @@ dependencyManagement {
     dependency group: 'org.glassfish', name: 'jakarta.el', version: '4.0.2'
 
     //CVE-2021-42550
-    dependencySet(group: 'ch.qos.logback', version: '1.5.8') {
+    dependencySet(group: 'ch.qos.logback', version: '1.5.10') {
       entry 'logback-classic'
       entry 'logback-core'
     }
@@ -309,7 +309,7 @@ def versions = [
   pitest       : '1.15.0',
   sonarPitest   : '0.5',
   logbook      : '3.9.0',
-  tomcat       : '10.1.30',
+  tomcat       : '10.1.31',
   log4j        : '2.23.1',
   retry        : '2.0.7'
 ]
