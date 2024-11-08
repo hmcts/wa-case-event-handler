@@ -403,7 +403,7 @@ dependencies {
   smokeTestImplementation sourceSets.main.runtimeClasspath
   smokeTestImplementation sourceSets.test.runtimeClasspath
 
-  implementation group: 'org.flywaydb', name: 'flyway-core', version: '9.0.4'
+  implementation group: 'org.flywaydb', name: 'flyway-core', version: '9.22.3'
   implementation group: 'com.zaxxer', name: 'HikariCP', version: '5.1.0'
 
   implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.18.1'
