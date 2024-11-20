@@ -30,8 +30,8 @@ public class CaseEventMessageCacheService {
             log.info("Number of Messages in NEW State {} ", noOfNewMessages);
         } else {
             LocalDateTime oldestMessageTimestamp =
-                    allMessageInNewState.get(noOfNewMessages - 1).getEventTimestamp();
-            log.info("Number of Messages in NEW State {} with oldest message eventTimeStamp {}",
+                    allMessageInNewState.get(noOfNewMessages - 1).getReceived();
+            log.info("Number of Messages in NEW State {} with oldest message received timestamp {}",
                     noOfNewMessages, oldestMessageTimestamp);
         }
         return allMessageInNewState;
