@@ -6,7 +6,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
 
 @Slf4j
@@ -60,7 +60,7 @@ public class CcdEventErrorHandler {
         log.error("Unable to parse incoming message with id '{}'", message.getMessageId(), ex);
         String messageData = new String(message.getBody().toBytes());
 
-        if (ObjectUtils.isEmpty(ex.getMessage())) {
+        if (StringUtils.isEmpty(ex.getMessage())) {
             receiver.deadLetter(message, deadLetterService
                 .handleApplicationError(messageData, "Unknown Error"));
         } else {
