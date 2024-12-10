@@ -19,7 +19,12 @@ class LoggingUtilityTest {
         @SuppressWarnings("PMD.LawOfDemeter")
         String output = LoggingUtility.logPrettyPrint(input);
 
-        String expectedOutput = "{job_details: {name: FIND_PROBLEM_MESSAGES}}";
+//        String expectedOutput = "{job_details: {name: FIND_PROBLEM_MESSAGES}}";
+        String expectedOutput = "{\n"
+            + "  \"job_details\" : {\n"
+            + "    \"name\" : \"FIND_PROBLEM_MESSAGES\"\n"
+            + "  }\n"
+            + "}";
 
         assertEquals(expectedOutput, output, "output does not match expected output");
         assertNotEquals(output, input, "output can't be equal to input");
