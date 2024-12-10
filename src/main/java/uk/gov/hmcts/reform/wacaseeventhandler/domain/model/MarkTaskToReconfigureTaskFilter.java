@@ -15,13 +15,15 @@ import java.util.List;
 @ToString
 public class MarkTaskToReconfigureTaskFilter implements TaskFilter<List<String>> {
 
-    @Schema(required = true)
+
+
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     private final String key;
 
-    @Schema(required = true)
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     private final List<String> values;
 
-    @Schema(required = true)
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     private final TaskFilterOperator operator;
 
     @JsonCreator
