@@ -3,7 +3,10 @@ package uk.gov.hmcts.reform.wacaseeventhandler.domain.calendar;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
+import javax.xml.crypto.Data;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -18,9 +21,9 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUnti
 
 class BankHolidaysTest {
     @Test
-    void should_create_full_object_and_check_dates() throws IOException {
+    void should_create_full_object_and_check_dates() throws IOException, URISyntaxException {
         ObjectMapper om = new ObjectMapper();
-        BankHolidays bankHolidays = om.readValue(new URL(DEFAULT_NON_WORKING_CALENDAR), BankHolidays.class);
+        BankHolidays bankHolidays = om.readValue(new URI(DEFAULT_NON_WORKING_CALENDAR).toURL(), BankHolidays.class);
         assertEquals("england-and-wales", bankHolidays.getDivision());
         assertTrue(bankHolidays.getEvents().size() > 0);
         assertNotEquals(0, bankHolidays.getEvents().get(0).hashCode());

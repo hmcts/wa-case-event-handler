@@ -45,7 +45,8 @@ class EventInformationTest {
         ObjectContent<EventInformation> eventInformationObjectContent =
             jacksonTester.read("expected-event-information-from-ccd.json");
 
-        eventInformationObjectContent.assertThat().isEqualToComparingFieldByField(eventInformation(null));
+        eventInformationObjectContent.assertThat().usingRecursiveComparison()
+            .isEqualTo(eventInformation(null));
     }
 
     @Test
@@ -61,7 +62,8 @@ class EventInformationTest {
         ObjectContent<EventInformation> eventInformationObjectContent =
             jacksonTester.read("expected-event-information-additional-data.json");
 
-        eventInformationObjectContent.assertThat().isEqualToComparingFieldByField(eventInformation(additionalData()));
+        eventInformationObjectContent.assertThat().usingRecursiveComparison()
+            .isEqualTo(eventInformation(additionalData()));
     }
 
     @Test
@@ -94,20 +96,11 @@ class EventInformationTest {
             "appealType", "protection"
         );
 
-        String definition = "{\n"
-                            + "        \"type\": \"Complex\",\n"
-                            + "        \"subtype\": \"lastModifiedDirection\",\n"
-                            + "        \"typeDef\": {\n"
-                            + "          \"dateDue\": {\n"
-                            + "            \"type\": \"SimpleDate\",\n"
-                            + "            \"subtype\": \"Date\",\n"
-                            + "            \"typeDef\": null,\n"
-                            + "            \"originalId\": \"dateDue\"\n"
-                            + "          }\n"
-                            + "        },\n"
-                            + "        \"originalId\": \"lastModifiedDirection\"\n"
-                            + "      }";
-        JsonNode jsonNode = objectMapper.readTree(definition);
+        String definition = "{types: Complex, subtype: lastModifiedDirection, " +
+            "typeDef: {dateDue: {type: SimpleDate, subtype: Date, typeDef: null, originalId: dateDue}}, " +
+            "originalId: lastModifiedDirection}";
+
+            JsonNode jsonNode = objectMapper.readTree(definition);
         Map<String, JsonNode> definitionMap = Maps.newHashMap("lastModifiedDirection", jsonNode);
 
         return AdditionalData.builder()

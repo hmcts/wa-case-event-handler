@@ -17,7 +17,7 @@ class HolidayServiceTest {
 
     private HolidayService holidayService;
 
-    private static List<LocalDate> HOLIDAYS = List.of(
+    private static final List<LocalDate> listHOLIDAYS = List.of(
         LocalDate.of(2022, Month.DECEMBER, 25),
         LocalDate.of(2022, Month.JANUARY, 1),
         LocalDate.of(2022, Month.APRIL, 15)
@@ -25,12 +25,12 @@ class HolidayServiceTest {
 
     @BeforeEach
     void setup() {
-        holidayService = new HolidayService(HOLIDAYS);
+        holidayService = new HolidayService(listHOLIDAYS);
     }
 
     @Test
     void testIsHolidayZoneDateTimeReturnsTrue() {
-        HOLIDAYS.stream()
+        listHOLIDAYS.stream()
             .map(localDate -> ZonedDateTime.of(localDate.atTime(11,30), ZoneId.systemDefault()))
             .forEach(zonedDateTime -> assertTrue(holidayService.isHoliday(zonedDateTime)));
     }
@@ -45,7 +45,7 @@ class HolidayServiceTest {
 
     @Test
     void testIsHolidayLocalDateReturnsTrue() {
-        HOLIDAYS.forEach(localDate -> assertTrue(holidayService.isHoliday(localDate)));
+        listHOLIDAYS.forEach(localDate -> assertTrue(holidayService.isHoliday(localDate)));
     }
 
     @Test
