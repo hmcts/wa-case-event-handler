@@ -19,7 +19,7 @@ class LoggingUtilityTest {
         @SuppressWarnings("PMD.LawOfDemeter")
         String output = LoggingUtility.logPrettyPrint(input);
 
-//        String expectedOutput = "{job_details: {name: FIND_PROBLEM_MESSAGES}}";
+        //String expectedOutput = "{job_details: {name: FIND_PROBLEM_MESSAGES}}";
         String expectedOutput = "{\n"
             + "  \"job_details\" : {\n"
             + "    \"name\" : \"FIND_PROBLEM_MESSAGES\"\n"
@@ -46,10 +46,10 @@ class LoggingUtilityTest {
         @SuppressWarnings("PMD.LawOfDemeter")
         String output = LoggingUtility.logPrettyPrint(input);
 
-        String expectedOutput = "{messageId: some message id, " +
-            "sequence: null, caseId: someCaseId, eventTimestamp: null, fromDlq: null, state: NEW, " +
-            "messageProperties: null, messageContent: null, received: null, deliveryCount: null, " +
-            "holdUntil: null, retryCount: null}";
+        String expectedOutput = "{messageId: some message id, "
+            + "sequence: null, caseId: someCaseId, eventTimestamp: null, fromDlq: null, state: NEW, "
+            + "messageProperties: null, messageContent: null, received: null, deliveryCount: null, "
+            + "holdUntil: null, retryCount: null}";
 
         assertEquals(expectedOutput, output, "output does not match expected output");
     }

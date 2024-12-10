@@ -665,12 +665,12 @@ class EventMessageReceiverServiceTest {
     }
 
     private static String messageNoUserAsString() {
-        return "{EventInstanceId: some event instance Id, " +
-            "EventTimeStamp: 2020-12-07T17:39:22.232622, " +
-            "CaseId: 12345, JurisdictionId: ia, " +
-            "CaseTypeId: asylum, " +
-            "EventId: some event Id, " +
-            "NewStateId: some new state Id}";
+        return "{EventInstanceId: some event instance Id, "
+            + "EventTimeStamp: 2020-12-07T17:39:22.232622, "
+            + "CaseId: 12345, JurisdictionId: ia, "
+            + "CaseTypeId: asylum, "
+            + "EventId: some event Id, "
+            + "NewStateId: some new state Id}";
     }
 
     private void mockMessageProperties() throws JsonProcessingException {

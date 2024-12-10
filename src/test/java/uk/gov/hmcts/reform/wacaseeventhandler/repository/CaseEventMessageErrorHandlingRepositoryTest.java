@@ -58,9 +58,9 @@ class CaseEventMessageErrorHandlingRepositoryTest {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(db);
 
         String truncateTablesQuery =
-                "START TRANSACTION;" +
-                    "TRUNCATE TABLE WA_CASE_EVENT_MESSAGES CASCADE;" +
-                    "COMMIT;";
+                "START TRANSACTION;"
+                   + "TRUNCATE TABLE WA_CASE_EVENT_MESSAGES CASCADE;"
+                   + "COMMIT;";
         jdbcTemplate.execute(truncateTablesQuery);
 
         jdbcTemplate.execute("ALTER SEQUENCE WA_CASE_EVENT_MESSAGES_SEQUENCE_SEQ RESTART WITH 1");
