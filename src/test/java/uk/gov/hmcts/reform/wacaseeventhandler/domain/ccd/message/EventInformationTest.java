@@ -45,8 +45,9 @@ class EventInformationTest {
         ObjectContent<EventInformation> eventInformationObjectContent =
             jacksonTester.read("expected-event-information-from-ccd.json");
 
-        eventInformationObjectContent.assertThat().usingRecursiveComparison()
-            .isEqualTo(eventInformation(null));
+        eventInformationObjectContent.assertThat().isEqualToComparingFieldByField(eventInformation(null));
+//        eventInformationObjectContent.assertThat().usingRecursiveComparison()
+//            .isEqualTo(eventInformation(null));
     }
 
     @Test
@@ -62,8 +63,9 @@ class EventInformationTest {
         ObjectContent<EventInformation> eventInformationObjectContent =
             jacksonTester.read("expected-event-information-additional-data.json");
 
-        eventInformationObjectContent.assertThat().usingRecursiveComparison()
-            .isEqualTo(eventInformation(additionalData()));
+        eventInformationObjectContent.assertThat().isEqualToComparingFieldByField(eventInformation(additionalData()));
+//        eventInformationObjectContent.assertThat().usingRecursiveComparison()
+//            .isEqualTo(eventInformation(additionalData()));
     }
 
     @Test
