@@ -65,19 +65,50 @@ public interface CaseEventMessageRepository extends CrudRepository<CaseEventMess
         + "order by sequence DESC for update skip locked";
 
 
-    String FIND_PROBLEM_MESSAGES = "SELECT message_id, sequence, case_id, event_timestamp, from_dlq, state, "
-        + "message_properties, message_content, received, delivery_count, hold_until, retry_count"
-        + "from wa_case_event_messages msg where msg.state IN ('UNPROCESSABLE', 'READY') "
-        + "and case when msg.state='READY' "
-        + "then EXTRACT(EPOCH FROM (((current_timestamp - interval '30 minutes' - msg.event_timestamp )))/60 > 30 "
-        + "else 1=1 end order by state;";
+    //String FIND_PROBLEM_MESSAGES = "SELECT message_id, sequence, case_id, event_timestamp, from_dlq, state,"
+    //    + "message_properties, message_content, received, delivery_count, hold_until, retry_count"
+    //    + "from wa_case_event_messages msg where msg.state IN ('UNPROCESSABLE', 'READY')"
+    //    + "and case when msg.state='READY' "
+    //    + "then EXTRACT(EPOCH FROM (((current_timestamp - interval '30 minutes' - msg.event_timestamp )))/60 > 30 "
+    //    + "else 1=1 end order by state;";
 
-    String CLEAN_UP_MESSAGES = "DELETE FROM public.wa_case_event_messages cem "
-        + "WHERE cem.message_id IN (SELECT msg.message_id "
-        + "FROM public.wa_case_event_messages msg "
-        + "WHERE msg.event_timestamp < :timestamp "
-        + "AND CAST (msg.state AS TEXT) IN(:state) "
-        + "ORDER BY msg.event_timestamp LIMIT :limit );";
+    //String CLEAN_UP_MESSAGES = "DELETE FROM public.wa_case_event_messages cem "
+    //    + "WHERE cem.message_id IN (SELECT msg.message_id "
+    //    + "FROM public.wa_case_event_messages msg "
+    //    + "WHERE msg.event_timestamp < :timestamp "
+    //    + "AND CAST (msg.state AS TEXT) IN(:state) "
+    //    + "ORDER BY msg.event_timestamp LIMIT :limit );";
+
+    String FIND_PROBLEM_MESSAGES = "SELECT message_id,\n"
+        + "sequence,\n"
+        + "case_id,\n"
+        + "event_timestamp,\n"
+        + "from_dlq,\n"
+        + "state,\n"
+        + "message_properties,\n"
+        + "message_content,\n"
+        + "received,\n"
+        + "delivery_count,\n"
+        + "hold_until,\n"
+        + "retry_count \n"
+        + "from wa_case_event_messages msg \n"
+        + "where msg.state IN ('UNPROCESSABLE', 'READY') \n"
+        + "and case when msg.state='READY' "
+        + "then EXTRACT(EPOCH FROM (((current_timestamp - interval '" + " ?1 minutes')"
+        + " - msg.event_timestamp )))/60 "
+        + "> ?1 "
+        + "else 1=1 end \n"
+        + "order by state;";
+
+    String CLEAN_UP_MESSAGES = "DELETE FROM public.wa_case_event_messages cem \n"
+        + "WHERE cem.message_id IN (\n"
+        + "SELECT msg.message_id \n"
+        + "FROM public.wa_case_event_messages msg \n"
+        + "WHERE msg.event_timestamp < :timestamp \n"
+        + "AND CAST (msg.state AS TEXT) IN(:state) \n"
+        + "ORDER BY msg.event_timestamp \n"
+        + "LIMIT :limit \n"
+        + ");";
 
     String GET_NUMBER_MESSAGES_RECEIVED_IN_LAST_HOUR = "SELECT count(*) from "
                                                        + "wa_case_event_messages where received > :timestamp";
