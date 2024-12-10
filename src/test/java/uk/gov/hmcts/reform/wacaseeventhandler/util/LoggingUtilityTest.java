@@ -60,10 +60,10 @@ class LoggingUtilityTest {
             + "  \"holdUntil\" : null,\n"
             + "  \"retryCount\" : null\n"
             + "}";
-//        String expectedOutput = "{messageId: some message id, "
-//            + "sequence: null, caseId: someCaseId, eventTimestamp: null, fromDlq: null, state: NEW, "
-//            + "messageProperties: null, messageContent: null, received: null, deliveryCount: null, "
-//            + "holdUntil: null, retryCount: null}";
+        //String expectedOutput = "{messageId: some message id, "
+        //    + "sequence: null, caseId: someCaseId, eventTimestamp: null, fromDlq: null, state: NEW, "
+        //    + "messageProperties: null, messageContent: null, received: null, deliveryCount: null, "
+        //    + "holdUntil: null, retryCount: null}";
 
         assertEquals(expectedOutput, output, "output does not match expected output");
     }
