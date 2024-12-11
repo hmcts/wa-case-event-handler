@@ -19,12 +19,11 @@ class LoggingUtilityTest {
         @SuppressWarnings("PMD.LawOfDemeter")
         String output = LoggingUtility.logPrettyPrint(input);
 
-        //String expectedOutput = "{job_details: {name: FIND_PROBLEM_MESSAGES}}";
         String expectedOutput = "{\n"
-            + "  \"job_details\" : {\n"
-            + "    \"name\" : \"FIND_PROBLEM_MESSAGES\"\n"
-            + "  }\n"
-            + "}";
+                                + "  \"job_details\" : {\n"
+                                + "    \"name\" : \"FIND_PROBLEM_MESSAGES\"\n"
+                                + "  }\n"
+                                + "}";
 
         assertEquals(expectedOutput, output, "output does not match expected output");
         assertNotEquals(output, input, "output can't be equal to input");
@@ -47,23 +46,19 @@ class LoggingUtilityTest {
         String output = LoggingUtility.logPrettyPrint(input);
 
         String expectedOutput = "{\n"
-            + "  \"messageId\" : \"some message id\",\n"
-            + "  \"sequence\" : null,\n"
-            + "  \"caseId\" : \"someCaseId\",\n"
-            + "  \"eventTimestamp\" : null,\n"
-            + "  \"fromDlq\" : null,\n"
-            + "  \"state\" : \"NEW\",\n"
-            + "  \"messageProperties\" : null,\n"
-            + "  \"messageContent\" : null,\n"
-            + "  \"received\" : null,\n"
-            + "  \"deliveryCount\" : null,\n"
-            + "  \"holdUntil\" : null,\n"
-            + "  \"retryCount\" : null\n"
-            + "}";
-        //String expectedOutput = "{messageId: some message id, "
-        //    + "sequence: null, caseId: someCaseId, eventTimestamp: null, fromDlq: null, state: NEW, "
-        //    + "messageProperties: null, messageContent: null, received: null, deliveryCount: null, "
-        //    + "holdUntil: null, retryCount: null}";
+                                + "  \"messageId\" : \"some message id\",\n"
+                                + "  \"sequence\" : null,\n"
+                                + "  \"caseId\" : \"someCaseId\",\n"
+                                + "  \"eventTimestamp\" : null,\n"
+                                + "  \"fromDlq\" : null,\n"
+                                + "  \"state\" : \"NEW\",\n"
+                                + "  \"messageProperties\" : null,\n"
+                                + "  \"messageContent\" : null,\n"
+                                + "  \"received\" : null,\n"
+                                + "  \"deliveryCount\" : null,\n"
+                                + "  \"holdUntil\" : null,\n"
+                                + "  \"retryCount\" : null\n"
+                                + "}";
 
         assertEquals(expectedOutput, output, "output does not match expected output");
     }
