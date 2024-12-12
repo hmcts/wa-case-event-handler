@@ -2,7 +2,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
-import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -262,7 +261,7 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
 
     @Test
     void handleWhenInitiationResponseIsEmpty() {
-        List<InitiateEvaluateResponse> results = Lists.emptyList();
+        List<InitiateEvaluateResponse> results = Collections.emptyList();
 
         handlerService.handle(results, getEventInformation(eventInstanceId, "2020-03-29T10:53:36.530377"));
 

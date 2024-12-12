@@ -30,19 +30,6 @@ public class LaunchDarklyFeatureFlagProvider {
             .build();
     }
 
-    private LDUser createLaunchDarklyUser() {
-        return new LDUser.Builder(APPLICATION_NAME)
-                .firstName(FIRST_NAME)
-                .lastName(LAST_NAME)
-                .build();
-    }
-
-    public boolean getBooleanValue(FeatureFlag featureFlag) {
-        requireNonNull(featureFlag, MSG_NULL_FEATURE_FLAG);
-        log.trace("Attempting to retrieve feature flag '{}' as Boolean", featureFlag.getKey());
-        return ldClient.boolVariation(featureFlag.getKey(), createLaunchDarklyUser(), false);
-    }
-
     public boolean getBooleanValue(FeatureFlag featureFlag, String userId) {
         requireNonNull(featureFlag, MSG_NULL_FEATURE_FLAG);
         requireNonNull(userId, "userId is null");

@@ -41,14 +41,20 @@ public class ReceivedMessagesHealthController implements HealthIndicator {
     @Value("${environment}")
     private String environment;
 
-    @Autowired
-    private CaseEventMessageRepository repository;
+    private final CaseEventMessageRepository repository;
+
+    private final Clock clock;
+
+    private final HolidayService holidayService;
 
     @Autowired
-    private Clock clock;
-
-    @Autowired
-    private HolidayService holidayService;
+    public ReceivedMessagesHealthController(CaseEventMessageRepository repository,
+                                            Clock clock,
+                                            HolidayService holidayService) {
+        this.repository = repository;
+        this.clock = clock;
+        this.holidayService = holidayService;
+    }
 
     @Override
     public Health getHealth(boolean includeDetails) {

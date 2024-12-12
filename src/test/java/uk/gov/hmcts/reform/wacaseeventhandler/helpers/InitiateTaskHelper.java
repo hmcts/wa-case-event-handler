@@ -2,7 +2,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.helpers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.request.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateDmnResponse;
@@ -59,7 +59,7 @@ public final class InitiateTaskHelper {
 
     public static String asJsonString(final Object obj) throws JsonProcessingException {
         return new ObjectMapper().setPropertyNamingStrategy(
-            PropertyNamingStrategy.UPPER_CAMEL_CASE).writeValueAsString(obj);
+            PropertyNamingStrategies.UPPER_CAMEL_CASE).writeValueAsString(obj);
     }
 
     public static String asJsonString(final Map<String, String> obj) throws JsonProcessingException {
