@@ -28,8 +28,12 @@ public class UnprocessedMessagesHealthController implements HealthIndicator {
     @Value("${environment}")
     private String environment;
 
+    private final CaseEventMessageRepository repository;
+
     @Autowired
-    private CaseEventMessageRepository repository;
+    public UnprocessedMessagesHealthController(CaseEventMessageRepository repository) {
+        this.repository = repository;
+    }
 
     @Override
     public Health getHealth(boolean includeDetails) {
