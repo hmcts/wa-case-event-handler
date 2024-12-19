@@ -168,6 +168,8 @@ public abstract class SpringBootFunctionalBaseTest {
         taskAttributes.put("caseId", caseId);
         taskAttributes.put("created", formattedCreatedDate);
         taskAttributes.put("dueDate", formattedDueDate);
+        taskAttributes.put("roleCategory", "LEGAL_OPERATIONS");
+        taskAttributes.put("workType", "routine_work");
 
         InitiateTaskRequest initiateTaskRequest = new InitiateTaskRequest(INITIATION, taskAttributes);
 
