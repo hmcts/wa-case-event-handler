@@ -62,6 +62,7 @@ locals {
     lastUpdated = "${timestamp()}"
   }
   common_tags = merge(var.common_tags, local.computed_tags)
+  db_name = "${var.product}-${var.component}-postgres-db-flex"
 }
 
 //Azure Flexible Server DB
@@ -70,13 +71,17 @@ module "wa_case_event_handler_database_flex" {
     azurerm.postgres_network = azurerm.postgres_network
   }
 
-  source        = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
-  product       = var.product
-  component     = var.component
-  name          = "${var.product}-${var.component}-postgres-db-flex"
-  location      = var.location
-  business_area = "cft"
-  env           = var.env
+  source                      = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
+  product                     = var.product
+  component                   = var.component
+  name                        = local.db_name
+  location                    = var.location
+  business_area               = "cft"
+  env                         = var.env
+  action_group_name           = join("-", [local.db_name, var.action_group_name])
+  email_address_key           = var.email_address_key
+  email_address_key_vault_id  = data.azurerm_key_vault.wa_key_vault.id
+
   pgsql_databases = [
     {
       name : var.postgresql_database_name
