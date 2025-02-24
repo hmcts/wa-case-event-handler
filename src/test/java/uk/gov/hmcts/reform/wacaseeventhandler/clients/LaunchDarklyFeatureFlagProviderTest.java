@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
+import com.launchdarkly.sdk.LDContext;
 import com.launchdarkly.sdk.LDUser;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +31,7 @@ class LaunchDarklyFeatureFlagProviderTest {
 
     private FeatureFlag featureFlag;
     private String launchDarklySomeFlag;
-    private LDUser expectedLdUser;
+    private LDContext expectedLdContext;
 
     @BeforeEach
     void setup() {
@@ -38,11 +39,13 @@ class LaunchDarklyFeatureFlagProviderTest {
 
         featureFlag = mock(FeatureFlag.class);
 
-        expectedLdUser = new LDUser.Builder("wa-case-event-handler")
+        LDUser expectedLdUser = new LDUser.Builder("wa-case-event-handler")
             .name("some user id")
             .firstName("Work Allocation")
             .lastName("Case Event Handler")
             .build();
+
+        expectedLdContext = LDContext.fromUser(expectedLdUser);
     }
 
     @ParameterizedTest
@@ -56,7 +59,7 @@ class LaunchDarklyFeatureFlagProviderTest {
         boolean expectedFlagValue
     ) {
         when(featureFlag.getKey()).thenReturn(launchDarklySomeFlag);
-        when(ldClient.boolVariation(eq(launchDarklySomeFlag), eq(expectedLdUser), eq(defaultValue)))
+        when(ldClient.boolVariation(eq(launchDarklySomeFlag), eq(expectedLdContext), eq(defaultValue)))
             .thenReturn(boolVariationReturn);
 
         assertThat(launchDarklyFeatureFlagProvider.getBooleanValue(featureFlag, "some user id"))
@@ -87,7 +90,7 @@ class LaunchDarklyFeatureFlagProviderTest {
         String expectedFlagValue
     ) {
         when(featureFlag.getKey()).thenReturn(launchDarklySomeFlag);
-        when(ldClient.stringVariation(eq(launchDarklySomeFlag), eq(expectedLdUser), eq(defaultValue)))
+        when(ldClient.stringVariation(eq(launchDarklySomeFlag), eq(expectedLdContext), eq(defaultValue)))
             .thenReturn(stringVariationReturn);
 
         assertThat(launchDarklyFeatureFlagProvider.getStringValue(featureFlag, "some user id"))
