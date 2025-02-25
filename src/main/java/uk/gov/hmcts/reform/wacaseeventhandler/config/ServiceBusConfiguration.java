@@ -27,16 +27,21 @@ public class ServiceBusConfiguration {
     private String ccdCaseEventsSubscriptionName;
     @Value("${azure.servicebus.retry-duration}")
     private int retryTime;
+    @Value("${azure.servicebus.retry-max-delay}")
+    private long maxDelay;
+    @Value("${azure.servicebus.retry-base-delay}")
+    private long baseDelay;
 
     public ServiceBusSessionReceiverClient createCcdCaseEventsSessionReceiver() {
         log.info("Creating CCD Case Events Session receiver");
+
         ServiceBusSessionReceiverClient client = new ServiceBusClientBuilder()
-                .connectionString(connectionString)
-                .retryOptions(retryOptions())
-                .sessionReceiver()
-                .topicName(topicName)
-                .subscriptionName(ccdCaseEventsSubscriptionName)
-                .buildClient();
+            .connectionString(connectionString)
+            .retryOptions(retryOptions())
+            .sessionReceiver()
+            .topicName(topicName)
+            .subscriptionName(ccdCaseEventsSubscriptionName)
+            .buildClient();
 
         log.info("CCD Case Events Session receiver created, successfully");
         return client;
@@ -45,13 +50,13 @@ public class ServiceBusConfiguration {
     public ServiceBusReceiverClient createCcdCaseEventsDeadLetterQueueSessionReceiver() {
         log.info("Creating CCD Case Events Dead Letter Queue Session receiver");
         ServiceBusReceiverClient client = new ServiceBusClientBuilder()
-                .connectionString(connectionString)
-                .retryOptions(retryOptions())
-                .receiver()
-                .topicName(topicName)
-                .subQueue(SubQueue.DEAD_LETTER_QUEUE)
-                .subscriptionName(ccdCaseEventsSubscriptionName)
-                .buildClient();
+            .connectionString(connectionString)
+            .retryOptions(retryOptions())
+            .receiver()
+            .topicName(topicName)
+            .subQueue(SubQueue.DEAD_LETTER_QUEUE)
+            .subscriptionName(ccdCaseEventsSubscriptionName)
+            .buildClient();
 
         log.info("CCD Case Events Dead Letter Queue Session receiver created, successfully");
         return client;
@@ -59,7 +64,11 @@ public class ServiceBusConfiguration {
 
     private AmqpRetryOptions retryOptions() {
         AmqpRetryOptions retryOptions = new AmqpRetryOptions();
-        retryOptions.setTryTimeout(Duration.ofSeconds(Integer.valueOf(retryTime)));
+        retryOptions.setTryTimeout(Duration.ofSeconds(retryTime));
+        //Leave as default for first iteration to see results of sampling first
+        //retryOptions.setMaxDelay(Duration.ofSeconds(maxDelay));
+        //retryOptions.setDelay(Duration.ofSeconds(baseDelay));
+
         return retryOptions;
     }
 

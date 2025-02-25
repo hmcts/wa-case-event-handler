@@ -56,10 +56,12 @@ public class CcdCaseEventsConsumer implements Runnable {
                         String messageId = message.getMessageId();
                         String sessionId = message.getSessionId();
                         log.info("Received CCD Case Event message with id '{}' and case id '{}'",
-                            messageId, sessionId);
+                                 messageId, sessionId
+                        );
 
                         eventMessageReceiverService.handleCcdCaseEventAsbMessage(messageId, sessionId,
-                            new String(message.getBody().toBytes()));
+                                                                                 new String(message.getBody().toBytes())
+                        );
                         receiver.complete(message);
 
                         log.info("CCD Case Event message with id '{}' handled successfully", messageId);
@@ -70,11 +72,11 @@ public class CcdCaseEventsConsumer implements Runnable {
                     }
                 });
         } catch (IllegalStateException ex) {
-            log.info("Timeout: No CCD Case Event messages received waiting for next session {}", ex.getMessage());
+            log.warn("Timeout: No CCD Case Event messages received waiting for next session: {}", ex.getMessage());
         } catch (ServiceBusException ex) {
-            log.error("Error occurred while receiving messages {}", ex.getMessage());
+            log.error("Error occurred while receiving messages: {}", ex.getMessage());
         } catch (Exception ex) {
-            log.error("Error occurred while closing the session {}", ex.getMessage());
+            log.error("Error occurred while closing the session: {}", ex.getMessage());
         }
     }
 

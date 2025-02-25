@@ -16,6 +16,27 @@
             }
           ],
           "percentage": 1
+        },
+        {
+          "telemetryKind": "dependency",
+          "attributes": [
+            {
+              "key": "dependency.type",
+              "value": "Microsoft.ServiceBus",
+              "matchType": "strict",
+            },
+            {
+              "key": "operation.name",
+              "value": "ServiceBus.acceptSession",
+              "matchType": "strict"
+            },
+            {
+              "key": "success",
+              "value": "false",
+              "matchType": "strict"
+            }
+          ],
+          "percentage": 0
         }
       ]
     }
