@@ -59,7 +59,7 @@ class LaunchDarklyFeatureFlagProviderTest {
         boolean expectedFlagValue
     ) {
         when(featureFlag.getKey()).thenReturn(launchDarklySomeFlag);
-        when(ldClient.boolVariation(eq(launchDarklySomeFlag), eq(expectedLdContext), eq(defaultValue)))
+        when(ldClient.boolVariation(launchDarklySomeFlag, expectedLdContext, defaultValue))
             .thenReturn(boolVariationReturn);
 
         assertThat(launchDarklyFeatureFlagProvider.getBooleanValue(featureFlag, "some user id"))
@@ -90,7 +90,7 @@ class LaunchDarklyFeatureFlagProviderTest {
         String expectedFlagValue
     ) {
         when(featureFlag.getKey()).thenReturn(launchDarklySomeFlag);
-        when(ldClient.stringVariation(eq(launchDarklySomeFlag), eq(expectedLdContext), eq(defaultValue)))
+        when(ldClient.stringVariation(launchDarklySomeFlag, expectedLdContext, defaultValue))
             .thenReturn(stringVariationReturn);
 
         assertThat(launchDarklyFeatureFlagProvider.getStringValue(featureFlag, "some user id"))
