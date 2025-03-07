@@ -332,7 +332,8 @@ class InitiationCaseEventHandlerTest {
             INITIATE_TASK_MESSAGE_NAME,
             expectedProcessVariables,
             null,
-            false
+            false,
+            "wa"
         );
 
         assertThat(sendMessageRequestCaptor.getAllValues().get(0)).isEqualTo(expectation);
@@ -377,7 +378,8 @@ class InitiationCaseEventHandlerTest {
             INITIATE_TASK_MESSAGE_NAME,
             expectedProcessVariables,
             null,
-            false
+            false,
+            "wa"
         );
     }
 
