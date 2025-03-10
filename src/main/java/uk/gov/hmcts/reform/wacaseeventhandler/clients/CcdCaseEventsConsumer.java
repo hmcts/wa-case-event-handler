@@ -60,7 +60,7 @@ public class CcdCaseEventsConsumer implements Runnable {
                                  + "and message content '{}'",
                                  messageId,
                                  sessionId,
-                                 message.getBody().toBytes() //TODO: Remove line once demo testing is complete NOSONAR
+                                 new String(message.getBody().toBytes()) //TODO: Remove line once demo testing is complete NOSONAR
                         );
 
                         eventMessageReceiverService.handleCcdCaseEventAsbMessage(messageId, sessionId,
