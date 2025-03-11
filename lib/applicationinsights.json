@@ -23,7 +23,7 @@
             {
               "key": "dependency.type",
               "value": "Microsoft.ServiceBus",
-              "matchType": "strict",
+              "matchType": "strict"
             },
             {
               "key": "operation.name",
