@@ -56,8 +56,8 @@ public class CcdCaseEventsConsumer implements Runnable {
                         String messageId = message.getMessageId();
                         String sessionId = message.getSessionId();
                         log.info(
-                            "Received CCD Case Event message with id: '{}' " +
-                            "and case id: '{}'",
+                            "Received CCD Case Event message with id: '{}' "
+                            + "and case id: '{}'",
                             messageId,
                             sessionId
                         );
