@@ -184,7 +184,8 @@ public class GivensBuilder {
 
         CamundaSendMessageRequest request = new CamundaSendMessageRequest(
             CREATE_TASK_MESSAGE.toString(),
-            processVariables
+            processVariables,
+            jurisdiction.toLowerCase()
         );
 
         Response result = camundaApiActions.post(
