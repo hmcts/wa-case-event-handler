@@ -1,9 +1,10 @@
 # wa-case-event-handler
 
-[![Build Status](https://travis-ci.org/hmcts/wa-case-event-handler.svg?branch=master)](https://travis-ci.org/hmcts/wa-case-event-handler)
+[![GitHub branch status](https://img.shields.io/github/checks-status/hmcts/wa-case-event-handler/master?label=Build%20Status)](https://github.com/hmcts/wa-case-event-handler)
 
-Last reviewed on: 17/04/2025
+[![License: MIT](https://img.shields.io/github/license/hmcts/wa-case-event-handler)](https://opensource.org/licenses/MIT)
 
+Last reviewed on: **17/04/2025**
 ## Overview
 
 `wa-case-event-handler` is a Spring Boot application designed to handle case events and execute schedule jobs on messages. It uses Gradle as its build tool and supports JUnit 5 for testing.
