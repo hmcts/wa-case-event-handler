@@ -16,7 +16,6 @@ Last reviewed on: 17/04/2025
   ```properties
   spring.main.allow-bean-definition-overriding=true
 
-
  JUnit 5 is now enabled by default in the project. Please refrain from using JUnit4 and use the next generation
 
 ## Building and deploying the application
@@ -110,12 +109,12 @@ To build the project execute the following command:
   export AZURE_SERVICE_BUS_DLQ_FEATURE_TOGGLE=true
   ```
 - Example command to run Application
-```
-AZURE_SERVICE_BUS_CONNECTION_STRING="Endpoint=sb://ccd-servicebus-demo.servicebus.windows.net/;SharedAccessKeyName=SendAndRecieveCCDMessage;SharedAccessKey=<Access_Key> \
-AZURE_SERVICE_BUS_DLQ_FEATURE_TOGGLE=true \
-POSTGRES_HOST=ccd-shared-database \
-./gradlew clean bootrun
-```
+  ```
+  AZURE_SERVICE_BUS_CONNECTION_STRING="Endpoint=sb://ccd-servicebus-demo.servicebus.windows.net/;SharedAccessKeyName=SendAndRecieveCCDMessage;SharedAccessKey=<Access_Key> \
+  AZURE_SERVICE_BUS_DLQ_FEATURE_TOGGLE=true \
+  POSTGRES_HOST=ccd-shared-database \
+  ./gradlew clean bootrun
+  ```
 - To run functional tests, make sure Application is up and running.
 - please provide these values
 - ```
