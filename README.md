@@ -8,6 +8,7 @@ Last reviewed on: **17/04/2025**
 ## Overview
 
 `wa-case-event-handler` is a Spring Boot application designed to handle case events and execute schedule jobs on messages. It uses Gradle as its build tool and supports JUnit 5 for testing.
+End point used to process messages from CCD is /messages in CaseEventHandlerController which is used to initiate/reconfigure/cancel tasks.
 <!--
     Sequence Diagram Source:
     https://www.plantuml.com/plantuml/uml/XPB1RXCn48RFdQSObGiSGivmWAOjI9MAgDgA-yIUpOxMyInZEqkf-kvuatRfHaYizkJv_8r_ZyzI9ijb6w0LpzYevhN-0aYTn9wCjfXQyZf8t62smhCA_omS7UCZdApCTBZGe8QNpFrTzt0U2jTrbzNErJpReUh9klM-T2qDNqla_rJ9THlJ4ls1UBFwS7bn-HLEuEI6B8kJdcAU7FF-C-RODBII6V3v-yOfqOPNGJOH7SVC1ay0MN9WlAVKuLMKB9H58q3_Lukdgz_56E_OTk8OpqiwHKhrNyynHuaNlAlgHKlH1xOzvxYTSuDQrmGT5jJBdXW8e5Au-3HAyICQRoJbcZT8jG5GoKekouuoeqQeL8L7SuKrlaHB3z5Dfe5gxURxtJqkNnekFJj9DT_2SoDZMetBH_5FIzvHA5KEKBSj9dMcrFqW4re7lkLKGau7_qIGyNXtwRO-5J7sdo5gPZJPj1bM66eCr0Pjlnbtpww4G5OfpiKY-_U8NyYrBnH8mfBOOwC6enrbcWnk3raJSFGuzZewK6-YLkd4S3XAu2R3LOC3uzYJGbAyeEWuXF7DZ_u4kUNuQYlcLXFZcXirHZXw7Qzx1zKUtyQoNRFLe0VTktyCOPh1Su3vHHkdleePHZM0vsdQjGvdTR5imny0
