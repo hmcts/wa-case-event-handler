@@ -147,7 +147,3 @@ To build the project execute the following command:
   AZURE_SERVICE_BUS_DLQ_FEATURE_TOGGLE=false \
   ./gradlew clean functional
   ```
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
