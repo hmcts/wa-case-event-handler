@@ -34,7 +34,15 @@ The project uses [Gradle](https://gradle.org) as a build tool. It already contai
 
 Prerequisites
 1. Ensure all services are running in Minikube. Follow the instructions in the wa-kube-environment repository.
-2. Make sure the BPMN and DMN are deployed onto Camunda locally. Workflow and Task management api services should be running
+2. Check if the Idam simulator is set as an environment variable:
+   ```bash
+   echo $OPEN_ID_IDAM_URL
+   ```
+   You should see `http://sidam-simulator/` as output. If not, source the environment variables:
+   ```bash
+   source .env
+   ```
+3. Make sure the BPMN and DMN are deployed onto Camunda locally. Workflow and Task management api services should be running
 
 **Building the Application**
 
