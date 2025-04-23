@@ -91,7 +91,7 @@ module "wa_case_event_handler_database_flex" {
   pgsql_server_configuration = [
     {
       name  = "azure.extensions"
-      value = "plpgsql,pg_stat_statements,pg_buffercache"
+      value = "pg_stat_statements,pg_buffercache"
     },
     {
       name  = "enable_seqscan"
