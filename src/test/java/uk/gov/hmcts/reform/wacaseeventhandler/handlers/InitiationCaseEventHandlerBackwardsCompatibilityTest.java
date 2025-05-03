@@ -298,7 +298,8 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
             INITIATE_TASK_MESSAGE_NAME,
             expectedProcessVariables,
             null,
-            false
+            false,
+            "wa"
         );
     }
 
