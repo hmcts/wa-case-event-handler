@@ -26,7 +26,7 @@ class CaseEventMessageMapperTest {
     }
 
     @Test
-    void shouldMapEntity() throws Exception {
+    void should_map_entity() throws Exception {
         CaseEventMessageEntity entity = new CaseEventMessageEntity();
 
         entity.setMessageId("messageId_123");
@@ -60,12 +60,12 @@ class CaseEventMessageMapperTest {
     }
 
     @Test
-    void shouldMapNullEntity() {
+    void should_map_null_entity() {
         assertNull(mapper.mapToCaseEventMessage(null));
     }
 
     @Test
-    void shouldMapEntityToProblemMessage() throws Exception {
+    void should_map_entity_to_problem_message() throws Exception {
         CaseEventMessageEntity entity = new CaseEventMessageEntity();
 
         entity.setMessageId("messageId_123");
@@ -76,13 +76,13 @@ class CaseEventMessageMapperTest {
         entity.setState(MessageState.NEW);
         entity.setMessageProperties(objectMapper.readValue("{\"Property1\":\"Test\"}", JsonNode.class));
         entity.setMessageContent("{\"EventInstanceId\":\"EventInstanceId_123\", "
-                                 + "\"EventTimeStamp\":\"2023-05-10T08:25:51.713379525\","
-                                 + "\"CaseId\":\"CaseId_123\","
-                                 + "\"CaseTypeId\":\"CaseType_123\","
-                                 + "\"EventId\":\"EventId_123\","
-                                 + "\"PreviousStateId\":\"\","
-                                 + "\"NewstateId\":\"NewstateId_123\","
-                                 + "\"UserId\":\"UserId_123\"}");
+                                     + "\"EventTimeStamp\":\"2023-05-10T08:25:51.713379525\","
+                                     + "\"CaseId\":\"CaseId_123\","
+                                     + "\"CaseTypeId\":\"CaseType_123\","
+                                     + "\"EventId\":\"EventId_123\","
+                                     + "\"PreviousStateId\":\"\","
+                                     + "\"NewstateId\":\"NewstateId_123\","
+                                     + "\"UserId\":\"UserId_123\"}");
         entity.setReceived(RECEIVED);
         entity.setDeliveryCount(1);
         entity.setHoldUntil(RECEIVED.plusDays(2));
@@ -99,7 +99,29 @@ class CaseEventMessageMapperTest {
     }
 
     @Test
-    void shouldMapNullEntityToProblemMessage() {
+    void should_map_null_entity_to_problem_message() {
         assertNull(mapper.mapToProblemMessage(null));
     }
+
+    @Test
+    void should_return_null_when_messageContent_is_null() {
+        CaseEventMessageEntity entity = new CaseEventMessageEntity();
+        entity.setMessageContent(null);
+
+        String caseTypeId = mapper.mapToProblemMessage(entity).getCaseTypeId();
+
+        assertNull(caseTypeId);
+    }
+
+    @Test
+    void should_return_null_when_messageContent_is_blank() {
+        CaseEventMessageEntity entity = new CaseEventMessageEntity();
+        entity.setMessageContent(" ");
+
+        String caseTypeId = mapper.mapToProblemMessage(entity).getCaseTypeId();
+
+        assertNull(caseTypeId);
+
+    }
+
 }

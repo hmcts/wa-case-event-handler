@@ -19,7 +19,6 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import javax.sql.DataSource;
 
 import static java.util.Collections.singletonList;
@@ -59,9 +58,9 @@ class CaseEventMessageErrorHandlingRepositoryTest {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(db);
 
         String truncateTablesQuery =
-                "START TRANSACTION;\n"
-                + "TRUNCATE TABLE WA_CASE_EVENT_MESSAGES CASCADE;"
-                + "\nCOMMIT;";
+                "START TRANSACTION;"
+                   + "TRUNCATE TABLE WA_CASE_EVENT_MESSAGES CASCADE;"
+                   + "COMMIT;";
         jdbcTemplate.execute(truncateTablesQuery);
 
         jdbcTemplate.execute("ALTER SEQUENCE WA_CASE_EVENT_MESSAGES_SEQUENCE_SEQ RESTART WITH 1");
@@ -99,7 +98,7 @@ class CaseEventMessageErrorHandlingRepositoryTest {
 
         List<String> messageIds = allMessagesInNewState.stream()
                 .map(CaseEventMessageEntity::getMessageId)
-                .collect(Collectors.toList());
+                .toList();
 
         transactionTemplate.execute(status -> errorHandlingRepository.updateMessageState(MessageState.PROCESSED,
                 messageIds));

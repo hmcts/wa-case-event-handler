@@ -5,7 +5,7 @@ import pl.pojo.tester.api.assertion.Method;
 
 import static pl.pojo.tester.api.assertion.Assertions.assertPojoMethodsFor;
 
-public class CountryHolidayDatesTest {
+class CountryHolidayDatesTest {
 
     private final Class classToTest = CountryHolidayDates.class;
 

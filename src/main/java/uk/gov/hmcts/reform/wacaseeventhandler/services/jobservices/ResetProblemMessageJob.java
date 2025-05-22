@@ -10,7 +10,6 @@ import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName.RESET_PROBLEM_MESSAGES;
 
@@ -47,7 +46,7 @@ public class ResetProblemMessageJob implements MessageJob {
         List<String> messagesToReset = messages.stream()
             .filter(msg -> MessageState.UNPROCESSABLE.equals(msg.getState()))
             .map(CaseEventMessageEntity::getMessageId)
-            .collect(Collectors.toList());
+            .toList();
 
         if (messagesToReset.isEmpty()) {
             log.info("{} There is no any UNPROCESSABLE message to reset", RESET_PROBLEM_MESSAGES.name());

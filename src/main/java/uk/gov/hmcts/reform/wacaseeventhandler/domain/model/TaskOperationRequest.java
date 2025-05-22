@@ -19,11 +19,11 @@ import java.util.List;
 @ToString
 public class TaskOperationRequest {
 
-    @Schema(required = true)
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED)
     private TaskOperation operation;
 
     @Schema(
-        required = true,
+        requiredMode = Schema.RequiredMode.REQUIRED,
         description = "https://tools.hmcts.net/confluence/display/WA/WA+Task+Management+API+Guidelines")
     @NotEmpty(message = "At least one task_filter element is required.")
     private List<@Valid TaskFilter<?>> taskFilter;

@@ -21,7 +21,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.sql.DataSource;
 
@@ -62,9 +61,9 @@ class CaseEventMessageRepositoryTest {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(db);
 
         String truncateTablesQuery =
-                "START TRANSACTION;\n"
-                + "TRUNCATE TABLE WA_CASE_EVENT_MESSAGES CASCADE;"
-                + "\nCOMMIT;";
+                "START TRANSACTION;"
+                    + "TRUNCATE TABLE WA_CASE_EVENT_MESSAGES CASCADE;"
+                    + "COMMIT;";
         jdbcTemplate.execute(truncateTablesQuery);
 
         jdbcTemplate.execute("ALTER SEQUENCE WA_CASE_EVENT_MESSAGES_SEQUENCE_SEQ RESTART WITH 1");
@@ -203,7 +202,7 @@ class CaseEventMessageRepositoryTest {
 
         List<String> messageIds = allMessagesInNewState.stream()
                 .map(CaseEventMessageEntity::getMessageId)
-                .collect(Collectors.toList());
+                .toList();
 
         transactionTemplate.execute(status -> caseEventMessageRepository.updateMessageState(MessageState.PROCESSED,
                 messageIds));
@@ -371,7 +370,7 @@ class CaseEventMessageRepositoryTest {
                     expectedSequenceOrder.add(valueOf(num + 1));
                     return createCaseEventMessageEntity();
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         caseEventMessageRepository.saveAll(collect);
 
@@ -381,6 +380,6 @@ class CaseEventMessageRepositoryTest {
         assertEquals(expectedSequenceOrder,
                 caseEventMessageEntities.stream()
                         .map(CaseEventMessageEntity::getSequence)
-                        .collect(Collectors.toList()));
+                        .toList());
     }
 }

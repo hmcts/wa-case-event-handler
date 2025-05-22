@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
+import com.launchdarkly.sdk.LDContext;
 import com.launchdarkly.sdk.LDUser;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import lombok.extern.slf4j.Slf4j;
@@ -22,38 +23,26 @@ public class LaunchDarklyFeatureFlagProvider {
         this.ldClient = ldClient;
     }
 
-    private LDUser createLaunchDarklyUser(String userId) {
-        return new LDUser.Builder(APPLICATION_NAME)
+    private LDContext createLaunchDarklyContext(String userId) {
+        LDUser ldUser = new LDUser.Builder(APPLICATION_NAME)
             .name(userId)
             .firstName(FIRST_NAME)
             .lastName(LAST_NAME)
             .build();
-    }
-
-    private LDUser createLaunchDarklyUser() {
-        return new LDUser.Builder(APPLICATION_NAME)
-                .firstName(FIRST_NAME)
-                .lastName(LAST_NAME)
-                .build();
-    }
-
-    public boolean getBooleanValue(FeatureFlag featureFlag) {
-        requireNonNull(featureFlag, MSG_NULL_FEATURE_FLAG);
-        log.trace("Attempting to retrieve feature flag '{}' as Boolean", featureFlag.getKey());
-        return ldClient.boolVariation(featureFlag.getKey(), createLaunchDarklyUser(), false);
+        return LDContext.fromUser(ldUser);
     }
 
     public boolean getBooleanValue(FeatureFlag featureFlag, String userId) {
         requireNonNull(featureFlag, MSG_NULL_FEATURE_FLAG);
         requireNonNull(userId, "userId is null");
         log.trace("Attempting to retrieve feature flag '{}' as Boolean", featureFlag.getKey());
-        return ldClient.boolVariation(featureFlag.getKey(), createLaunchDarklyUser(userId), false);
+        return ldClient.boolVariation(featureFlag.getKey(), createLaunchDarklyContext(userId), false);
     }
 
     public String getStringValue(FeatureFlag featureFlag, String userId) {
         requireNonNull(featureFlag, MSG_NULL_FEATURE_FLAG);
         requireNonNull(userId, "userId is null");
         log.trace("Attempting to retrieve feature flag '{}' as String", featureFlag.getKey());
-        return ldClient.stringVariation(featureFlag.getKey(), createLaunchDarklyUser(userId), "");
+        return ldClient.stringVariation(featureFlag.getKey(), createLaunchDarklyContext(userId), "");
     }
 }
