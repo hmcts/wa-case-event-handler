@@ -41,7 +41,6 @@ idam:
   scope: "openid profile roles"
   api:
     baseUrl: ${IDAM_URL:http://sidam-api}
-  test-account-pw: ${IDAM_TEST_ACCOUNT_PW:password}
 
 
 wa-workflow-api:

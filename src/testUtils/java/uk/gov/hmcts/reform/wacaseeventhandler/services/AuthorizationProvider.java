@@ -42,7 +42,7 @@ public class AuthorizationProvider {
     protected String idamClientSecret;
     @Autowired
     private IdamWebApi idamWebApi;
-    @Value("${idam.test-account-pw}")
+    @Value("${idam.test-account-pw:default}")
     protected String idamTestAccountPassword;
 
     @Autowired
