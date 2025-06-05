@@ -32,8 +32,6 @@ java:
           alias: POSTGRES_NAME
         - name: wa-idam-client-secret
           alias: WA_IDAM_CLIENT_SECRET
-        - name: idam-test-account-pw
-          alias: IDAM_TEST_ACCOUNT_PW
 
   environment:
     S2S_URL: "http://rpe-service-auth-provider-{{ .Values.global.environment }}.service.core-compute-{{ .Values.global.environment }}.internal"
