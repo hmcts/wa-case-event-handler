@@ -16,6 +16,7 @@ def secrets = [
     secret('idam-redirect-uri', 'IA_IDAM_REDIRECT_URI'),
     secret('idam-secret', 'IA_IDAM_SECRET'),
     secret('wa-idam-client-secret', 'WA_IDAM_CLIENT_SECRET'),
+    secret('idam-test-account-pw', 'IDAM_TEST_ACCOUNT_PW'),
   ],
   's2s-${env}': [
     secret('microservicekey-wa-case-event-handler', 'S2S_SECRET_CASE_EVENT_HANDLER')
