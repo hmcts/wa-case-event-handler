@@ -42,6 +42,8 @@ public class AuthorizationProvider {
     protected String idamClientSecret;
     @Autowired
     private IdamWebApi idamWebApi;
+    @Value("${idam.test.test-account-pw:default}")
+    protected String idamTestAccountPassword;
 
     @Autowired
     private IdamServiceApi idamServiceApi;
@@ -156,7 +158,6 @@ public class AuthorizationProvider {
 
     private TestAccount generateIdamTestAccount(String emailPrefix, List<RoleCode> requiredRoles) {
         String email = emailPrefix + UUID.randomUUID() + "@fake.hmcts.net";
-        String password = "London01";
 
         log.info("Attempting to create a new test account {}", email);
 
@@ -164,7 +165,7 @@ public class AuthorizationProvider {
 
         Map<String, Object> body = new ConcurrentHashMap<>();
         body.put("email", email);
-        body.put("password", password);
+        body.put("password", idamTestAccountPassword);
         body.put("forename", "WAFTAccount");
         body.put("surname", "Functional");
         body.put("roles", requiredRoles);
@@ -173,6 +174,6 @@ public class AuthorizationProvider {
         idamServiceApi.createTestUser(body);
 
         log.info("Test account created successfully");
-        return new TestAccount(email, password);
+        return new TestAccount(email, idamTestAccountPassword);
     }
 }
