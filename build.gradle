@@ -296,13 +296,15 @@ dependencyManagement {
 repositories {
   mavenLocal()
   mavenCentral()
-  maven { url 'https://jitpack.io' }
+  maven {
+    url 'https://pkgs.dev.azure.com/hmcts/Artifacts/_packaging/hmcts-lib/maven/v1'
+  }
 }
 
 def versions = [
   junit        : '5.12.2',
   junitPlatform: '1.12.2',
-  reformLogging: '6.1.7',
+  reformLogging: '6.1.9',
   springDoc    : '2.6.0',
   springBoot   : '3.3.0',
   serenity     : '3.9.8',
