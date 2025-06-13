@@ -360,7 +360,9 @@ dependencies {
 
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: versions.tomcat
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: versions.tomcat
-  implementation group: 'org.camunda.bpm', name: 'camunda-external-task-client', version: '7.21.0'
+  implementation group: 'org.camunda.bpm.springboot',
+    name: 'camunda-bpm-spring-boot-starter-external-task-client',
+    version: '7.21.0'
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '6.3.0'
   implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.17.0'
   implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.1.8'
