@@ -122,7 +122,7 @@ class MessageProcessorTest {
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
             scripts = {"classpath:sql/delete_from_case_event_messages.sql",
-                    "classpath:sql/insert_case_event_messages_for_processing_no_ready_msgs.sql"})
+                "classpath:sql/insert_case_event_messages_for_processing_no_ready_msgs.sql"})
     @Test
     void should_not_process_messages_if_launch_darkly_feature_flag_disabled() throws JsonProcessingException {
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(false);
@@ -151,7 +151,7 @@ class MessageProcessorTest {
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
             scripts = {"classpath:sql/delete_from_case_event_messages.sql",
-                    "classpath:sql/insert_case_event_messages_for_processing_no_ready_msgs.sql"})
+                "classpath:sql/insert_case_event_messages_for_processing_no_ready_msgs.sql"})
     @Test
     void should_not_process_messages_if_no_messages_in_ready_state_exist_in_database() throws JsonProcessingException {
         await()
@@ -172,7 +172,7 @@ class MessageProcessorTest {
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
             scripts = {"classpath:sql/delete_from_case_event_messages.sql",
-                    "classpath:sql/insert_case_event_messages_for_processing_ready_msgs.sql"})
+                "classpath:sql/insert_case_event_messages_for_processing_ready_msgs.sql"})
     @ParameterizedTest
     @CsvSource(value = {"500", "502", "503", "504"})
     void should_update_hold_until_and_retry_count_for_ready_messages_when_retryable_exception_occurs(int status)
@@ -196,7 +196,7 @@ class MessageProcessorTest {
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
             scripts = {"classpath:sql/delete_from_case_event_messages.sql",
-                    "classpath:sql/insert_case_event_messages_for_processing_ready_msgs.sql"})
+                "classpath:sql/insert_case_event_messages_for_processing_ready_msgs.sql"})
     @ParameterizedTest
     @MethodSource("exceptionProvider")
     void should_set_message_state_to_unprocessable_when_non_retryable_error_occurs(Class<? extends Throwable> ex)
@@ -220,7 +220,7 @@ class MessageProcessorTest {
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
             scripts = {"classpath:sql/delete_from_case_event_messages.sql",
-                    "classpath:sql/insert_case_event_messages_for_processing_ready_msgs.sql"})
+                "classpath:sql/insert_case_event_messages_for_processing_ready_msgs.sql"})
     @Test
     void should_set_message_state_to_unprocessable_when_exception_occurs() throws JsonProcessingException {
         doThrow(JsonProcessingException.class).when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
@@ -235,7 +235,7 @@ class MessageProcessorTest {
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
             scripts = {"classpath:sql/delete_from_case_event_messages.sql",
-                    "classpath:sql/insert_case_event_messages_for_processing_ready_msgs.sql"})
+                "classpath:sql/insert_case_event_messages_for_processing_ready_msgs.sql"})
     @Test
     void should_set_message_state_to_processed_when_message_processed_succesfully() throws JsonProcessingException {
         doNothing().when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
@@ -250,7 +250,7 @@ class MessageProcessorTest {
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
             scripts = {"classpath:sql/delete_from_case_event_messages.sql",
-                    "classpath:sql/insert_case_event_messages_for_processing_from_dlq.sql"})
+                "classpath:sql/insert_case_event_messages_for_processing_from_dlq.sql"})
     @Test
     void should_set_message_state_to_processed_when_message_exist_ltr_than_30min_and_dlq_message_processed_succesfully()
         throws JsonProcessingException {

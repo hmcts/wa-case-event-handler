@@ -133,6 +133,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
     }
 
     /**
+     * SQL query to lock and retrieve the next case event message.
      * CaseEventMessageRepository.LOCK_AND_GET_NEXT_MESSAGE_SQL
      * or exists (select 1 from wa_case_event_messages d "
      *     where d.event_timestamp > msg.event_timestamp + interval '30 minutes' "
@@ -192,6 +193,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
     }
 
     /**
+     * SQL query to find the next message for a case with a more recent event timestamp.
      * CaseEventMessageRepository.LOCK_AND_GET_NEXT_MESSAGE_SQL
      * exists (select 1 from wa_case_event_messages d "
      *     where d.case_id = msg.case_id "

@@ -36,11 +36,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("db")
 @TestPropertySource(properties = {"azure.servicebus.enableASB-DLQ=true",
-        "azure.servicebus.connection-string="
-                + "Endpoint=sb://REPLACE_ME/;SharedAccessKeyName=REPLACE_ME;SharedAccessKey=REPLACE_ME",
-        "azure.servicebus.topic-name=test",
-        "azure.servicebus.ccd-case-events-subscription-name=test",
-        "azure.servicebus.retry-duration=2"})
+    "azure.servicebus.connection-string="
+        + "Endpoint=sb://REPLACE_ME/;SharedAccessKeyName=REPLACE_ME;SharedAccessKey=REPLACE_ME",
+    "azure.servicebus.topic-name=test",
+    "azure.servicebus.ccd-case-events-subscription-name=test",
+    "azure.servicebus.retry-duration=2"})
 public class MessageReadinessTest {
 
     private static final boolean DLQ_EMPTY = true;

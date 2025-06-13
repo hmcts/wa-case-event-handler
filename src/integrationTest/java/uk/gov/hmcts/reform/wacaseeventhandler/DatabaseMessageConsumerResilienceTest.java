@@ -37,7 +37,7 @@ import static org.mockito.Mockito.lenient;
 @ExtendWith(OutputCaptureExtension.class)
 @TestPropertySource(properties = {"azure.servicebus.enableASB-DLQ=true",
     "azure.servicebus.connection-string="
-    + "Endpoint=sb://REPLACE_ME/;SharedAccessKeyName=REPLACE_ME;SharedAccessKey=REPLACE_ME",
+        + "Endpoint=sb://REPLACE_ME/;SharedAccessKeyName=REPLACE_ME;SharedAccessKey=REPLACE_ME",
     "azure.servicebus.topic-name=test",
     "azure.servicebus.ccd-case-events-subscription-name=test",
     "azure.servicebus.retry-duration=5",
