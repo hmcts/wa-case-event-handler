@@ -3,8 +3,8 @@ plugins {
   id 'checkstyle'
   id 'pmd'
   id 'jacoco'
-  id 'io.spring.dependency-management' version '1.1.6'
-  id 'org.springframework.boot' version '3.3.4'
+  id 'io.spring.dependency-management' version '1.1.7'
+  id 'org.springframework.boot' version '3.5.0'
   id 'org.owasp.dependencycheck' version '12.1.1'
   id 'com.github.ben-manes.versions' version '0.51.0'
   id 'uk.gov.hmcts.java' version '0.12.63'
@@ -268,7 +268,7 @@ dependencyManagement {
       entry 'selenium-support'
     }
 
-    dependencySet(group: 'org.springframework.security', version: '6.0.8') {
+    dependencySet(group: 'org.springframework.security', version: '6.5.0') {
       entry 'spring-security-core'
       entry 'spring-security-acl'
       entry 'spring-security-aspects'
@@ -304,7 +304,7 @@ def versions = [
   junitPlatform: '1.12.2',
   reformLogging: '6.1.7',
   springDoc    : '2.6.0',
-  springBoot   : '3.3.0',
+  springBoot   : '3.5.0',
   serenity     : '3.9.8',
   gradlePitest  : '1.15.0',
   pitest       : '1.19.4',
@@ -312,7 +312,7 @@ def versions = [
   logbook      : '3.10.0',
   tomcat       : '10.1.33',
   log4j        : '2.23.1',
-  retry        : '2.0.7'
+  retry        : '2.0.12'
 ]
 
 ext.libraries = [
@@ -339,7 +339,7 @@ dependencies {
   implementation group: 'org.springframework.security', name: 'spring-security-rsa', version: '1.1.5'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: versions.springBoot
   implementation group: 'org.springframework.retry', name: 'spring-retry', version: versions.retry
-  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '4.1.1'
+  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '4.3.0'
 
   implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.3.1'
 
