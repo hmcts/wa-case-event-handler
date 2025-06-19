@@ -300,8 +300,8 @@ repositories {
 }
 
 def versions = [
-  junit        : '5.12.2',
-  junitPlatform: '1.12.2',
+  junit        : '5.13.1',
+  junitPlatform: '1.13.1',
   reformLogging: '6.1.7',
   springDoc    : '2.6.0',
   springBoot   : '3.3.0',
@@ -384,8 +384,8 @@ dependencies {
   }
   testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '5.5.0'
   testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
-  testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.21.0'
-  testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.21.0'
+  testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.21.2'
+  testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.21.2'
 
   testImplementation group: 'org.pitest', name: 'pitest', version: versions.pitest
   testImplementation group: 'info.solidsoft.gradle.pitest', name: 'gradle-pitest-plugin', version: versions.gradlePitest
