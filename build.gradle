@@ -224,7 +224,7 @@ dependencyManagement {
     dependency group: 'commons-io', name: 'commons-io', version: '2.18.0'
 
     //CVE-2021-27568
-    dependency group: 'net.minidev', name: 'json-smart', version: '2.5.0'
+    dependency group: 'net.minidev', name: 'json-smart', version: '2.5.2'
 
     //CVE-2021-28170
     dependency group: 'org.glassfish', name: 'jakarta.el', version: '4.0.2'
