@@ -230,27 +230,8 @@ class CancellationCaseEventHandlerTest {
             .sendMessage(eq(SERVICE_AUTH_TOKEN), any());
     }
 
-    private EvaluateDmnRequest buildEvaluateDmnRequest() {
-        Map<String, DmnValue<?>> variables = Map.of(
-            "event", dmnStringValue("some event id"),
-            "state", dmnStringValue("some post state"),
-            "fromState", dmnStringValue("some previous state")
-        );
-
-        return new EvaluateDmnRequest(variables);
-    }
-
-    private EvaluateDmnRequest buildEvaluateUpdateDmnRequest() {
-        Map<String, DmnValue<?>> variables = Map.of(
-            "event", dmnStringValue("UPDATE"),
-            "state", dmnStringValue(""),
-            "fromState", dmnStringValue("")
-        );
-
-        return new EvaluateDmnRequest(variables);
-    }
-
-    private void assertSendMessageRequestOldFormat(
+    @Test
+    void assertSendMessageRequestOldFormat(
         SendMessageRequest sendMessageRequest,
         String caseReference,
         DmnValue<String> categories
@@ -265,6 +246,16 @@ class CancellationCaseEventHandlerTest {
         assertThat(sendMessageRequest.getMessageName()).isEqualTo(CANCEL_TASKS_MESSAGE_NAME);
         assertThat(sendMessageRequest.getCorrelationKeys()).isEqualTo(expectedCorrelationKeys);
         assertTrue(sendMessageRequest.isAll());
+    }
+
+    private EvaluateDmnRequest buildEvaluateDmnRequest() {
+        Map<String, DmnValue<?>> variables = Map.of(
+            "event", dmnStringValue("some event id"),
+            "state", dmnStringValue("some post state"),
+            "fromState", dmnStringValue("some previous state")
+        );
+
+        return new EvaluateDmnRequest(variables);
     }
 
     private void assertSendMessageRequest(

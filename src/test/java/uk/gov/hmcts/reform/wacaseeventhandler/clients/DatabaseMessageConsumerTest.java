@@ -90,7 +90,7 @@ class DatabaseMessageConsumerTest {
     private ArgumentCaptor<Integer> retryCountCaptor;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         transactionTemplate.setTransactionManager(platformTransactionManager);
         lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
     }
