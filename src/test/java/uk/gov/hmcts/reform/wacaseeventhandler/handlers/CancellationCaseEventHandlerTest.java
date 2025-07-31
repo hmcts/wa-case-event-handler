@@ -250,24 +250,6 @@ class CancellationCaseEventHandlerTest {
         return new EvaluateDmnRequest(variables);
     }
 
-    @Test
-    void assertSendMessageRequestOldFormat(
-        SendMessageRequest sendMessageRequest,
-        String caseReference,
-        DmnValue<String> categories
-    ) {
-
-        Map<String, DmnValue<?>> expectedCorrelationKeys = new HashMap<>();
-        expectedCorrelationKeys.put("caseId", dmnStringValue(caseReference));
-        if (categories != null && categories.getValue() != null) {
-            expectedCorrelationKeys.put("taskCategory", categories);
-        }
-
-        assertThat(sendMessageRequest.getMessageName()).isEqualTo(CANCEL_TASKS_MESSAGE_NAME);
-        assertThat(sendMessageRequest.getCorrelationKeys()).isEqualTo(expectedCorrelationKeys);
-        assertTrue(sendMessageRequest.isAll());
-    }
-
     private void assertSendMessageRequest(
         SendMessageRequest sendMessageRequest,
         String caseReference,
