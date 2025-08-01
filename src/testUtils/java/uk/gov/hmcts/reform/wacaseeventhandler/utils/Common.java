@@ -473,6 +473,13 @@ public class Common {
             authenticationHeaders
         ).then().extract().body().path("id");
 
+        if (null == processIds) {
+            log.info("No process instances found for caseId: {}", caseId);
+            return Set.of();
+        }
+
+        log.info("Found {} process instances for caseId: {}", processIds.size(), caseId);
+
         return Set.copyOf(processIds);
     }
 
@@ -485,6 +492,8 @@ public class Common {
     }
 
     private void deleteProcessInstance(Headers authenticationHeaders, String processId) {
+
+        log.info("Deleting process instance with ID: {}", processId);
 
         Map<String, Object> body = Map.of(
             "deleteReason", "clean up running process instances",
