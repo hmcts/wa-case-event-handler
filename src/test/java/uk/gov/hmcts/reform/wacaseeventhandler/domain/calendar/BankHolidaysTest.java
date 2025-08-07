@@ -23,13 +23,12 @@ class BankHolidaysTest {
         ObjectMapper om = new ObjectMapper();
         BankHolidays bankHolidays = om.readValue(new URI(DEFAULT_NON_WORKING_CALENDAR).toURL(), BankHolidays.class);
         assertEquals("england-and-wales", bankHolidays.getDivision());
-        assertTrue(bankHolidays.getEvents().size() > 0);
-        assertNotEquals(0, bankHolidays.getEvents().get(0).hashCode());
-        assertNotNull(bankHolidays.getEvents().get(0));
-        assertTrue(bankHolidays.getEvents().get(0).equals(bankHolidays.getEvents().get(0)));
+        assertFalse(bankHolidays.getEvents().isEmpty());
+        assertNotEquals(0, bankHolidays.getEvents().getFirst().hashCode());
+        assertNotNull(bankHolidays.getEvents().getFirst());
 
-        assertFalse(bankHolidays.getEvents().get(0).equals(null));
-        assertFalse(bankHolidays.getEvents().get(0).equals(new Object()));
+        assertNotEquals(null, bankHolidays.getEvents().getFirst());
+        assertNotEquals(new Object(), bankHolidays.getEvents().getFirst());
 
         for (BankHolidays.EventDate eventDate: bankHolidays.getEvents()) {
             assertTrue(isValid(eventDate.getDate()));

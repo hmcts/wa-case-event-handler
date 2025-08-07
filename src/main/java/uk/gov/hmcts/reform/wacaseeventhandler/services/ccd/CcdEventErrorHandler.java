@@ -60,7 +60,7 @@ public class CcdEventErrorHandler {
         log.error("Unable to parse incoming message with id '{}'", message.getMessageId(), ex);
         String messageData = new String(message.getBody().toBytes());
 
-        if (StringUtils.isEmpty(ex.getMessage())) {
+        if (StringUtils.hasLength(ex.getMessage())) {
             receiver.deadLetter(message, deadLetterService
                 .handleApplicationError(messageData, "Unknown Error"));
         } else {
