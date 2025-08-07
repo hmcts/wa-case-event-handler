@@ -26,7 +26,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -127,7 +126,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         if (additionalData != null) {
             return objectMapper.convertValue(additionalData, Map.class);
         }
-        return Collections.emptyMap();
+        return null;
     }
 
     @SuppressWarnings("unchecked")
