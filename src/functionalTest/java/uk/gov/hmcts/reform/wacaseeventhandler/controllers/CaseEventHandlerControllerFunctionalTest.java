@@ -37,6 +37,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
@@ -1188,15 +1189,24 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
     }
 
     public void completeTask(String taskId, String status) {
-        Map<String,Integer> body = emptyMap();
+        Map<String,Object> body = emptyMap();
         log.info(String.format("Completing task : %s", taskId));
-        given()
+        Response response = given()
             .header(SERVICE_AUTHORIZATION, s2sToken)
             .accept(APPLICATION_JSON_VALUE)
             .contentType(APPLICATION_JSON_VALUE)
             .body(body)
             .when()
             .post(camundaUrl + "/task/{task-id}/complete", taskId);
+
+        assertTrue(
+            HttpStatus.valueOf(response.getStatusCode()).is2xxSuccessful(),
+            String.format("Unexpected response status: %d (%s).Headers: %s Body: %s",
+                          response.getStatusCode(),
+                          HttpStatus.valueOf(response.getStatusCode()).name(),
+                          response.getHeaders().toString(),
+                          response.getBody().asString())
+        );
 
         assertTaskDeleteReason(taskId, status);
     }
