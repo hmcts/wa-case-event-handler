@@ -39,7 +39,7 @@ public class CalendarCacheManagerTest {
     @DisplayName("(Access calendars successfully and retrieve results which are also cached)")
     @Test
     public void shouldCacheThePublicHolidayCalendarResponse() {
-        String givenDelayUntilOrigin = LocalDate.of(2022, 12, 26).format(DATE_FORMATTER);
+        String givenDelayUntilOrigin = LocalDate.of(2026, 12, 25).format(DATE_FORMATTER);
 
         DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
             .delayUntilOrigin(givenDelayUntilOrigin + "T00:30")
@@ -52,14 +52,14 @@ public class CalendarCacheManagerTest {
             .build();
 
         LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
-        assertThat(localDateTime).isEqualTo("2023-01-03T00:30");
+        assertThat(localDateTime).isEqualTo("2027-01-04T00:30");
         verify(publicHolidayService, times(1)).getPublicHolidays(DEFAULT_NON_WORKING_CALENDAR);
     }
 
     @DisplayName("(Access calendars successfully if cached information is not available)")
     @Test
     public void shouldCallHolidayServiceIfCashExpires() {
-        String givenDelayUntilOrigin = LocalDate.of(2022, 12, 26).format(DATE_FORMATTER);
+        String givenDelayUntilOrigin = LocalDate.of(2026, 12, 25).format(DATE_FORMATTER);
 
         TestConfiguration.fakeTicker.advance(25, TimeUnit.HOURS);
 
@@ -74,7 +74,7 @@ public class CalendarCacheManagerTest {
             .build();
 
         LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
-        assertThat(localDateTime).isEqualTo("2023-01-03T00:30");
+        assertThat(localDateTime).isEqualTo("2027-01-04T00:30");
         verify(publicHolidayService, times(1)).getPublicHolidays(DEFAULT_NON_WORKING_CALENDAR);
     }
 
