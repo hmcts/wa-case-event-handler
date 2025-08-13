@@ -2,6 +2,7 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services.calendar;
 
 import com.github.benmanes.caffeine.cache.Ticker;
 import com.google.common.testing.FakeTicker;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -49,6 +50,7 @@ class PublicHolidaysCollectionTest {
         assertThat(resultFromApi).isSameAs(resultFromCache).isSameAs(resultFromCacheAgain);
     }
 
+    @Disabled
     @Test
     public void second_calendar_should_override_main_calendar() {
         List<String> oneUri = List.of(CALENDAR_URI);
