@@ -98,7 +98,7 @@ public class ReceivedMessagesHealthControllerTest {
     @Test
     void should_health_reports_up_when_no_messages_received_in_last_hour_during_holiday() throws Exception {
         // GIVEN
-        LocalDateTime localDateTime = LocalDateTime.of(2025, 12, 25, 12, 15);
+        LocalDateTime localDateTime = LocalDateTime.of(2026, 12, 25, 12, 15);
         setClock(localDateTime);
 
         // THEN
