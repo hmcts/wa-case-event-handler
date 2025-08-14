@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.calendar;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -306,7 +305,6 @@ public class DelayUntilConfiguratorTest {
         assertThat(localDateTime).isEqualTo("2023-03-30T01:30");
     }
 
-    @Disabled
     @DisplayName("multiple non working calendars URLs")
     @Test
     public void shouldCalculateDateWhenMultipleCalendarsAreProvided() {
