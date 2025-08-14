@@ -61,7 +61,7 @@ class PublicHolidaysCollectionTest {
             "https://raw.githubusercontent.com/hmcts/wa-task-management-api/master/src/test/resources/override-working-day-calendar.json"
         );
         Set<LocalDate> twoCalendarResult = publicHolidaysCollection.getPublicHolidays(twoUris);
-        assertThat(twoCalendarResult.contains(LocalDate.of(2022, 5, 25))).isFalse();
+        assertThat(twoCalendarResult.contains(LocalDate.of(2026, 5, 25))).isFalse();
         assertThat(twoCalendarResult.contains(LocalDate.of(2026, 8, 31))).isTrue();
     }
 
