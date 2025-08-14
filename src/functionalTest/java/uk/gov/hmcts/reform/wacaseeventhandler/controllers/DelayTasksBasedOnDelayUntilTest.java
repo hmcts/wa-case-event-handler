@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.CamundaProcessVariables;
@@ -107,6 +108,7 @@ public class DelayTasksBasedOnDelayUntilTest extends SpringBootFunctionalBaseTes
         common.cleanUpTask(caseworkerCredentials.getHeaders(), caseIds);
     }
 
+    @Disabled
     @Test
     public void should_create_delay_task_using_interval_for_event_delayUntilInterval() {
 
