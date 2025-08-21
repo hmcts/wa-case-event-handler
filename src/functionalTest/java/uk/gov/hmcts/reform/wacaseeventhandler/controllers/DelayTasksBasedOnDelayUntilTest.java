@@ -4,7 +4,6 @@ import com.azure.messaging.servicebus.ServiceBusMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.reform.wacaseeventhandler.SpringBootFunctionalBaseTest;
@@ -108,7 +107,6 @@ public class DelayTasksBasedOnDelayUntilTest extends SpringBootFunctionalBaseTes
         common.cleanUpTask(caseworkerCredentials.getHeaders(), caseIds);
     }
 
-    @Ignore
     @Test
     public void should_create_delay_task_using_interval_for_event_delayUntilInterval() {
 
@@ -129,7 +127,7 @@ public class DelayTasksBasedOnDelayUntilTest extends SpringBootFunctionalBaseTes
             .forEach((key, value) -> log.info("Process variable is: {}, {}", key, value.getValue()));
 
         Map<String, DmnValue<?>> processVariables = camundaProcessVariables.getProcessVariablesMap();
-        assertThat(processVariables.get("delayUntil").getValue()).isEqualTo("2023-01-03T18:00:00");
+        assertThat(processVariables.get("delayUntil").getValue()).isEqualTo("2027-01-03T18:00:00");
 
     }
 
