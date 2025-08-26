@@ -310,7 +310,7 @@ def versions = [
   springBoot   : '3.3.0',
   serenity     : '3.9.8',
   gradlePitest  : '1.15.0',
-  pitest       : '1.19.4',
+  pitest       : '1.20.2',
   sonarPitest   : '0.5',
   logbook      : '3.10.0',
   tomcat       : '10.1.44',
