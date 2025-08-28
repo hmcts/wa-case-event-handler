@@ -312,7 +312,7 @@ public class DelayUntilConfiguratorTest {
     @DisplayName("multiple non working calendars URLs")
     @Test
     public void shouldCalculateDateWhenMultipleCalendarsAreProvided() {
-        String givenDelayUntilOrigin = LocalDate.of(2022, 12, 26).format(DATE_FORMATTER);
+        String givenDelayUntilOrigin = LocalDate.of(2026, 12, 25).format(DATE_FORMATTER);
 
         //Clocks go forward an hour at 1:00am
         DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
@@ -327,9 +327,8 @@ public class DelayUntilConfiguratorTest {
 
         LocalDateTime localDateTime = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
 
-
-        //27-12-2022 is holiday in england and wales and 30-12-2022 is holiday in second json
-        assertThat(localDateTime).isEqualTo("2023-01-04T00:30");
+        //25-12-2026 is holiday in england and wales and 2026-12-30 is a non-working day in override calendar.
+        assertThat(localDateTime).isEqualTo("2027-01-05T00:30");
     }
 
     @Test
