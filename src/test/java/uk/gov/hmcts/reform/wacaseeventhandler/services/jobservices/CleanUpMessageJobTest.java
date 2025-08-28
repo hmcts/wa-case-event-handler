@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,8 +19,9 @@ import static java.util.Collections.emptyList;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doReturn;
@@ -74,7 +74,7 @@ class CleanUpMessageJobTest {
 
         List<String> response = cleanUpMessageJob.run();
 
-        Assertions.assertTrue(response.equals(emptyList()));
+        assertEquals(emptyList(), response);
 
         verify(caseEventMessageRepository, times(1))
             .removeOldMessages(
@@ -105,7 +105,7 @@ class CleanUpMessageJobTest {
 
         List<String> response = cleanUpMessageJob.run();
 
-        Assertions.assertTrue(response.equals(emptyList()));
+        assertEquals(emptyList(), response);
 
         verify(caseEventMessageRepository, times(1))
             .removeOldMessages(
@@ -124,12 +124,8 @@ class CleanUpMessageJobTest {
             .pollInterval(100, MILLISECONDS)
             .atMost(5, SECONDS)
             .untilAsserted(() -> {
-                Assertions.assertTrue(output.getOut().contains(expectedLogMessage));
-                Assertions.assertTrue(output.getOut().contains("CLEAN_UP_MESSAGES job completed"));
+                assertTrue(output.getOut().contains(expectedLogMessage));
+                assertTrue(output.getOut().contains("CLEAN_UP_MESSAGES job completed"));
             });
     }
-
-
-
-
 }

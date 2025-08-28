@@ -17,7 +17,7 @@ class DelayUntilDateTimeCalculatorTest {
     private DelayUntilDateTimeCalculator delayUntilDateTimeCalculator;
 
     @BeforeEach
-    public void before() {
+    void before() {
         delayUntilDateTimeCalculator = new DelayUntilDateTimeCalculator();
     }
 
