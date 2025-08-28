@@ -230,7 +230,7 @@ dependencyManagement {
     dependency group: 'org.glassfish', name: 'jakarta.el', version: '4.0.2'
 
     //CVE-2021-42550
-    dependencySet(group: 'ch.qos.logback', version: '1.5.12') {
+    dependencySet(group: 'ch.qos.logback', version: '1.5.18') {
       entry 'logback-classic'
       entry 'logback-core'
     }
@@ -355,11 +355,11 @@ dependencies {
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: versions.reformLogging
   implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: versions.reformLogging
 
-  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.3.2'
+  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.3.3'
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '5.0.5'
-  implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.17.13'
-  implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.2.7'
-  implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.2.7'
+  implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.17.14'
+  implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.2.9'
+  implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.2.9'
 
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: versions.tomcat
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: versions.tomcat
