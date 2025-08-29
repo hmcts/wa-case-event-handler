@@ -127,7 +127,7 @@ public class DelayTasksBasedOnDelayUntilTest extends SpringBootFunctionalBaseTes
             .forEach((key, value) -> log.info("Process variable is: {}, {}", key, value.getValue()));
 
         Map<String, DmnValue<?>> processVariables = camundaProcessVariables.getProcessVariablesMap();
-        assertThat(processVariables.get("delayUntil").getValue()).isEqualTo("2026-01-03T18:00:00");
+        assertThat(processVariables.get("delayUntil").getValue()).isEqualTo("2026-12-31T18:00:00");
 
     }
 
