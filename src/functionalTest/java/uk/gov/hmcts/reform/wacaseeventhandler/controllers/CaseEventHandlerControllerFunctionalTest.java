@@ -1189,6 +1189,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
     }
 
     public void completeTask(String taskId, String status) {
+        new Exception("completeTask invoked").printStackTrace();
         Map<String,Object> body = emptyMap();
         log.info(String.format("Completing task : %s", taskId));
         Response response = given()
