@@ -218,7 +218,7 @@ dependencyManagement {
       entry 'guava'
     }
     // CVE-2023-24998 - DoS with a malicious upload or series of uploads possible
-    dependencySet(group: 'commons-fileupload', version: '1.5') {
+    dependencySet(group: 'commons-fileupload', version: '1.6.0') {
       entry 'commons-fileupload'
     }
     dependency group: 'commons-io', name: 'commons-io', version: '2.18.0'
