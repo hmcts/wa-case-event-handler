@@ -138,7 +138,14 @@ pmd {
 }
 
 jacocoTestReport {
-  executionData(test, integration)
+  dependsOn(test, integration)
+
+  executionData.from(fileTree(buildDir).include(
+    'jacoco/test.exec',
+    'jacoco/integration.exec',
+    'jacoco/*.exec'
+  ))
+
   reports {
     xml.required = true
     csv.required = false
@@ -163,7 +170,9 @@ pitest {
 
 project.tasks['pitest'].group = "Verification"
 
-project.tasks['sonarqube'].dependsOn test, integration, jacocoTestReport
+tasks.named('sonarqube') {
+  dependsOn('test', 'integration', 'jacocoTestReport')
+}
 
 // Ensures that functional tests index page is generated
 // Functional tests should run two tasks "functional" and "aggregate"
