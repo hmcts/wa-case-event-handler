@@ -131,27 +131,18 @@ checkstyle {
 pmd {
   toolVersion = "6.40.0"
   sourceSets = [sourceSets.main]
+  reportsDir = file("$project.buildDir/reports/pmd")
   // https://github.com/pmd/pmd/issues/876
   ruleSets = []
   ruleSetFiles = files("config/pmd/ruleset.xml")
 }
 
-// Gradle 9: configure PMD reports via tasks, not the extension
-tasks.withType(Pmd).configureEach { task ->
-  reports {
-    xml.required.set(true)
-    html.required.set(true)
-    xml.outputLocation.set(layout.buildDirectory.file("reports/pmd/${task.name}.xml"))
-    html.outputLocation.set(layout.buildDirectory.file("reports/pmd/${task.name}.html"))
-  }
-}
-
 jacocoTestReport {
   executionData(test, integration)
   reports {
-    xml.required.set(true)
-    csv.required.set(false)
-    xml.outputLocation.set(file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml"))
+    xml.required = true
+    csv.required = false
+    xml.outputLocation = file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml")
   }
 }
 
@@ -183,7 +174,7 @@ sonarqube {
   properties {
     property "sonar.projectName", "Reform :: wa-case-event-handler"
     property "sonar.projectKey", "uk.gov.hmcts.reform:wa-case-event-handler"
-    property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
+    property "sonar.coverage.jacoco.xmlReportPaths", "${jacocoTestReport.reports.xml.outputLocation}"
     property "sonar.pitest.mode", "reuseReport"
     property "sonar.pitest.reportsDirectory", "build/reports/pitest"
     property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/config/**," +
@@ -439,6 +430,5 @@ bootJar {
 }
 
 wrapper {
-  gradleVersion = '9.0'
   distributionType = Wrapper.DistributionType.ALL
 }
