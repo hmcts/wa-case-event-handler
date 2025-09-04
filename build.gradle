@@ -425,7 +425,7 @@ dependencies {
 }
 
 application {
-  mainClass = 'uk.gov.hmcts.reform.wacaseeventhandler.Application'
+  mainClass.set("uk.gov.hmcts.reform.wacaseeventhandler.Application")
 }
 
 bootJar {
