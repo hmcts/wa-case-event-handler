@@ -131,10 +131,19 @@ checkstyle {
 pmd {
   toolVersion = "6.40.0"
   sourceSets = [sourceSets.main]
-  reportsDirectory = file("$project.buildDir/reports/pmd")
   // https://github.com/pmd/pmd/issues/876
   ruleSets = []
   ruleSetFiles = files("config/pmd/ruleset.xml")
+}
+
+// Gradle 9: configure PMD reports via tasks, not the extension
+tasks.withType(Pmd).configureEach { task ->
+  reports {
+    xml.required.set(true)
+    html.required.set(true)
+    xml.outputLocation.set(layout.buildDirectory.file("reports/pmd/${task.name}.xml"))
+    html.outputLocation.set(layout.buildDirectory.file("reports/pmd/${task.name}.html"))
+  }
 }
 
 jacocoTestReport {
