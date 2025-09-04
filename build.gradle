@@ -131,7 +131,7 @@ checkstyle {
 pmd {
   toolVersion = "6.40.0"
   sourceSets = [sourceSets.main]
-  reportsDir = file("$project.buildDir/reports/pmd")
+  reportsDirectory = file("$project.buildDir/reports/pmd")
   // https://github.com/pmd/pmd/issues/876
   ruleSets = []
   ruleSetFiles = files("config/pmd/ruleset.xml")
@@ -140,9 +140,9 @@ pmd {
 jacocoTestReport {
   executionData(test, integration)
   reports {
-    xml.required = true
-    csv.required = false
-    xml.outputLocation = file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml")
+    xml.required.set(true)
+    csv.required.set(false)
+    xml.outputLocation.set(file("${buildDir}/reports/jacoco/test/jacocoTestReport.xml"))
   }
 }
 
@@ -174,7 +174,7 @@ sonarqube {
   properties {
     property "sonar.projectName", "Reform :: wa-case-event-handler"
     property "sonar.projectKey", "uk.gov.hmcts.reform:wa-case-event-handler"
-    property "sonar.coverage.jacoco.xmlReportPaths", "${jacocoTestReport.reports.xml.outputLocation}"
+    property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
     property "sonar.pitest.mode", "reuseReport"
     property "sonar.pitest.reportsDirectory", "build/reports/pitest"
     property "sonar.exclusions", "src/main/java/uk/gov/hmcts/reform/wacaseeventhandler/config/**," +
