@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.IdamService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.RoleAssignmentServiceApi;
 
 import java.io.IOException;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
@@ -392,7 +393,7 @@ public class Common {
             } else {
                 assignmentRequestBody = assignmentRequestBody.replace(
                     "{END_TIME_PLACEHOLDER}",
-                    ZonedDateTime.now().plusHours(2).format(ROLE_ASSIGNMENT_DATA_TIME_FORMATTER)
+                    ZonedDateTime.now(ZoneOffset.UTC).plusHours(2).format(ROLE_ASSIGNMENT_DATA_TIME_FORMATTER)
                 );
             }
 
