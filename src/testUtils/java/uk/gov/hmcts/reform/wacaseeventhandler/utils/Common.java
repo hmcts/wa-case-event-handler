@@ -25,6 +25,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.IdamService;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.RoleAssignmentServiceApi;
 
 import java.io.IOException;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
@@ -392,7 +393,7 @@ public class Common {
             } else {
                 assignmentRequestBody = assignmentRequestBody.replace(
                     "{END_TIME_PLACEHOLDER}",
-                    ZonedDateTime.now().plusHours(2).format(ROLE_ASSIGNMENT_DATA_TIME_FORMATTER)
+                    ZonedDateTime.now(ZoneOffset.UTC).plusHours(2).format(ROLE_ASSIGNMENT_DATA_TIME_FORMATTER)
                 );
             }
 
@@ -473,6 +474,13 @@ public class Common {
             authenticationHeaders
         ).then().extract().body().path("id");
 
+        if (null == processIds) {
+            log.info("No process instances found for caseId: {}", caseId);
+            return Set.of();
+        }
+
+        log.info("Found {} process instances for caseId: {}", processIds.size(), caseId);
+
         return Set.copyOf(processIds);
     }
 
@@ -485,6 +493,8 @@ public class Common {
     }
 
     private void deleteProcessInstance(Headers authenticationHeaders, String processId) {
+
+        log.info("Deleting process instance with ID: {}", processId);
 
         Map<String, Object> body = Map.of(
             "deleteReason", "clean up running process instances",
