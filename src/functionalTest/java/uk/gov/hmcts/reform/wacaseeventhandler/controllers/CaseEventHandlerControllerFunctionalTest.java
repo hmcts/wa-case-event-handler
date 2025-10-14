@@ -488,8 +488,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
 
         // Assert the task1 is deleted
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-        assertTaskDeleteReason(caseId1Task1Id, "deleted");
-
+        assertTaskDetailsOnCancellation(caseId1Task1Id, "deleted", "CASE-EVENT_CANCELLATION");
         completeTask(caseId1Task2Id, "completed");
     }
 
@@ -522,7 +521,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
 
                     // Assert the task1 is deleted
                     assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-                    assertTaskDeleteReason(caseId1Task1Id, "deleted");
+                    assertTaskDetailsOnCancellation(caseId1Task1Id, "deleted", "CASE-EVENT_CANCELLATION");
                     return true;
                 });
     }
@@ -557,7 +556,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             .until(
                 () -> {
                     assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-                    assertTaskDeleteReason(caseId1Task1Id, "deleted");
+                    assertTaskDetailsOnCancellation(caseId1Task1Id, "deleted", "CASE-EVENT_CANCELLATION");
                     return true;
                 });
 
@@ -601,8 +600,8 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
                     assertTaskDoesNotExist(caseIdForTask1, task1IdDmnColumn);
                     assertTaskDoesNotExist(caseIdForTask1, task2IdDmnColumn);
 
-                    assertTaskDeleteReason(caseId1Task1Id, "deleted");
-                    assertTaskDeleteReason(caseId1Task2Id, "deleted");
+                    assertTaskDetailsOnCancellation(caseId1Task1Id, "deleted", "CASE-EVENT_CANCELLATION");
+                    assertTaskDetailsOnCancellation(caseId1Task2Id, "deleted", "CASE-EVENT_CANCELLATION");
                     return true;
                 });
 
@@ -624,7 +623,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
 
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
 
-        assertTaskDeleteReason(caseId1Task1Id, "deleted");
+        assertTaskDetailsOnCancellation(caseId1Task1Id, "deleted", "CASE-EVENT_CANCELLATION");
 
     }
 
@@ -642,7 +641,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         sendMessage(caseIdForTask1, "withdrawAppeal", "", "", false, "WA", "WaCaseType");
 
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-        assertTaskDeleteReason(caseId1Task1Id, "deleted");
+        assertTaskDetailsOnCancellation(caseId1Task1Id, "deleted", "CASE-EVENT_CANCELLATION");
 
     }
 
@@ -1102,7 +1101,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
 
         assertTaskDoesNotExist(caseId1, taskIdDmnColumn);
 
-        assertTaskDeleteReason(caseId1Task1Id, "deleted");
+        assertTaskDetailsOnCancellation(caseId1Task1Id, "deleted", "CASE-EVENT_CANCELLATION");
 
     }
 
@@ -1221,6 +1220,38 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             .get("/history/task?taskId=" + task1Id)
             .then()
             .body("[0].deleteReason", is(expectedDeletedReason));
+    }
+
+    /**
+     * Asserts the task details on cancellation of a task by first retrieving the task from history
+     * and then from history of variables using the processInstanceId
+     * @param task1Id
+     * @param expectedDeletedReason
+     * @param cancellationProcess
+     */
+    private void assertTaskDetailsOnCancellation(String task1Id, String expectedDeletedReason,
+                                                 String cancellationProcess) {
+        Response response = given()
+            .contentType(APPLICATION_JSON_VALUE)
+            .accept(APPLICATION_JSON_VALUE)
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .baseUri(camundaUrl)
+            .when()
+            .get("/history/task?taskId=" + task1Id);
+        String deleteReason = response.jsonPath().getString("[0].deleteReason");
+        assertEquals(expectedDeletedReason, deleteReason);
+        String processInstanceId = response.jsonPath().getString("[0].processInstanceId");
+
+        Response result = given()
+            .header(SERVICE_AUTHORIZATION, s2sToken)
+            .contentType(APPLICATION_JSON_VALUE)
+            .baseUri(camundaUrl)
+            .when()
+            .get("/history/variable-instance?processInstanceId=" + processInstanceId);
+
+        String actualCancellationProcess =
+            result.jsonPath().getString("find { it.name == 'cancellationProcess' }.value");
+        assertEquals(cancellationProcess, actualCancellationProcess);
     }
 
     private void assertTaskDoesNotExist(String caseId, String taskId) {
