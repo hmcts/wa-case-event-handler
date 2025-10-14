@@ -1224,10 +1224,10 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
 
     /**
      * Asserts the task details on cancellation of a task by first retrieving the task from history
-     * and then from history of variables using the processInstanceId
-     * @param task1Id
-     * @param expectedDeletedReason
-     * @param cancellationProcess
+     * and then from history of variables using the processInstanceId.
+     * @param task1Id the id of the task to check
+     * @param expectedDeletedReason the expected delete reason of the task
+     * @param cancellationProcess the expected value of the variable cancellationProcess
      */
     private void assertTaskDetailsOnCancellation(String task1Id, String expectedDeletedReason,
                                                  String cancellationProcess) {
