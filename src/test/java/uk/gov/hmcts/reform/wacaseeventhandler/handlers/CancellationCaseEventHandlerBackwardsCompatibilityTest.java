@@ -187,13 +187,13 @@ class CancellationCaseEventHandlerBackwardsCompatibilityTest {
         verify(workflowApiClient, times(2))
             .sendMessage(eq(SERVICE_AUTH_TOKEN), sendMessageRequestCaptor.capture());
 
-        assertSendMessageRequest(
+        assertSendMessageRequestOldFormat(
             sendMessageRequestCaptor.getAllValues().get(0),
             "some case reference",
             dmnStringValue("category1, category2")
         );
 
-        assertSendMessageRequestOldFormat(
+        assertSendMessageRequest(
             sendMessageRequestCaptor.getAllValues().get(1),
             "some case reference",
             dmnStringValue("category1, category2")
