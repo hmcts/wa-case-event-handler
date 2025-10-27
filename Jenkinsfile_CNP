@@ -39,7 +39,8 @@ env.TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX = "hmctspublic.azurecr.io/imported/"
 
 withPipeline(type, product, component) {
   disableLegacyDeployment()
-
+  env.AZURE_SERVICE_BUS_CCD_CASE_EVENTS_SUBSCRIPTION_NAME = "wa-ccd-case-events-sub-staging"
+  env.AZURE_SERVICE_BUS_TOPIC_NAME = "ccd-case-events-staging"
   env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
   env.CAMUNDA_URL = "http://camunda-api-aat.service.core-compute-aat.internal/engine-rest"
   env.WA_TASK_MANAGEMENT_API_URL = "http://wa-task-management-api-aat.service.core-compute-aat.internal"
@@ -51,7 +52,7 @@ withPipeline(type, product, component) {
   loadVaultSecrets(secrets)
 
   before('functionalTest:preview') {
-    env.MAX_FT_TESTS_PARALLEL_FORKS = 1
+    env.MAX_FT_TESTS_PARALLEL_FORKS = 5
   }
 
   afterSuccess('test') {
