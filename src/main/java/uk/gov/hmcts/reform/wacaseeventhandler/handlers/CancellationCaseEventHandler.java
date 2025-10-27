@@ -156,10 +156,14 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
 
             addCorrelationKeys(correlationKeys, categoriesToCancel);
         }
+        Map<String, DmnValue<?>> processVariables = new ConcurrentHashMap<>();
 
+        // Required process variables
+        processVariables.put("cancellationProcess", dmnStringValue("CASE-EVENT_CANCELLATION"));
         return SendMessageRequest.builder()
             .messageName(TASK_CANCELLATION.getMessageName())
             .correlationKeys(correlationKeys)
+            .processVariables(processVariables)
             .all(true)
             .build();
 
@@ -168,7 +172,7 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
     private boolean checkCategories(DmnValue<String> categories) {
         return categories != null && categories.getValue() != null;
     }
-    
+
     private void addCorrelationKeys(Map<String, DmnValue<?>> correlationKeys, List<String> categoriesToCancel) {
         categoriesToCancel.forEach(cat ->
             correlationKeys.put("__processCategory__" + cat, dmnBooleanValue(true))
@@ -196,10 +200,15 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
             if (checkCategories(categories)) {
                 correlationKeys.put("taskCategory", categories);
             }
+            Map<String, DmnValue<?>> processVariables = new ConcurrentHashMap<>();
+
+            // Required process variables
+            processVariables.put("cancellationProcess", dmnStringValue("CASE-EVENT_CANCELLATION"));
 
             return SendMessageRequest.builder()
                 .messageName(TASK_CANCELLATION.getMessageName())
                 .correlationKeys(correlationKeys)
+                .processVariables(processVariables)
                 .all(true)
                 .build();
 
