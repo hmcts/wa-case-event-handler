@@ -1241,7 +1241,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
 
         String actualCancellationProcess =
             result.jsonPath().getString("find { it.name == 'cancellationProcess' }.value");
-        //assertEquals("CASE_EVENT_CANCELLATION", actualCancellationProcess);
+        assertEquals("CASE_EVENT_CANCELLATION", actualCancellationProcess);
     }
 
     /**
