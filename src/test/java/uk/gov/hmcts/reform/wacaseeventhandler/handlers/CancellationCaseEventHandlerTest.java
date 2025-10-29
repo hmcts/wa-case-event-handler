@@ -247,7 +247,7 @@ class CancellationCaseEventHandlerTest {
         SendMessageRequest capturedRequest = sendMessageRequestCaptor.getValue();
 
         assertThat(capturedRequest.getProcessVariables())
-            .containsEntry("cancellationProcess", dmnStringValue("CASE-EVENT_CANCELLATION"));
+            .containsEntry("cancellationProcess", dmnStringValue("CASE_EVENT_CANCELLATION"));
     }
 
     private EvaluateDmnRequest buildEvaluateDmnRequest() {

@@ -159,7 +159,7 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
         Map<String, DmnValue<?>> processVariables = new ConcurrentHashMap<>();
 
         // Required process variables
-        processVariables.put("cancellationProcess", dmnStringValue("CASE-EVENT_CANCELLATION"));
+        processVariables.put("cancellationProcess", dmnStringValue("CASE_EVENT_CANCELLATION"));
         return SendMessageRequest.builder()
             .messageName(TASK_CANCELLATION.getMessageName())
             .correlationKeys(correlationKeys)
@@ -203,7 +203,7 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
             Map<String, DmnValue<?>> processVariables = new ConcurrentHashMap<>();
 
             // Required process variables
-            processVariables.put("cancellationProcess", dmnStringValue("CASE-EVENT_CANCELLATION"));
+            processVariables.put("cancellationProcess", dmnStringValue("CASE_EVENT_CANCELLATION"));
 
             return SendMessageRequest.builder()
                 .messageName(TASK_CANCELLATION.getMessageName())
