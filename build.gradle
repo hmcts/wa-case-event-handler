@@ -221,7 +221,7 @@ dependencyManagement {
     dependencySet(group: 'commons-fileupload', version: '1.6.0') {
       entry 'commons-fileupload'
     }
-    dependency group: 'commons-io', name: 'commons-io', version: '2.18.0'
+    dependency group: 'commons-io', name: 'commons-io', version: '2.20.0'
 
     //CVE-2021-27568
     dependency group: 'net.minidev', name: 'json-smart', version: '2.5.2'
@@ -234,7 +234,7 @@ dependencyManagement {
       entry 'logback-classic'
       entry 'logback-core'
     }
-    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.1.115.Final') {
+    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.2.6.Final') {
       entry 'netty-buffer'
       entry 'netty-codec'
       entry 'netty-codec-dns'
@@ -385,7 +385,7 @@ dependencies {
   testImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity, {
     exclude group: 'io.rest-assured', module: 'rest-assured'
   }
-  testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '5.5.0'
+  testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '5.5.6'
   testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
   testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.21.3'
   testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.21.3'
@@ -411,7 +411,7 @@ dependencies {
   implementation group: 'org.flywaydb', name: 'flyway-core', version: '9.22.3'
   implementation group: 'com.zaxxer', name: 'HikariCP', version: '5.1.0'
 
-  implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.18.2'
+  implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.20.0'
   runtimeOnly group: 'org.postgresql', name: 'postgresql', version: '42.7.7'
 }
 

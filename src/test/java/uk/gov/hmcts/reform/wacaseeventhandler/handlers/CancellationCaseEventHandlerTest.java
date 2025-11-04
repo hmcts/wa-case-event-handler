@@ -230,6 +230,26 @@ class CancellationCaseEventHandlerTest {
             .sendMessage(eq(SERVICE_AUTH_TOKEN), any());
     }
 
+    @Test
+    void should_pass_process_variables_in_send_message_request() {
+        CancellationEvaluateResponse result = CancellationEvaluateResponse.builder()
+            .action(dmnStringValue("Cancel"))
+            .processCategories(dmnStringValue("category1"))
+            .build();
+
+        List<CancellationEvaluateResponse> results = List.of(result);
+
+        handlerService.handle(results, eventInformation);
+
+        verify(workflowApiClient, times(1))
+            .sendMessage(eq(SERVICE_AUTH_TOKEN), sendMessageRequestCaptor.capture());
+
+        SendMessageRequest capturedRequest = sendMessageRequestCaptor.getValue();
+
+        assertThat(capturedRequest.getProcessVariables())
+            .containsEntry("cancellationProcess", dmnStringValue("CASE_EVENT_CANCELLATION"));
+    }
+
     private EvaluateDmnRequest buildEvaluateDmnRequest() {
         Map<String, DmnValue<?>> variables = Map.of(
             "event", dmnStringValue("some event id"),
