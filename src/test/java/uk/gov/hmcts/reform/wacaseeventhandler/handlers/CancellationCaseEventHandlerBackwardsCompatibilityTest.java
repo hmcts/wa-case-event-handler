@@ -158,13 +158,13 @@ class CancellationCaseEventHandlerBackwardsCompatibilityTest {
             dmnStringValue("some category")
         );
 
-        assertSendMessageRequestOldFormat(
+        assertSendMessageRequest(
             sendMessageRequestCaptor.getAllValues().get(2),
             "some case reference",
             dmnStringValue("some other category")
         );
 
-        assertSendMessageRequest(
+        assertSendMessageRequestOldFormat(
             sendMessageRequestCaptor.getAllValues().get(3),
             "some case reference",
             dmnStringValue("some other category")

@@ -39,7 +39,6 @@ env.TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX = "hmctspublic.azurecr.io/imported/"
 
 withPipeline(type, product, component) {
   disableLegacyDeployment()
-
   env.S2S_URL = "http://rpe-service-auth-provider-aat.service.core-compute-aat.internal"
   env.CAMUNDA_URL = "http://camunda-api-aat.service.core-compute-aat.internal/engine-rest"
   env.WA_TASK_MANAGEMENT_API_URL = "http://wa-task-management-api-aat.service.core-compute-aat.internal"
