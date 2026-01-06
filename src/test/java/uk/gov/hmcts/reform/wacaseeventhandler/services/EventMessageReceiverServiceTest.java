@@ -413,18 +413,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void should_handle_dlq_message_when_error_parsing_user_id()
-        throws JsonProcessingException {
-
-        final NullPointerException nullPointerException = assertThrows(NullPointerException.class, () ->
-            eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, SESSION_ID, MESSAGE_WITHOUT_USER));
-
-        assertThat(nullPointerException.getMessage(), containsString("because \"eventInformation\" is null"));
-        verifyNoInteractions(caseEventMessageRepository);
-    }
-
-    @Test
-    void should_handle_dlq_message_when_missing_user_id() {
+    void should_handle_dlq_message_when_error_parsing_user_id() {
 
         final NullPointerException nullPointerException = assertThrows(NullPointerException.class, () ->
             eventMessageReceiverService.handleDlqMessage(MESSAGE_ID, SESSION_ID, MESSAGE_WITHOUT_USER));
@@ -544,15 +533,6 @@ class EventMessageReceiverServiceTest {
         verifyNoInteractions(caseEventMessageRepository);
     }
 
-    @Test
-    void should_handle_ccd_case_event_asb_message_when_missing_user_id() {
-
-        final NullPointerException nullPointerException = assertThrows(NullPointerException.class, () ->
-            eventMessageReceiverService.handleCcdCaseEventAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE_WITHOUT_USER));
-
-        assertThat(nullPointerException.getMessage(), containsString("because \"eventInformation\" is null"));
-        verifyNoInteractions(caseEventMessageRepository);
-    }
 
     @Test
     void should_get_message_by_message_id_when_message_found() throws JsonProcessingException {

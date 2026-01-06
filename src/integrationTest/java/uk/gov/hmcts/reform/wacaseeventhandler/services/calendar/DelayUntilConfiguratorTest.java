@@ -38,8 +38,12 @@ public class DelayUntilConfiguratorTest {
     public static final String INVALID_CALENDAR_URI = "https://raw.githubusercontent.com/hmcts/wa-task-management-api/895bb18417be056175ec64727e6d5fd39289d489/src/integrationTest/resources/calendars/invalid-calendar.json";
     public static final String DEFAULT_CALENDAR_URI = "https://www.gov.uk/bank-holidays/england-and-wales.json";
 
+    private final DelayUntilConfigurator delayUntilConfigurator;
+
     @Autowired
-    private DelayUntilConfigurator delayUntilConfigurator;
+    public DelayUntilConfiguratorTest(DelayUntilConfigurator delayUntilConfigurator) {
+        this.delayUntilConfigurator = delayUntilConfigurator;
+    }
 
     @DisplayName("(No 'delayUntilOrigin')")
     @Test

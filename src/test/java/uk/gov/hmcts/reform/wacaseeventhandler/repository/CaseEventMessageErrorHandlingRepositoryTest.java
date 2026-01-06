@@ -54,7 +54,7 @@ class CaseEventMessageErrorHandlingRepositoryTest {
     }
 
     @AfterEach
-    public void clearDownData() {
+    void clearDownData() {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(db);
 
         String truncateTablesQuery =
