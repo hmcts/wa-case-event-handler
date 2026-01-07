@@ -38,7 +38,7 @@ class DeadLetterServiceTest {
         .build();
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         deadLetterService = new DeadLetterService(mapper);
     }
 

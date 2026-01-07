@@ -8,7 +8,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices.ProblemMessageService;
 
 import java.util.List;
@@ -46,11 +45,4 @@ class ProblemMessageControllerTest {
         assertEquals(1, response.getNumberOfMessages());
         assertTrue(response.getMessageIds().contains("message_id"));
     }
-
-    private CaseEventMessage createMockCaseEventMessage() {
-        return CaseEventMessage.builder()
-            .messageId("messageId")
-            .build();
-    }
-
 }

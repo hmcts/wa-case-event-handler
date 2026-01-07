@@ -140,7 +140,7 @@ class ReceivedMessagesHealthControllerTest {
     @MethodSource(value = "workingHoursScenarioProvider")
     void test_health_calls_repository_if_working_day_time_is_within_working_hours(
         LocalDateTime withinWorkingHoursDate) {
-        // GIVEN
+
         setupMockClock(withinWorkingHoursDate);
 
         receivedMessagesHealthController.health();

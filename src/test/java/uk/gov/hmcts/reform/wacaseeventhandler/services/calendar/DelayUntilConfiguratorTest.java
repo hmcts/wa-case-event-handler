@@ -30,7 +30,7 @@ class DelayUntilConfiguratorTest {
     class DefaultWithoutAnyDateCalculator {
 
         @BeforeEach
-        public void setUp() {
+        void setUp() {
             delayUntilConfigurator = new DelayUntilConfigurator(List.of());
         }
 
@@ -57,7 +57,7 @@ class DelayUntilConfiguratorTest {
         private PublicHolidaysCollection publicHolidaysCollection;
 
         @BeforeEach
-        public void setUp() {
+        void setUp() {
             delayUntilConfigurator = new DelayUntilConfigurator(List.of(
                 new DelayUntilDateCalculator(),
                 new DelayUntilDateTimeCalculator(),

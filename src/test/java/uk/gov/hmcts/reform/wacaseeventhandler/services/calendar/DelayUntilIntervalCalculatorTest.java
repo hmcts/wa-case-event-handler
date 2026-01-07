@@ -30,7 +30,7 @@ class DelayUntilIntervalCalculatorTest {
     private DelayUntilIntervalCalculator delayUntilIntervalCalculator;
 
     @BeforeEach
-    public void before() {
+    void before() {
         delayUntilIntervalCalculator
             = new DelayUntilIntervalCalculator(new WorkingDayIndicator(publicHolidaysCollection));
 
