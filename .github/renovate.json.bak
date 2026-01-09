@@ -3,17 +3,21 @@
   "labels": [
     "dependencies"
   ],
+  "helm-requirements": {
+    "fileMatch": [
+      "\\Chart.yaml$"
+    ],
+    "aliases": {
+      "hmctspublic": "https://hmctspublic.azurecr.io/helm/v1/repo/"
+    }
+  },
   "extends": [
     "local>hmcts/.github:renovate-config",
     "local>hmcts/.github//renovate/automerge-minor"
   ],
   "packageRules": [
     {
-      "matchPackagePatterns": [
-        "serenity",
-        "pitest",
-        "pact"
-      ],
+      "matchPackagePatterns": ["serenity", "pitest", "pact"],
       "enabled": false
     }
   ]
