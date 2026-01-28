@@ -493,6 +493,36 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
     }
 
     @Test
+    public void when_cancel_task_with_additional_data_should_not_fail() {
+        String caseIdForTask1 = getWaCaseId();
+        String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
+        String caseId1Task1Id = createTaskWithId(
+            caseIdForTask1,
+            "requestRespondentEvidence",
+            "", "awaitingRespondentEvidence", false,
+            taskIdDmnColumn, "WA", "WaCaseType"
+        );
+
+        String eventToCancelTask = "uploadHomeOfficeBundle";
+        String previousStateToCancelTask = "awaitingRespondentEvidence";
+        sendMessage(caseIdForTask1, eventToCancelTask,
+                    previousStateToCancelTask, "", false, "WA", "WaCaseType");
+
+        await().ignoreException(AssertionError.class)
+            .pollDelay(2, SECONDS)
+            .pollInterval(5, SECONDS)
+            .atMost(AT_MOST_SECONDS)
+            .until(
+                () -> {
+
+                    // Assert the task1 is deleted
+                    assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
+                    assertTaskCaseEventCancellation(caseId1Task1Id, "deleted");
+                    return true;
+                });
+    }
+
+    @Test
     public void given_initiate_tasks_with_follow_up_overdue_category_then_cancel_task() {
         // Given multiple existing tasks
         // create task1,
