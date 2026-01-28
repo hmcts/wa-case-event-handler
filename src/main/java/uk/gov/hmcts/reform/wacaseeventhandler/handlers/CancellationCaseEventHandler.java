@@ -16,6 +16,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateRe
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -186,7 +187,7 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
         if (additionalData != null) {
             return objectMapper.convertValue(additionalData, Map.class);
         }
-        return null;
+        return Collections.emptyMap();
     }
 
     private void addCorrelationKeys(Map<String, DmnValue<?>> correlationKeys, List<String> categoriesToCancel) {
