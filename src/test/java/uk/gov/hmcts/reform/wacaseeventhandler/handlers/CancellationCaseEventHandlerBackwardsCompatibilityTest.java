@@ -35,6 +35,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnBooleanValue;
+import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnMapValue;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnStringValue;
 
 @SuppressWarnings("unchecked")
@@ -252,7 +253,8 @@ class CancellationCaseEventHandlerBackwardsCompatibilityTest {
         Map<String, DmnValue<?>> variables = Map.of(
             "event", dmnStringValue("some event id"),
             "state", dmnStringValue("some post state"),
-            "fromState", dmnStringValue("some previous state")
+            "fromState", dmnStringValue("some previous state"),
+            "additionalData", dmnMapValue(null)
         );
 
         return new EvaluateDmnRequest(variables);
