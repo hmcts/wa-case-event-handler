@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +18,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.Cancellati
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.InitiateEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 
 import java.time.LocalDateTime;
@@ -55,6 +57,8 @@ class CancellationCaseEventHandlerBackwardsCompatibilityTest {
     private ArgumentCaptor<SendMessageRequest> sendMessageRequestCaptor;
     @InjectMocks
     private CancellationCaseEventHandler handlerService;
+    @Mock
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
@@ -67,6 +71,7 @@ class CancellationCaseEventHandlerBackwardsCompatibilityTest {
             .caseTypeId("asylum")
             .caseId("some case reference")
             .eventTimeStamp(LocalDateTime.now())
+            .additionalData(new AdditionalData(Collections.emptyMap(), Collections.emptyMap()))
             .build();
     }
 
@@ -81,6 +86,9 @@ class CancellationCaseEventHandlerBackwardsCompatibilityTest {
             null,
             null
         ));
+
+        lenient().when(objectMapper.convertValue(eventInformation.getAdditionalData(), Map.class))
+            .thenReturn(Collections.emptyMap());
 
         when(workflowApiClient.evaluateCancellationDmn(
             SERVICE_AUTH_TOKEN,
@@ -113,6 +121,9 @@ class CancellationCaseEventHandlerBackwardsCompatibilityTest {
             TENANT_ID,
             evaluateDmnRequest
         )).thenReturn(new EvaluateDmnResponse(Collections.emptyList()));
+
+        lenient().when(objectMapper.convertValue(eventInformation.getAdditionalData(), Map.class))
+            .thenReturn(Collections.emptyMap());
 
         List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInformation);
 
@@ -254,7 +265,7 @@ class CancellationCaseEventHandlerBackwardsCompatibilityTest {
             "event", dmnStringValue("some event id"),
             "state", dmnStringValue("some post state"),
             "fromState", dmnStringValue("some previous state"),
-            "additionalData", dmnMapValue(null)
+            "additionalData", dmnMapValue(Collections.emptyMap())
         );
 
         return new EvaluateDmnRequest(variables);
