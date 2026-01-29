@@ -6,9 +6,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wacaseeventhandler.MessagingTests;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.AwaitilityTestConfig;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestAuthenticationCredentials;
@@ -42,6 +44,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
 @Slf4j
+@Import(AwaitilityTestConfig.class)
 public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
     private static final Duration AT_MOST_SECONDS = Duration.ofSeconds(120);
     private static final Duration AT_MOST_SECONDS_MULTIPLE_TASKS = Duration.ofSeconds(120);
@@ -508,18 +511,11 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         sendMessage(caseIdForTask1, eventToCancelTask,
                     previousStateToCancelTask, "", false, "WA", "WaCaseType");
 
-        await().ignoreException(AssertionError.class)
-            .pollDelay(2, SECONDS)
-            .pollInterval(5, SECONDS)
-            .atMost(AT_MOST_SECONDS)
-            .until(
-                () -> {
-
-                    // Assert the task1 is deleted
-                    assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-                    assertTaskCaseEventCancellation(caseId1Task1Id, "deleted");
-                    return true;
-                });
+        await()
+            .untilAsserted(() -> {
+                assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
+                assertTaskCaseEventCancellation(caseId1Task1Id, "deleted");
+            });
     }
 
     @Test
