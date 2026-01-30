@@ -510,6 +510,12 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         completeTask(caseId1Task2Id, "completed");
     }
 
+    /**
+     * This FT sends additionalData to DMN in json format to evaluate cancellation dmn.
+     * Cancellation should only happen when additional data appealType matches.
+     * This test proved that additional data is being sent to DMN and evaluated correctly.
+     *
+     */
     @Test
     public void when_cancel_task_with_additional_data_should_cancel_task_when_additional_data_matches() {
         String caseIdForTask1 = getWaCaseId();
