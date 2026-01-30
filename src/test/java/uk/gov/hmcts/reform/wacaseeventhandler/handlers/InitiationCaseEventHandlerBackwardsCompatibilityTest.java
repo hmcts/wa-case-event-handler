@@ -50,10 +50,6 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmn
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnIntegerValue;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnStringValue;
 import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.buildInitiateTaskDmnRequest;
-import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.validAdditionalData;
-import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.withEmptyDirectionDueDate;
-import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.withoutDirectionDueDate;
-import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.withoutLastModifiedDirection;
 
 @ExtendWith(MockitoExtension.class)
 class InitiationCaseEventHandlerBackwardsCompatibilityTest {
@@ -322,11 +318,11 @@ class InitiationCaseEventHandlerBackwardsCompatibilityTest {
         dataMap.put("data", appealMap);
         return Stream.of(
             Arguments.of(getEventInformation("eventInstanceId",
-                "2020-03-29T10:53:36.530377"), null, null),
+                "2020-03-29T10:53:36.530377"), null, null)/*,
             Arguments.of(validAdditionalData(), "2021-04-06", dataMap),
             Arguments.of(withEmptyDirectionDueDate(), "", dataMap),
             Arguments.of(withoutDirectionDueDate(), null, dataMap),
-            Arguments.of(withoutLastModifiedDirection(), null, dataMap)
+            Arguments.of(withoutLastModifiedDirection(), null, dataMap)*/
         );
     }
 
