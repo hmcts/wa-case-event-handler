@@ -385,7 +385,7 @@ dependencies {
   testImplementation group: 'net.serenity-bdd', name: 'serenity-rest-assured', version: versions.serenity, {
     exclude group: 'io.rest-assured', module: 'rest-assured'
   }
-  testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '5.5.6'
+  testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '5.5.7'
   testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
   testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.21.4'
   testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.21.4'
