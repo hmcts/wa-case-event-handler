@@ -97,13 +97,8 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
     }
 
     protected void sendMessageWithAdditionalDataAppealType(String caseId, String event, String previousStateId,
-                                                 String newStateId, boolean taskDelay,String appealType) {
-
-        if (taskDelay) {
-            eventTimeStamp = LocalDateTime.now().plusSeconds(2);
-        } else {
-            eventTimeStamp = LocalDateTime.now().minusDays(1);
-        }
+                                                 String newStateId,String appealType) {
+        eventTimeStamp = LocalDateTime.now().minusDays(1);
         EventInformation eventInformation = getEventInformationWithAdditionalDataAppealType(
             caseId, event, previousStateId, newStateId, eventTimeStamp,appealType
         );
@@ -530,7 +525,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         String eventToCancelTask = "uploadHomeOfficeBundleWithAdditionalData";
         String previousStateToCancelTask = "awaitingRespondentEvidence";
         sendMessageWithAdditionalDataAppealType(caseIdForTask1, eventToCancelTask,
-                                                previousStateToCancelTask, "", false,"");
+                                                previousStateToCancelTask, "","");
 
         await()
             .untilAsserted(() -> {
@@ -538,7 +533,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             });
 
         sendMessageWithAdditionalDataAppealType(caseIdForTask1, eventToCancelTask,
-                    previousStateToCancelTask, "", false,"protection");
+                    previousStateToCancelTask, "","protection");
 
         await()
             .untilAsserted(() -> {
@@ -1345,9 +1340,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
 
     private void assertTaskDoesExist(String caseId, String taskId) {
         await().ignoreException(AssertionError.class)
-            .pollDelay(500, MILLISECONDS)
-            .pollInterval(2, SECONDS)
-            .atMost(AT_MOST_SECONDS_MULTIPLE_TASKS)
             .until(
                 () -> {
                     given()
