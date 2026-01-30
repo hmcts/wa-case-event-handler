@@ -13,10 +13,9 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.request.SendMessage
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.CancellationEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateResponse;
-import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.util.AdditionalDataReader;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +59,7 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
             eventInformation.getPreviousStateId(),
             eventInformation.getEventId(),
             eventInformation.getNewStateId(),
-            readValue(eventInformation.getAdditionalData())
+            AdditionalDataReader.readValue(objectMapper,eventInformation.getAdditionalData())
         );
 
         EvaluateDmnResponse<CancellationEvaluateResponse> response = workflowApiClient.evaluateCancellationDmn(
@@ -181,13 +180,6 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
 
     private boolean checkCategories(DmnValue<String> categories) {
         return categories != null && categories.getValue() != null;
-    }
-
-    private Map<String, Object> readValue(AdditionalData additionalData) {
-        if (additionalData != null) {
-            return objectMapper.convertValue(additionalData, Map.class);
-        }
-        return Collections.emptyMap();
     }
 
     private void addCorrelationKeys(Map<String, DmnValue<?>> correlationKeys, List<String> categoriesToCancel) {
