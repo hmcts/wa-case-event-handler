@@ -14,7 +14,7 @@ public final class AdditionalDataReader {
 
     }
 
-    public static Map<String, Object> readValue(ObjectMapper objectMapper, AdditionalData additionalData) {
+    public static Map readValue(ObjectMapper objectMapper, AdditionalData additionalData) {
         if (additionalData != null) {
             return objectMapper.convertValue(additionalData, Map.class);
         }
