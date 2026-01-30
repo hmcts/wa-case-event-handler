@@ -96,6 +96,21 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         sendMessageToTopic(randomMessageId(), eventInformation);
     }
 
+    protected void sendMessageWithAdditionalDataAppealType(String caseId, String event, String previousStateId,
+                                                 String newStateId, boolean taskDelay,String appealType) {
+
+        if (taskDelay) {
+            eventTimeStamp = LocalDateTime.now().plusSeconds(2);
+        } else {
+            eventTimeStamp = LocalDateTime.now().minusDays(1);
+        }
+        EventInformation eventInformation = getEventInformationWithAdditionalDataAppealType(
+            caseId, event, previousStateId, newStateId, eventTimeStamp,appealType
+        );
+
+        sendMessageToTopic(randomMessageId(), eventInformation);
+    }
+
     protected void sendMessageWithAdditionalDataForWA(String caseId, String event, String previousStateId,
                                                  String newStateId, boolean taskDelay) {
 
@@ -496,20 +511,28 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
     }
 
     @Test
-    public void when_cancel_task_with_additional_data_should_not_fail() {
+    public void when_cancel_task_with_additional_data_should_cancel_task_when_additional_data_matches() {
         String caseIdForTask1 = getWaCaseId();
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
-        String caseId1Task1Id = createTaskWithId(
+        final String caseId1Task1Id = createTaskWithId(
             caseIdForTask1,
             "requestRespondentEvidence",
             "", "awaitingRespondentEvidence", false,
             taskIdDmnColumn, "WA", "WaCaseType"
         );
 
-        String eventToCancelTask = "uploadHomeOfficeBundle";
+        String eventToCancelTask = "uploadHomeOfficeBundleWithAdditionalData";
         String previousStateToCancelTask = "awaitingRespondentEvidence";
-        sendMessage(caseIdForTask1, eventToCancelTask,
-                    previousStateToCancelTask, "", false, "WA", "WaCaseType");
+        sendMessageWithAdditionalDataAppealType(caseIdForTask1, eventToCancelTask,
+                                                previousStateToCancelTask, "", false,"");
+
+        await()
+            .untilAsserted(() -> {
+                assertTaskDoesExist(caseIdForTask1, taskIdDmnColumn);
+            });
+
+        sendMessageWithAdditionalDataAppealType(caseIdForTask1, eventToCancelTask,
+                    previousStateToCancelTask, "", false,"protection");
 
         await()
             .untilAsserted(() -> {
@@ -1314,6 +1337,30 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
                 });
     }
 
+    private void assertTaskDoesExist(String caseId, String taskId) {
+        await().ignoreException(AssertionError.class)
+            .pollDelay(500, MILLISECONDS)
+            .pollInterval(2, SECONDS)
+            .atMost(AT_MOST_SECONDS_MULTIPLE_TASKS)
+            .until(
+                () -> {
+                    given()
+                        .header(SERVICE_AUTHORIZATION, s2sToken)
+                        .contentType(APPLICATION_JSON_VALUE)
+                        .baseUri(camundaUrl)
+                        .basePath("/task")
+                        .param(
+                            "processVariables",
+                            "caseId_eq_" + caseId + ",taskId_eq_" + taskId
+                        )
+                        .when()
+                        .get()
+                        .then()
+                        .body("size()", is(1));
+                    return true;
+                });
+    }
+
     private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
         log.info("Finding warnings task for caseId = {} and taskId = {}", caseId, taskId);
         await().ignoreException(AssertionError.class)
@@ -1392,6 +1439,24 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             .newStateId(newStateId)
             .previousStateId(previousStateId)
             .additionalData(setAdditionalData("", "Adjourn"))
+            .userId("some user Id")
+            .build();
+    }
+
+    private EventInformation getEventInformationWithAdditionalDataAppealType(String caseId, String event,
+                                                                             String previousStateId, String newStateId,
+                                                                             LocalDateTime localDateTime,
+                                                                             String appealType) {
+        return EventInformation.builder()
+            .eventInstanceId(UUID.randomUUID().toString())
+            .eventTimeStamp(localDateTime)
+            .caseId(caseId)
+            .jurisdictionId("WA")
+            .caseTypeId("WaCaseType")
+            .eventId(event)
+            .newStateId(newStateId)
+            .previousStateId(previousStateId)
+            .additionalData(setAdditionalData(appealType, "Adjourn"))
             .userId("some user Id")
             .build();
     }
