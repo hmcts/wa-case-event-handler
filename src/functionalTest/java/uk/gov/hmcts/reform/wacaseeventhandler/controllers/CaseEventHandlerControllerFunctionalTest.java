@@ -98,7 +98,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
 
     protected void sendMessageWithAdditionalDataAppealType(String caseId, String event, String previousStateId,
                                                  String newStateId,String appealType) {
-        eventTimeStamp = LocalDateTime.now().minusDays(1);
         EventInformation eventInformation = getEventInformationWithAdditionalDataAppealType(
             caseId, event, previousStateId, newStateId, eventTimeStamp,appealType
         );
