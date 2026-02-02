@@ -112,11 +112,9 @@ class InitiationCaseEventHandlerTest {
         when(isoDateFormatter.formatToZone(LocalDateTime.parse(EVENT_DATE)))
             .thenReturn(eventDateTime);
 
+        when(holidayService.isHoliday(any(ZonedDateTime.class))).thenReturn(false);
         when(holidayService.isHoliday(eventDateTime.plusDays(delayDuration)))
             .thenReturn(true);
-
-        when(holidayService.isHoliday(eventDateTime.plusDays(delayDuration + 1)))
-            .thenReturn(false);
 
         when(serviceAuthGenerator.generate())
             .thenReturn(SERVICE_AUTH_TOKEN);
