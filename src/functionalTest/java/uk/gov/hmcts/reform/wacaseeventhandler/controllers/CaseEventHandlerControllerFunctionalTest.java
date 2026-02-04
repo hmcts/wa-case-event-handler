@@ -511,7 +511,37 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
      *
      */
     @Test
-    public void when_cancel_task_with_additional_data_should_cancel_task_when_additional_data_matches() {
+    public void should_cancel_task_when_additional_data_matches() {
+        String caseIdForTask1 = getWaCaseId();
+        String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
+        final String caseId1Task1Id = createTaskWithId(
+            caseIdForTask1,
+            "requestRespondentEvidence",
+            "", "awaitingRespondentEvidence", false,
+            taskIdDmnColumn, "WA", "WaCaseType"
+        );
+
+        String eventToCancelTask = "uploadHomeOfficeBundleWithAdditionalData";
+        String previousStateToCancelTask = "awaitingRespondentEvidence";
+
+        sendMessageWithAdditionalDataAppealType(caseIdForTask1, eventToCancelTask,
+                    previousStateToCancelTask, "","protection");
+
+        await()
+            .untilAsserted(() -> {
+                assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
+                assertTaskCaseEventCancellation(caseId1Task1Id, "deleted");
+            });
+    }
+
+    /**
+     * This FT sends additionalData to DMN in json format to evaluate cancellation dmn.
+     * Cancellation should not happen when additional data doesn't match.
+     * This test proved that additional data is being sent to DMN and evaluated correctly.
+     *
+     */
+    @Test
+    public void should_not_cancel_task_when_additional_data_doesnt_matches() {
         String caseIdForTask1 = getWaCaseId();
         String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
         final String caseId1Task1Id = createTaskWithId(
@@ -531,14 +561,7 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
                 assertTaskDoesExist(caseIdForTask1, taskIdDmnColumn);
             });
 
-        sendMessageWithAdditionalDataAppealType(caseIdForTask1, eventToCancelTask,
-                    previousStateToCancelTask, "","protection");
-
-        await()
-            .untilAsserted(() -> {
-                assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
-                assertTaskCaseEventCancellation(caseId1Task1Id, "deleted");
-            });
+        completeTask(caseId1Task1Id, "completed");
     }
 
     @Test
