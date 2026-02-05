@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.Cancellati
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
+import uk.gov.hmcts.reform.wacaseeventhandler.util.AdditionalDataReader;
 
 import java.util.HashSet;
 import java.util.List;
@@ -24,6 +26,7 @@ import java.util.stream.Stream;
 import static java.util.Arrays.asList;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnAndMessageNames.TASK_CANCELLATION;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnBooleanValue;
+import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnMapValue;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnStringValue;
 
 @Slf4j
@@ -34,10 +37,13 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
 
     private final AuthTokenGenerator serviceAuthGenerator;
     private final WorkflowApiClient workflowApiClient;
+    private final ObjectMapper objectMapper;
 
-    public CancellationCaseEventHandler(AuthTokenGenerator serviceAuthGenerator, WorkflowApiClient workflowApiClient) {
+    public CancellationCaseEventHandler(AuthTokenGenerator serviceAuthGenerator, WorkflowApiClient workflowApiClient,
+                                        ObjectMapper objectMapper) {
         this.serviceAuthGenerator = serviceAuthGenerator;
         this.workflowApiClient = workflowApiClient;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -52,7 +58,8 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateDmnRequest(
             eventInformation.getPreviousStateId(),
             eventInformation.getEventId(),
-            eventInformation.getNewStateId()
+            eventInformation.getNewStateId(),
+            AdditionalDataReader.readValue(objectMapper,eventInformation.getAdditionalData())
         );
 
         EvaluateDmnResponse<CancellationEvaluateResponse> response = workflowApiClient.evaluateCancellationDmn(
@@ -85,12 +92,14 @@ public class CancellationCaseEventHandler implements CaseEventHandler {
     private EvaluateDmnRequest buildEvaluateDmnRequest(
         String previousStateId,
         String eventId,
-        String newStateId
+        String newStateId,
+        Map<String, Object> additionalData
     ) {
         Map<String, DmnValue<?>> variables = Map.of(
             "event", dmnStringValue(eventId),
             "state", dmnStringValue(newStateId),
-            "fromState", dmnStringValue(previousStateId)
+            "fromState", dmnStringValue(previousStateId),
+            "additionalData", dmnMapValue(additionalData)
         );
 
         return new EvaluateDmnRequest(variables);
