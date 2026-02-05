@@ -45,10 +45,6 @@ public class DueDateService {
     }
 
     private ZonedDateTime addWorkingDaysForDelayDuration(ZonedDateTime eventDate, int delayDuration) {
-        if (delayDuration == 0) {
-            return eventDate;
-        }
-
         ZonedDateTime newDate = eventDate;
         for (int remaining = delayDuration; remaining > 0; ) {
             newDate = newDate.plusDays(1);
