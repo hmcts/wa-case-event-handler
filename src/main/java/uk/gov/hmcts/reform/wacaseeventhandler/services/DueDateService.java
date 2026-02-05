@@ -46,7 +46,8 @@ public class DueDateService {
 
     private ZonedDateTime addWorkingDaysForDelayDuration(ZonedDateTime eventDate, int delayDuration) {
         ZonedDateTime newDate = eventDate;
-        for (int remaining = delayDuration; remaining > 0; ) {
+        int remaining = delayDuration;
+        while (remaining > 0) {
             newDate = newDate.plusDays(1);
             if (!(holidayService.isWeekend(newDate) || holidayService.isHoliday(newDate))) {
                 remaining--;
