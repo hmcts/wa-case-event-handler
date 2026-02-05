@@ -6,9 +6,11 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import uk.gov.hmcts.reform.wacaseeventhandler.MessagingTests;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.AwaitilityTestConfig;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.entities.TestAuthenticationCredentials;
@@ -42,6 +44,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
 
 @Slf4j
+@Import(AwaitilityTestConfig.class)
 public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
     private static final Duration AT_MOST_SECONDS = Duration.ofSeconds(120);
     private static final Duration AT_MOST_SECONDS_MULTIPLE_TASKS = Duration.ofSeconds(120);
@@ -88,6 +91,15 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         }
         EventInformation eventInformation = getEventInformationWithAdditionalData(
             caseId, event, previousStateId, newStateId, eventTimeStamp
+        );
+
+        sendMessageToTopic(randomMessageId(), eventInformation);
+    }
+
+    protected void sendMessageWithAdditionalDataAppealType(String caseId, String event, String previousStateId,
+                                                 String newStateId,String appealType) {
+        EventInformation eventInformation = getEventInformationWithAdditionalDataAppealType(
+            caseId, event, previousStateId, newStateId, eventTimeStamp,appealType
         );
 
         sendMessageToTopic(randomMessageId(), eventInformation);
@@ -490,6 +502,66 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
         assertTaskCaseEventCancellation(caseId1Task1Id, "deleted");
         completeTask(caseId1Task2Id, "completed");
+    }
+
+    /**
+     * This FT sends additionalData to DMN in json format to evaluate cancellation dmn.
+     * Cancellation should only happen when additional data appealType matches.
+     * This test proved that additional data is being sent to DMN and evaluated correctly.
+     *
+     */
+    @Test
+    public void should_cancel_task_when_additional_data_matches() {
+        String caseIdForTask1 = getWaCaseId();
+        String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
+        final String caseId1Task1Id = createTaskWithId(
+            caseIdForTask1,
+            "requestRespondentEvidence",
+            "", "awaitingRespondentEvidence", false,
+            taskIdDmnColumn, "WA", "WaCaseType"
+        );
+
+        String eventToCancelTask = "uploadHomeOfficeBundleWithAdditionalData";
+        String previousStateToCancelTask = "awaitingRespondentEvidence";
+
+        sendMessageWithAdditionalDataAppealType(caseIdForTask1, eventToCancelTask,
+                    previousStateToCancelTask, "","protection");
+
+        await()
+            .untilAsserted(() -> {
+                assertTaskDoesNotExist(caseIdForTask1, taskIdDmnColumn);
+                assertTaskCaseEventCancellation(caseId1Task1Id, "deleted");
+            });
+    }
+
+    /**
+     * This FT sends additionalData to DMN in json format to evaluate cancellation dmn.
+     * Cancellation should not happen when additional data doesn't match.
+     * This test proved that additional data is being sent to DMN and evaluated correctly.
+     *
+     */
+    @Test
+    public void should_not_cancel_task_when_additional_data_doesnt_matches() {
+        String caseIdForTask1 = getWaCaseId();
+        String taskIdDmnColumn = "followUpOverdueRespondentEvidence";
+        final String caseId1Task1Id = createTaskWithId(
+            caseIdForTask1,
+            "requestRespondentEvidence",
+            "", "awaitingRespondentEvidence", false,
+            taskIdDmnColumn, "WA", "WaCaseType"
+        );
+
+        String eventToCancelTask = "uploadHomeOfficeBundleWithAdditionalData";
+        String previousStateToCancelTask = "awaitingRespondentEvidence";
+        sendMessageWithAdditionalDataAppealType(caseIdForTask1, eventToCancelTask,
+                                                previousStateToCancelTask, "","");
+
+        await()
+            .untilAsserted(() -> {
+                assertTaskDoesExist(caseIdForTask1, taskIdDmnColumn);
+            });
+
+        completeTask(caseId1Task1Id, "completed");
     }
 
     @Test
@@ -1288,6 +1360,27 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
                 });
     }
 
+    private void assertTaskDoesExist(String caseId, String taskId) {
+        await().ignoreException(AssertionError.class)
+            .until(
+                () -> {
+                    given()
+                        .header(SERVICE_AUTHORIZATION, s2sToken)
+                        .contentType(APPLICATION_JSON_VALUE)
+                        .baseUri(camundaUrl)
+                        .basePath("/task")
+                        .param(
+                            "processVariables",
+                            "caseId_eq_" + caseId + ",taskId_eq_" + taskId
+                        )
+                        .when()
+                        .get()
+                        .then()
+                        .body("size()", is(1));
+                    return true;
+                });
+    }
+
     private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
         log.info("Finding warnings task for caseId = {} and taskId = {}", caseId, taskId);
         await().ignoreException(AssertionError.class)
@@ -1366,6 +1459,24 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             .newStateId(newStateId)
             .previousStateId(previousStateId)
             .additionalData(setAdditionalData("", "Adjourn"))
+            .userId("some user Id")
+            .build();
+    }
+
+    private EventInformation getEventInformationWithAdditionalDataAppealType(String caseId, String event,
+                                                                             String previousStateId, String newStateId,
+                                                                             LocalDateTime localDateTime,
+                                                                             String appealType) {
+        return EventInformation.builder()
+            .eventInstanceId(UUID.randomUUID().toString())
+            .eventTimeStamp(localDateTime)
+            .caseId(caseId)
+            .jurisdictionId("WA")
+            .caseTypeId("WaCaseType")
+            .eventId(event)
+            .newStateId(newStateId)
+            .previousStateId(previousStateId)
+            .additionalData(setAdditionalData(appealType, "Adjourn"))
             .userId("some user Id")
             .build();
     }
