@@ -42,6 +42,7 @@ class DueDateServiceTest {
 
         int workingDaysAllowed = 2;
 
+        when(holidayService.isHoliday(any(ZonedDateTime.class))).thenReturn(false);
         when(holidayService.isHoliday(eventDateTime.plusDays(1)))
             .thenReturn(true);
 
@@ -66,6 +67,7 @@ class DueDateServiceTest {
 
         int delayDuration = 2;
 
+        when(holidayService.isHoliday(any(ZonedDateTime.class))).thenReturn(false);
         when(holidayService.isHoliday(eventDateTime.plusDays(delayDuration)))
             .thenReturn(true);
 
@@ -74,9 +76,8 @@ class DueDateServiceTest {
         ZonedDateTime actualDateTime = dueDateService.calculateDelayUntil(eventDateTime, delayDuration);
 
         assertThat(actualDateTime, is(expectedDelayDateTime));
-        verify(holidayService, times(2)).isHoliday(any(ZonedDateTime.class));
+        verify(holidayService, times(3)).isHoliday(any(ZonedDateTime.class));
     }
 
 
 }
-
