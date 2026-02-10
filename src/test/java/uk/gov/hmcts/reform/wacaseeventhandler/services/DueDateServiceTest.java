@@ -19,6 +19,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("PMD.JUnitAssertionsShouldIncludeMessage")
@@ -145,17 +146,46 @@ class DueDateServiceTest {
         assertEquals(eventDate, actualDelayUntil);
     }
 
+    @Test
+    void should_not_call_holiday_service_when_delay_duration_is_0() {
+        ZonedDateTime eventDate = ZonedDateTime.of(2022, 7, 1, 9, 0, 0, 0, ZoneId.systemDefault());
+
+        ZonedDateTime actualDelayUntil = underTest.calculateDelayUntil(eventDate, 0);
+
+        assertEquals(eventDate, actualDelayUntil);
+        verifyNoInteractions(holidayService);
+    }
+
+    @Test
+    void should_return_event_date_when_add_working_days_for_delay_duration_is_0() throws Exception {
+        ZonedDateTime eventDate = ZonedDateTime.of(2022, 7, 1, 9, 0, 0, 0, ZoneId.systemDefault());
+
+        var method = DueDateService.class.getDeclaredMethod(
+            "addWorkingDaysForDelayDuration",
+            ZonedDateTime.class,
+            int.class
+        );
+        method.setAccessible(true);
+
+        ZonedDateTime actual = (ZonedDateTime) method.invoke(underTest, eventDate, 0);
+
+        assertEquals(eventDate, actual);
+        verifyNoInteractions(holidayService);
+    }
+
     @ParameterizedTest
     @ValueSource(ints = {1, 2, 3})
     void should_return_next_working_day_when_event_date_is_friday_and_has_delay_duration(int delayDuration) {
 
         ZonedDateTime eventDate = ZonedDateTime.of(2022, 7, 1, 9, 0, 0, 0, ZoneId.systemDefault());
 
-        ZonedDateTime expectedDueDateMonday = ZonedDateTime.of(2022, 7, 4, 16, 0, 0, 0, ZoneId.systemDefault());
+        ZonedDateTime expectedDelayUntilDate = eventDate
+            .plusDays(3 + (delayDuration - 1))
+            .withHour(16).withMinute(0).withSecond(0).withNano(0);
 
         ZonedDateTime actualDelayUntilDate = underTest.calculateDelayUntil(eventDate, delayDuration);
 
-        assertEquals(expectedDueDateMonday, actualDelayUntilDate);
+        assertEquals(expectedDelayUntilDate, actualDelayUntilDate);
     }
 
     @ParameterizedTest
@@ -166,11 +196,27 @@ class DueDateServiceTest {
         when(holidayService.isHoliday(eventDate.plusDays(3)))
             .thenReturn(true);
 
-        ZonedDateTime expectedDueDateMonday = ZonedDateTime.of(2022, 8, 30, 16, 0, 0, 0, ZoneId.systemDefault());
+        ZonedDateTime expectedDelayUntilDate = ZonedDateTime.of(2022, 8, 30, 16, 0, 0, 0, ZoneId.systemDefault())
+            .plusDays(delayDuration - 1L);
 
         ZonedDateTime actualDelayUntilDate = underTest.calculateDelayUntil(eventDate, delayDuration);
 
-        assertEquals(expectedDueDateMonday, actualDelayUntilDate);
+        assertEquals(expectedDelayUntilDate, actualDelayUntilDate);
+    }
+
+    @Test
+    void should_skip_weekend_and_holiday_when_calculating_delay_duration() {
+        ZonedDateTime eventDate = ZonedDateTime.of(2022, 8, 25, 9, 0, 0, 0, ZoneId.systemDefault());
+
+        when(holidayService.isHoliday(any(ZonedDateTime.class))).thenReturn(false);
+        when(holidayService.isHoliday(ZonedDateTime.of(2022, 8, 29, 9, 0, 0, 0, ZoneId.systemDefault())))
+            .thenReturn(true);
+
+        ZonedDateTime expectedDelayUntilDate = ZonedDateTime.of(2022, 8, 31, 16, 0, 0, 0, ZoneId.systemDefault());
+
+        ZonedDateTime actualDelayUntilDate = underTest.calculateDelayUntil(eventDate, 3);
+
+        assertEquals(expectedDelayUntilDate, actualDelayUntilDate);
     }
 
     private void checkWorkingDays(ZonedDateTime startDay, int leadTimeDays, ZonedDateTime expectedDueDate) {
@@ -202,7 +248,7 @@ class DueDateServiceTest {
                     ZonedDateTime.of(2021, 3, 1, 16, 0, 0, 0, ZoneId.systemDefault()))
                 .days(18)
                 .expectedDateTime(
-                    ZonedDateTime.of(2021, 3, 19, 16, 0, 0, 0, ZoneId.systemDefault()))
+                    ZonedDateTime.of(2021, 3, 25, 16, 0, 0, 0, ZoneId.systemDefault()))
                 .build(),
 
             ZonedDateTimeScenario.builder()
@@ -226,7 +272,7 @@ class DueDateServiceTest {
                     ZonedDateTime.of(2021, 3, 1, 16, 0, 0, 0, ZoneId.systemDefault()))
                 .days(30)
                 .expectedDateTime(
-                    ZonedDateTime.of(2021, 3, 31, 16, 0, 0, 0, ZoneId.systemDefault()))
+                    ZonedDateTime.of(2021, 4, 12, 16, 0, 0, 0, ZoneId.systemDefault()))
                 .build(),
 
             ZonedDateTimeScenario.builder()
@@ -234,7 +280,7 @@ class DueDateServiceTest {
                     ZonedDateTime.of(2021, 3, 1, 16, 0, 0, 0, ZoneId.systemDefault()))
                 .days(31)
                 .expectedDateTime(
-                    ZonedDateTime.of(2021, 4, 1, 16, 0, 0, 0, ZoneId.systemDefault()))
+                    ZonedDateTime.of(2021, 4, 13, 16, 0, 0, 0, ZoneId.systemDefault()))
                 .build()
         );
     }
