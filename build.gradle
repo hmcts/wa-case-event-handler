@@ -230,7 +230,7 @@ dependencyManagement {
     dependency group: 'org.glassfish', name: 'jakarta.el', version: '4.0.2'
 
     //CVE-2021-42550
-    dependencySet(group: 'ch.qos.logback', version: '1.5.27') {
+    dependencySet(group: 'ch.qos.logback', version: '1.5.29') {
       entry 'logback-classic'
       entry 'logback-core'
     }
@@ -363,7 +363,7 @@ dependencies {
 
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: versions.tomcat
   implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: versions.tomcat
-  implementation group: 'org.camunda.bpm', name: 'camunda-external-task-client', version: '7.23.0'
+  implementation group: 'org.camunda.bpm', name: 'camunda-external-task-client', version: '7.24.0'
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '6.3.0'
   implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.20.0'
   implementation group: 'com.github.ben-manes.caffeine', name: 'caffeine', version: '3.2.3'
