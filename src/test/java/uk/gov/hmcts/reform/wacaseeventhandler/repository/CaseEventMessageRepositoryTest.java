@@ -47,6 +47,7 @@ class CaseEventMessageRepositoryTest {
     private TransactionTemplate transactionTemplate;
 
     private static final String MESSAGE_ID = "MessageId_30915063-ec4b-4272-933d-91087b486195";
+    private static final String READY_MESSAGE_ID = "MessageId_bc8299fc-5d31-45c7-b847-c2622014a85a";
     private static final String NON_EXISTENT_MESSAGE_ID = "12345";
 
     @BeforeEach
@@ -81,7 +82,7 @@ class CaseEventMessageRepositoryTest {
         final CaseEventMessageEntity caseEventMessageEntity =
                 caseEventMessageRepository.getNextAvailableMessageReadyToProcess();
         assertNotNull(caseEventMessageEntity);
-        assertEquals("MessageId_bc8299fc-5d31-45c7-b847-c2622014a85a", caseEventMessageEntity.getMessageId());
+        assertEquals(READY_MESSAGE_ID, caseEventMessageEntity.getMessageId());
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -110,7 +111,7 @@ class CaseEventMessageRepositoryTest {
     void should_return_null_case_event_message_when_no_matching_messages_match_query_criteria() {
 
         final List<CaseEventMessageEntity> caseEventMessageEntities = caseEventMessageRepository.findByMessageId(
-            singletonList("MessageId_bc8299fc-5d31-45c7-b847-c2622014a85a"));
+            singletonList(READY_MESSAGE_ID));
         assertEquals(1, caseEventMessageEntities.size());
 
         final CaseEventMessageEntity caseEventMessageEntity1 = caseEventMessageEntities.get(0);
@@ -130,7 +131,7 @@ class CaseEventMessageRepositoryTest {
     void should_return_null_case_event_message_when_no_matching_messages_match_hold_until_query_criteria() {
 
         final List<CaseEventMessageEntity> caseEventMessageEntities = caseEventMessageRepository.findByMessageId(
-            singletonList("MessageId_bc8299fc-5d31-45c7-b847-c2622014a85a"));
+            singletonList(READY_MESSAGE_ID));
         assertEquals(1, caseEventMessageEntities.size());
 
         final CaseEventMessageEntity caseEventMessageEntity1 = caseEventMessageEntities.get(0);
@@ -161,6 +162,13 @@ class CaseEventMessageRepositoryTest {
         final LocalDateTime minuteAgoFromCurrentTimestamp = LocalDateTime.now().minusMinutes(1);
         caseEventMessageEntity1.setHoldUntil(minuteAgoFromCurrentTimestamp);
         caseEventMessageRepository.save(caseEventMessageEntity1);
+
+        final List<CaseEventMessageEntity> readyMessages = caseEventMessageRepository.findByMessageId(
+            singletonList(READY_MESSAGE_ID));
+        assertEquals(1, readyMessages.size());
+        final CaseEventMessageEntity readyMessage = readyMessages.get(0);
+        readyMessage.setHoldUntil(LocalDateTime.now().plusDays(2));
+        caseEventMessageRepository.save(readyMessage);
 
         final CaseEventMessageEntity caseEventMessageEntity =
                 caseEventMessageRepository.getNextAvailableMessageReadyToProcess();
