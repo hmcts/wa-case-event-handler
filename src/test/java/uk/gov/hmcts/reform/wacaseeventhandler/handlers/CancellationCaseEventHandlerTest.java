@@ -1,5 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +19,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.Cancellati
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.InitiateEvaluateResponse;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 
 import java.time.LocalDateTime;
@@ -35,6 +38,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnBooleanValue;
+import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnMapValue;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnStringValue;
 
 @SuppressWarnings("unchecked")
@@ -55,6 +59,8 @@ class CancellationCaseEventHandlerTest {
     private ArgumentCaptor<SendMessageRequest> sendMessageRequestCaptor;
     @InjectMocks
     private CancellationCaseEventHandler handlerService;
+    @Mock
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
@@ -67,6 +73,7 @@ class CancellationCaseEventHandlerTest {
             .caseTypeId("asylum")
             .caseId("some case reference")
             .eventTimeStamp(LocalDateTime.now())
+            .additionalData(new AdditionalData(Collections.emptyMap(), Collections.emptyMap()))
             .build();
     }
 
@@ -74,6 +81,49 @@ class CancellationCaseEventHandlerTest {
     void should_evaluate_the_dmn_table_and_return_results() {
 
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateDmnRequest();
+
+        lenient().when(objectMapper.convertValue(eventInformation.getAdditionalData(), Map.class))
+            .thenReturn(Collections.emptyMap());
+
+        List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
+            dmnStringValue("Cancel"),
+            null, null,
+            null,
+            null
+        ));
+
+        when(workflowApiClient.evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        )).thenReturn(new EvaluateDmnResponse(results));
+
+        List<? extends EvaluateResponse> actualResponse = handlerService.evaluateDmn(eventInformation);
+
+        assertThat(actualResponse).isSameAs(results);
+
+        verify(workflowApiClient, times(1)).evaluateCancellationDmn(
+            SERVICE_AUTH_TOKEN,
+            TASK_CANCELLATION_DMN_TABLE,
+            TENANT_ID,
+            evaluateDmnRequest
+        );
+
+    }
+
+    @Test
+    void should_evaluate_the_dmn_table_and_return_results_when_additional_data_provided() {
+
+        Map<String, Object> dataMap = Map.of(
+            "lastModifiedDirection", Map.of("dateDue", "2021-04-06"),
+            "appealType", "protection"
+        );
+
+        EvaluateDmnRequest evaluateDmnRequest = buildEvaluateDmnRequestWithAdditionalData(dataMap);
+
+        lenient().when(objectMapper.convertValue(eventInformation.getAdditionalData(), Map.class)).thenReturn(dataMap);
+
 
         List<CancellationEvaluateResponse> results = List.of(new CancellationEvaluateResponse(
             dmnStringValue("Cancel"),
@@ -106,6 +156,10 @@ class CancellationCaseEventHandlerTest {
     void should_evaluate_the_dmn_table_and_return_empty_results() {
 
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateDmnRequest();
+
+        lenient().when(objectMapper.convertValue(eventInformation.getAdditionalData(), Map.class))
+            .thenReturn(Collections.emptyMap());
+
 
         when(workflowApiClient.evaluateCancellationDmn(
             SERVICE_AUTH_TOKEN,
@@ -254,17 +308,19 @@ class CancellationCaseEventHandlerTest {
         Map<String, DmnValue<?>> variables = Map.of(
             "event", dmnStringValue("some event id"),
             "state", dmnStringValue("some post state"),
-            "fromState", dmnStringValue("some previous state")
+            "fromState", dmnStringValue("some previous state"),
+            "additionalData", dmnMapValue(Collections.emptyMap())
         );
 
         return new EvaluateDmnRequest(variables);
     }
 
-    private EvaluateDmnRequest buildEvaluateUpdateDmnRequest() {
+    private EvaluateDmnRequest buildEvaluateDmnRequestWithAdditionalData(Map<String, Object> dataMap) {
         Map<String, DmnValue<?>> variables = Map.of(
-            "event", dmnStringValue("UPDATE"),
-            "state", dmnStringValue(""),
-            "fromState", dmnStringValue("")
+            "event", dmnStringValue("some event id"),
+            "state", dmnStringValue("some post state"),
+            "fromState", dmnStringValue("some previous state"),
+            "additionalData", dmnMapValue(dataMap)
         );
 
         return new EvaluateDmnRequest(variables);
@@ -293,5 +349,14 @@ class CancellationCaseEventHandlerTest {
         assertThat(sendMessageRequest.getMessageName()).isEqualTo(CANCEL_TASKS_MESSAGE_NAME);
         assertThat(sendMessageRequest.getCorrelationKeys()).isEqualTo(expectedCorrelationKeys);
         assertTrue(sendMessageRequest.isAll());
+    }
+
+    @NotNull
+    private static Map<String, Object> mapAppealType() {
+        Map<String, Object> appealMap = new HashMap<>();
+        appealMap.put("appealType", "protection");
+        Map<String, Object> dataMap = new HashMap<>();
+        dataMap.put("data", appealMap);
+        return dataMap;
     }
 }

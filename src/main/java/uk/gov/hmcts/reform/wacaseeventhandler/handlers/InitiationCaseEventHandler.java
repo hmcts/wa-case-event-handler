@@ -21,6 +21,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.services.IdempotencyKeyGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilConfigurator;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.services.dates.IsoDateFormatter;
+import uk.gov.hmcts.reform.wacaseeventhandler.util.AdditionalDataReader;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -88,7 +89,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         EvaluateDmnRequest evaluateDmnRequest = buildEvaluateDmnRequest(
             eventInformation.getEventId(),
             eventInformation.getNewStateId(),
-            readValue(eventInformation.getAdditionalData()),
+            AdditionalDataReader.readValue(objectMapper, eventInformation.getAdditionalData()),
             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
             directionDueDate
         );
@@ -120,13 +121,6 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
                     request
                 );
             });
-    }
-
-    private Map<String, Object> readValue(AdditionalData additionalData) {
-        if (additionalData != null) {
-            return objectMapper.convertValue(additionalData, Map.class);
-        }
-        return null;
     }
 
     @SuppressWarnings("unchecked")
