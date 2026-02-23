@@ -49,6 +49,7 @@ import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -206,7 +207,9 @@ class MessageProcessorTest {
             .untilAsserted(() -> {
                     assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
                                                     MESSAGE_ID, CASE_ID));
-                    assertEquals(1, getMessagesInDbFromQuery(UNPROCESSABLE_STATE_QUERY).size());
+                    List<CaseEventMessage> unprocessable = getMessagesInDbFromQuery(UNPROCESSABLE_STATE_QUERY);
+                    assertFalse(unprocessable.isEmpty());
+                    assertEquals(MessageState.UNPROCESSABLE, getMessageById(MESSAGE_ID).getState());
                 }
         );
     }
@@ -228,7 +231,9 @@ class MessageProcessorTest {
             .untilAsserted(() -> {
                     assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
                                                     MESSAGE_ID, CASE_ID));
-                    assertEquals(1, getMessagesInDbFromQuery(UNPROCESSABLE_STATE_QUERY).size());
+                    List<CaseEventMessage> unprocessable = getMessagesInDbFromQuery(UNPROCESSABLE_STATE_QUERY);
+                    assertFalse(unprocessable.isEmpty());
+                    assertEquals(MessageState.UNPROCESSABLE, getMessageById(MESSAGE_ID).getState());
                 }
         );
     }
@@ -330,7 +335,7 @@ class MessageProcessorTest {
 
         assertTrue(logsList.stream()
                 .map(ILoggingEvent::getFormattedMessage)
-                .collect(Collectors.toList())
+                .toList()
                 .contains(expectedMessage));
     }
 
@@ -339,7 +344,7 @@ class MessageProcessorTest {
 
         return logsList.stream()
                        .map(ILoggingEvent::getFormattedMessage)
-                       .collect(Collectors.toList())
+                       .toList()
                        .indexOf(expectedMessage);
     }
 

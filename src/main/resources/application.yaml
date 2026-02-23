@@ -57,7 +57,8 @@ spring:
     allow-bean-definition-overriding: true
   flyway:
     out-of-order: true
-    ignore-missing-migrations: true
+    ignore-migration-patterns:
+      - "*:missing"
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_NAME:wa_case_event_messages_db}${POSTGRES_CONNECTION_OPTIONS:?stringtype=unspecified}
@@ -183,4 +184,3 @@ caffeine:
       check:
         duration: ${LIVENESS_DATABASE_CHECK_CACHE_DURATION:30}
         unit: ${LIVENESS_DATABASE_CHECK_CACHE_TIMEUNIT:MINUTES}
-
