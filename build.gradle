@@ -312,7 +312,7 @@ def versions = [
   gradlePitest  : '1.15.0',
   pitest       : '1.19.4',
   sonarPitest   : '0.5',
-  logbook      : '3.10.0',
+  logbook      : '3.12.3',
   tomcat       : '10.1.52',
   log4j        : '2.23.1',
   retry        : '2.0.12'
