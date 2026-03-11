@@ -143,7 +143,7 @@ core_case_data:
 
 scheduledExecutors:
   messageProcessing:
-    pollIntervalMilliSeconds: ${MESSAGE_PROCESSING_POLL_INTERVAL_MILLISECONDS:5000}
+    pollIntervalMilliSeconds: ${MESSAGE_PROCESSING_POLL_INTERVAL_MILLISECONDS:200}
     threadPoolSize: ${MESSAGE_PROCESSING_THREAD_POOL_SIZE:1}
   messageReadiness:
     pollIntervalMilliSeconds: ${MESSAGE_READINESS_POLL_INTERVAL_MILLISECONDS:5000}
