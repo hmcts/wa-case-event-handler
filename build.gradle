@@ -32,8 +32,8 @@ sourceSets {
 
   testUtils {
     java {
-      compileClasspath.add(main.output)
-      runtimeClasspath.add(main.output)
+      compileClasspath += main.output
+      runtimeClasspath += main.output
       srcDir file('src/testUtils/java')
     }
     resources.srcDir file('src/testUtils/resources')
@@ -41,8 +41,8 @@ sourceSets {
 
   functionalTest {
     java {
-      compileClasspath.add(testUtils.output)
-      runtimeClasspath.ad(testUtils.output)
+      compileClasspath += testUtils.output
+      runtimeClasspath += testUtils.output
       srcDir file('src/functionalTest/java')
     }
     resources.srcDir file('src/functionalTest/resources')
@@ -50,8 +50,8 @@ sourceSets {
 
   integrationTest {
     java {
-      compileClasspath.add(testUtils.output)
-      runtimeClasspath.add(testUtils.output)
+      compileClasspath += testUtils.output
+      runtimeClasspath += testUtils.output
       srcDir file('src/integrationTest/java')
     }
     resources.srcDir file('src/integrationTest/resources')
@@ -59,8 +59,8 @@ sourceSets {
 
   smokeTest {
     java {
-      compileClasspath.add(main.output)
-      runtimeClasspath.add(main.output)
+      compileClasspath += main.output
+      runtimeClasspath += main.output
       srcDir file('src/smokeTest/java')
     }
     resources.srcDir file('src/smokeTest/resources')
@@ -118,7 +118,7 @@ task tests {
 
 task fortifyScan(type: JavaExec) {
   mainClass = "uk.gov.hmcts.fortifyclient.FortifyClientMainApp"
-  classpath.add(sourceSets.test.runtimeClasspath)
+  classpath += sourceSets.test.runtimeClasspath
   jvmArgs = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED']
 }
 
