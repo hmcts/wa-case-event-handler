@@ -58,6 +58,8 @@ spring:
   flyway:
     out-of-order: true
     ignore-missing-migrations: true
+    placeholders:
+      concurrently: CONCURRENTLY
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_NAME:wa_case_event_messages_db}${POSTGRES_CONNECTION_OPTIONS:?stringtype=unspecified}
