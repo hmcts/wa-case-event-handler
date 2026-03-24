@@ -29,7 +29,7 @@ public class ServiceBusConfiguration {
     private int retryTime;
 
     public ServiceBusSessionReceiverClient createCcdCaseEventsSessionReceiver() {
-        log.info("Creating CCD Case Events Session receiver");
+        log.debug("Creating CCD Case Events Session receiver");
         ServiceBusSessionReceiverClient client = new ServiceBusClientBuilder()
                 .connectionString(connectionString)
                 .retryOptions(retryOptions())
@@ -38,12 +38,12 @@ public class ServiceBusConfiguration {
                 .subscriptionName(ccdCaseEventsSubscriptionName)
                 .buildClient();
 
-        log.info("CCD Case Events Session receiver created, successfully");
+        log.debug("CCD Case Events Session receiver created, successfully");
         return client;
     }
 
     public ServiceBusReceiverClient createCcdCaseEventsDeadLetterQueueSessionReceiver() {
-        log.info("Creating CCD Case Events Dead Letter Queue Session receiver");
+        log.debug("Creating CCD Case Events Dead Letter Queue Session receiver");
         ServiceBusReceiverClient client = new ServiceBusClientBuilder()
                 .connectionString(connectionString)
                 .retryOptions(retryOptions())
@@ -53,7 +53,7 @@ public class ServiceBusConfiguration {
                 .subscriptionName(ccdCaseEventsSubscriptionName)
                 .buildClient();
 
-        log.info("CCD Case Events Dead Letter Queue Session receiver created, successfully");
+        log.debug("CCD Case Events Dead Letter Queue Session receiver created, successfully");
         return client;
     }
 

@@ -45,7 +45,7 @@ public class CcdCaseEventsDeadLetterQueueConsumer implements Runnable {
                 message -> {
                     final String messageId = message.getMessageId();
                     try {
-                        log.info("Received CCD Case Event Dead Letter Queue message with id '{}'", messageId);
+                        log.debug("Received CCD Case Event Dead Letter Queue message with id '{}'", messageId);
 
                         eventMessageReceiverService.handleDlqMessage(
                             messageId,
@@ -55,7 +55,7 @@ public class CcdCaseEventsDeadLetterQueueConsumer implements Runnable {
 
                         receiver.complete(message);
 
-                        log.info(
+                        log.debug(
                             "CCD Case Event Dead Letter Queue message with id '{}' handled successfully",
                             messageId
                         );

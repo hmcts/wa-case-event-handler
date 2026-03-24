@@ -83,7 +83,7 @@ public class CaseEventHandlerTestingController {
                                                            required = false) final String sessionId,
                                                        @RequestParam("from_dlq") final Boolean fromDlq) {
         if (isNonProdEnvironment()) {
-            log.info("Processing '{}' in '{}' environment ", messageId, environment);
+            log.debug("Processing '{}' in '{}' environment ", messageId, environment);
             return eventMessageReceiverService.upsertMessage(messageId, sessionId, message, fromDlq);
         } else {
             throw new CaseEventMessageNotAllowedRequestException();
@@ -140,7 +140,7 @@ public class CaseEventHandlerTestingController {
     }
 
     private boolean isNonProdEnvironment() {
-        log.info("Processing message in '{}' environment ", environment);
+        log.debug("Processing message in '{}' environment ", environment);
         return !"prod".equalsIgnoreCase(environment);
     }
 }

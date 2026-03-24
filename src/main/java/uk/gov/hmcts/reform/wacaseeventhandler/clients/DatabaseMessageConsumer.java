@@ -94,7 +94,7 @@ public class DatabaseMessageConsumer implements Runnable {
                 if (caseEventMessageEntity == null) {
                     log.trace("No message returned from database for processing");
                 } else {
-                    log.info("Start message processing");
+                    log.debug("Start message processing");
 
                     final CaseEventMessage caseEventMessage = caseEventMessageMapper
                         .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
@@ -130,16 +130,16 @@ public class DatabaseMessageConsumer implements Runnable {
 
     private Optional<MessageUpdateRetry> processMessage(CaseEventMessage caseEventMessage) {
         if (caseEventMessage == null) {
-            log.info("No message to process");
+            log.debug("No message to process");
         } else {
             final String caseEventMessageId = caseEventMessage.getMessageId();
-            log.info("Processing message with id: {} and caseId: {} from the database",
+            log.debug("Processing message with id: {} and caseId: {} from the database",
                 caseEventMessageId,
                 caseEventMessage.getCaseId()
             );
             try {
                 ccdEventProcessor.processMessage(caseEventMessage);
-                log.info("Message with id:{} and caseId:{} processed successfully, setting message state to PROCESSED",
+                log.debug("Message with id:{} and caseId:{} processed successfully, setting message state to PROCESSED",
                     caseEventMessageId,
                     caseEventMessage.getCaseId()
                 );
@@ -165,7 +165,7 @@ public class DatabaseMessageConsumer implements Runnable {
         try {
             final HttpStatus httpStatus = HttpStatus.valueOf(fce.status());
             isNonRetryableError = UnprocessableHttpErrors.isNonRetryableError(httpStatus);
-            log.info("caseId: {} httpStatus:{}", caseEventMessage.getCaseId(), httpStatus);
+            log.debug("caseId: {} httpStatus:{}", caseEventMessage.getCaseId(), httpStatus);
         } catch (IllegalArgumentException iae) {
             if (fce instanceof RetryableException) {
                 isNonRetryableError = false;
@@ -189,7 +189,7 @@ public class DatabaseMessageConsumer implements Runnable {
 
         if (newHoldUntilIncrement != null) {
             LocalDateTime newHoldUntil = LocalDateTime.now().plusSeconds(newHoldUntilIncrement);
-            log.info("Updating values, retry_count {} and hold_until {} on case event message {}",
+            log.debug("Updating values, retry_count {} and hold_until {} on case event message {}",
                 retryCount,
                 newHoldUntil,
                 messageId);
@@ -216,7 +216,7 @@ public class DatabaseMessageConsumer implements Runnable {
                 caseEventMessageRepository.updateMessageState(state, List.of(messageId));
             }
         } catch (RuntimeException e) {
-            log.info("Error in updating message with id {}, retrying to update", messageId);
+            log.debug("Error in updating message with id {}, retrying to update", messageId);
             return Optional.of(MessageUpdateRetry.builder()
                 .messageId(messageId)
                 .state(state)

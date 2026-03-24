@@ -21,7 +21,7 @@ public class ProblemMessageService {
         List<String> messages = new ArrayList<>();
         messageJobs.forEach(job -> {
             if (job.canRun(jobName)) {
-                log.info("Running job '{}'", jobName.name());
+                log.debug("Running job '{}'", jobName.name());
                 messages.addAll(job.run());
             }
         });

@@ -71,7 +71,7 @@ public class ReconfigurationCaseEventHandler implements CaseEventHandler {
 
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation reconfigurationEventInformation) {
-        log.info("ReconfigurationCaseEventHandler eventInformation:{}", reconfigurationEventInformation);
+        log.debug("ReconfigurationCaseEventHandler eventInformation:{}", reconfigurationEventInformation);
         results.stream()
             .filter(CancellationEvaluateResponse.class::isInstance)
             .map(CancellationEvaluateResponse.class::cast)
@@ -79,7 +79,7 @@ public class ReconfigurationCaseEventHandler implements CaseEventHandler {
                 CancellationActions.RECONFIGURE == CancellationActions.from(result.getAction().getValue())
             )
             .forEach(reconfigureResponse -> {
-                log.info("sendReconfigurationRequest request:{}", reconfigureResponse);
+                log.debug("sendReconfigurationRequest request:{}", reconfigureResponse);
                 evaluateReconfigureActionResponse(reconfigureResponse);
                 sendReconfigurationRequest(reconfigurationEventInformation.getCaseId());
             });
