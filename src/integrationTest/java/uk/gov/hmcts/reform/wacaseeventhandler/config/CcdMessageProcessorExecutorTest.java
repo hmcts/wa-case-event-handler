@@ -60,7 +60,7 @@ class CcdMessageProcessorExecutorTest {
     void setup() {
         logger = (Logger) LoggerFactory.getLogger(DatabaseMessageConsumer.class);
         originalLevel = logger.getLevel();
-        logger.setLevel(Level.DEBUG);
+        logger.setLevel(Level.TRACE);
 
         listAppender = new ListAppender<>();
         listAppender.start();
