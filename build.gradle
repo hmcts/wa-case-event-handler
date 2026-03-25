@@ -212,7 +212,7 @@ dependencyCheck {
 }
 dependencyManagement {
   dependencies {
-    dependency group: 'com.github.docker-java', name: 'docker-java', version: '3.7.0'
+    dependency group: 'com.github.docker-java', name: 'docker-java', version: '3.7.1'
     // CVE-2018-10237 - Unbounded memory allocation
     dependencySet(group: 'com.google.guava', version: '32.1.3-jre') {
       entry 'guava'
@@ -234,7 +234,7 @@ dependencyManagement {
       entry 'logback-classic'
       entry 'logback-core'
     }
-    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.2.6.Final') {
+    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.2.11.Final') {
       entry 'netty-buffer'
       entry 'netty-codec'
       entry 'netty-codec-dns'
@@ -313,7 +313,7 @@ def versions = [
   pitest       : '1.19.4',
   sonarPitest   : '0.5',
   logbook      : '3.12.3',
-  tomcat       : '10.1.52',
+  tomcat       : '10.1.53',
   log4j        : '2.23.1',
   retry        : '2.0.12',
   testcontainers  : '1.21.4'
@@ -418,7 +418,7 @@ dependencies {
   implementation group: 'org.flywaydb', name: 'flyway-core', version: '9.22.3'
   implementation group: 'com.zaxxer', name: 'HikariCP', version: '7.0.2'
 
-  implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.20.0'
+  implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.21.2'
   runtimeOnly group: 'org.postgresql', name: 'postgresql', version: '42.7.10'
 }
 
