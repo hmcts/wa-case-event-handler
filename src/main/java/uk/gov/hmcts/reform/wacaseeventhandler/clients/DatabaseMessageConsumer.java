@@ -84,7 +84,7 @@ public class DatabaseMessageConsumer implements Runnable {
     @Override
     @SuppressWarnings("squid:S2189")
     public void run() {
-        log.info("Running database message consumer");
+        log.debug("Running database message consumer");
 
         try {
             Optional<MessageUpdateRetry> updateRetry = transactionTemplate.execute(status -> {
@@ -216,7 +216,7 @@ public class DatabaseMessageConsumer implements Runnable {
                 caseEventMessageRepository.updateMessageState(state, List.of(messageId));
             }
         } catch (RuntimeException e) {
-            log.debug("Error in updating message with id {}, retrying to update", messageId);
+            log.warn("Error in updating message with id {}, retrying to update", messageId);
             return Optional.of(MessageUpdateRetry.builder()
                 .messageId(messageId)
                 .state(state)

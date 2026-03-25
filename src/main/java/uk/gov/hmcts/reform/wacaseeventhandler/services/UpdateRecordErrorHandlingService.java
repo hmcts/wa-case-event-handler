@@ -28,7 +28,7 @@ public class UpdateRecordErrorHandlingService {
     }
 
     public void handleUpdateError(MessageState state, String messageId, int retryCount, LocalDateTime holdUntil) {
-        log.info("Retry updating message with message_id {}", messageId);
+        log.debug("Retry updating message with message_id {}", messageId);
         CaseEventMessageEntity messageEntity = errorHandlingRepository.findByMessageIdToUpdate(messageId)
             .stream()
             .findFirst()
@@ -37,17 +37,16 @@ public class UpdateRecordErrorHandlingService {
 
         if (state == null) {
             if (UNPROCESSABLE.equals(messageEntity.getState()) || PROCESSED.equals(messageEntity.getState())) {
-                log.info("Message with message_id {} is already updated", messageId);
+                log.debug("Message with message_id {} is already updated", messageId);
             } else {
                 errorHandlingRepository.updateMessageWithRetryDetails(retryCount, holdUntil, messageId);
             }
         } else {
             if (PROCESSED.equals(messageEntity.getState())) {
-                log.info("Message with message_id {} is already updated", messageId);
+                log.debug("Message with message_id {} is already updated", messageId);
             } else {
                 errorHandlingRepository.updateMessageState(state, List.of(messageId));
             }
         }
     }
 }
-

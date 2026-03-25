@@ -1,8 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,7 +7,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
@@ -61,13 +57,9 @@ class ReconfigurationCaseEventHandlerTest {
     private AuthTokenGenerator serviceAuthGenerator;
     @InjectMocks
     private ReconfigurationCaseEventHandler handlerService;
-    private final Logger logger = (Logger) LoggerFactory.getLogger(ReconfigurationCaseEventHandler.class);
-    private Level originalLevel;
 
     @BeforeEach
     void setUp() {
-        originalLevel = logger.getLevel();
-        logger.setLevel(Level.DEBUG);
         lenient().when(serviceAuthGenerator.generate()).thenReturn(SERVICE_AUTH_TOKEN);
         eventInformation = EventInformation.builder()
             .eventId("ANY_EVENT")
@@ -79,11 +71,6 @@ class ReconfigurationCaseEventHandlerTest {
             .eventTimeStamp(LocalDateTime.now())
             .build();
 
-    }
-
-    @AfterEach
-    void tearDown() {
-        logger.setLevel(originalLevel);
     }
 
     @Test

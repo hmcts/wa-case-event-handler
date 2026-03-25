@@ -23,7 +23,7 @@ public class PublicHolidayService {
 
     @Cacheable(value = "calendar_cache", key = "#uri", sync = true, cacheManager = "calendarCacheManager")
     public BankHolidays getPublicHolidays(String uri) {
-        log.info("Getting public holidays for {}", uri);
+        log.debug("Getting public holidays for {}", uri);
         BankHolidaysApi bankHolidaysApi = bankHolidaysApi(uri);
         return bankHolidaysApi.retrieveAll();
     }

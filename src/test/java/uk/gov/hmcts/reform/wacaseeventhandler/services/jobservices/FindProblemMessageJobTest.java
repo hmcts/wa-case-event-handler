@@ -1,9 +1,7 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices;
 
-import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,21 +40,12 @@ class FindProblemMessageJobTest {
     @Spy
     private CaseEventMessageMapper caseEventMessageMapper = new CaseEventMessageMapper(objectMapper);
     private final Logger logger = (Logger) LoggerFactory.getLogger(FindProblemMessageJob.class);
-    private Level originalLevel;
 
     @BeforeEach
     void setUp() {
-        originalLevel = logger.getLevel();
-        logger.setLevel(Level.DEBUG);
-
         findProblemMessageJob = new FindProblemMessageJob(caseEventMessageRepository,
                                                           caseEventMessageMapper,
                                                           messageTimeLimit);
-    }
-
-    @AfterEach
-    void tearDown() {
-        logger.setLevel(originalLevel);
     }
 
     @Test

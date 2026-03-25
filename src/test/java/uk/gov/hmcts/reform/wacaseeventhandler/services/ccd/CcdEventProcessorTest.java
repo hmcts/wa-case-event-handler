@@ -116,7 +116,6 @@ class CcdEventProcessorTest {
 
     @Test
     void test_EventInformation_logging(CapturedOutput output) throws JsonProcessingException {
-
         List<CaseEventHandler> handlerServices = List.of(initiationTaskHandler);
         processor = new CcdEventProcessor(handlerServices, mapper);
 

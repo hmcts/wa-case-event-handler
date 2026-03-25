@@ -29,7 +29,7 @@ public class DelayUntilConfigurator {
     private static void logInput(DelayUntilRequest delayUntilRequest) {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            log.info(
+            log.debug(
                 "Delay until value for calculation is : {}",
                 objectMapper.writeValueAsString(delayUntilRequest)
             );

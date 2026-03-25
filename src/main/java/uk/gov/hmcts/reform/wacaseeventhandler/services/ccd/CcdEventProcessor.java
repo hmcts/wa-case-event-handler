@@ -34,7 +34,7 @@ public class CcdEventProcessor {
     }
 
     public void processMessage(CaseEventMessage caseEventMessage) throws JsonProcessingException {
-        log.info("Mapping message content for messageId: {} and caseId: {}",
+        log.debug("Mapping message content for messageId: {} and caseId: {}",
             caseEventMessage.getMessageId(),
             caseEventMessage.getCaseId());
 
@@ -74,12 +74,12 @@ public class CcdEventProcessor {
             }
         }
 
-        log.info(logInfo.toString());
+        log.debug(logInfo.toString());
 
         handlerServices.forEach(handler -> {
             List<? extends EvaluateResponse> results = handler.evaluateDmn(eventInformation);
             if (results.isEmpty()) {
-                log.info("No results returned when evaluating {}", handler.getClass().getName());
+                log.debug("No results returned when evaluating {}", handler.getClass().getName());
             } else {
                 handler.handle(results, eventInformation);
             }

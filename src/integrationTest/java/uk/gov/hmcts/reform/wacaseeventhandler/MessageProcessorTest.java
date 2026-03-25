@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler;
 
-import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
@@ -110,13 +109,10 @@ class MessageProcessorTest {
     private static final String SECOND_MESSAGE_ID = "MessageId_bc8299fc-5d31-45c7-b847-c2622014a85a";
     private static final String CASE_ID = "6761065058131570";
     private Logger logger;
-    private Level originalLevel;
 
     @BeforeEach
     void setup() {
         logger = (Logger) LoggerFactory.getLogger(DatabaseMessageConsumer.class);
-        originalLevel = logger.getLevel();
-        logger.setLevel(Level.TRACE);
 
         listAppender = new ListAppender<>();
         listAppender.start();
@@ -128,7 +124,6 @@ class MessageProcessorTest {
 
     @AfterEach
     void tearDown() {
-        logger.setLevel(originalLevel);
         logger.detachAppender(listAppender);
     }
 

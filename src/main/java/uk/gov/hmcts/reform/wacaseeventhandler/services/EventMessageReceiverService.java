@@ -128,7 +128,7 @@ public class EventMessageReceiverService {
             CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId, message, fromDlq);
             CaseEventMessageEntity savedEntity = insertMessage(messageEntity);
 
-            log.info("Message with id '{}' successfully stored into the DB", messageId);
+            log.debug("Message with id '{}' successfully stored into the DB", messageId);
 
             return mapper.mapToCaseEventMessage(savedEntity);
         } catch (JsonProcessingException e) {

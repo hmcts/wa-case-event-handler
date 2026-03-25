@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.config;
 
-import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
@@ -42,7 +41,6 @@ class CcdMessageProcessorExecutorTest {
 
     private ListAppender<ILoggingEvent> listAppender;
     private Logger logger;
-    private Level originalLevel;
 
     @MockBean
     private CaseEventMessageRepository caseEventMessageRepository;
@@ -59,8 +57,6 @@ class CcdMessageProcessorExecutorTest {
     @BeforeEach
     void setup() {
         logger = (Logger) LoggerFactory.getLogger(DatabaseMessageConsumer.class);
-        originalLevel = logger.getLevel();
-        logger.setLevel(Level.TRACE);
 
         listAppender = new ListAppender<>();
         listAppender.start();
@@ -77,7 +73,6 @@ class CcdMessageProcessorExecutorTest {
 
     @AfterEach
     void tearDown() {
-        logger.setLevel(originalLevel);
         logger.detachAppender(listAppender);
     }
 

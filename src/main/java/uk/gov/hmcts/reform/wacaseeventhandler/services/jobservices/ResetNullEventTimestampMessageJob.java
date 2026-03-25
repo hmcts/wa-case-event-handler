@@ -87,7 +87,7 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
                     messageEntity.getCaseId()
                 );
             } catch (JsonProcessingException jsonProcessingException) {
-                log.debug(
+                log.warn(
                     "Cannot parse the message with null eventTimeStamp, message id:{} and case id:{}",
                     messageEntity.getMessageId(),
                     messageEntity.getCaseId()
