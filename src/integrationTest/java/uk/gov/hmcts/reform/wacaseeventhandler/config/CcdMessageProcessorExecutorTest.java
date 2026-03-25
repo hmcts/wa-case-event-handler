@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.config;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import com.microsoft.applicationinsights.extensibility.context.OperationContext;
 import com.microsoft.applicationinsights.telemetry.TelemetryContext;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -39,6 +41,8 @@ class CcdMessageProcessorExecutorTest {
         + MESSAGE_ID + " and caseId: " + CASE_ID + " from the database";
 
     private ListAppender<ILoggingEvent> listAppender;
+    private Logger logger;
+    private Level originalLevel;
 
     @MockBean
     private CaseEventMessageRepository caseEventMessageRepository;
@@ -54,7 +58,9 @@ class CcdMessageProcessorExecutorTest {
 
     @BeforeEach
     void setup() {
-        Logger logger = (Logger) LoggerFactory.getLogger(DatabaseMessageConsumer.class);
+        logger = (Logger) LoggerFactory.getLogger(DatabaseMessageConsumer.class);
+        originalLevel = logger.getLevel();
+        logger.setLevel(Level.DEBUG);
 
         listAppender = new ListAppender<>();
         listAppender.start();
@@ -67,6 +73,12 @@ class CcdMessageProcessorExecutorTest {
         when(caseEventMessageRepository.getNextAvailableMessageReadyToProcess()).thenReturn(caseEventMessageEntity);
         when(featureFlagProvider.getBooleanValue(any(), any())).thenReturn(true);
         lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
+    }
+
+    @AfterEach
+    void tearDown() {
+        logger.setLevel(originalLevel);
+        logger.detachAppender(listAppender);
     }
 
     @Test
