@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.InvalidRequestParametersException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.calendar.DelayUntilIntervalData.MUST_BE_WORKING_DAY_NEXT;
@@ -24,6 +26,7 @@ class DelayUntilIntervalCalculatorTest {
 
     public static final String CALENDAR_URI = "https://www.gov.uk/bank-holidays/england-and-wales.json";
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
+
     @Mock
     private PublicHolidaysCollection publicHolidaysCollection;
 
@@ -31,8 +34,14 @@ class DelayUntilIntervalCalculatorTest {
 
     @BeforeEach
     void before() {
-        delayUntilIntervalCalculator
-            = new DelayUntilIntervalCalculator(new WorkingDayIndicator(publicHolidaysCollection));
+        CalendarUriValidator calendarUriValidator = new CalendarUriValidator(
+            "https://www.gov.uk/bank-holidays/,https://raw.githubusercontent.com/hmcts/"
+        );
+
+        delayUntilIntervalCalculator = new DelayUntilIntervalCalculator(
+            new WorkingDayIndicator(publicHolidaysCollection),
+            calendarUriValidator
+        );
 
         Set<LocalDate> localDates = Set.of(
             LocalDate.of(2022, 1, 3),
@@ -262,5 +271,17 @@ class DelayUntilIntervalCalculatorTest {
             .build();
 
         assertThat(delayUntilIntervalCalculator.supports(delayUntilRequest)).isTrue();
+    }
+
+    @Test
+    void should_reject_calendar_uri_outside_allowed_prefixes() {
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
+            .delayUntilOrigin(GIVEN_DATE.format(DATE_FORMATTER) + "T20:00")
+            .delayUntilNonWorkingCalendar("https://raw.githubusercontent.com/other-org/calendar.json")
+            .build();
+
+        assertThatThrownBy(() -> delayUntilIntervalCalculator.calculateDate(delayUntilRequest))
+            .isInstanceOf(InvalidRequestParametersException.class)
+            .hasMessageContaining("Invalid delayUntilNonWorkingCalendar value");
     }
 }

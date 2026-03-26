@@ -102,6 +102,9 @@ security:
 govUkHolidays:
   url: https://www.gov.uk/
 
+calendar:
+  allowed-prefixes: ${CALENDAR_ALLOWED_PREFIXES:https://www.gov.uk/bank-holidays/,https://raw.githubusercontent.com/hmcts/}
+
 azure:
   servicebus:
     connection-string: ${AZURE_SERVICE_BUS_CONNECTION_STRING}

@@ -64,5 +64,6 @@ java:
     CLEAN_UP_STATE_FOR_NON_PROD: PROCESSED
     CALENDAR_CACHE_TIMEOUT_DURATION: 24
     CALENDAR_CACHE_TIMEOUT_TIMEUNIT: HOURS
+    CALENDAR_ALLOWED_PREFIXES: "https://www.gov.uk/bank-holidays/,https://raw.githubusercontent.com/hmcts/"
   spotInstances:
     enabled: false
