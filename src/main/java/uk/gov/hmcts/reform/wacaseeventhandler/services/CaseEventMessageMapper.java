@@ -48,7 +48,7 @@ public class CaseEventMessageMapper {
                 JsonNode jsonNodeCaseTypeId = jsonNodeMessageContent.get("CaseTypeId");
                 caseTypeId = jsonNodeCaseTypeId.asText();
             } catch (JsonProcessingException jsonProcessingException) {
-                log.warn("Error extracting CaseTypeId from message", jsonProcessingException);
+                log.info("Error extracting CaseTypeId from message", jsonProcessingException);
             }
         } else {
             log.warn("messageContent is null or empty for messageId: {}", entity.getMessageId());

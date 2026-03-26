@@ -36,7 +36,6 @@ public class ResetProblemMessageJob implements MessageJob {
 
     @Override
     public List<String> run() {
-        log.debug("Resetting problem messages for job name '{}' in message db", RESET_PROBLEM_MESSAGES.name());
         if (messageIds == null || messageIds.isEmpty()) {
             log.debug("{} There is no any message id to reset", RESET_PROBLEM_MESSAGES.name());
             return List.of();
@@ -54,7 +53,7 @@ public class ResetProblemMessageJob implements MessageJob {
         }
 
         int updateCount = caseEventMessageRepository.updateMessageState(MessageState.NEW, messagesToReset);
-        log.debug("{} Reset total of {} problem messages to READY from the list '{}'",
+        log.info("{} Reset total of {} problem messages to READY from the list '{}'",
                  RESET_PROBLEM_MESSAGES.name(),
                  updateCount,
                  messagesToReset);

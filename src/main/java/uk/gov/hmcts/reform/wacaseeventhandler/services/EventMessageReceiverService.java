@@ -47,12 +47,12 @@ public class EventMessageReceiverService {
     }
 
     public CaseEventMessage handleDlqMessage(String messageId, String sessionId, String message) {
-        log.debug("Received Case Event Dead Letter Queue message with id '{}'", messageId);
+        log.info("Received Case Event Dead Letter Queue message with id '{}'", messageId);
         return handleMessage(messageId, sessionId,  message, true);
     }
 
     public CaseEventMessage handleAsbMessage(String messageId, String sessionId, String message) {
-        log.debug("Received ASB message with id '{}'", messageId);
+        log.info("Received ASB message with id '{}'", messageId);
         return handleMessage(messageId, sessionId, message, false);
     }
 
@@ -103,7 +103,7 @@ public class EventMessageReceiverService {
                         .setSequence(eventMessageEntity.getSequence()));
                     repository.save(messageEntity);
 
-                    log.debug("Message with id '{}' successfully updated and saved into DB", messageId);
+                    log.info("Message with id '{}' successfully updated and saved into DB", messageId);
 
                     return mapper.mapToCaseEventMessage(messageEntity);
                 } catch (JsonProcessingException e) {
@@ -128,7 +128,7 @@ public class EventMessageReceiverService {
             CaseEventMessageEntity messageEntity = buildCaseEventMessageEntity(messageId, message, fromDlq);
             CaseEventMessageEntity savedEntity = insertMessage(messageEntity);
 
-            log.debug("Message with id '{}' successfully stored into the DB", messageId);
+            log.info("Message with id '{}' successfully stored into the DB", messageId);
 
             return mapper.mapToCaseEventMessage(savedEntity);
         } catch (JsonProcessingException e) {
@@ -157,10 +157,10 @@ public class EventMessageReceiverService {
 
         CaseEventMessageEntity messageEntity;
         if (isValid) {
-            log.debug("Message validation successful for message id {}", messageId);
+            log.info("Message validation successful for message id {}", messageId);
             messageEntity = build(messageId, message, fromDlq, eventInformation, MessageState.NEW);
         } else {
-            log.debug("Message validation failed for message id {}", messageId);
+            log.info("Message validation failed for message id {}", messageId);
             messageEntity = build(messageId, message, fromDlq, eventInformation, MessageState.UNPROCESSABLE);
         }
 
@@ -227,7 +227,7 @@ public class EventMessageReceiverService {
 
     private boolean validate(String messageId, EventInformation eventInformation, Boolean fromDlq) {
 
-        log.debug("Message validation for message id {} - [case id : {}, event timestamp : {}, from DLQ {}]",
+        log.info("Message validation for message id {} - [case id : {}, event timestamp : {}, from DLQ {}]",
                  messageId, eventInformation.getCaseId(), eventInformation.getEventTimeStamp(), fromDlq);
         return isNotBlank(eventInformation.getCaseId())
             && isNotBlank(messageId)

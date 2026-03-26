@@ -71,7 +71,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
     @SuppressWarnings("PMD.ConfusingTernary")
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
-        log.debug("WarningCaseEventHandler eventInformation:{}", eventInformation);
+        log.info("WarningCaseEventHandler eventInformation:{}", eventInformation);
         Set<CancellationEvaluateResponse> emptyWarnings = new LinkedHashSet<>();
         Set<CancellationEvaluateResponse> ctgWarnings = new LinkedHashSet<>();
         Set<Warning> warnings = new LinkedHashSet<>();
@@ -164,7 +164,7 @@ public class WarningCaseEventHandler implements CaseEventHandler {
 
         warningMessageRequest.forEach(message -> {
                 if (message != null) {
-                    log.debug("sendWarningMessage message:{}", message);
+                    log.info("sendWarningMessage message:{}", message);
                     workflowApiClient.sendMessage(serviceAuthGenerator.generate(), message);
                 }
             }

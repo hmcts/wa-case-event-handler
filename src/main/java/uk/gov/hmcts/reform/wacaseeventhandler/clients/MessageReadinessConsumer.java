@@ -45,13 +45,12 @@ public class MessageReadinessConsumer implements Runnable {
     @Override
     @Transactional
     public void run() {
-        log.debug("Running message readiness check");
         try {
             final List<CaseEventMessageEntity> allMessageInNewState =
                 caseEventMessageRepository.getAllMessagesInNewState();
 
             if (!allMessageInNewState.isEmpty()) {
-                log.debug("Number of messages to check the readiness {}", allMessageInNewState.size());
+                log.info("Number of messages to check the readiness {}", allMessageInNewState.size());
             }
 
             allMessageInNewState.forEach(this::checkMessageToMoveToReadyState);

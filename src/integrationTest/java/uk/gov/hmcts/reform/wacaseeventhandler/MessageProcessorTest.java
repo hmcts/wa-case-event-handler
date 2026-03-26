@@ -135,8 +135,8 @@ class MessageProcessorTest {
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(false);
 
         await()
-                .atMost(20, SECONDS)
-                .untilAsserted(() -> assertLogMessageContains("No message returned from database for processing"));
+            .atMost(20, SECONDS)
+            .untilAsserted(() -> verify(ccdEventProcessor, never()).processMessage(any(CaseEventMessage.class)));
 
         verify(ccdEventProcessor, never()).processMessage(any(CaseEventMessage.class));
         assertTrue(getMessagesInDbFromQuery(READY_STATE_QUERY).isEmpty());

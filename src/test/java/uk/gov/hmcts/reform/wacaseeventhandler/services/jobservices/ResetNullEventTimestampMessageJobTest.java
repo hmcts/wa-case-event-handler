@@ -1,5 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
@@ -32,6 +33,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith({MockitoExtension.class})
 class ResetNullEventTimestampMessageJobTest {
     private ListAppender<ILoggingEvent> listAppender;
+    private Level originalLevel;
 
     @Mock
     private static CaseEventMessageEntityCreator caseEventMessageEntityCreator;
@@ -53,6 +55,8 @@ class ResetNullEventTimestampMessageJobTest {
 
     @BeforeEach
     void setUp() {
+        originalLevel = logger.getLevel();
+        logger.setLevel(Level.DEBUG);
         listAppender = new ListAppender<>();
         listAppender.start();
 
@@ -67,6 +71,7 @@ class ResetNullEventTimestampMessageJobTest {
 
     @AfterEach
     void tearDown() {
+        logger.setLevel(originalLevel);
         logger.detachAppender(listAppender);
     }
 

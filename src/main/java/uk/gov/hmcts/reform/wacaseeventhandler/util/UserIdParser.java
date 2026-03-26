@@ -21,7 +21,7 @@ public final class UserIdParser {
                 return userIdNode.textValue();
             }
         } catch (IllegalArgumentException | JsonProcessingException e) {
-            log.warn("Unable to find User Id in message");
+            log.error("Unable to find User Id in message");
         }
         return null;
     }

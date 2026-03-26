@@ -22,16 +22,15 @@ public class CaseEventMessageCacheService {
     @Cacheable(value = "liveness_database_check_cache", key = "#environment", sync = true,
             cacheManager = "livenessDatabaseCheckCacheManager")
     public List<CaseEventMessageEntity> getAllMessagesInNewState(String environment) {
-        log.debug("Getting all messages in new state for key {}", environment);
         final List<CaseEventMessageEntity> allMessageInNewState = caseEventMessageRepository.getAllMessagesInNewState();
         final int minNoOfMessages = 1;
         final int noOfNewMessages = allMessageInNewState.size();
         if (noOfNewMessages < minNoOfMessages) {
-            log.debug("Number of Messages in NEW State {} ", noOfNewMessages);
+            log.info("Number of Messages in NEW State {} ", noOfNewMessages);
         } else {
             LocalDateTime oldestMessageTimestamp =
                     allMessageInNewState.get(noOfNewMessages - 1).getEventTimestamp();
-            log.debug("Number of Messages in NEW State {} with oldest message eventTimeStamp {}",
+            log.info("Number of Messages in NEW State {} with oldest message eventTimeStamp {}",
                     noOfNewMessages, oldestMessageTimestamp);
         }
         return allMessageInNewState;

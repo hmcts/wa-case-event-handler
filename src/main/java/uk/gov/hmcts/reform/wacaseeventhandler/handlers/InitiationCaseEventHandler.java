@@ -93,7 +93,7 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
             directionDueDate
         );
-        log.debug("EvaluateDmnRequest : {}", evaluateDmnRequest);
+        log.info("EvaluateDmnRequest : {}", evaluateDmnRequest);
         EvaluateDmnResponse<InitiateEvaluateResponse> response = workflowApiClient.evaluateInitiationDmn(
             serviceAuthGenerator.generate(),
             tableKey,
@@ -106,16 +106,16 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
 
     @Override
     public void handle(List<? extends EvaluateResponse> results, EventInformation eventInformation) {
-        log.debug("InitiationCaseEventHandler eventInformation:{}", eventInformation);
+        log.info("InitiationCaseEventHandler eventInformation:{}", eventInformation);
         results.stream()
             .filter(InitiateEvaluateResponse.class::isInstance)
             .map(InitiateEvaluateResponse.class::cast)
             .forEach(initiateEvaluateResponse -> {
-                log.debug("initiateEvaluateResponse is {}", initiateEvaluateResponse);
+                log.info("initiateEvaluateResponse is {}", initiateEvaluateResponse);
                 SendMessageRequest request =
                     buildInitiateTaskMessageRequest(initiateEvaluateResponse, eventInformation);
 
-                log.debug("sendInitiationMessage message:{}", request);
+                log.info("sendInitiationMessage message:{}", request);
                 workflowApiClient.sendMessage(
                     serviceAuthGenerator.generate(),
                     request
@@ -186,12 +186,9 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         ZonedDateTime delayUntil = ofNullable(initiateEvaluateResponse.getDelayUntil())
             .map(input -> {
                 ZoneId systemDefault = ZoneId.systemDefault();
-                log.debug("System default zone : {}", systemDefault);
                 DelayUntilRequest delayUntilRequest = input.getValue();
                 LocalDateTime calculateDelayUntil = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
-                log.debug("Calculated DelayUntil date is: {}", calculateDelayUntil);
                 ZonedDateTime dateTimeOnDefaultZone = calculateDelayUntil.atZone(systemDefault);
-                log.debug("Calculated DelayUntil on DefaultZone is: {}", dateTimeOnDefaultZone);
                 return dateTimeOnDefaultZone;
             })
             .orElse(delayUntilBasedOnDelayDuration);

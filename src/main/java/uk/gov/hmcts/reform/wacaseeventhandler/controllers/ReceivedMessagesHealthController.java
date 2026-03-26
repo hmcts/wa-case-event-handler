@@ -79,9 +79,6 @@ public class ReceivedMessagesHealthController implements HealthIndicator {
         LocalDateTime ukLocalDateTime = ukZonedDateTime.toLocalDateTime();
         LocalDateTime utcTimeMinusOneHour = utcDateTime.minusHours(1).toLocalDateTime();
 
-        log.debug("UTC date and time {}, UTC date time minus 1 hour {}, UK local date and time {}",
-                 utcDateTime,utcTimeMinusOneHour, ukLocalDateTime);
-
         if (isDateWithinWorkingHours(ukLocalDateTime)) {
             if (repository.getNumberOfMessagesReceivedInLastHour(utcTimeMinusOneHour) == 0) {
                 return Health

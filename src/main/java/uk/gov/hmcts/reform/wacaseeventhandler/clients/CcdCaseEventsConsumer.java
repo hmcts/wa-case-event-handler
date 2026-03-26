@@ -55,14 +55,14 @@ public class CcdCaseEventsConsumer implements Runnable {
                     try {
                         String messageId = message.getMessageId();
                         String sessionId = message.getSessionId();
-                        log.debug("Received CCD Case Event message with id '{}' and case id '{}'",
+                        log.info("Received CCD Case Event message with id '{}' and case id '{}'",
                             messageId, sessionId);
 
                         eventMessageReceiverService.handleCcdCaseEventAsbMessage(messageId, sessionId,
                             new String(message.getBody().toBytes()));
                         receiver.complete(message);
 
-                        log.debug("CCD Case Event message with id '{}' handled successfully", messageId);
+                        log.info("CCD Case Event message with id '{}' handled successfully", messageId);
                     } catch (Exception ex) {
                         log.error("Error processing CCD Case Event message with id '{}' - "
                                   + "abandon the processing and ASB will re-deliver it", message.getMessageId());
@@ -70,7 +70,7 @@ public class CcdCaseEventsConsumer implements Runnable {
                     }
                 });
         } catch (IllegalStateException ex) {
-            log.debug("Timeout: No CCD Case Event messages received waiting for next session {}", ex.getMessage());
+            log.error("Timeout: No CCD Case Event messages received waiting for next session {}", ex.getMessage());
         } catch (ServiceBusException ex) {
             log.error("Error occurred while receiving messages {}", ex.getMessage());
         } catch (Exception ex) {

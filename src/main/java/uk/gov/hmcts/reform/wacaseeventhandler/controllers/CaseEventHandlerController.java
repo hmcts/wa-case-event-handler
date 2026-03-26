@@ -39,7 +39,10 @@ public class CaseEventHandlerController {
     @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> caseEventHandler(@Valid @RequestBody EventInformation eventInformation) {
-        log.debug("incoming test message: {}", eventInformation);
+        log.info("Received case event message with caseId '{}' and eventId '{}'",
+            eventInformation.getCaseId(),
+            eventInformation.getEventId()
+        );
         for (CaseEventHandler handler : handlerServices) {
             List<? extends EvaluateResponse> results = handler.evaluateDmn(eventInformation);
             if (!results.isEmpty()) {
