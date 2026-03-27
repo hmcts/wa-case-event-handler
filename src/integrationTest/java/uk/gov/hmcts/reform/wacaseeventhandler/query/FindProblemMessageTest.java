@@ -64,5 +64,16 @@ public class FindProblemMessageTest {
             "ID:ce8467a0-cea9-4a65-99dd-3ae9a94a4453:16:1:1-811",
             "ID:d257fa4f-73ad-4a82-a30e-9acc377f593d:1:1:2-1675"));
     }
-}
 
+    @Test
+    @Sql("/scripts/problem_messages_threshold_data.sql")
+    void should_only_return_ready_messages_older_than_the_limit() {
+        caseEventMessages = findProblemMessageJob.run();
+
+        Assertions.assertThat(caseEventMessages)
+            .doesNotContain("ready-at-limit", "ready-newer-than-limit");
+        MatcherAssert.assertThat(caseEventMessages, containsInAnyOrder(
+            "ready-older-than-limit",
+            "unprocessable-message"));
+    }
+}
