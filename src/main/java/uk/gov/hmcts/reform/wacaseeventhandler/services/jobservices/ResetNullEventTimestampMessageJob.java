@@ -40,13 +40,13 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
 
     @Override
     public List<String> run() {
-        log.info("Start {}:'{}'", RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(), this.messageIds);
+        log.debug("Start {}:'{}'", RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name(), this.messageIds);
 
         if (this.messageIds == null || this.messageIds.isEmpty() || !canRun(RESET_NULL_EVENT_TIMESTAMP_MESSAGES)) {
             return List.of();
         }
 
-        log.info("Resetting message with null eventTimestamp messages");
+        log.debug("Resetting message with null eventTimestamp messages");
         List<CaseEventMessageEntity> messages = caseEventMessageRepository.findByMessageId(this.messageIds);
 
         List<CaseEventMessageEntity> nullEventTimestampMessageListToReset = messages.stream()
@@ -54,10 +54,6 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
             .toList();
 
         if (nullEventTimestampMessageListToReset.isEmpty()) {
-            log.info(
-                "{} There is no any UNPROCESSABLE message with null eventTimestamp",
-                RESET_NULL_EVENT_TIMESTAMP_MESSAGES.name()
-            );
             return List.of();
         }
 
@@ -87,7 +83,7 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
                     messageEntity.getCaseId()
                 );
             } catch (JsonProcessingException jsonProcessingException) {
-                log.info(
+                log.error(
                     "Cannot parse the message with null eventTimeStamp, message id:{} and case id:{}",
                     messageEntity.getMessageId(),
                     messageEntity.getCaseId()
@@ -97,4 +93,3 @@ public class ResetNullEventTimestampMessageJob implements MessageJob {
         return this.messageIds;
     }
 }
-

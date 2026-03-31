@@ -84,28 +84,30 @@ public class DatabaseMessageConsumer implements Runnable {
     @Override
     @SuppressWarnings("squid:S2189")
     public void run() {
-        log.info("Running database message consumer");
-
         try {
             Optional<MessageUpdateRetry> updateRetry = transactionTemplate.execute(status -> {
-
                 CaseEventMessageEntity caseEventMessageEntity = selectNextMessage();
 
                 if (caseEventMessageEntity == null) {
-                    log.trace("No message returned from database for processing");
-                } else {
-                    log.info("Start message processing");
-
-                    final CaseEventMessage caseEventMessage = caseEventMessageMapper
-                        .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
-                    Optional<MessageUpdateRetry> updatable = processMessage(caseEventMessage);
-
-                    //if record state update failed, Rollback the transaction
-                    updatable.ifPresent(r -> status.setRollbackOnly());
-                    return updatable;
-
+                    return Optional.empty();
                 }
-                return Optional.empty();
+
+                log.info(
+                    "Starting database message processing for messageId='{}', caseId='{}', state='{}', "
+                        + "retryCount={}, holdUntil={}",
+                    caseEventMessageEntity.getMessageId(),
+                    caseEventMessageEntity.getCaseId(),
+                    caseEventMessageEntity.getState(),
+                    caseEventMessageEntity.getRetryCount(),
+                    caseEventMessageEntity.getHoldUntil()
+                );
+                final CaseEventMessage caseEventMessage = caseEventMessageMapper
+                    .mapToCaseEventMessage(SerializationUtils.clone(caseEventMessageEntity));
+                Optional<MessageUpdateRetry> updatable = processMessage(caseEventMessage);
+
+                //if record state update failed, Rollback the transaction
+                updatable.ifPresent(r -> status.setRollbackOnly());
+                return updatable;
             });
 
             //Retry updating the record state
@@ -130,34 +132,32 @@ public class DatabaseMessageConsumer implements Runnable {
 
     private Optional<MessageUpdateRetry> processMessage(CaseEventMessage caseEventMessage) {
         if (caseEventMessage == null) {
-            log.info("No message to process");
-        } else {
-            final String caseEventMessageId = caseEventMessage.getMessageId();
-            log.info("Processing message with id: {} and caseId: {} from the database",
+            return Optional.empty();
+        }
+        final String caseEventMessageId = caseEventMessage.getMessageId();
+        log.info("Processing message with id: {} and caseId: {} from the database",
+            caseEventMessageId,
+            caseEventMessage.getCaseId()
+        );
+        try {
+            ccdEventProcessor.processMessage(caseEventMessage);
+            log.info("Message with id:{} and caseId:{} processed successfully, setting message state to PROCESSED",
                 caseEventMessageId,
                 caseEventMessage.getCaseId()
             );
-            try {
-                ccdEventProcessor.processMessage(caseEventMessage);
-                log.info("Message with id:{} and caseId:{} processed successfully, setting message state to PROCESSED",
-                    caseEventMessageId,
-                    caseEventMessage.getCaseId()
-                );
-                return updateMessageState(MessageState.PROCESSED, caseEventMessageId, 0, null);
-            } catch (FeignException fe) {
-                log.error("FeignException while processing message. caseEventMessage:{} exception: ",
-                    caseEventMessage, fe);
-                return processException(fe, caseEventMessage);
-            } catch (JsonProcessingException jpe) {
-                log.error("JsonProcessingException while processing message. caseEventMessage:{} exception: ",
-                    caseEventMessage, jpe);
-                return processError(caseEventMessage);
-            } catch (Exception ex) {
-                log.error("Exception while processing message. caseEventMessage:{} exception: ", caseEventMessage, ex);
-                return processRetryableError(caseEventMessage);
-            }
+            return updateMessageState(MessageState.PROCESSED, caseEventMessageId, 0, null);
+        } catch (FeignException fe) {
+            log.error("FeignException while processing message. caseEventMessage:{} exception: ",
+                caseEventMessage, fe);
+            return processException(fe, caseEventMessage);
+        } catch (JsonProcessingException jpe) {
+            log.error("JsonProcessingException while processing message. caseEventMessage:{} exception: ",
+                caseEventMessage, jpe);
+            return processError(caseEventMessage);
+        } catch (Exception ex) {
+            log.error("Exception while processing message. caseEventMessage:{} exception: ", caseEventMessage, ex);
+            return processRetryableError(caseEventMessage);
         }
-        return Optional.empty();
     }
 
     private Optional<MessageUpdateRetry> processException(FeignException fce, CaseEventMessage caseEventMessage) {
@@ -165,7 +165,10 @@ public class DatabaseMessageConsumer implements Runnable {
         try {
             final HttpStatus httpStatus = HttpStatus.valueOf(fce.status());
             isNonRetryableError = UnprocessableHttpErrors.isNonRetryableError(httpStatus);
-            log.info("caseId: {} httpStatus:{}", caseEventMessage.getCaseId(), httpStatus);
+            log.error("Received HTTP status {} while processing message for caseId {}",
+                httpStatus,
+                caseEventMessage.getCaseId()
+            );
         } catch (IllegalArgumentException iae) {
             if (fce instanceof RetryableException) {
                 isNonRetryableError = false;
@@ -216,7 +219,7 @@ public class DatabaseMessageConsumer implements Runnable {
                 caseEventMessageRepository.updateMessageState(state, List.of(messageId));
             }
         } catch (RuntimeException e) {
-            log.info("Error in updating message with id {}, retrying to update", messageId);
+            log.error("Error in updating message with id {}, retrying to update", messageId);
             return Optional.of(MessageUpdateRetry.builder()
                 .messageId(messageId)
                 .state(state)
