@@ -79,9 +79,6 @@ public class ReceivedMessagesHealthController implements HealthIndicator {
         LocalDateTime ukLocalDateTime = ukZonedDateTime.toLocalDateTime();
         LocalDateTime utcTimeMinusOneHour = utcDateTime.minusHours(1).toLocalDateTime();
 
-        log.info("UTC date and time {}, UTC date time minus 1 hour {}, UK local date and time {}",
-                 utcDateTime,utcTimeMinusOneHour, ukLocalDateTime);
-
         if (isDateWithinWorkingHours(ukLocalDateTime)) {
             if (repository.getNumberOfMessagesReceivedInLastHour(utcTimeMinusOneHour) == 0) {
                 return Health
@@ -131,7 +128,7 @@ public class ReceivedMessagesHealthController implements HealthIndicator {
         if (ENV_AAT.equals(env)) {
 
             URI currentUri = ServletUriComponentsBuilder.fromCurrentRequestUri().build().toUri();
-            log.info("Invoked API URI: {}", currentUri);
+            log.debug("Invoked API URI: {}", currentUri);
             if (currentUri.toString().contains(STAGING_TEXT)) {
                 return true;
             }

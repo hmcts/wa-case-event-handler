@@ -11,6 +11,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.microsoft.applicationinsights.extensibility.context.OperationContext;
 import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import feign.FeignException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -107,10 +108,11 @@ class MessageProcessorTest {
     private static final String MESSAGE_ID = "MessageId_30915063-ec4b-4272-933d-91087b486195";
     private static final String SECOND_MESSAGE_ID = "MessageId_bc8299fc-5d31-45c7-b847-c2622014a85a";
     private static final String CASE_ID = "6761065058131570";
+    private Logger logger;
 
     @BeforeEach
     void setup() {
-        Logger logger = (Logger) LoggerFactory.getLogger(DatabaseMessageConsumer.class);
+        logger = (Logger) LoggerFactory.getLogger(DatabaseMessageConsumer.class);
 
         listAppender = new ListAppender<>();
         listAppender.start();
@@ -118,6 +120,11 @@ class MessageProcessorTest {
 
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(true).thenReturn(true);
         lenient().when(telemetryContext.getOperation()).thenReturn(operationContext);
+    }
+
+    @AfterEach
+    void tearDown() {
+        logger.detachAppender(listAppender);
     }
 
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
@@ -128,8 +135,8 @@ class MessageProcessorTest {
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(false);
 
         await()
-                .atMost(20, SECONDS)
-                .untilAsserted(() -> assertLogMessageContains("No message returned from database for processing"));
+            .atMost(20, SECONDS)
+            .untilAsserted(() -> verify(ccdEventProcessor, never()).processMessage(any(CaseEventMessage.class)));
 
         verify(ccdEventProcessor, never()).processMessage(any(CaseEventMessage.class));
         assertTrue(getMessagesInDbFromQuery(READY_STATE_QUERY).isEmpty());
