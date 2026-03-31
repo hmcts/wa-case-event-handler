@@ -1,10 +1,12 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.jobservices;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +33,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith({MockitoExtension.class})
 class ResetNullEventTimestampMessageJobTest {
     private ListAppender<ILoggingEvent> listAppender;
+    private Level originalLevel;
 
     @Mock
     private static CaseEventMessageEntityCreator caseEventMessageEntityCreator;
@@ -52,6 +55,8 @@ class ResetNullEventTimestampMessageJobTest {
 
     @BeforeEach
     void setUp() {
+        originalLevel = logger.getLevel();
+        logger.setLevel(Level.DEBUG);
         listAppender = new ListAppender<>();
         listAppender.start();
 
@@ -62,6 +67,12 @@ class ResetNullEventTimestampMessageJobTest {
             messageIds,
             objectMapper
         );
+    }
+
+    @AfterEach
+    void tearDown() {
+        logger.setLevel(originalLevel);
+        logger.detachAppender(listAppender);
     }
 
     @Test

@@ -36,9 +36,8 @@ public class ResetProblemMessageJob implements MessageJob {
 
     @Override
     public List<String> run() {
-        log.info("Resetting problem messages for job name '{}' in message db", RESET_PROBLEM_MESSAGES.name());
         if (messageIds == null || messageIds.isEmpty()) {
-            log.info("{} There is no any message id to reset", RESET_PROBLEM_MESSAGES.name());
+            log.debug("{} There is no any message id to reset", RESET_PROBLEM_MESSAGES.name());
             return List.of();
         }
 
@@ -49,7 +48,7 @@ public class ResetProblemMessageJob implements MessageJob {
             .toList();
 
         if (messagesToReset.isEmpty()) {
-            log.info("{} There is no any UNPROCESSABLE message to reset", RESET_PROBLEM_MESSAGES.name());
+            log.debug("{} There is no any UNPROCESSABLE message to reset", RESET_PROBLEM_MESSAGES.name());
             return List.of();
         }
 

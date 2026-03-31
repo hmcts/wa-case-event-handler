@@ -186,12 +186,9 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
         ZonedDateTime delayUntil = ofNullable(initiateEvaluateResponse.getDelayUntil())
             .map(input -> {
                 ZoneId systemDefault = ZoneId.systemDefault();
-                log.info("System default zone : {}", systemDefault);
                 DelayUntilRequest delayUntilRequest = input.getValue();
                 LocalDateTime calculateDelayUntil = delayUntilConfigurator.calculateDelayUntil(delayUntilRequest);
-                log.info("Calculated DelayUntil date is: {}", calculateDelayUntil);
                 ZonedDateTime dateTimeOnDefaultZone = calculateDelayUntil.atZone(systemDefault);
-                log.info("Calculated DelayUntil on DefaultZone is: {}", dateTimeOnDefaultZone);
                 return dateTimeOnDefaultZone;
             })
             .orElse(delayUntilBasedOnDelayDuration);
