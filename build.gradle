@@ -316,7 +316,7 @@ def versions = [
   tomcat       : '10.1.53',
   log4j        : '2.23.1',
   retry        : '2.0.12',
-  testcontainers  : '1.21.4'
+  testcontainers  : '2.0.4'
 ]
 
 ext.libraries = [
