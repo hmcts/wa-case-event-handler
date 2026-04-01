@@ -22,7 +22,7 @@ public class DeadLetterQueuePeekService {
 
     public boolean isDeadLetterQueueEmpty() {
         ServiceBusReceivedMessage message = serviceBusReceiverClient.peekMessage(1);
-        log.info("Is dead letter queue empty {}", message == null);
+        log.debug("Is dead letter queue empty {}", message == null);
         return message == null;
     }
 }
