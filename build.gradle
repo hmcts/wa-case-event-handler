@@ -305,7 +305,7 @@ repositories {
 def versions = [
   junit        : '5.14.3',
   junitPlatform: '1.14.3',
-  reformLogging: '6.1.9',
+  reformLogging: '8.0.0',
   springDoc    : '2.6.0',
   springBoot   : '3.3.0',
   serenity     : '3.9.8',
@@ -360,7 +360,7 @@ dependencies {
   implementation group: 'org.zalando', name: 'logbook-httpclient5', version: versions.logbook
 
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: versions.reformLogging
-  implementation group: 'com.github.hmcts.java-logging', name: 'logging-appinsights', version: versions.reformLogging
+  testImplementation 'com.microsoft.azure:applicationinsights-core:2.6.4'
 
   implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.3.3'
   implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '5.0.5'
