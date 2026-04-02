@@ -41,7 +41,6 @@ public class FindProblemMessageJob implements MessageJob {
 
     @Override
     public List<String> run() {
-        log.info("Retrieving problem messages for job name '{}' from case db", FIND_PROBLEM_MESSAGES.name());
         List<CaseEventMessageEntity> problemMessages = caseEventMessageRepository.findProblemMessages(messageTimeLimit);
         List<ProblemMessage> results = problemMessages.stream()
             .map(caseEventMessageMapper::mapToProblemMessage)

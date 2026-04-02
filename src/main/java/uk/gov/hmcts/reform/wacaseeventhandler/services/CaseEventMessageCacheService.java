@@ -22,7 +22,6 @@ public class CaseEventMessageCacheService {
     @Cacheable(value = "liveness_database_check_cache", key = "#environment", sync = true,
             cacheManager = "livenessDatabaseCheckCacheManager")
     public List<CaseEventMessageEntity> getAllMessagesInNewState(String environment) {
-        log.info("Getting all messages in new state for key {}", environment);
         final List<CaseEventMessageEntity> allMessageInNewState = caseEventMessageRepository.getAllMessagesInNewState();
         final int minNoOfMessages = 1;
         final int noOfNewMessages = allMessageInNewState.size();

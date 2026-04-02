@@ -78,9 +78,7 @@ public class CcdEventProcessor {
 
         handlerServices.forEach(handler -> {
             List<? extends EvaluateResponse> results = handler.evaluateDmn(eventInformation);
-            if (results.isEmpty()) {
-                log.info("No results returned when evaluating {}", handler.getClass().getName());
-            } else {
+            if (!results.isEmpty()) {
                 handler.handle(results, eventInformation);
             }
         });

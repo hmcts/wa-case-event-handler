@@ -45,7 +45,7 @@ public class CcdCaseEventsConsumer implements Runnable {
         try (ServiceBusReceiverClient receiver = sessionReceiver.acceptNextSession()) {
 
             if (receiver == null) {
-                log.warn("ServiceBusReceiverClient receiver was null.");
+                log.debug("ServiceBusReceiverClient receiver was null.");
                 return;
 
             }
@@ -70,7 +70,7 @@ public class CcdCaseEventsConsumer implements Runnable {
                     }
                 });
         } catch (IllegalStateException ex) {
-            log.info("Timeout: No CCD Case Event messages received waiting for next session {}", ex.getMessage());
+            log.error("Timeout: No CCD Case Event messages received waiting for next session {}", ex.getMessage());
         } catch (ServiceBusException ex) {
             log.error("Error occurred while receiving messages {}", ex.getMessage());
         } catch (Exception ex) {

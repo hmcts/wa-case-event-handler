@@ -296,4 +296,3 @@ public class WarningCaseEventHandler implements CaseEventHandler {
             .build();
     }
 }
-
