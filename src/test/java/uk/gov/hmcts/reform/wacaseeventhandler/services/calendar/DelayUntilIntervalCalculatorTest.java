@@ -282,8 +282,8 @@ class DelayUntilIntervalCalculatorTest {
 
         assertThatThrownBy(() -> delayUntilIntervalCalculator.calculateDate(delayUntilRequest))
             .isInstanceOf(InvalidRequestParametersException.class)
-            .hasMessageContaining("Invalid delayUntilNonWorkingCalendar " +
-                                      "value 'https://raw.githubusercontent.com/other-org/calendar.json'. " +
-                                      "Only HTTPS calendar URLs from allowed prefixes are supported.");
+            .hasMessageContaining("Invalid delayUntilNonWorkingCalendar "
+                                      + "value 'https://raw.githubusercontent.com/other-org/calendar.json'. "
+                                      + "Only HTTPS calendar URLs from allowed prefixes are supported.");
     }
 }
