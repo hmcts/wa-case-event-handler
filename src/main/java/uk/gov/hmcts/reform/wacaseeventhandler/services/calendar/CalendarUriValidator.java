@@ -10,15 +10,13 @@ import java.util.List;
 @Component
 public class CalendarUriValidator {
 
-    private static final String DEFAULT_ALLOWED_PREFIXES =
-        "https://www.gov.uk/bank-holidays/,https://raw.githubusercontent.com/hmcts/";
     private static final String INVALID_URI_MESSAGE =
         "Invalid delayUntilNonWorkingCalendar value '%s'. "
             + "Only HTTPS calendar URLs from allowed prefixes are supported.";
 
     private final List<String> allowedPrefixes;
 
-    public CalendarUriValidator(@Value("${calendar.allowed-prefixes:" + DEFAULT_ALLOWED_PREFIXES + "}")
+    public CalendarUriValidator(@Value("${calendar.allowed-prefixes}")
                                 String allowedPrefixes) {
         this.allowedPrefixes = Arrays.stream(allowedPrefixes.split(","))
             .map(String::trim)

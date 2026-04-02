@@ -385,7 +385,9 @@ public class DelayUntilConfiguratorTest {
 
         assertThatThrownBy(() -> delayUntilConfigurator.calculateDelayUntil(delayUntilRequest))
             .isInstanceOf(InvalidRequestParametersException.class)
-            .hasMessageContaining("Invalid delayUntilNonWorkingCalendar value");
+            .hasMessageContaining("Invalid delayUntilNonWorkingCalendar value " +
+                                      "'https://raw.githubusercontent.com/other-org/calendar.json'. " +
+                                      "Only HTTPS calendar URLs from allowed prefixes are supported.");
     }
 
     @Test

@@ -118,8 +118,7 @@ public class DelayUntilIntervalCalculator implements DelayUntilCalculator {
                               .orElse(0L))
             .nonWorkingCalendars(Optional.ofNullable(delayUntilRequest.getDelayUntilNonWorkingCalendar())
                                      .map(calendarUriValidator::validateCalendarUris)
-                                     .orElse(List.of(calendarUriValidator
-                                                         .validateCalendarUri(DEFAULT_NON_WORKING_CALENDAR))))
+                                     .orElse(List.of(DEFAULT_NON_WORKING_CALENDAR)))
             .nonWorkingDaysOfWeek(Optional.ofNullable(delayUntilRequest.getDelayUntilNonWorkingDaysOfWeek())
                                       .map(s -> s.split(","))
                                       .map(a -> Arrays.stream(a).map(String::trim).toArray(String[]::new))
