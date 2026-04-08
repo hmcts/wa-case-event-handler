@@ -53,4 +53,36 @@ class CalendarUriValidatorTest {
 
         assertThat(uris).containsExactly("https://www.gov.uk/bank-holidays/england-and-wales.json?format=json");
     }
+
+    @Test
+    void should_ignore_blank_allowed_prefix_entries() {
+        CalendarUriValidator validator = new CalendarUriValidator(
+            " https://www.gov.uk/bank-holidays/ , , https://raw.githubusercontent.com/hmcts/ , "
+        );
+
+        assertThat(validator.validateCalendarUri("https://raw.githubusercontent.com/hmcts/calendar.json"))
+            .isEqualTo("https://raw.githubusercontent.com/hmcts/calendar.json");
+    }
+
+    @Test
+    void should_trim_calendar_uri_before_validation() {
+        assertThat(calendarUriValidator.validateCalendarUri("  https://www.gov.uk/bank-holidays/test.json  "))
+            .isEqualTo("https://www.gov.uk/bank-holidays/test.json");
+    }
+
+    @Test
+    void should_reject_null_calendar_uri() {
+        assertThatThrownBy(() -> calendarUriValidator.validateCalendarUri(null))
+            .isInstanceOf(InvalidRequestParametersException.class)
+            .hasMessageContaining("Invalid delayUntilNonWorkingCalendar value 'null'"
+                                      + ". Only HTTPS calendar URLs from allowed prefixes are supported.");
+    }
+
+    @Test
+    void should_reject_blank_calendar_uri() {
+        assertThatThrownBy(() -> calendarUriValidator.validateCalendarUri("   "))
+            .isInstanceOf(InvalidRequestParametersException.class)
+            .hasMessageContaining("Invalid delayUntilNonWorkingCalendar value ''"
+                                      + ". Only HTTPS calendar URLs from allowed prefixes are supported.");
+    }
 }
