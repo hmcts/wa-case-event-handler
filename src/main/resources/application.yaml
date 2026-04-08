@@ -158,7 +158,7 @@ scheduledExecutors:
 job:
   problem-message:
     #number of minutes
-    message-time-limit: ${PROBLEM_MESSAGE_TIME_LIMIT:60}
+    message-time-limit: ${PROBLEM_MESSAGE_TIME_LIMIT:15}
     message-id-list: ${PROBLEM_MESSAGE_RESET_ID_LIST:}
     null-event-timestamp-message-id-list: ${PROBLEM_MESSAGE_RESET_NULL_EVENT_TIMESTAMP_ID_LIST:}
     set-processed-state-message-id-list: ${PROBLEM_MESSAGE_SET_STATE_TO_PROCESSED_ID_LIST:}
