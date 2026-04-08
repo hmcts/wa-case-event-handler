@@ -7,4 +7,13 @@ feign:
       default:
         loggerLevel: full
 
-spring.jackson.serialization.indent_output: true
+spring:
+  jackson:
+    serialization:
+      indent_output: true
+  flyway:
+    out-of-order: true
+    ignore-migration-patterns:
+      - "*:missing"
+    placeholders:
+      concurrently: ""
