@@ -13,6 +13,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.Application;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.CaffeineConfiguration;
 import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CalendarResourceInvalidException;
 import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.CalendarResourceNotFoundException;
+import uk.gov.hmcts.reform.wacaseeventhandler.exceptions.InvalidRequestParametersException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -36,6 +37,7 @@ public class DelayUntilConfiguratorTest {
     public static final LocalDateTime BST_DATE_FORWARD = LocalDateTime.of(2023, 3, 26, 18, 0, 0);
     public static final String NON_WORKING_JSON_OVERRIDE = "https://raw.githubusercontent.com/hmcts/wa-task-management-api/master/src/test/resources/override-working-day-calendar.json";
     public static final String INVALID_CALENDAR_URI = "https://raw.githubusercontent.com/hmcts/wa-task-management-api/895bb18417be056175ec64727e6d5fd39289d489/src/integrationTest/resources/calendars/invalid-calendar.json";
+    public static final String DISALLOWED_CALENDAR_URI = "https://raw.githubusercontent.com/other-org/calendar.json";
     public static final String DEFAULT_CALENDAR_URI = "https://www.gov.uk/bank-holidays/england-and-wales.json";
 
     private final DelayUntilConfigurator delayUntilConfigurator;
@@ -366,6 +368,26 @@ public class DelayUntilConfiguratorTest {
         assertThatThrownBy(() -> delayUntilConfigurator.calculateDelayUntil(delayUntilRequest))
             .isInstanceOf(CalendarResourceNotFoundException.class)
             .hasMessage("Could not find calendar resource " + wrongUri);
+    }
+
+    @Test
+    void shouldErrorWhenCalculateDelayUntilContainsCalendarOutsideAllowedPrefixes() {
+        String givenDelayUntilOrigin = LocalDate.of(2022, 12, 26).format(DATE_FORMATTER);
+        DelayUntilRequest delayUntilRequest = DelayUntilRequest.builder()
+            .delayUntilOrigin(givenDelayUntilOrigin + "T00:30")
+            .delayUntilIntervalDays(4)
+            .delayUntilNonWorkingCalendar(DEFAULT_NON_WORKING_CALENDAR + "," + DISALLOWED_CALENDAR_URI)
+            .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
+            .delayUntilSkipNonWorkingDays(true)
+            .delayUntilMustBeWorkingDay("Next")
+            .delayUntilTime(null)
+            .build();
+
+        assertThatThrownBy(() -> delayUntilConfigurator.calculateDelayUntil(delayUntilRequest))
+            .isInstanceOf(InvalidRequestParametersException.class)
+            .hasMessageContaining("Invalid delayUntilNonWorkingCalendar value "
+                                      + "'https://raw.githubusercontent.com/other-org/calendar.json'. "
+                                      + "Only HTTPS calendar URLs from allowed prefixes are supported.");
     }
 
     @Test

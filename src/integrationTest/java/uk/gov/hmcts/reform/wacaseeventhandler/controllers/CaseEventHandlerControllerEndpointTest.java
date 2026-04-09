@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultMatcher;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClient;
+import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.request.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.CancellationEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateDmnResponse;
@@ -28,6 +29,7 @@ import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
+import uk.gov.hmcts.reform.wacaseeventhandler.services.calendar.DelayUntilRequest;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -421,6 +423,18 @@ class CaseEventHandlerControllerEndpointTest {
     }
 
     @Test
+    void should_return_400_when_camunda_returns_calendar_outside_allowed_prefixes() throws Exception {
+        mockInitiateHandlerResponseWithDisallowedCalendarPrefix();
+
+        EventInformation validEventInformation = getBaseEventInformation(null);
+
+        mockMvc.perform(post("/messages")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(asJsonString(validEventInformation)))
+            .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
+    }
+
+    @Test
     void event_information_with_additional_data_should_succeed_and_return_204_no_categories() throws Exception {
         mockInitiateHandlerResponseWithNoCategories();
 
@@ -601,6 +615,36 @@ class CaseEventHandlerControllerEndpointTest {
             .workingDaysAllowed(dmnIntegerValue(2))
             .name(dmnStringValue("Test task to test multiple categories"))
             .processCategories(dmnStringValue("caseProgression, followUpOverdue"))
+            .build();
+
+        EvaluateDmnResponse<InitiateEvaluateResponse> response = new EvaluateDmnResponse<>(List.of(result));
+
+        doReturn(response).when(workflowApiClient).evaluateInitiationDmn(
+            eq(S2S_TOKEN),
+            eq(INITIATE_DMN_TABLE),
+            eq(TENANT_ID),
+            any(EvaluateDmnRequest.class));
+    }
+
+    private void mockInitiateHandlerResponseWithDisallowedCalendarPrefix() {
+        InitiateEvaluateResponse result = InitiateEvaluateResponse.builder()
+            .taskId(dmnStringValue("processApplication"))
+            .delayDuration(dmnIntegerValue(2))
+            .workingDaysAllowed(dmnIntegerValue(2))
+            .name(dmnStringValue("Process Application"))
+            .delayUntil(new DmnValue<>(
+                DelayUntilRequest.builder()
+                    .delayUntilOrigin("2022-10-23T16:00")
+                    .delayUntilIntervalDays(5)
+                    .delayUntilNonWorkingDaysOfWeek("SATURDAY,SUNDAY")
+                    .delayUntilNonWorkingCalendar(
+                        "https://www.gov.uk/bank-holidays/england-and-wales.json,"
+                            + "https://raw.githubusercontent.com/other-org/calendar.json"
+                    )
+                    .delayUntilTime("16:00")
+                    .build(),
+                null
+            ))
             .build();
 
         EvaluateDmnResponse<InitiateEvaluateResponse> response = new EvaluateDmnResponse<>(List.of(result));
