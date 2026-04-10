@@ -18,9 +18,14 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.calendar.DelayUntilI
 @Component
 public class DelayUntilIntervalCalculator implements DelayUntilCalculator {
     final WorkingDayIndicator workingDayIndicator;
+    private final CalendarUriValidator calendarUriValidator;
 
-    public DelayUntilIntervalCalculator(WorkingDayIndicator workingDayIndicator) {
+    public DelayUntilIntervalCalculator(
+        WorkingDayIndicator workingDayIndicator,
+        CalendarUriValidator calendarUriValidator
+    ) {
         this.workingDayIndicator = workingDayIndicator;
+        this.calendarUriValidator = calendarUriValidator;
     }
 
     @Override
@@ -112,9 +117,7 @@ public class DelayUntilIntervalCalculator implements DelayUntilCalculator {
                               .map(Long::valueOf)
                               .orElse(0L))
             .nonWorkingCalendars(Optional.ofNullable(delayUntilRequest.getDelayUntilNonWorkingCalendar())
-                                     .map(s -> s.split(","))
-                                     .map(a -> Arrays.stream(a).map(String::trim).toArray(String[]::new))
-                                     .map(Arrays::asList)
+                                     .map(calendarUriValidator::validateCalendarUris)
                                      .orElse(List.of(DEFAULT_NON_WORKING_CALENDAR)))
             .nonWorkingDaysOfWeek(Optional.ofNullable(delayUntilRequest.getDelayUntilNonWorkingDaysOfWeek())
                                       .map(s -> s.split(","))

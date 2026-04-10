@@ -15,16 +15,23 @@ public class PublicHolidayService {
 
     private final Decoder feignDecoder;
     private final Encoder feignEncoder;
+    private final CalendarUriValidator calendarUriValidator;
 
-    public PublicHolidayService(Decoder feignDecoder, Encoder feignEncoder) {
+    public PublicHolidayService(
+        Decoder feignDecoder,
+        Encoder feignEncoder,
+        CalendarUriValidator calendarUriValidator
+    ) {
         this.feignDecoder = feignDecoder;
         this.feignEncoder = feignEncoder;
+        this.calendarUriValidator = calendarUriValidator;
     }
 
     @Cacheable(value = "calendar_cache", key = "#uri", sync = true, cacheManager = "calendarCacheManager")
     public BankHolidays getPublicHolidays(String uri) {
-        log.info("Getting public holidays for {}", uri);
-        BankHolidaysApi bankHolidaysApi = bankHolidaysApi(uri);
+        String validatedUri = calendarUriValidator.validateCalendarUri(uri);
+        log.info("Getting public holidays for {}", validatedUri);
+        BankHolidaysApi bankHolidaysApi = bankHolidaysApi(validatedUri);
         return bankHolidaysApi.retrieveAll();
     }
 

@@ -24,6 +24,9 @@ class DelayUntilConfiguratorTest {
 
     public static final String CALENDAR_URI = "https://www.gov.uk/bank-holidays/england-and-wales.json";
     public static final LocalDateTime GIVEN_DATE = LocalDateTime.of(2022, 10, 13, 18, 0, 0);
+    private static final CalendarUriValidator CALENDAR_URI_VALIDATOR = new CalendarUriValidator(
+        "https://www.gov.uk/bank-holidays/,https://raw.githubusercontent.com/hmcts/"
+    );
     private DelayUntilConfigurator delayUntilConfigurator;
 
     @Nested
@@ -61,7 +64,10 @@ class DelayUntilConfiguratorTest {
             delayUntilConfigurator = new DelayUntilConfigurator(List.of(
                 new DelayUntilDateCalculator(),
                 new DelayUntilDateTimeCalculator(),
-                new DelayUntilIntervalCalculator(new WorkingDayIndicator(publicHolidaysCollection))
+                new DelayUntilIntervalCalculator(
+                    new WorkingDayIndicator(publicHolidaysCollection),
+                    CALENDAR_URI_VALIDATOR
+                )
             ));
 
             Set<LocalDate> localDates = Set.of(

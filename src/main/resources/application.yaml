@@ -109,6 +109,9 @@ security:
 govUkHolidays:
   url: https://www.gov.uk/
 
+calendar:
+  allowed-prefixes: "https://www.gov.uk/bank-holidays/,https://raw.githubusercontent.com/hmcts/"
+
 azure:
   servicebus:
     connection-string: ${AZURE_SERVICE_BUS_CONNECTION_STRING}
@@ -153,7 +156,7 @@ core_case_data:
 
 scheduledExecutors:
   messageProcessing:
-    pollIntervalMilliSeconds: ${MESSAGE_PROCESSING_POLL_INTERVAL_MILLISECONDS:5000}
+    pollIntervalMilliSeconds: ${MESSAGE_PROCESSING_POLL_INTERVAL_MILLISECONDS:1000}
     threadPoolSize: ${MESSAGE_PROCESSING_THREAD_POOL_SIZE:1}
   messageReadiness:
     pollIntervalMilliSeconds: ${MESSAGE_READINESS_POLL_INTERVAL_MILLISECONDS:5000}
