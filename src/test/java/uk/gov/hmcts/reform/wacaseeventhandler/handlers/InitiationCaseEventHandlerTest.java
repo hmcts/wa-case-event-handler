@@ -15,6 +15,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClient;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
@@ -57,7 +59,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.
 import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.withoutDirectionDueDate;
 import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.withoutLastModifiedDirection;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})
 class InitiationCaseEventHandlerTest {
 
     public static final String TENANT_ID = "ia";
@@ -346,6 +348,26 @@ class InitiationCaseEventHandlerTest {
 
         verify(workflowApiClient, times(0)).sendMessage(eq(SERVICE_AUTH_TOKEN), any());
     }
+
+    @Test
+    void evaluateDmn_should_not_log_additional_data(CapturedOutput output) {
+        EventInformation eventInformation = validAdditionalData();
+        Map<String, Object> dataMap = mapAppealType();
+
+        lenient().when(objectMapper.convertValue(eventInformation.getAdditionalData(), Map.class)).thenReturn(dataMap);
+        lenient().when(workflowApiClient.evaluateInitiationDmn(
+            org.mockito.ArgumentMatchers.anyString(),
+            org.mockito.ArgumentMatchers.eq(TASK_INITIATION_DMN_TABLE),
+            org.mockito.ArgumentMatchers.eq(TENANT_ID),
+            org.mockito.ArgumentMatchers.any(EvaluateDmnRequest.class)
+        )).thenReturn(new EvaluateDmnResponse<>(Collections.emptyList()));
+
+        handlerService.evaluateDmn(eventInformation);
+
+        assertThat(output.getOut()).doesNotContain("EvaluateDmnRequest :");
+        assertThat(output.getOut()).doesNotContain("additionalData");
+    }
+
 
     private SendMessageRequest getExpectedSendMessageRequest(
         String idempotencyKey,

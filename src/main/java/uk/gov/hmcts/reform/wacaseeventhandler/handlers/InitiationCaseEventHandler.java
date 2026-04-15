@@ -93,7 +93,13 @@ public class InitiationCaseEventHandler implements CaseEventHandler {
             LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
             directionDueDate
         );
-        log.info("EvaluateDmnRequest : {}", evaluateDmnRequest);
+        log.info(
+            "EvaluateDmnRequest created for eventId: {}, newStateId: {}, directionDueDate: {}, timestamp {}",
+            eventInformation.getEventId(),
+            eventInformation.getNewStateId(),
+            directionDueDate,
+            LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+        );
         EvaluateDmnResponse<InitiateEvaluateResponse> response = workflowApiClient.evaluateInitiationDmn(
             serviceAuthGenerator.generate(),
             tableKey,
