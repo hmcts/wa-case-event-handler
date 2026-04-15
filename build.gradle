@@ -313,7 +313,7 @@ def versions = [
   pitest       : '1.19.4',
   sonarPitest   : '0.5',
   logbook      : '3.12.3',
-  tomcat       : '10.1.53',
+  tomcat       : '10.1.54',
   log4j        : '2.23.1',
   retry        : '2.0.12',
   testcontainers  : '1.21.4'
