@@ -60,6 +60,11 @@ withNightlyPipeline(type, product, component) {
 
   loadVaultSecrets(secrets)
 
+  before('mutationTest') {
+    sh 'az login --identity'
+    sh 'az acr login --name hmctsprod'
+  }
+
   enableSecurityScan()
   enableFortifyScan()
   enableMutationTest()

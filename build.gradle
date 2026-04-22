@@ -310,13 +310,13 @@ def versions = [
   springBoot   : '3.3.0',
   serenity     : '3.9.8',
   gradlePitest  : '1.15.0',
-  pitest       : '1.19.4',
+  pitest       : '1.23.0',
   sonarPitest   : '0.5',
   logbook      : '3.12.3',
   tomcat       : '10.1.53',
   log4j        : '2.23.1',
   retry        : '2.0.12',
-  testcontainers  : '1.21.4'
+  testcontainers  : '2.0.4'
 ]
 
 ext.libraries = [
@@ -394,8 +394,8 @@ dependencies {
   }
   testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '5.5.7'
   testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
-  testImplementation group: 'org.testcontainers', name: 'postgresql', version: versions.testcontainers
-  testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: versions.testcontainers
+  testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.21.4'
+  testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: versions.testcontainersdb
 
   testImplementation group: 'org.pitest', name: 'pitest', version: versions.pitest
   testImplementation group: 'info.solidsoft.gradle.pitest', name: 'gradle-pitest-plugin', version: versions.gradlePitest
