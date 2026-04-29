@@ -268,7 +268,7 @@ dependencyManagement {
       entry 'selenium-support'
     }
 
-    dependencySet(group: 'org.springframework.security', version: '6.0.8') {
+    dependencySet(group: 'org.springframework.security', version: '7.0.5') {
       entry 'spring-security-core'
       entry 'spring-security-acl'
       entry 'spring-security-aspects'
