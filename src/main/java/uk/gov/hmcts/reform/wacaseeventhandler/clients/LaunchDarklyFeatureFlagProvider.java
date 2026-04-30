@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
 import com.launchdarkly.sdk.LDContext;
-import com.launchdarkly.sdk.LDUser;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,12 +23,11 @@ public class LaunchDarklyFeatureFlagProvider {
     }
 
     private LDContext createLaunchDarklyContext(String userId) {
-        LDUser ldUser = new LDUser.Builder(APPLICATION_NAME)
+        return LDContext.builder(APPLICATION_NAME)
             .name(userId)
-            .firstName(FIRST_NAME)
-            .lastName(LAST_NAME)
+            .set("firstName", FIRST_NAME)
+            .set("lastName", LAST_NAME)
             .build();
-        return LDContext.fromUser(ldUser);
     }
 
     public boolean getBooleanValue(FeatureFlag featureFlag, String userId) {

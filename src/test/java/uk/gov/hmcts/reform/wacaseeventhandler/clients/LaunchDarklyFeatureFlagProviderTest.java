@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
 import com.launchdarkly.sdk.LDContext;
-import com.launchdarkly.sdk.LDUser;
 import com.launchdarkly.sdk.server.interfaces.LDClientInterface;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,13 +37,11 @@ class LaunchDarklyFeatureFlagProviderTest {
 
         featureFlag = mock(FeatureFlag.class);
 
-        LDUser expectedLdUser = new LDUser.Builder("wa-case-event-handler")
+        expectedLdContext = LDContext.builder("wa-case-event-handler")
             .name("some user id")
-            .firstName("Work Allocation")
-            .lastName("Case Event Handler")
+            .set("firstName", "Work Allocation")
+            .set("lastName", "Case Event Handler")
             .build();
-
-        expectedLdContext = LDContext.fromUser(expectedLdUser);
     }
 
     @ParameterizedTest
