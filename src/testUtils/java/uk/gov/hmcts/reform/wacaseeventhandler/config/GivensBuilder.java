@@ -25,8 +25,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.time.ZonedDateTime.now;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -223,10 +221,7 @@ public class GivensBuilder {
         String filter = "?processVariables=" + key + "_eq_" + value;
 
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
-        await().ignoreException(AssertionError.class)
-            .pollInterval(1, SECONDS)
-            .atMost(60, SECONDS)
-            .until(
+        await().untilAsserted(
                 () -> {
                     Response result = camundaApiActions.get(
                         "/task" + filter,
@@ -243,8 +238,6 @@ public class GivensBuilder {
                             .extract()
                             .jsonPath().getList("", CamundaTask.class)
                     );
-
-                    return true;
                 });
 
         return response.get();
@@ -255,10 +248,7 @@ public class GivensBuilder {
         String filter = "?processVariables=" + key + "_eq_" + value;
 
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
-        await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
-            .until(
+        await().untilAsserted(
                 () -> {
                     Response result = camundaApiActions.get(
                         "/task" + filter,
@@ -275,8 +265,6 @@ public class GivensBuilder {
                             .extract()
                             .jsonPath().getList("", CamundaTask.class)
                     );
-
-                    return true;
                 });
 
         return response.get();
@@ -287,10 +275,7 @@ public class GivensBuilder {
         String filter = "?variables=" + key + "_eq_" + value;
 
         AtomicReference<List<CamundaTask>> response = new AtomicReference<>();
-        await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
-            .until(
+        await().untilAsserted(
                 () -> {
 
                     Response result = camundaApiActions.get(
@@ -308,8 +293,6 @@ public class GivensBuilder {
                             .extract()
                             .jsonPath().getList("", CamundaTask.class)
                     );
-
-                    return true;
                 });
 
         return response.get();

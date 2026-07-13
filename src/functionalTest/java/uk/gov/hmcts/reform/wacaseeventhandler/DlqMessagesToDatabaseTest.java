@@ -17,8 +17,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -59,23 +57,20 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
         messageIds.forEach(msgId -> messages.put(msgId, eventInformation));
         sendMessagesToDlq(messages);
 
-        await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(30, SECONDS)
-            .until(
-                () -> {
-                    final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
-                    if (dlqMessagesFromDb != null) {
-                        caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
+        await().until(
+            () -> {
+                final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
+                if (dlqMessagesFromDb != null) {
+                    caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
-                        assertEquals(messageIds.size(), caseEventMessages.size());
-                        assertTrue(caseEventMessages.stream().allMatch(CaseEventMessage::getFromDlq));
+                    assertEquals(messageIds.size(), caseEventMessages.size());
+                    assertTrue(caseEventMessages.stream().allMatch(CaseEventMessage::getFromDlq));
 
-                        return true;
-                    } else {
-                        return false;
-                    }
-                });
+                    return true;
+                } else {
+                    return false;
+                }
+            });
     }
 
     @Test
@@ -94,22 +89,19 @@ public class DlqMessagesToDatabaseTest extends MessagingTests {
 
         sendMessageToDlq(randomMessageId(), eventInformation);
 
-        await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(30, SECONDS)
-            .until(() -> {
-                final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
-                if (dlqMessagesFromDb != null) {
-                    caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
+        await().until(() -> {
+            final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
+            if (dlqMessagesFromDb != null) {
+                caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
-                    assertEquals(1, caseEventMessages.size());
-                    assertEquals(MessageState.UNPROCESSABLE, caseEventMessages.get(0).getState());
+                assertEquals(1, caseEventMessages.size());
+                assertEquals(MessageState.UNPROCESSABLE, caseEventMessages.get(0).getState());
 
-                    return true;
-                } else {
-                    return false;
-                }
-            });
+                return true;
+            } else {
+                return false;
+            }
+        });
     }
 
 }

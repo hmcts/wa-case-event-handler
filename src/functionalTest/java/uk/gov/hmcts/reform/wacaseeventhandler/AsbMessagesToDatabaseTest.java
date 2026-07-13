@@ -16,8 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 
 public class AsbMessagesToDatabaseTest extends MessagingTests {
@@ -54,29 +52,32 @@ public class AsbMessagesToDatabaseTest extends MessagingTests {
         messageIds.forEach(msgId -> messages.put(msgId, eventInformation));
         sendMessagesToTopic(messages);
 
-        await().ignoreException(AssertionError.class)
-            .pollInterval(3, SECONDS)
-            .atMost(120, SECONDS)
-            .until(
-                () -> {
-                    final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, false);
-                    if (dlqMessagesFromDb != null) {
-                        caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
+        await().until(
+            () -> {
+                final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, false);
+                if (dlqMessagesFromDb != null) {
+                    caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
-                        Assertions.assertEquals(messageIds.size(), caseEventMessages.size(),
-                            "Number of messages stored in database does not match");
+                    Assertions.assertEquals(
+                        messageIds.size(), caseEventMessages.size(),
+                        "Number of messages stored in database does not match"
+                    );
 
-                        Assertions.assertTrue(caseEventMessages.stream().map(CaseEventMessage::getMessageId)
-                                                  .allMatch(messageIds::contains), "messageId mismatch");
+                    Assertions.assertTrue(
+                        caseEventMessages.stream().map(CaseEventMessage::getMessageId)
+                            .allMatch(messageIds::contains), "messageId mismatch"
+                    );
 
-                        Assertions.assertTrue(caseEventMessages.stream().noneMatch(CaseEventMessage::getFromDlq),
-                            "None of the messages stored in DB should be in DLQ state");
+                    Assertions.assertTrue(
+                        caseEventMessages.stream().noneMatch(CaseEventMessage::getFromDlq),
+                        "None of the messages stored in DB should be in DLQ state"
+                    );
 
-                        return true;
-                    } else {
-                        return false;
-                    }
-                });
+                    return true;
+                } else {
+                    return false;
+                }
+            });
     }
 
     @Test
@@ -95,21 +96,18 @@ public class AsbMessagesToDatabaseTest extends MessagingTests {
 
         sendMessageToTopic(randomMessageId(), eventInformation);
 
-        await().ignoreException(AssertionError.class)
-            .pollInterval(3, MILLISECONDS)
-            .atMost(120, SECONDS)
-            .until(() -> {
-                final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, false);
-                if (dlqMessagesFromDb != null) {
-                    caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
+        await().until(() -> {
+            final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, false);
+            if (dlqMessagesFromDb != null) {
+                caseEventMessages = dlqMessagesFromDb.getCaseEventMessages();
 
-                    Assertions.assertEquals(1, caseEventMessages.size());
-                    Assertions.assertEquals(MessageState.UNPROCESSABLE, caseEventMessages.get(0).getState());
+                Assertions.assertEquals(1, caseEventMessages.size());
+                Assertions.assertEquals(MessageState.UNPROCESSABLE, caseEventMessages.get(0).getState());
 
-                    return true;
-                } else {
-                    return false;
-                }
-            });
+                return true;
+            } else {
+                return false;
+            }
+        });
     }
 }

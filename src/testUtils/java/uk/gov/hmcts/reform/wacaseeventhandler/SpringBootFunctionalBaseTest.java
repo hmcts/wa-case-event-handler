@@ -17,10 +17,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.InitiateTaskRequest;
+import uk.gov.hmcts.reform.wacaseeventhandler.config.AwaitilityTestConfig;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.CcdRetryableClient;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.GivensBuilder;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.RestApiActions;
@@ -46,8 +48,6 @@ import static com.fasterxml.jackson.databind.PropertyNamingStrategies.SNAKE_CASE
 import static com.fasterxml.jackson.databind.PropertyNamingStrategies.UPPER_CAMEL_CASE;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Objects.requireNonNull;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
@@ -60,6 +60,7 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.clients.request.InitiateTas
 @SpringBootTest
 @ActiveProfiles(profiles = {"local", "functional"})
 @Slf4j
+@Import(AwaitilityTestConfig.class)
 public abstract class SpringBootFunctionalBaseTest {
 
     public static final String SERVICE_AUTHORIZATION = "ServiceAuthorization";
@@ -196,10 +197,7 @@ public abstract class SpringBootFunctionalBaseTest {
 
         log.info("Finding task for caseId = {}", caseId);
         AtomicReference<Response> response = new AtomicReference<>();
-        await().ignoreException(AssertionError.class)
-            .pollInterval(1000, MILLISECONDS)
-            .atMost(120, SECONDS)
-            .until(
+        await().untilAsserted(
                 () -> {
                     Response result = given()
                         .relaxedHTTPSValidation()
@@ -217,7 +215,6 @@ public abstract class SpringBootFunctionalBaseTest {
                         .body("size()", is(expectedTaskAmount));
 
                     response.set(result);
-                    return true;
                 });
 
         return response.get();
