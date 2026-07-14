@@ -16,8 +16,6 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
@@ -723,8 +721,6 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
                                               WarningValues expectedWarningValues) {
         log.info("Finding warnings task for caseId = {} and taskId = {}", caseId, taskId);
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
             .until(
                 () -> {
 
@@ -776,8 +772,6 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
     private void assertTaskWithoutWarnings(String caseId, String taskId, boolean hasWarnings) {
         log.info("Finding warnings task for caseId = {} and taskId = {}", caseId, taskId);
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
             .until(
                 () -> {
 

@@ -20,8 +20,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
@@ -55,8 +53,6 @@ public abstract class CaseEventHandlerControllerFunctionalTestHelper extends Spr
 
     protected void assertTaskDoesNotExist(String caseId, String taskId) {
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(30, SECONDS)
             .until(
                 () -> {
                     given()
@@ -79,8 +75,6 @@ public abstract class CaseEventHandlerControllerFunctionalTestHelper extends Spr
     protected void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
         log.info("Finding warnings task for caseId = {} and taskId = {}", caseId, taskId);
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
             .until(
                 () -> {
 
@@ -244,8 +238,6 @@ public abstract class CaseEventHandlerControllerFunctionalTestHelper extends Spr
         log.info("Finding task for caseId = {}", caseId);
         AtomicReference<Response> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
-            .pollInterval(1000, MILLISECONDS)
-            .atMost(60, SECONDS)
             .until(
                 () -> {
                     Response result = given()
@@ -289,8 +281,6 @@ public abstract class CaseEventHandlerControllerFunctionalTestHelper extends Spr
 
         AtomicReference<String> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
-            .pollInterval(500, MILLISECONDS)
-            .atMost(60, SECONDS)
             .until(
                 () -> {
 

@@ -26,8 +26,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Collections.emptyMap;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.is;
@@ -842,7 +840,8 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
             "",
             false
         );
-        await().untilAsserted(
+        await().ignoreException(AssertionError.class)
+            .untilAsserted(
                 () -> {
 
                     Response result = findTasksByCaseId(caseIdForTask1, 3);
@@ -1328,9 +1327,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
     private void assertTaskHasWarnings(String caseId, String taskId, boolean hasWarningValue) {
         log.info("Finding warnings task for caseId = {} and taskId = {}", caseId, taskId);
         await().ignoreException(AssertionError.class)
-            .pollDelay(500, MILLISECONDS)
-            .pollInterval(2, SECONDS)
-            .atMost(AT_MOST_SECONDS_MULTIPLE_TASKS)
             .until(
                 () -> {
                     Response result = given()
@@ -1443,9 +1439,6 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
 
         AtomicReference<String> response = new AtomicReference<>();
         await().ignoreException(AssertionError.class)
-            .pollDelay(500, MILLISECONDS)
-            .pollInterval(2, SECONDS)
-            .atMost(AT_MOST_SECONDS_MULTIPLE_TASKS)
             .until(
                 () -> {
 
