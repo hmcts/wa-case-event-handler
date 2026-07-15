@@ -74,7 +74,9 @@ public class Common {
 
     public TestVariables createWaCase() {
 
+        log.info("Creating CCD case");
         String caseId = given.createWaCcdCase();
+        log.info("CCD case created: {}", caseId);
 
         return new TestVariables(caseId, null, null);
     }

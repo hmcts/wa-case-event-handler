@@ -127,11 +127,14 @@ public abstract class CaseEventHandlerControllerFunctionalTestHelper extends Spr
         );
 
         if (publisher != null) {
+            log.info("Message sent with publisher");
             publishMessageToTopic(eventInformation);
             waitSeconds(2);
         } else {
+            log.info("Message sent with rest endpoint");
             callRestEndpoint(s2sToken, eventInformation);
         }
+        log.info("Message sent with caseId = {}",caseId);
     }
 
     protected void sendMessageWithAdditionalData(String caseId, String event, String previousStateId,
