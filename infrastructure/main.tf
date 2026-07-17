@@ -71,7 +71,7 @@ module "wa_case_event_handler_database_flex" {
     azurerm.postgres_network = azurerm.postgres_network
   }
 
-  source                     = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
+  source                     = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=DTSPO-30107-additional-postgres-admins"
   product                    = var.product
   component                  = var.component
   name                       = local.db_name
