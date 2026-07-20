@@ -20,7 +20,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.UUID;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static net.serenitybdd.rest.SerenityRest.given;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -33,8 +32,6 @@ import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonString;
-import static uk.gov.hmcts.reform.wacaseeventhandler.config.PollTimeAssertionsConfiguration.MAX_WAIT;
-import static uk.gov.hmcts.reform.wacaseeventhandler.config.PollTimeAssertionsConfiguration.POLL_INT;
 
 @Slf4j
 public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootFunctionalBaseTest {
@@ -90,8 +87,6 @@ public class CaseEventHandlerTestingControllerFunctionalTest extends SpringBootF
             .body("messageProperty2", equalTo("value2"));
 
         await().ignoreException(AssertionError.class)
-            .pollInterval(POLL_INT, SECONDS)
-            .atMost(MAX_WAIT, SECONDS)
             .until(
                 () -> {
                     Response taskFound = findTasksByCaseId(caseIdForTask, 1);

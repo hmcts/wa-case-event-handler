@@ -27,7 +27,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -71,10 +70,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
     @AfterAll
     public void teardownClass() {
-        await().ignoreException(Exception.class)
-            .pollInterval(3, SECONDS)
-            .atMost(240, SECONDS)
-            .until(
+        await().until(
                 () -> {
                     if (messageIdsToBeDeleted != null) {
                         deleteMessagesFromDatabaseByMsgIds(messageIdsToBeDeleted);
@@ -111,8 +107,6 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         sendMessagesToTopic(messages);
 
         await().ignoreException(AssertionError.class)
-            .pollInterval(3, SECONDS)
-            .atMost(240, SECONDS)
             .until(
                 () -> {
                     final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, false);
@@ -170,9 +164,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 eventInformationBuilder.caseId(caseId).eventTimeStamp(LocalDateTime.now()).build());
 
         await().ignoreException(AssertionError.class)
-                .pollInterval(3, SECONDS)
-                .atMost(240, SECONDS)
-                .until(
+            .until(
                     () -> {
                         final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(dlqCaseId, true);
                         if (dlqMessagesFromDb != null) {
@@ -228,8 +220,6 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                            eventInformationBuilder.eventTimeStamp(LocalDateTime.now().plusMinutes(5)).build());
 
         await().ignoreException(AssertionError.class)
-            .pollInterval(3, SECONDS)
-            .atMost(240, SECONDS)
             .until(
                 () -> {
                     final EventMessageQueryResponse dlqMessagesFromDb = getMessagesFromDb(caseId, true);
@@ -278,10 +268,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
         AtomicReference<List<CaseEventMessage>> collect = new AtomicReference<>(new ArrayList<>());
 
-        await().ignoreException(AssertionError.class)
-            .pollInterval(3, SECONDS)
-            .atMost(120, SECONDS)
-            .until(
+        await().untilAsserted(
                 () -> {
                     final List<CaseEventMessage> messageList = getMessagesFromDb(messageIds);
 
@@ -298,7 +285,6 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                     collect.set(unprocessableCaseEventMessage);
 
                     assertEquals(messageIds.size(), collect.get().size());
-                    return true;
                 });
     }
 
@@ -323,9 +309,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                      + "unprocessable message ID " + unprocessableMsgId);
         sendMessageToTopic(unprocessableMsgId, eventInformation);
 
-        await().ignoreException(AssertionError.class)
-            .pollInterval(3, SECONDS)
-            .atMost(240, SECONDS)
+        await().ignoreException(Exception.class)
             .until(
                 () -> {
                     final EventMessageQueryResponse unprocessableMsg = getMessagesFromDb(caseId, false);
@@ -363,8 +347,6 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
 
         //Wait for message processor run and process the second message
         await().ignoreException(AssertionError.class)
-            .pollInterval(3, SECONDS)
-            .atMost(120, SECONDS)
             .until(
                 () -> {
                     final EventMessageQueryResponse messagesFromDb = getMessagesFromDb(caseId2, false);
@@ -382,10 +364,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                 });
 
         //Assert that message for the case with unprocessable message is not processed
-        await().ignoreException(AssertionError.class)
-            .pollInterval(3, SECONDS)
-            .atMost(120, SECONDS)
-            .until(
+        await().until(
                 () -> {
                     final EventMessageQueryResponse messagesFromDb = getMessagesFromDb(caseId, false);
                     if (messagesFromDb != null) {
@@ -443,9 +422,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
         testExecution = 0;
         isReadyExecution = 0;
         await().ignoreException(AssertionError.class)
-                .pollInterval(3, SECONDS)
-                .atMost(240, SECONDS)
-                .until(
+            .until(
                     () -> {
                         final EventMessageQueryResponse messagesFromDb = getMessagesFromDb(caseId, true);
                         logMessageQueryResults(messagesFromDb);

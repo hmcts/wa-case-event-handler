@@ -12,8 +12,8 @@ import java.time.Duration;
 public class AwaitilityTestConfig {
     @PostConstruct
     public void configureAwaitility() {
-        Awaitility.setDefaultTimeout(Duration.ofSeconds(60));
-        Awaitility.setDefaultPollInterval(Duration.ofSeconds(2));
+        Awaitility.setDefaultTimeout(Duration.ofSeconds(120));
+        Awaitility.setDefaultPollInterval(Duration.ofSeconds(1));
         Awaitility.setDefaultPollDelay(Duration.ZERO);
     }
 }
