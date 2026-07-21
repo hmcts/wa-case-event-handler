@@ -1209,25 +1209,25 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         await()
             .ignoreException(Exception.class)
             .untilAsserted(() -> {
-            Response response = given()
-                .header(SERVICE_AUTHORIZATION, s2sToken)
-                .accept(APPLICATION_JSON_VALUE)
-                .contentType(APPLICATION_JSON_VALUE)
-                .body(body)
-                .when()
-                .post(camundaUrl + "/task/{task-id}/complete", taskId);
+                Response response = given()
+                    .header(SERVICE_AUTHORIZATION, s2sToken)
+                    .accept(APPLICATION_JSON_VALUE)
+                    .contentType(APPLICATION_JSON_VALUE)
+                    .body(body)
+                    .when()
+                    .post(camundaUrl + "/task/{task-id}/complete", taskId);
 
-            assertTrue(
-                HttpStatus.valueOf(response.getStatusCode()).is2xxSuccessful(),
-                String.format(
-                    "Unexpected response status: %d (%s).Headers: %s Body: %s",
-                    response.getStatusCode(),
-                    HttpStatus.valueOf(response.getStatusCode()).name(),
-                    response.getHeaders().toString(),
-                    response.getBody().asString()
-                )
-            );
-        });
+                assertTrue(
+                    HttpStatus.valueOf(response.getStatusCode()).is2xxSuccessful(),
+                    String.format(
+                        "Unexpected response status: %d (%s).Headers: %s Body: %s",
+                        response.getStatusCode(),
+                        HttpStatus.valueOf(response.getStatusCode()).name(),
+                        response.getHeaders().toString(),
+                        response.getBody().asString()
+                    )
+                );
+            });
 
         await().untilAsserted(() -> assertTaskDeleteReason(taskId, status));
     }
