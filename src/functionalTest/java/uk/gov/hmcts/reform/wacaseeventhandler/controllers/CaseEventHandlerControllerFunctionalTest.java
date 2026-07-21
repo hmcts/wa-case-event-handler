@@ -1206,7 +1206,9 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         Map<String, Object> body = emptyMap();
         log.info(String.format("Completing task : %s", taskId));
 
-        await().untilAsserted(() -> {
+        await()
+            .ignoreException(Exception.class)
+            .untilAsserted(() -> {
             Response response = given()
                 .header(SERVICE_AUTHORIZATION, s2sToken)
                 .accept(APPLICATION_JSON_VALUE)
