@@ -315,7 +315,7 @@ def versions = [
   logbook      : '3.12.3',
   tomcat       : '10.1.53',
   log4j        : '2.23.1',
-  retry        : '2.0.12',
+  retry        : '2.0.13',
   testcontainers  : '2.0.5'
 ]
 
