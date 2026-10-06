@@ -4,7 +4,7 @@ plugins {
   id 'pmd'
   id 'jacoco'
   id 'io.spring.dependency-management' version '1.1.7'
-  id 'org.springframework.boot' version '3.3.4'
+  id 'org.springframework.boot' version '4.1.1'
   id 'org.owasp.dependencycheck' version '12.1.3'
   id 'com.github.ben-manes.versions' version '0.53.0'
   id 'uk.gov.hmcts.java' version '0.12.68'
@@ -103,6 +103,8 @@ task integration(type: Test) {
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
   classpath = sourceSets.integrationTest.runtimeClasspath
   failFast = true
+  // Each Spring context starts database pollers against one shared Testcontainers database.
+  systemProperty "spring.test.context.cache.maxSize", "1"
 }
 
 task smoke(type: Test) {
@@ -268,28 +270,6 @@ dependencyManagement {
       entry 'selenium-support'
     }
 
-    dependencySet(group: 'org.springframework.security', version: '6.0.8') {
-      entry 'spring-security-core'
-      entry 'spring-security-acl'
-      entry 'spring-security-aspects'
-      entry 'spring-security-cas'
-      entry 'spring-security-config'
-      entry 'spring-security-crypto'
-      entry 'spring-security-data'
-      entry 'spring-security-ldap'
-      entry 'spring-security-messaging'
-      entry 'spring-security-oauth2-client'
-      entry 'spring-security-oauth2-core'
-      entry 'spring-security-oauth2-jose'
-      entry 'spring-security-oauth2-resource-server'
-      entry 'spring-security-openid'
-      entry 'spring-security-remoting'
-      entry 'spring-security-rsocket'
-      entry 'spring-security-saml2-service-provider'
-      entry 'spring-security-taglibs'
-      entry 'spring-security-test'
-      entry 'spring-security-web'
-    }
   }
 }
 
@@ -306,14 +286,13 @@ def versions = [
   junit        : '6.1.3',
   junitPlatform: '6.1.3',
   reformLogging: '8.0.0',
-  springDoc    : '2.6.0',
-  springBoot   : '3.3.0',
+  springDoc    : '3.1.1',
+  springCloud  : '2025.1.3',
   serenity     : '3.9.8',
   gradlePitest  : '1.15.0',
   pitest       : '1.23.0',
   sonarPitest   : '0.5',
-  logbook      : '3.12.3',
-  tomcat       : '10.1.60',
+  logbook      : '4.2.0',
   log4j        : '2.23.1',
   retry        : '2.0.13',
   testcontainers  : '2.0.5'
@@ -329,29 +308,35 @@ ext.libraries = [
   ]
 ]
 
-ext['snakeyaml.version'] = '2.0'
-
 dependencyManagement {
   imports {
+    mavenBom "org.springframework.cloud:spring-cloud-dependencies:${versions.springCloud}"
     mavenBom "org.testcontainers:testcontainers-bom:${versions.testcontainers}"
   }
 }
 
+// Boot 4.1.1 manages Tomcat 11.0.24. 11.0.26 (2026-09-15) fixes the advisories that affect 11.0.0-M1 through 11.0.25.
+// Remove when the selected Boot BOM manages 11.0.26 or newer.
+ext['tomcat.version'] = '11.0.26'
+
 dependencies {
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-webmvc'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-json'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aspectj'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-jackson'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
   implementation group: 'org.springframework.boot', name: 'spring-boot-starter-cache'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: versions.springBoot
-  implementation group: 'org.springframework.security', name: 'spring-security-test', version: versions.springSecurity
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-validation'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-restclient'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-flyway'
+  implementation group: 'org.springframework.boot', name: 'spring-boot-http-converter'
   implementation group: 'org.springframework.security', name: 'spring-security-rsa', version: '1.1.5'
-  implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: versions.springBoot
   implementation group: 'org.springframework.retry', name: 'spring-retry', version: versions.retry
-  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign', version: '4.1.1'
+  implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-openfeign'
+  implementation group: 'org.flywaydb', name: 'flyway-database-postgresql'
 
-  implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.3.1'
+  implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5'
 
   implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: versions.springDoc
 
@@ -362,14 +347,12 @@ dependencies {
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: versions.reformLogging
   testImplementation 'com.microsoft.azure:applicationinsights-core:3.7.10'
 
-  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '5.3.5'
-  implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '5.0.5'
+  implementation group: 'com.github.hmcts', name: 'service-auth-provider-java-client', version: '6.1.2'
+  implementation group: 'com.github.hmcts', name: 'core-case-data-store-client', version: '6.2.0-rc1'
   implementation group: 'com.azure', name: 'azure-messaging-servicebus', version: '7.17.19'
   implementation group: 'io.projectreactor.netty', name: 'reactor-netty-http', version: '1.3.7'
   implementation group: 'io.projectreactor.netty', name: 'reactor-netty-core', version: '1.3.7'
 
-  implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: versions.tomcat
-  implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: versions.tomcat
   implementation group: 'org.camunda.bpm', name: 'camunda-external-task-client', version: '7.24.0'
   implementation group: 'com.launchdarkly', name: 'launchdarkly-java-server-sdk', version: '6.3.0'
   implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.20.0'
@@ -378,6 +361,9 @@ dependencies {
   implementation group: 'commons-codec', name: 'commons-codec', version: '1.21.0'
 
   testImplementation libraries.junit5
+  testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-webmvc-test'
+  testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-security-test'
+  testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa-test'
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', {
     exclude group: 'junit', module: 'junit'
     exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
@@ -394,15 +380,15 @@ dependencies {
   }
   testImplementation group: 'io.rest-assured', name: 'rest-assured', version: '5.5.7'
   testImplementation group: 'net.serenity-bdd', name: 'serenity-spring', version: versions.serenity
-  testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.21.4'
-  testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: versions.testcontainersdb
+  testImplementation group: 'org.testcontainers', name: 'testcontainers-postgresql'
+  testImplementation group: 'org.testcontainers', name: 'testcontainers-junit-jupiter'
 
   testImplementation group: 'org.pitest', name: 'pitest', version: versions.pitest
   testImplementation group: 'info.solidsoft.gradle.pitest', name: 'gradle-pitest-plugin', version: versions.gradlePitest
   testImplementation group: 'org.codehaus.sonar-plugins', name: 'sonar-pitest-plugin', version: versions.sonarPitest
 
   testImplementation group: 'com.github.hmcts', name: 'fortify-client', version: '1.4.10', classifier: 'all'
-  testImplementation group: 'com.github.hmcts', name: 'document-management-client', version: '7.0.1'
+  testImplementation group: 'com.github.hmcts', name: 'document-management-client', version: '10.0.1'
   testUtilsImplementation sourceSets.main.runtimeClasspath
   testUtilsImplementation sourceSets.test.runtimeClasspath
 
@@ -415,10 +401,6 @@ dependencies {
   smokeTestImplementation sourceSets.main.runtimeClasspath
   smokeTestImplementation sourceSets.test.runtimeClasspath
 
-  implementation group: 'org.flywaydb', name: 'flyway-core', version: '9.22.3'
-  implementation group: 'com.zaxxer', name: 'HikariCP', version: '7.0.2'
-
-  implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.22.2'
   runtimeOnly group: 'org.postgresql', name: 'postgresql', version: '42.7.13'
 }
 

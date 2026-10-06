@@ -9,14 +9,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.executors.CcdMessageProcessorExecutor;
@@ -34,7 +35,7 @@ import static org.mockito.Mockito.lenient;
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("db")
-@ExtendWith(OutputCaptureExtension.class)
+@ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})
 @TestPropertySource(properties = {"azure.servicebus.enableASB-DLQ=true",
     "azure.servicebus.connection-string="
         + "Endpoint=sb://REPLACE_ME/;SharedAccessKeyName=REPLACE_ME;SharedAccessKey=REPLACE_ME",
@@ -56,9 +57,9 @@ public class DatabaseMessageConsumerResilienceTest {
     private TelemetryContext telemetryContext;
     @Mock
     private OperationContext operationContext;
-    @MockBean
+    @MockitoBean
     private DeadLetterQueuePeekService deadLetterQueuePeekService;
-    @MockBean
+    @MockitoBean
     CaseEventMessageRepository caseEventMessageRepository;
     @Mock
     private PlatformTransactionManager platformTransactionManager;

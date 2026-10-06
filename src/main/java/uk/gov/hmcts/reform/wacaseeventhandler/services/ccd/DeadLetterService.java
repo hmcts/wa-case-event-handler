@@ -1,10 +1,10 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.ccd;
 
 import com.azure.messaging.servicebus.models.DeadLetterOptions;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 
 @Slf4j
@@ -29,7 +29,7 @@ public class DeadLetterService {
             final String deadLetterDescription = objectMapper.writeValueAsString(message);
 
             return createResponse(APPLICATION_PROCESSING_ERROR, deadLetterDescription);
-        } catch (JsonProcessingException exp) {
+        } catch (JacksonException exp) {
             //should not come here. Have to catch exception from json
             log.error(UNABLE_TO_DESERIALIZE_RECEIVED_MESSAGE, exp);
             return createResponse(APPLICATION_PROCESSING_ERROR, UNABLE_TO_DESERIALIZE_RECEIVED_MESSAGE);
@@ -42,7 +42,7 @@ public class DeadLetterService {
             final String deadLetterDescription = objectMapper.writeValueAsString(message);
 
             return createResponse(MESSAGE_DESERIALIZATION_ERROR, deadLetterDescription);
-        } catch (JsonProcessingException exp) {
+        } catch (JacksonException exp) {
             //should not come here. Have to catch exception from json
             log.error(UNABLE_TO_DESERIALIZE_RECEIVED_MESSAGE, exp);
             return createResponse(MESSAGE_DESERIALIZATION_ERROR, UNABLE_TO_DESERIALIZE_RECEIVED_MESSAGE);

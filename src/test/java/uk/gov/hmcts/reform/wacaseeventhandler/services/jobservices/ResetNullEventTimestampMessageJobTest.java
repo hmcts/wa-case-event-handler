@@ -4,8 +4,6 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
@@ -45,7 +45,7 @@ class ResetNullEventTimestampMessageJobTest {
     private ObjectMapper objectMapper;
 
     @Mock
-    private JsonProcessingException jsonProcessingException;
+    private JacksonException jsonProcessingException;
 
     private ResetNullEventTimestampMessageJob resetNullEventTimestampProblemMessageJob;
 
@@ -114,7 +114,7 @@ class ResetNullEventTimestampMessageJobTest {
 
     @Test
     void should_return_message_id_list_response_for_handling_null_event_timestamp_messages()
-        throws JsonProcessingException {
+        throws JacksonException {
         Map<String, Object> caseEventMessageEntityMap = new HashMap<>();
         EventInformation eventMessageFromEntity = getEventInformation();
 
@@ -133,7 +133,7 @@ class ResetNullEventTimestampMessageJobTest {
     }
 
     @Test
-    void should_return_json_processing_exception_when_message_content_is_incorrect() throws JsonProcessingException {
+    void should_return_json_processing_exception_when_message_content_is_incorrect() throws JacksonException {
         Map<String, Object> caseEventMessageEntityMap = new HashMap<>();
         caseEventMessageEntityMap.put("messageId", "messageId_3");
         CaseEventMessageEntity nullEventTimestampEntity = caseEventMessageEntityCreator
