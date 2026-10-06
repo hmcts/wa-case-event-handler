@@ -1,22 +1,22 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClient;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.request.EvaluateDmnRequest;
@@ -44,10 +44,10 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmn
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles(profiles = {"db", "integration"})
 class CaseEventHandlerControllerInvalidMessageTest {
-    protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-        .setPropertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE)
-        .registerModule(new JavaTimeModule())
-        .registerModule(new Jdk8Module());
+    protected static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
+        .propertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE)
+        .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .build();
 
     public static final String S2S_TOKEN = "Bearer s2s token";
     public static final String TENANT_ID = "ia";
@@ -55,10 +55,10 @@ class CaseEventHandlerControllerInvalidMessageTest {
     public static final String CASE_REFERENCE = "some case reference";
     public static final LocalDateTime EVENT_TIME_STAMP = LocalDateTime.now();
 
-    @MockBean
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
 
-    @MockBean
+    @MockitoBean
     private WorkflowApiClient workflowApiClient;
 
     @Autowired

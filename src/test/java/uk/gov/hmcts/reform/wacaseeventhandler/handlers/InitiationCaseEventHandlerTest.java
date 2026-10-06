@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.handlers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +16,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClient;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;

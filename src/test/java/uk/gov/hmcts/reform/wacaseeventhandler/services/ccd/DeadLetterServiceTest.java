@@ -1,16 +1,16 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.ccd;
 
 import com.azure.messaging.servicebus.models.DeadLetterOptions;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.exc.StreamReadException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 
 import java.time.LocalDateTime;
@@ -43,7 +43,7 @@ class DeadLetterServiceTest {
     }
 
     @Test
-    void test_handle_parsing_error() throws JsonProcessingException {
+    void test_handle_parsing_error() throws JacksonException {
         when(mapper.writeValueAsString(any())).thenReturn("DeadLetter Description");
 
         final DeadLetterOptions deadLetterOptions = deadLetterService.handleParsingError(
@@ -56,8 +56,8 @@ class DeadLetterServiceTest {
     }
 
     @Test
-    void test_handle_parsing_error_with_json_exception() throws JsonProcessingException {
-        when(mapper.writeValueAsString(any())).thenThrow(JsonParseException.class);
+    void test_handle_parsing_error_with_json_exception() throws JacksonException {
+        when(mapper.writeValueAsString(any())).thenThrow(StreamReadException.class);
 
         final DeadLetterOptions deadLetterOptions = deadLetterService.handleParsingError(
             "testMessage", "Parsing Error"
@@ -70,7 +70,7 @@ class DeadLetterServiceTest {
     }
 
     @Test
-    void test_handle_application_error() throws JsonProcessingException {
+    void test_handle_application_error() throws JacksonException {
         String event = createEvent();
 
         when(mapper.readValue(event, EventInformation.class)).thenReturn(eventInformation);
@@ -85,11 +85,11 @@ class DeadLetterServiceTest {
     }
 
     @Test
-    void test_handle_application_error_with_json_exception() throws JsonProcessingException {
+    void test_handle_application_error_with_json_exception() throws JacksonException {
         String event = createEvent();
 
         when(mapper.readValue(event, EventInformation.class)).thenReturn(eventInformation);
-        when(mapper.writeValueAsString(any())).thenThrow(JsonParseException.class);
+        when(mapper.writeValueAsString(any())).thenThrow(StreamReadException.class);
 
         final DeadLetterOptions deadLetterOptions = deadLetterService
             .handleApplicationError(event, "Downstream Error");
@@ -100,11 +100,11 @@ class DeadLetterServiceTest {
                                 deadLetterOptions.getDeadLetterErrorDescription());
     }
 
-    private String createEvent() throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule()).disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-        return objectMapper.writeValueAsString(eventInformation);
+    private String createEvent() throws JacksonException {
+        return JsonMapper.builder()
+            .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .build()
+            .writeValueAsString(eventInformation);
     }
 
 }

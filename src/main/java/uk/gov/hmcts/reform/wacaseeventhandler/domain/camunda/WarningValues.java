@@ -1,13 +1,13 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +34,7 @@ public class WarningValues {
                 .forType(new TypeReference<List<Warning>>() {
                 })
                 .readValue(values);
-        } catch (JsonProcessingException jsonProcessingException) {
+        } catch (JacksonException jsonProcessingException) {
             log.error("Could not deserialize values");
         }
     }
@@ -46,7 +46,7 @@ public class WarningValues {
     public String getValuesAsJson() {
         try {
             return new ObjectMapper().writeValueAsString(values);
-        } catch (JsonProcessingException jsonProcessingException) {
+        } catch (JacksonException jsonProcessingException) {
             log.error("Could not deserialize Waring value");
         }
         return StringUtils.EMPTY;
