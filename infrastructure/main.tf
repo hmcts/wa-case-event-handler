@@ -81,12 +81,15 @@ module "wa_case_event_handler_database_flex" {
   action_group_name          = join("-", [local.db_name, var.action_group_name])
   email_address_key          = var.email_address_key
   email_address_key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+  enable_write_group_access  = true
 
   auto_grow_enabled = true
 
   pgsql_databases = [
     {
       name : var.postgresql_database_name
+      schemas_for_reader_access : ["wa_case_event_messages_db"]
+      schemas_for_writer_access : ["wa_case_event_messages_db"]
     }
   ]
 
