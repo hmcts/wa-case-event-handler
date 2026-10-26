@@ -88,8 +88,8 @@ module "wa_case_event_handler_database_flex" {
   pgsql_databases = [
     {
       name : var.postgresql_database_name
-      schemas_for_reader_access : ["wa_case_event_messages_db"]
-      schemas_for_writer_access : ["wa_case_event_messages_db"]
+      schemas_for_reader_access : ["public"]
+      schemas_for_writer_access : ["public"]
     }
   ]
 
