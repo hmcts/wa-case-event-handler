@@ -71,7 +71,7 @@ module "wa_case_event_handler_database_flex" {
     azurerm.postgres_network = azurerm.postgres_network
   }
 
-  source                     = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=DTSPO-30107-additional-postgres-admins"
+  source                     = "git@github.com:hmcts/terraform-module-postgresql-flexible?ref=master"
   product                    = var.product
   component                  = var.component
   name                       = local.db_name
@@ -81,12 +81,15 @@ module "wa_case_event_handler_database_flex" {
   action_group_name          = join("-", [local.db_name, var.action_group_name])
   email_address_key          = var.email_address_key
   email_address_key_vault_id = data.azurerm_key_vault.wa_key_vault.id
+  enable_write_group_access  = true
 
   auto_grow_enabled = true
 
   pgsql_databases = [
     {
       name : var.postgresql_database_name
+      schemas_for_reader_access : ["public"]
+      schemas_for_writer_access : ["public"]
     }
   ]
 
