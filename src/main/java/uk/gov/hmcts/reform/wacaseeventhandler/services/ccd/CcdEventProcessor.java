@@ -1,9 +1,9 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.ccd;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
@@ -28,12 +28,12 @@ public class CcdEventProcessor {
     }
 
 
-    public void processMessage(String message) throws JsonProcessingException {
+    public void processMessage(String message) throws JacksonException {
         EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
         processMessage(eventInformation);
     }
 
-    public void processMessage(CaseEventMessage caseEventMessage) throws JsonProcessingException {
+    public void processMessage(CaseEventMessage caseEventMessage) throws JacksonException {
         log.info("Mapping message content for messageId: {} and caseId: {}",
             caseEventMessage.getMessageId(),
             caseEventMessage.getCaseId());

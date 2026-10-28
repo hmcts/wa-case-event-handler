@@ -1,7 +1,6 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.microsoft.applicationinsights.extensibility.context.OperationContext;
 import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import feign.FeignException;
@@ -22,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
+import tools.jackson.core.JacksonException;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
@@ -162,7 +162,7 @@ class DatabaseMessageConsumerTest {
         when(caseEventMessageMapper.mapToCaseEventMessage(any(CaseEventMessageEntity.class)))
             .thenReturn(caseEventMessage);
 
-        doThrow(mock(JsonProcessingException.class))
+        doThrow(mock(JacksonException.class))
             .when(ccdEventProcessor).processMessage(caseEventMessage);
         databaseMessageConsumer.run();
 
@@ -289,7 +289,7 @@ class DatabaseMessageConsumerTest {
     }
 
     @Test
-    void should_retry_to_update_record_when_update_retry_details_failed() throws JsonProcessingException {
+    void should_retry_to_update_record_when_update_retry_details_failed() throws JacksonException {
         final int retryCount = 2;
         final CaseEventMessage caseEventMessage = createCaseEventMessage(retryCount - 1);
         CaseEventMessageEntity caseEventMessageEntity = createCaseEventMessageEntity();

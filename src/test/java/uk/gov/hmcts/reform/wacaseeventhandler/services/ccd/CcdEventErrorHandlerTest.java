@@ -7,7 +7,6 @@ import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
 import com.azure.messaging.servicebus.ServiceBusReceiverClient;
 import com.azure.messaging.servicebus.ServiceBusSessionReceiverClient;
 import com.azure.messaging.servicebus.models.DeadLetterOptions;
-import com.fasterxml.jackson.core.JsonParseException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.RestClientException;
+import tools.jackson.core.exc.StreamReadException;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,7 +40,7 @@ class CcdEventErrorHandlerTest {
     @Mock
     private AmqpMessageHeader header;
     @Mock
-    private JsonParseException jsonParseException;
+    private StreamReadException jsonParseException;
     @Mock
     private RestClientException restClientException;
     @Mock

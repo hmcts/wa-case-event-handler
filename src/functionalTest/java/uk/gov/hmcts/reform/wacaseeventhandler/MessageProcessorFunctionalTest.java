@@ -1,8 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.java.AfterAll;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
@@ -11,6 +8,9 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import org.springframework.test.context.ActiveProfiles;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
@@ -394,7 +394,7 @@ public class MessageProcessorFunctionalTest extends MessagingTests {
                     .findPath("Data")
                     .findPath("testName");
             return "should_not_process_message_unless_in_ready_state".equals(additionalDataNode.textValue());
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             return false;
         }
     }

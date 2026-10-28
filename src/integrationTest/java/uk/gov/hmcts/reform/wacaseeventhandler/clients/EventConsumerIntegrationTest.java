@@ -9,11 +9,13 @@ import lombok.SneakyThrows;
 import org.junit.FixMethodOrder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runners.MethodSorters;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -46,6 +48,7 @@ import static org.springframework.test.annotation.DirtiesContext.ClassMode.AFTER
 import static org.springframework.test.annotation.DirtiesContext.HierarchyMode.CURRENT_LEVEL;
 import static org.testcontainers.shaded.org.awaitility.Awaitility.await;
 
+@ExtendWith(MockitoExtension.class)
 @SpringBootTest
 @ActiveProfiles(profiles = {"db", "integration"})
 @ContextConfiguration(classes = EventConsumerIntegrationTest.TestConfig.class)

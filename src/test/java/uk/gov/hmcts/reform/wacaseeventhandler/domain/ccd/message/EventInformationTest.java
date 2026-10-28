@@ -1,8 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.util.Maps;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -13,6 +10,9 @@ import org.springframework.boot.test.json.JsonContent;
 import org.springframework.boot.test.json.ObjectContent;
 import org.springframework.test.context.junit4.SpringRunner;
 import pl.pojo.tester.api.assertion.Method;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -27,6 +27,9 @@ class EventInformationTest {
 
     @Autowired
     private JacksonTester<EventInformation> jacksonTester;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     void isWellImplemented() {
@@ -69,6 +72,23 @@ class EventInformationTest {
     }
 
     @Test
+    void metadata_hold_until_round_trips_as_an_iso_string() {
+        assertThat(objectMapper.getClass().getPackageName()).startsWith("tools.jackson.");
+
+        EventInformationMetadata metadata = new EventInformationMetadata(
+            Map.of("key", "value"),
+            LocalDateTime.parse("2020-12-07T17:39:22.232622")
+        );
+
+        String json = objectMapper.writeValueAsString(metadata);
+
+        assertThat(json).contains("\"HoldUntil\"");
+        assertThat(json).contains("2020-12-07T17:39:22.232622");
+        assertThat(json).doesNotContain("holdUntil");
+        assertThat(objectMapper.readValue(json, EventInformationMetadata.class)).isEqualTo(metadata);
+    }
+
+    @Test
     void serialize_with_additional_data_as_expected() throws IOException {
         EventInformation validEventInformation = eventInformation(additionalData());
         JsonContent<EventInformation> eventInformationJsonContent = jacksonTester.write(validEventInformation);
@@ -90,7 +110,7 @@ class EventInformationTest {
             .build();
     }
 
-    private AdditionalData additionalData() throws JsonProcessingException {
+    private AdditionalData additionalData() throws JacksonException {
         ObjectMapper objectMapper = new ObjectMapper();
 
         Map<String, Object> dataMap = Map.of(

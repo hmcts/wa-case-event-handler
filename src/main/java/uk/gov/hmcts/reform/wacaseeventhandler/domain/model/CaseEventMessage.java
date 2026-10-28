@@ -2,8 +2,8 @@ package uk.gov.hmcts.reform.wacaseeventhandler.domain.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Builder;
+import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.MessageState;
 
 import java.io.Serializable;

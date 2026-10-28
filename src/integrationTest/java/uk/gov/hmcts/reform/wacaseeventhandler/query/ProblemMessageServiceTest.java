@@ -1,16 +1,17 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.query;
 
-import com.fasterxml.jackson.core.StreamReadFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.applicationinsights.TelemetryClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
+import tools.jackson.core.StreamReadFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.jobs.JobName;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
 import uk.gov.hmcts.reform.wacaseeventhandler.repository.CaseEventMessageRepository;
@@ -36,15 +37,16 @@ class ProblemMessageServiceTest {
     @Autowired
     private CaseEventMessageRepository caseEventMessageRepository;
 
-    @MockBean
+    @MockitoBean
     private TelemetryClient telemetryClient;
 
 
     private static final String MESSAGE_ID = "ID:d257fa4f-73ad-4a82-a30e-9acc377f593d:1:1:2-1675";
 
     void setUp() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.configure(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION.mappedFeature(), true);
+        ObjectMapper objectMapper = JsonMapper.builder()
+            .enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION)
+            .build();
         CaseEventMessageMapper caseEventMessageMapper = new CaseEventMessageMapper(objectMapper);
         FindProblemMessageJob findProblemMessageJob = new FindProblemMessageJob(
             caseEventMessageRepository,

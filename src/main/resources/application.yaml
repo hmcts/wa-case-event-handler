@@ -53,6 +53,10 @@ spring:
   application:
     name: WA Case Event Handler
   jackson.serialization.indent_output: true
+  jpa:
+    properties:
+      # Jackson 2 is still on the classpath, and Hibernate prefers it. The jsonb column is a Jackson 3 JsonNode.
+      hibernate.type.json_format_mapper: org.hibernate.type.format.jackson.Jackson3JsonFormatMapper
   main:
     allow-bean-definition-overriding: true
   flyway:
