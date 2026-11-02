@@ -19,6 +19,16 @@
         "pact"
       ],
       "enabled": false
+    },
+    {
+      "description": "Exclude HMCTS dependencies from the release age gate",
+      "matchPackageNames": [
+        "com.github.hmcts*",
+        "uk.gov.hmcts*",
+        "hmctsprod.azurecr.io/**",
+        "hmctspublic.azurecr.io/**"
+      ],
+      "minimumReleaseAge": null
     }
   ]
 }
