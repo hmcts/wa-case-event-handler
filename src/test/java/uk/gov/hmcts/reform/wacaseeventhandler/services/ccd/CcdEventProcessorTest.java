@@ -1,7 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.ccd;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,6 +8,8 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateDmnResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.InitiateEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
@@ -46,7 +46,7 @@ class CcdEventProcessorTest {
     private CcdEventProcessor processor;
 
     @Test
-    void given_evaluateDmn_returns_something_then_caseEventHandler_does_handle() throws JsonProcessingException {
+    void given_evaluateDmn_returns_something_then_caseEventHandler_does_handle() throws JacksonException {
 
         EvaluateDmnResponse<InitiateEvaluateResponse> dmnResponse =
             new EvaluateDmnResponse<>(List.of(InitiateEvaluateResponse.builder().build()));
@@ -71,7 +71,7 @@ class CcdEventProcessorTest {
 
     @Test
     void given_evaluateDmn_returns_something_then_caseEventHandler_does_handle_case_event_message()
-            throws JsonProcessingException {
+            throws JacksonException {
 
         EvaluateDmnResponse<InitiateEvaluateResponse> dmnResponse =
                 new EvaluateDmnResponse<>(List.of(InitiateEvaluateResponse.builder().build()));
@@ -98,7 +98,7 @@ class CcdEventProcessorTest {
     }
 
     @Test
-    void given_evaluateDmn_returns_nothing_then_caseEventHandler_does_not_handle() throws JsonProcessingException {
+    void given_evaluateDmn_returns_nothing_then_caseEventHandler_does_not_handle() throws JacksonException {
         List<CaseEventHandler> handlerServices = List.of(initiationTaskHandler);
 
         processor = new CcdEventProcessor(handlerServices, mapper);
@@ -115,7 +115,7 @@ class CcdEventProcessorTest {
     }
 
     @Test
-    void test_EventInformation_logging(CapturedOutput output) throws JsonProcessingException {
+    void test_EventInformation_logging(CapturedOutput output) throws JacksonException {
         List<CaseEventHandler> handlerServices = List.of(initiationTaskHandler);
         processor = new CcdEventProcessor(handlerServices, mapper);
 
@@ -139,7 +139,7 @@ class CcdEventProcessorTest {
             });
     }
 
-    public String asJsonString(final Object obj) throws JsonProcessingException {
+    public String asJsonString(final Object obj) throws JacksonException {
         return new ObjectMapper().writeValueAsString(obj);
     }
 

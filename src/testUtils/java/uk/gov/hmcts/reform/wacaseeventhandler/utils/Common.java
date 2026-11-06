@@ -1,13 +1,13 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.FeignException;
 import io.restassured.http.Headers;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.ResourceUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.reform.ccd.client.model.Classification;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.request.CamundaProcessVariables;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.GivensBuilder;
@@ -450,7 +450,7 @@ public class Common {
 
         try {
             json = objectMapper.writeValueAsString(attributes);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             e.printStackTrace();
         }
 
@@ -462,7 +462,7 @@ public class Common {
 
         try {
             json = objectMapper.writeValueAsString(attributes);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             e.printStackTrace();
         }
 

@@ -8,11 +8,13 @@ import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.DatabaseMessageConsumer;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
@@ -26,6 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 @SpringBootTest
 @ActiveProfiles(profiles = {"db", "integration"})
 class CcdMessageProcessorExecutorTest {
@@ -42,10 +45,10 @@ class CcdMessageProcessorExecutorTest {
     private ListAppender<ILoggingEvent> listAppender;
     private Logger logger;
 
-    @MockBean
+    @MockitoBean
     private CaseEventMessageRepository caseEventMessageRepository;
 
-    @MockBean
+    @MockitoBean
     private LaunchDarklyFeatureFlagProvider featureFlagProvider;
 
     @Mock
