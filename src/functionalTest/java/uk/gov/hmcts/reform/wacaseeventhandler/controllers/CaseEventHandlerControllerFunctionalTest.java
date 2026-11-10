@@ -1138,22 +1138,18 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
         String caseIdForTask1 = taskVariables.getCaseId();
         common.setupCftOrganisationalRoleAssignmentForWA(caseworkerCredentials.getHeaders());
 
-        //initiate task
-        initiateTask(caseworkerCredentials.getHeaders(), caseIdForTask1, caseId1Task1Id,
-            "followUpOverdueCaseBuilding", "Follow-up overdue case building", "Follow-up overdue case building");
-
-        //get task from CFT
-        Response result = restApiActions.get(
-            TASK_ENDPOINT,
-            caseId1Task1Id,
-            caseworkerCredentials.getHeaders()
-        );
-        //assert reconfigure request time
-        result.then().assertThat()
-            .statusCode(HttpStatus.OK.value())
-            .and()
-            .body("task.id", equalTo(caseId1Task1Id))
-            .body("task.reconfigure_request_time", nullValue());
+        await().untilAsserted(() -> {
+            Response result = restApiActions.get(
+                TASK_ENDPOINT,
+                caseId1Task1Id,
+                caseworkerCredentials.getHeaders()
+            );
+            result.then().assertThat()
+                .statusCode(HttpStatus.OK.value())
+                .and()
+                .body("task.id", equalTo(caseId1Task1Id))
+                .body("task.reconfigure_request_time", nullValue());
+        });
 
         //send update event to trigger reconfigure action
         String jurisdiction = "WA";
