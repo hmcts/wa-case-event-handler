@@ -1,9 +1,9 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services.calendar;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,7 +33,7 @@ public class DelayUntilConfigurator {
                 "Delay until value for calculation is : {}",
                 objectMapper.writeValueAsString(delayUntilRequest)
             );
-        } catch (JsonProcessingException jpe) {
+        } catch (JacksonException jpe) {
             log.error(jpe.getMessage());
         }
 

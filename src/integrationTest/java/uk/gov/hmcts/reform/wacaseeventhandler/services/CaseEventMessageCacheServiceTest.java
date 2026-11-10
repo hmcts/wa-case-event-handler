@@ -7,12 +7,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.reform.wacaseeventhandler.Application;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
@@ -38,7 +38,7 @@ class CaseEventMessageCacheServiceTest {
     @Autowired
     private CaseEventMessageCacheService caseEventMessageCacheService;
 
-    @SpyBean
+    @MockitoSpyBean
     private CaseEventMessageRepository caseEventMessageRepository;
 
     @BeforeEach
@@ -62,7 +62,6 @@ class CaseEventMessageCacheServiceTest {
         assertThat(messages).isEmpty();
 
         CaseEventMessageEntity caseEventMessage = new CaseEventMessageEntity();
-        caseEventMessage.setSequence(1001L);
         caseEventMessage.setCaseId("1234");
         caseEventMessage.setMessageId("ABCD");
         caseEventMessage.setState(MessageState.NEW);
@@ -94,7 +93,6 @@ class CaseEventMessageCacheServiceTest {
         assertThat(messages).isEmpty();
 
         CaseEventMessageEntity caseEventMessage = new CaseEventMessageEntity();
-        caseEventMessage.setSequence(1001L);
         caseEventMessage.setCaseId("1234");
         caseEventMessage.setMessageId("ABCD");
         caseEventMessage.setState(MessageState.NEW);

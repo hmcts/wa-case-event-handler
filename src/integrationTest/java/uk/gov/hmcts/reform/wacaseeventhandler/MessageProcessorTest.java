@@ -3,17 +3,13 @@ package uk.gov.hmcts.reform.wacaseeventhandler;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.microsoft.applicationinsights.extensibility.context.OperationContext;
 import com.microsoft.applicationinsights.telemetry.TelemetryContext;
 import feign.FeignException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -21,16 +17,22 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.internal.stubbing.answers.AnswersWithDelay;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.DatabaseMessageConsumer;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
@@ -64,17 +66,18 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@ExtendWith(MockitoExtension.class)
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("db")
 class MessageProcessorTest {
 
-    protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-            .setPropertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE)
-            .registerModule(new JavaTimeModule())
-            .registerModule(new Jdk8Module());
+    protected static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
+            .propertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE)
+            .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+            .build();
 
-    @MockBean
+    @MockitoBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Mock
@@ -92,7 +95,7 @@ class MessageProcessorTest {
     @Autowired
     private DatabaseMessageConsumer databaseMessageConsumer;
 
-    @SpyBean
+    @MockitoSpyBean
     private CcdEventProcessor ccdEventProcessor;
 
     private ListAppender<ILoggingEvent> listAppender;
@@ -131,7 +134,7 @@ class MessageProcessorTest {
             scripts = {"classpath:sql/delete_from_case_event_messages.sql",
                 "classpath:sql/insert_case_event_messages_for_processing_no_ready_msgs.sql"})
     @Test
-    void should_not_process_messages_if_launch_darkly_feature_flag_disabled() throws JsonProcessingException {
+    void should_not_process_messages_if_launch_darkly_feature_flag_disabled() throws JacksonException {
         when(launchDarklyFeatureFlagProvider.getBooleanValue(any(), any())).thenReturn(false);
 
         await()
@@ -145,7 +148,7 @@ class MessageProcessorTest {
     @Sql(executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD,
             scripts = {"classpath:sql/delete_from_case_event_messages.sql"})
     @Test
-    void should_not_process_messages_if_database_empty() throws JsonProcessingException {
+    void should_not_process_messages_if_database_empty() throws JacksonException {
         await()
             .atMost(20, SECONDS)
             .untilAsserted(
@@ -160,7 +163,7 @@ class MessageProcessorTest {
             scripts = {"classpath:sql/delete_from_case_event_messages.sql",
                 "classpath:sql/insert_case_event_messages_for_processing_no_ready_msgs.sql"})
     @Test
-    void should_not_process_messages_if_no_messages_in_ready_state_exist_in_database() throws JsonProcessingException {
+    void should_not_process_messages_if_no_messages_in_ready_state_exist_in_database() throws JacksonException {
         await()
                 .atMost(20, SECONDS)
                 .untilAsserted(() ->
@@ -183,7 +186,7 @@ class MessageProcessorTest {
     @ParameterizedTest
     @CsvSource(value = {"500", "502", "503", "504"})
     void should_update_hold_until_and_retry_count_for_ready_messages_when_retryable_exception_occurs(int status)
-            throws JsonProcessingException {
+            throws JacksonException {
         String caseId = "6761065058131570";
 
         RetryableFeignException retryableFeignException = new RetryableFeignException(status, "Gateway Timeout");
@@ -207,7 +210,7 @@ class MessageProcessorTest {
     @ParameterizedTest
     @MethodSource("exceptionProvider")
     void should_set_message_state_to_unprocessable_when_non_retryable_error_occurs(Class<? extends Throwable> ex)
-        throws JsonProcessingException {
+        throws JacksonException {
         doThrow(ex).when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
         await().atMost(20, SECONDS)
             .untilAsserted(() -> {
@@ -229,8 +232,8 @@ class MessageProcessorTest {
             scripts = {"classpath:sql/delete_from_case_event_messages.sql",
                 "classpath:sql/insert_case_event_messages_for_processing_ready_msgs.sql"})
     @Test
-    void should_set_message_state_to_unprocessable_when_exception_occurs() throws JsonProcessingException {
-        doThrow(JsonProcessingException.class).when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
+    void should_set_message_state_to_unprocessable_when_exception_occurs() throws JacksonException {
+        doThrow(JacksonException.class).when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
         await().atMost(20, SECONDS)
             .untilAsserted(() -> {
                     assertLogMessageContains(format("Processing message with id: %s and caseId: %s from the database",
@@ -244,7 +247,7 @@ class MessageProcessorTest {
             scripts = {"classpath:sql/delete_from_case_event_messages.sql",
                 "classpath:sql/insert_case_event_messages_for_processing_ready_msgs.sql"})
     @Test
-    void should_set_message_state_to_processed_when_message_processed_succesfully() throws JsonProcessingException {
+    void should_set_message_state_to_processed_when_message_processed_succesfully() throws JacksonException {
         doNothing().when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
         await().atMost(20, SECONDS)
             .untilAsserted(() -> {
@@ -260,7 +263,7 @@ class MessageProcessorTest {
                 "classpath:sql/insert_case_event_messages_for_processing_from_dlq.sql"})
     @Test
     void should_set_message_state_to_processed_when_message_exist_ltr_than_30min_and_dlq_message_processed_succesfully()
-        throws JsonProcessingException {
+        throws JacksonException {
         doNothing().when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
         await().atMost(20, SECONDS)
             .untilAsserted(() -> {
@@ -276,7 +279,7 @@ class MessageProcessorTest {
             "classpath:sql/insert_case_event_messages_for_processing_from_dlq_with_same_case_id.sql"})
     @Test
     void should_set_message_state_to_processed_when_message_exist_with_same_case_id_and_dlq_message_processed()
-        throws JsonProcessingException {
+        throws JacksonException {
         doNothing().when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
         await().atMost(20, SECONDS)
             .untilAsserted(() -> {
@@ -292,7 +295,7 @@ class MessageProcessorTest {
             "classpath:sql/insert_processing_ready_case_event_messages_for_different_case.sql"})
     @Test
     void should_set_lock_message_row_on_selection_to_Process_and_should_not_return_the_same_message_to_another_process()
-        throws JsonProcessingException {
+        throws JacksonException {
         doAnswer(new AnswersWithDelay(5000, invocation -> null))
             .when(ccdEventProcessor).processMessage(any(CaseEventMessage.class));
 

@@ -1,9 +1,9 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.NullNode;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.NullNode;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
@@ -23,7 +23,7 @@ public final class TestFixtures {
     }
 
     public static CaseEventMessage createCaseEventMessage(EventInformation eventInformation)
-            throws JsonProcessingException {
+            throws JacksonException {
 
         final String messageContent = new ObjectMapper().writeValueAsString(eventInformation);
 
@@ -69,12 +69,11 @@ public final class TestFixtures {
         caseEventMessageEntity.setMessageContent(String.format("{\"UserId\": \"%s\"}", USER_ID));
         try {
             caseEventMessageEntity.setMessageProperties(new ObjectMapper().readTree("{\"property1\":\"test1\"}"));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("failed to set message properties on CaseEventMessageEntity");
         }
 
         caseEventMessageEntity.setHoldUntil(LocalDateTime.now());
-        caseEventMessageEntity.setSequence(10L);
         return caseEventMessageEntity;
     }
 }

@@ -1,10 +1,10 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.ProblemMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
@@ -47,7 +47,7 @@ public class CaseEventMessageMapper {
                 JsonNode jsonNodeMessageContent = objectMapper.readTree(entity.getMessageContent());
                 JsonNode jsonNodeCaseTypeId = jsonNodeMessageContent.get("CaseTypeId");
                 caseTypeId = jsonNodeCaseTypeId.asText();
-            } catch (JsonProcessingException jsonProcessingException) {
+            } catch (JacksonException jsonProcessingException) {
                 log.info("Error extracting CaseTypeId from message", jsonProcessingException);
             }
         } else {

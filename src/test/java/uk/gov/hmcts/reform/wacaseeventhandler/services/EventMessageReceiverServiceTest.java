@@ -3,9 +3,6 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +14,9 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationMetadata;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationRequest;
@@ -71,7 +71,7 @@ class EventMessageReceiverServiceTest {
     private ObjectMapper objectMapper;
 
     @Mock
-    private JsonProcessingException jsonProcessingException;
+    private JacksonException jsonProcessingException;
 
     @Mock
     private CaseEventMessageRepository caseEventMessageRepository;
@@ -100,7 +100,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void should_handle_message_when_valid_message_received() throws JsonProcessingException {
+    void should_handle_message_when_valid_message_received() throws JacksonException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenReturn(getEventInformation());
@@ -119,7 +119,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void should_handle_message_event_information_when_parsing_failed() throws JsonProcessingException {
+    void should_handle_message_event_information_when_parsing_failed() throws JacksonException {
         when(objectMapper.readValue(MESSAGE, EventInformation.class)).thenThrow(jsonProcessingException);
 
         eventMessageReceiverService.handleAsbMessage(MESSAGE_ID, SESSION_ID, MESSAGE);
@@ -132,7 +132,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void handle_message_event_message_properties_parsing_failed() throws JsonProcessingException {
+    void handle_message_event_message_properties_parsing_failed() throws JacksonException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenReturn(getEventInformation());
@@ -148,7 +148,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void should_handle_message_when_invalid_message_received() throws JsonProcessingException {
+    void should_handle_message_when_invalid_message_received() throws JacksonException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenReturn(EventInformation.builder()
@@ -166,7 +166,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void should_upsert_valid_dlq_message() throws JsonProcessingException {
+    void should_upsert_valid_dlq_message() throws JacksonException {
         CaseEventMessageEntity entity = new CaseEventMessageEntity();
         when(caseEventMessageRepository.findByMessageId(singletonList(MESSAGE_ID))).thenReturn(List.of(entity));
 
@@ -187,7 +187,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void should_upsert_invalid_dlq_message_with_missing_EventTimestamp() throws JsonProcessingException {
+    void should_upsert_invalid_dlq_message_with_missing_EventTimestamp() throws JacksonException {
         CaseEventMessageEntity entity = new CaseEventMessageEntity();
         when(caseEventMessageRepository.findByMessageId(singletonList(MESSAGE_ID))).thenReturn(List.of(entity));
 
@@ -209,7 +209,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void should_upsert_invalid_dlq_message_with_missing_CaseId() throws JsonProcessingException {
+    void should_upsert_invalid_dlq_message_with_missing_CaseId() throws JacksonException {
         CaseEventMessageEntity entity = new CaseEventMessageEntity();
         when(caseEventMessageRepository.findByMessageId(singletonList(MESSAGE_ID))).thenReturn(List.of(entity));
 
@@ -231,7 +231,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void should_upsert_invalid_dlq_message_with_missing_messageId() throws JsonProcessingException {
+    void should_upsert_invalid_dlq_message_with_missing_messageId() throws JacksonException {
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenReturn(getEventInformation());
         mockMessageProperties();
@@ -247,7 +247,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void should_upsert_invalid_dlq_message_with_missing_fromDlq() throws JsonProcessingException {
+    void should_upsert_invalid_dlq_message_with_missing_fromDlq() throws JacksonException {
         CaseEventMessageEntity entity = new CaseEventMessageEntity();
         when(caseEventMessageRepository.findByMessageId(singletonList(MESSAGE_ID))).thenReturn(List.of(entity));
 
@@ -269,7 +269,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void should_upsert_invalid_dlq_message() throws JsonProcessingException {
+    void should_upsert_invalid_dlq_message() throws JacksonException {
 
         CaseEventMessageEntity entity = new CaseEventMessageEntity();
         when(caseEventMessageRepository.findByMessageId(singletonList(MESSAGE_ID))).thenReturn(List.of(entity));
@@ -295,7 +295,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void should_upsert_valid_dlq_message_when_no_message_id_present() throws JsonProcessingException {
+    void should_upsert_valid_dlq_message_when_no_message_id_present() throws JacksonException {
         when(caseEventMessageRepository.findByMessageId(singletonList(MESSAGE_ID))).thenReturn(List.of());
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
@@ -314,7 +314,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void should_handle_invalid_message_deserialization() throws JsonProcessingException {
+    void should_handle_invalid_message_deserialization() throws JacksonException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenThrow(jsonProcessingException);
@@ -330,7 +330,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void should_handle_message_when_message_parsing_fails() throws JsonProcessingException {
+    void should_handle_message_when_message_parsing_fails() throws JacksonException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenThrow(jsonProcessingException);
@@ -347,7 +347,7 @@ class EventMessageReceiverServiceTest {
     }
 
     @Test
-    void should_handle_message_when_data_integrity_violation_occurs() throws JsonProcessingException {
+    void should_handle_message_when_data_integrity_violation_occurs() throws JacksonException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenReturn(EventInformation.builder()
@@ -374,7 +374,7 @@ class EventMessageReceiverServiceTest {
 
     @Test
     void should_handle_dlq_message_when_feature_flag_enabled_and_valid_message_received()
-        throws JsonProcessingException {
+        throws JacksonException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenReturn(EventInformation.builder()
@@ -395,7 +395,7 @@ class EventMessageReceiverServiceTest {
 
     @Test
     void should_handle_dlq_case_event_asb_message_when_feature_flag_enabled_and_invalid_message_received()
-        throws JsonProcessingException {
+        throws JacksonException {
 
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenReturn(EventInformation
@@ -424,7 +424,7 @@ class EventMessageReceiverServiceTest {
 
     @Test
     void should_handle_ccd_case_event_asb_message_when_feature_flag_enabled_and_valid_message_received()
-        throws JsonProcessingException {
+        throws JacksonException {
 
         mockMessageProperties();
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
@@ -446,7 +446,7 @@ class EventMessageReceiverServiceTest {
 
     @Test
     void should_handle_ccd_case_event_asb_message_when_feature_flag_enabled_and_invalid_message_received()
-        throws JsonProcessingException {
+        throws JacksonException {
 
         mockMessageProperties();
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
@@ -466,7 +466,7 @@ class EventMessageReceiverServiceTest {
 
     @Test
     void should_handle_ccd_case_event_asb_message_when_feature_flag_enabled_and_update_if_message_exist()
-        throws JsonProcessingException {
+        throws JacksonException {
 
         CaseEventMessageEntity entity = new CaseEventMessageEntity();
         entity.setMessageId(MESSAGE_ID);
@@ -495,7 +495,7 @@ class EventMessageReceiverServiceTest {
 
     @Test
     void should_handle_ccd_case_event_asb_message_with_different_content_to_existing_message_and_update_delivery_count()
-        throws JsonProcessingException {
+        throws JacksonException {
 
         CaseEventMessageEntity entity = new CaseEventMessageEntity();
         entity.setMessageId(MESSAGE_ID);
@@ -535,7 +535,7 @@ class EventMessageReceiverServiceTest {
 
 
     @Test
-    void should_get_message_by_message_id_when_message_found() throws JsonProcessingException {
+    void should_get_message_by_message_id_when_message_found() throws JacksonException {
         CaseEventMessageEntity entity = new CaseEventMessageEntity();
 
         entity.setMessageId(MESSAGE_ID);
@@ -605,7 +605,7 @@ class EventMessageReceiverServiceTest {
 
     @Test
     void should_update_delivery_count_when_saving_message_with_message_id_already_in_db()
-        throws JsonProcessingException {
+        throws JacksonException {
         when(objectMapper.readValue(MESSAGE, EventInformation.class))
             .thenReturn(getEventInformation());
         mockMessageProperties();
@@ -653,7 +653,7 @@ class EventMessageReceiverServiceTest {
             + "NewStateId: some new state Id}";
     }
 
-    private void mockMessageProperties() throws JsonProcessingException {
+    private void mockMessageProperties() throws JacksonException {
         Map<String, String> messageProperties = Map.of(
             "messageProperty1", "value1",
             "messageProperty2", "value2"
@@ -665,7 +665,7 @@ class EventMessageReceiverServiceTest {
         when(objectMapper.readTree("jsonMessageProperties")).thenReturn(getMessagesPropertyAsJson());
     }
 
-    private void mockParsingExceptionWhenRetrievingMessageProperties() throws JsonProcessingException {
+    private void mockParsingExceptionWhenRetrievingMessageProperties() throws JacksonException {
         Map<String, String> messageProperties = Map.of(
             "messageProperty1", "value1",
             "messageProperty2", "value2"
@@ -676,7 +676,7 @@ class EventMessageReceiverServiceTest {
         when(objectMapper.writeValueAsString(messageProperties)).thenThrow(jsonProcessingException);
     }
 
-    private JsonNode getMessagesPropertyAsJson() throws JsonProcessingException {
+    private JsonNode getMessagesPropertyAsJson() throws JacksonException {
         return new ObjectMapper().readTree("{\"" + MESSAGE_PROPERTIES + "\":{\"property1\":\"test1\"}}");
     }
 
