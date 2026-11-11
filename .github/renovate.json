@@ -1,4 +1,7 @@
 {
+  "timezone": "Europe/London",
+  "platformAutomerge": false,
+  "minimumReleaseAge": "30 days",
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "labels": [
     "dependencies"
@@ -15,6 +18,16 @@
         "pact"
       ],
       "enabled": false
+    },
+    {
+      "description": "Exclude HMCTS dependencies from the release age gate",
+      "matchPackageNames": [
+        "com.github.hmcts*",
+        "uk.gov.hmcts*",
+        "hmctsprod.azurecr.io/**",
+        "hmctspublic.azurecr.io/**"
+      ],
+      "minimumReleaseAge": null
     }
   ]
 }
