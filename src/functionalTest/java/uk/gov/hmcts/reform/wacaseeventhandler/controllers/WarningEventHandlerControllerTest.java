@@ -183,7 +183,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
 
         String caseIdForTask1 = getWaCaseId();
 
-        // Initiate task1 , category (timeExtension)
+        // Create task1, category (timeExtension)
         sendMessage(
             caseIdForTask1,
             "submitTimeExtension",
@@ -203,10 +203,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .extract()
             .path("[0].id");
 
-        initiateTask(caseworkerCredentials.getHeaders(), caseIdForTask1, caseId1Task1Id,
-            "decideOnTimeExtension", "Decide On Time Extension", "Decide On Time Extension");
-
-        // initiate task2, category (followUpOverdue)
+        // Create task2, category (followUpOverdue)
         sendMessage(
             caseIdForTask1,
             "requestCaseBuilding",
@@ -227,10 +224,7 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .extract()
             .path("[1].id");
 
-        initiateTask(caseworkerCredentials.getHeaders(), caseIdForTask1, caseId1Task2Id,
-            "followUpOverdueCaseBuilding", "Follow-up overdue case building", "Follow-up overdue case building");
-
-        // initiate task3, category (caseProgression)
+        // Create task3, category (caseProgression)
         sendMessage(
             caseIdForTask1,
             "listCma",
@@ -250,9 +244,6 @@ public class WarningEventHandlerControllerTest extends CaseEventHandlerControlle
             .assertThat().body("[2].id", notNullValue())
             .extract()
             .path("[2].id");
-
-        initiateTask(caseworkerCredentials.getHeaders(), caseIdForTask1, caseId1Task3Id,
-            "attendCma", "Attend Cma", "Attend Cma");
 
         // send warning message
         sendMessage(
