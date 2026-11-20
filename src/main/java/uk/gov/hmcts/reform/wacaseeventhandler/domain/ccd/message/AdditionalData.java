@@ -2,10 +2,10 @@ package uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import tools.jackson.databind.JsonNode;
 
 import java.util.Map;
 

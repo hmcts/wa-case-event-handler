@@ -1,6 +1,5 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.clients;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import feign.FeignException;
 import feign.RetryableException;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+import tools.jackson.core.JacksonException;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.CaseEventMessage;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.model.MessageUpdateRetry;
 import uk.gov.hmcts.reform.wacaseeventhandler.entity.CaseEventMessageEntity;
@@ -150,8 +150,8 @@ public class DatabaseMessageConsumer implements Runnable {
             log.error("FeignException while processing message. caseEventMessage:{} exception: ",
                 caseEventMessage, fe);
             return processException(fe, caseEventMessage);
-        } catch (JsonProcessingException jpe) {
-            log.error("JsonProcessingException while processing message. caseEventMessage:{} exception: ",
+        } catch (JacksonException jpe) {
+            log.error("JacksonException while processing message. caseEventMessage:{} exception: ",
                 caseEventMessage, jpe);
             return processError(caseEventMessage);
         } catch (Exception ex) {

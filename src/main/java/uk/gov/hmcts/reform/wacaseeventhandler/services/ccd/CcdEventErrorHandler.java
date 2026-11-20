@@ -2,12 +2,12 @@ package uk.gov.hmcts.reform.wacaseeventhandler.services.ccd;
 
 import com.azure.messaging.servicebus.ServiceBusReceivedMessage;
 import com.azure.messaging.servicebus.ServiceBusReceiverClient;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClientException;
+import tools.jackson.core.JacksonException;
 
 @Slf4j
 @Component
@@ -25,7 +25,7 @@ public class CcdEventErrorHandler {
 
     public void handleJsonError(ServiceBusReceiverClient receiver,
                                 ServiceBusReceivedMessage message,
-                                JsonProcessingException ex) {
+                                JacksonException ex) {
         log.error("Unable to parse incoming message with id '{}'", message.getMessageId(), ex);
         String messageData = new String(message.getBody().toBytes());
 

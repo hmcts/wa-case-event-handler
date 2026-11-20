@@ -1,9 +1,9 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 public final class UserIdParser {
@@ -20,7 +20,7 @@ public final class UserIdParser {
             if (!userIdNode.isMissingNode()) {
                 return userIdNode.textValue();
             }
-        } catch (IllegalArgumentException | JsonProcessingException e) {
+        } catch (IllegalArgumentException | JacksonException e) {
             log.error("Unable to find User Id in message");
         }
         return null;

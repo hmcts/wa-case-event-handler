@@ -1,16 +1,16 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.MessagingTests;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.AdditionalData;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
@@ -32,10 +32,10 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.CreatorObjectMapper.asJsonS
 
 @Slf4j
 public class ProblemMessageControllerFunctionalTest extends MessagingTests {
-    protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-        .setPropertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE)
-        .registerModule(new JavaTimeModule())
-        .registerModule(new Jdk8Module());
+    protected static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
+        .propertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE)
+        .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .build();
 
     private LocalDateTime eventTimestamp1;
     private LocalDateTime holdUntilTimestamp;

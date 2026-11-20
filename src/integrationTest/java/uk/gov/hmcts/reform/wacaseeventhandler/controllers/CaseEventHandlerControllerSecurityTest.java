@@ -5,12 +5,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -32,22 +32,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.CaseEventHandlerControllerEndpointTest.getBaseEventInformation;
 import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.asJsonString;
 
-
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles(profiles = {"db", "integration"})
 class CaseEventHandlerControllerSecurityTest {
 
     public static final String SOME_SERVICE_AUTHORIZATION = "Bearer some service authorization";
-    @MockBean
+    @MockitoBean
     private ServiceAuthorisationApi serviceAuthorisationApi;
-    @MockBean
+    @MockitoBean
     private CancellationCaseEventHandler cancellationCaseEventHandler;
-    @MockBean
+    @MockitoBean
     private InitiationCaseEventHandler initiationCaseEventHandler;
-    @MockBean
+    @MockitoBean
     private WarningCaseEventHandler warningCaseEventHandler;
-    @MockBean
+    @MockitoBean
     private ReconfigurationCaseEventHandler reconfigurationCaseEventHandler;
 
     @Autowired

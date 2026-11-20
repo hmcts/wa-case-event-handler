@@ -1,12 +1,11 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import feign.form.spring.SpringFormEncoder;
-import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
+import org.springframework.cloud.openfeign.support.FeignHttpMessageConverters;
 import org.springframework.cloud.openfeign.support.ResponseEntityDecoder;
 import org.springframework.cloud.openfeign.support.SpringDecoder;
 import org.springframework.cloud.openfeign.support.SpringEncoder;
@@ -15,9 +14,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.TEXT_PLAIN;
@@ -27,37 +28,85 @@ import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
 @SuppressWarnings("PMD.DataflowAnomalyAnalysis")
 public class SnakeCaseFeignConfiguration {
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     @Autowired
-    public SnakeCaseFeignConfiguration(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    public SnakeCaseFeignConfiguration(JsonMapper jsonMapper) {
+        this.jsonMapper = jsonMapper;
     }
 
     @Bean
     @Primary
-    public Encoder feignFormEncoder(
-        ObjectFactory<HttpMessageConverters> messageConverters
-    ) {
+    public Encoder feignFormEncoder(ObjectProvider<FeignHttpMessageConverters> messageConverters) {
         return new SpringFormEncoder(new SpringEncoder(messageConverters));
     }
 
     @Bean
     public Decoder feignDecoder() {
-        MappingJackson2HttpMessageConverter jacksonConverter = new MappingJackson2HttpMessageConverter(objectMapper);
+        JacksonJsonHttpMessageConverter jacksonConverter = new JacksonJsonHttpMessageConverter(jsonMapper);
         jacksonConverter.setSupportedMediaTypes(Arrays.asList(MediaType.valueOf(TEXT_PLAIN_VALUE + ";charset=utf-8"),
                                                               APPLICATION_JSON,
                                                               new MediaType("application", "*+json"),
                                                               TEXT_PLAIN));
-        ObjectFactory<HttpMessageConverters> objectFactory = () -> new HttpMessageConverters(jacksonConverter);
-        return new ResponseEntityDecoder(new SpringDecoder(objectFactory));
+        return new ResponseEntityDecoder(new SpringDecoder(provider(jacksonConverter)));
     }
 
     @Bean
     public Encoder feignEncoder() {
-        HttpMessageConverter jacksonConverter = new MappingJackson2HttpMessageConverter(objectMapper);
-        ObjectFactory<HttpMessageConverters> objectFactory = () -> new HttpMessageConverters(jacksonConverter);
-        return new SpringEncoder(objectFactory);
+        return new SpringEncoder(provider(new JacksonJsonHttpMessageConverter(jsonMapper)));
+    }
+
+    private static ObjectProvider<FeignHttpMessageConverters> provider(HttpMessageConverter<?> converter) {
+        FeignHttpMessageConverters converters = new FeignHttpMessageConverters(unusedProvider(), unusedProvider()) {
+            @Override
+            public List<HttpMessageConverter<?>> getConverters() {
+                return List.of(converter);
+            }
+        };
+        return new ObjectProvider<>() {
+            @Override
+            public FeignHttpMessageConverters getObject() {
+                return converters;
+            }
+
+            @Override
+            public FeignHttpMessageConverters getObject(Object... args) {
+                return converters;
+            }
+
+            @Override
+            public FeignHttpMessageConverters getIfAvailable() {
+                return converters;
+            }
+
+            @Override
+            public FeignHttpMessageConverters getIfUnique() {
+                return converters;
+            }
+        };
+    }
+
+    private static <T> ObjectProvider<T> unusedProvider() {
+        return new ObjectProvider<>() {
+            @Override
+            public T getObject() {
+                throw new IllegalStateException("Feign converter provider is unused");
+            }
+
+            @Override
+            public T getObject(Object... args) {
+                return getObject();
+            }
+
+            @Override
+            public T getIfAvailable() {
+                return null;
+            }
+
+            @Override
+            public T getIfUnique() {
+                return null;
+            }
+        };
     }
 }
-

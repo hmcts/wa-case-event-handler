@@ -1,19 +1,19 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.zalando.logbook.HeaderFilter;
 import org.zalando.logbook.core.HeaderFilters;
 import org.zalando.logbook.json.JsonHttpLogFormatter;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration
 public class CustomLogBookConfiguration {
 
     @Bean
     public JsonHttpLogFormatter logFilter() {
-        return new JsonHttpLogFormatter(new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT));
+        return new JsonHttpLogFormatter(JsonMapper.builder().enable(SerializationFeature.INDENT_OUTPUT).build());
     }
 
     @Bean

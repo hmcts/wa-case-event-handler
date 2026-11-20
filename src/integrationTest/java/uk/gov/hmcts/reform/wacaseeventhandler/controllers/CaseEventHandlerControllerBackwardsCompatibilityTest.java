@@ -3,12 +3,12 @@ package uk.gov.hmcts.reform.wacaseeventhandler.controllers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.reform.authorisation.generators.AuthTokenGenerator;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.WorkflowApiClient;
@@ -34,7 +34,6 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.controllers.CaseEventHandle
 import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmnStringValue;
 import static uk.gov.hmcts.reform.wacaseeventhandler.helpers.InitiateTaskHelper.asJsonString;
 
-
 @SuppressWarnings("unchecked")
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
@@ -45,9 +44,9 @@ class CaseEventHandlerControllerBackwardsCompatibilityTest {
     public static final String TENANT_ID = "ia";
     public static final String INITIATE_DMN_TABLE = "wa-task-initiation-ia-asylum";
     public static final String CANCELLATION_DMN_TABLE = "wa-task-cancellation-ia-asylum";
-    @MockBean
+    @MockitoBean
     private AuthTokenGenerator authTokenGenerator;
-    @MockBean
+    @MockitoBean
     private WorkflowApiClient workflowApiClient;
 
     @Autowired

@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.CancellationEvaluateResponse;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateDmnResponse;
@@ -36,19 +36,19 @@ import static uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue.dmn
 class CaseEventHandlerControllerHandlersOrderTest {
 
     public static final String FIXED_DATE = "2020-12-07T17:39:22.232622";
-    @MockBean
+    @MockitoBean
     private CancellationCaseEventHandler cancellationTaskHandlerService;
 
-    @MockBean
+    @MockitoBean
     private InitiationCaseEventHandler initiationTaskHandlerService;
 
-    @MockBean
+    @MockitoBean
     private WarningCaseEventHandler warningTaskHandlerService;
 
-    @MockBean
+    @MockitoBean
     private ReconfigurationCaseEventHandler reconfigurationHandlerService;
 
-    @MockBean
+    @MockitoBean
     private EventMessageReceiverService eventMessageReceiverService;
 
     @Autowired

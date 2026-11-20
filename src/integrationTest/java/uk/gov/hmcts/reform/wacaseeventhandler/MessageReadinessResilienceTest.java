@@ -9,14 +9,15 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.TransactionTimedOutException;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
 import uk.gov.hmcts.reform.wacaseeventhandler.config.executors.MessageReadinessExecutor;
@@ -39,7 +40,7 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("db")
-@ExtendWith(OutputCaptureExtension.class)
+@ExtendWith({MockitoExtension.class, OutputCaptureExtension.class})
 @TestPropertySource(properties = {"azure.servicebus.enableASB-DLQ=true",
     "azure.servicebus.connection-string="
         + "Endpoint=sb://REPLACE_ME/;SharedAccessKeyName=REPLACE_ME;SharedAccessKey=REPLACE_ME",
@@ -57,7 +58,7 @@ public class MessageReadinessResilienceTest {
                                             + "Catching exception continuing execution";
     private static final int MAX_ATTEMPTS = 5;
 
-    @MockBean
+    @MockitoBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Mock
@@ -66,10 +67,10 @@ public class MessageReadinessResilienceTest {
     @Mock
     private OperationContext operationContext;
 
-    @MockBean
+    @MockitoBean
     private DeadLetterQueuePeekService deadLetterQueuePeekService;
 
-    @MockBean
+    @MockitoBean
     private CaseEventMessageRepository caseEventMessageRepository;
 
     AtomicInteger count;
