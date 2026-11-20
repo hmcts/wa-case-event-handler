@@ -232,11 +232,11 @@ dependencyManagement {
     dependency group: 'org.glassfish', name: 'jakarta.el', version: '4.0.2'
 
     //CVE-2021-42550
-    dependencySet(group: 'ch.qos.logback', version: '1.5.38') {
+    dependencySet(group: 'ch.qos.logback', version: '1.6.8') {
       entry 'logback-classic'
       entry 'logback-core'
     }
-    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.2.20.Final') {
+    dependencySet(group: 'io.netty', name: 'netty-all', version: '4.2.21.Final') {
       entry 'netty-buffer'
       entry 'netty-codec'
       entry 'netty-codec-dns'
