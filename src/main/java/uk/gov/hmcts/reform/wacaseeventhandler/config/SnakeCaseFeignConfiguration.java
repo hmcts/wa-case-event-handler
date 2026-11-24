@@ -5,7 +5,9 @@ import feign.codec.Encoder;
 import feign.form.spring.SpringFormEncoder;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.http.converter.autoconfigure.ClientHttpMessageConvertersCustomizer;
 import org.springframework.cloud.openfeign.support.FeignHttpMessageConverters;
+import org.springframework.cloud.openfeign.support.HttpMessageConverterCustomizer;
 import org.springframework.cloud.openfeign.support.ResponseEntityDecoder;
 import org.springframework.cloud.openfeign.support.SpringDecoder;
 import org.springframework.cloud.openfeign.support.SpringEncoder;
@@ -33,6 +35,15 @@ public class SnakeCaseFeignConfiguration {
     @Autowired
     public SnakeCaseFeignConfiguration(JsonMapper jsonMapper) {
         this.jsonMapper = jsonMapper;
+    }
+
+    @Bean
+    public FeignHttpMessageConverters feignHttpMessageConverters(
+        ObjectProvider<ClientHttpMessageConvertersCustomizer> customizers,
+        ObjectProvider<HttpMessageConverterCustomizer> cloudCustomizers) {
+        // The primary encoder is created in the application context. OpenFeign otherwise
+        // creates this bean only inside each Feign client context.
+        return new FeignHttpMessageConverters(customizers, cloudCustomizers);
     }
 
     @Bean
