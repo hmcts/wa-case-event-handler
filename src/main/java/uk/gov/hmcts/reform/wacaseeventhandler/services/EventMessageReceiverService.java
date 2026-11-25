@@ -1,12 +1,12 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.services;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformation;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationMetadata;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.ccd.message.EventInformationRequest;
@@ -25,7 +25,6 @@ import static java.lang.Boolean.TRUE;
 import static java.lang.String.format;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 
 @Slf4j
 @Service
@@ -106,7 +105,7 @@ public class EventMessageReceiverService {
                     log.info("Message with id '{}' successfully updated and saved into DB", messageId);
 
                     return mapper.mapToCaseEventMessage(messageEntity);
-                } catch (JsonProcessingException e) {
+                } catch (JacksonException e) {
                     log.error("Could not parse the message with id '{}'", messageId);
 
                     boolean isDlq = TRUE.equals(fromDlq);
@@ -131,7 +130,7 @@ public class EventMessageReceiverService {
             log.info("Message with id '{}' successfully stored into the DB", messageId);
 
             return mapper.mapToCaseEventMessage(savedEntity);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("Could not parse the message with id '{}' case id '{}'", messageId, sessionId);
 
             boolean isDlq = TRUE.equals(fromDlq);
@@ -150,7 +149,7 @@ public class EventMessageReceiverService {
     private CaseEventMessageEntity buildCaseEventMessageEntity(String messageId,
                                                                String message,
                                                                Boolean fromDlq)
-        throws JsonProcessingException {
+        throws JacksonException {
 
         EventInformation eventInformation = objectMapper.readValue(message, EventInformation.class);
         boolean isValid = validate(messageId, eventInformation, fromDlq);
@@ -175,14 +174,14 @@ public class EventMessageReceiverService {
     }
 
     private void updateMessageEntity(CaseEventMessageEntity messageEntity,
-                                     EventInformationMetadata eventInformationMetadata) throws JsonProcessingException {
+                                     EventInformationMetadata eventInformationMetadata) throws JacksonException {
         JsonNode actualObj = convertMapToJsonNode(eventInformationMetadata);
         messageEntity.setMessageProperties(actualObj);
         messageEntity.setHoldUntil(eventInformationMetadata.getHoldUntil());
     }
 
     private JsonNode convertMapToJsonNode(EventInformationMetadata eventInformationMetadata)
-        throws JsonProcessingException {
+        throws JacksonException {
 
         String json = objectMapper.writeValueAsString(eventInformationMetadata.getMessageProperties());
         return objectMapper.readTree(json);

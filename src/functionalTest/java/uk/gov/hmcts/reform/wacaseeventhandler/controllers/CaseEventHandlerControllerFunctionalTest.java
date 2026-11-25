@@ -396,11 +396,12 @@ public class CaseEventHandlerControllerFunctionalTest extends MessagingTests {
 
         taskFound = findTasksByCaseId(caseId, 2);
 
-        String caseId1Task2Id = taskFound
-            .then().assertThat()
-            .body("[1].id", notNullValue())
-            .extract()
-            .path("[1].id");
+        String caseId1Task2Id = taskFound.jsonPath()
+            .getList("id", String.class)
+            .stream()
+            .filter(taskId -> !taskId.equals(caseId1Task1Id))
+            .findFirst()
+            .orElseThrow();
 
         // Assert the task warning was set
         assertTaskHasWarnings(caseId, caseId1Task1Id, true);

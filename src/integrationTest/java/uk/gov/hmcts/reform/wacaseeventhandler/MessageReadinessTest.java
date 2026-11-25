@@ -4,12 +4,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import uk.gov.hmcts.reform.wacaseeventhandler.clients.LaunchDarklyFeatureFlagProvider;
@@ -31,7 +31,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("db")
@@ -46,10 +45,10 @@ public class MessageReadinessTest {
     private static final boolean DLQ_EMPTY = true;
     private static final boolean DLQ_NOT_EMPTY = false;
 
-    @MockBean
+    @MockitoBean
     private DeadLetterQueuePeekService deadLetterQueuePeekService;
 
-    @MockBean
+    @MockitoBean
     private LaunchDarklyFeatureFlagProvider launchDarklyFeatureFlagProvider;
 
     @Autowired

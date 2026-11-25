@@ -19,7 +19,7 @@ public class CamundaProcessVariables {
 
     Map<String, DmnValue<?>> processVariablesMap;
 
-    @JsonCreator
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
     public CamundaProcessVariables(Map<String, DmnValue<?>> processVariablesMap) {
         this.processVariablesMap = processVariablesMap;
     }

@@ -1,8 +1,8 @@
 package uk.gov.hmcts.reform.wacaseeventhandler.helpers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.DmnValue;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.request.EvaluateDmnRequest;
 import uk.gov.hmcts.reform.wacaseeventhandler.domain.camunda.response.EvaluateDmnResponse;
@@ -57,13 +57,15 @@ public final class InitiateTaskHelper {
     }
 
 
-    public static String asJsonString(final Object obj) throws JsonProcessingException {
-        return new ObjectMapper().setPropertyNamingStrategy(
-            PropertyNamingStrategies.UPPER_CAMEL_CASE).writeValueAsString(obj);
+    public static String asJsonString(final Object obj) throws JacksonException {
+        return JsonMapper.builder()
+            .propertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE)
+            .build()
+            .writeValueAsString(obj);
     }
 
-    public static String asJsonString(final Map<String, String> obj) throws JsonProcessingException {
-        return new ObjectMapper().writeValueAsString(obj);
+    public static String asJsonString(final Map<String, String> obj) throws JacksonException {
+        return new JsonMapper().writeValueAsString(obj);
     }
 
     public static EventInformation validAdditionalData() {
